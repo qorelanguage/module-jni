@@ -1,0 +1,26 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+
+%requires jni
+%requires QUnit
+
+%exec-class Main
+
+public class Main inherits QUnit::Test {
+
+    constructor() : Test("jni test", "1.0") {
+        addTestCase("base test", \testJni());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testJni() {
+        assertTrue(True);
+    }
+}
