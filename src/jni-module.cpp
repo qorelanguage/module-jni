@@ -30,12 +30,15 @@
   information.
 */
 #include <qore/Qore.h>
+#include "JniEnv.h"
 
-static QoreNamespace JniNamespace("JNI");
+static QoreNamespace JniNamespace("Jni");
 
 static QoreStringNode *jni_module_init();
 static void jni_module_ns_init(QoreNamespace *rns, QoreNamespace *qns);
 static void jni_module_delete();
+
+DLLLOCAL void init_jni_functions(QoreNamespace& ns);
 
 DLLEXPORT char qore_module_name[] = "jni";
 DLLEXPORT char qore_module_version[] = PACKAGE_VERSION;
@@ -54,8 +57,20 @@ DLLEXPORT qore_license_t qore_module_license = QL_LGPL;
 #endif
 DLLEXPORT char qore_module_license_str[] = "MIT";
 
+static void jni_thread_cleanup(void *) {
+   JniEnv::threadCleanup();
+}
+
 static QoreStringNode *jni_module_init() {
-   return 0;
+   QoreStringNode *err = JniEnv::createVM();
+   if (err != nullptr) {
+      return err;
+   }
+   tclist.push(jni_thread_cleanup, nullptr);
+
+   init_jni_functions(JniNamespace);
+
+   return nullptr;
 }
 
 static void jni_module_ns_init(QoreNamespace *rns, QoreNamespace *qns) {
@@ -63,4 +78,6 @@ static void jni_module_ns_init(QoreNamespace *rns, QoreNamespace *qns) {
 }
 
 static void jni_module_delete() {
+   tclist.pop(false);
+   JniEnv::destroyVM();
 }
