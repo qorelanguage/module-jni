@@ -40,4 +40,11 @@
 string get_version() {
    return JniEnv::getVersion(xsink);
 }
+
+//! TODO
+/**
+ */
+nothing load_class(string name) {
+   JniEnv::loadClass(xsink, name);
+}
 //@}

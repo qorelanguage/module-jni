@@ -24,11 +24,10 @@
 //
 //------------------------------------------------------------------------------
 #include "JniEnv.h"
-
-#include <cassert>
 #include <jni.h>
-
-constexpr int LogLevel = 1;
+#include "LocalReference.h"
+#include "ModifiedUtf8String.h"
+#include "defs.h"
 
 JavaVM *JniEnv::vm = nullptr;
 thread_local JNIEnv *JniEnv::env = nullptr;
@@ -80,6 +79,46 @@ void JniEnv::threadCleanup() {
    }
 }
 
+bool JniEnv::checkJavaException(ExceptionSink *xsink) {
+   assert(env != nullptr);
+
+   LocalReference<jthrowable> throwable = env->ExceptionOccurred();
+   if (throwable == nullptr) {
+      return false;
+   }
+   env->ExceptionDescribe();
+   env->ExceptionClear();
+
+   //TODO include exception class name
+   //TODO include causes
+   //TODO stacktrace?
+
+   jmethodID m = env->GetMethodID(env->GetObjectClass(throwable), "getMessage", "()Ljava/lang/String;");
+   if (m == nullptr) {
+      xsink->raiseException("JNI-ERROR", "Unable to get exception message - getMessage() not found");
+      return true;
+   }
+
+   LocalReference<jstring> msg = static_cast<jstring>(env->CallObjectMethod(throwable, m));
+   if (env->ExceptionCheck()) {
+      xsink->raiseException("JNI-ERROR", "Unable to get exception message - another exception thrown");
+      return true;
+   }
+
+   //TODO helper class for getting strings
+   const char *chars = env->GetStringUTFChars(msg, nullptr);
+   if (!chars) {
+      xsink->raiseException("JNI-ERROR", "Unable to get exception message - GetStringUTFChars() failed");
+      return true;
+   }
+
+   //TODO encoding conversion
+   xsink->raiseException("JNI-ERROR", chars);
+
+   env->ReleaseStringUTFChars(msg, chars);      //TODO RAII
+   return true;
+}
+
 QoreStringNode *JniEnv::getVersion(ExceptionSink *xsink) {
    if (!attach(xsink)) {
       return nullptr;
@@ -88,4 +127,18 @@ QoreStringNode *JniEnv::getVersion(ExceptionSink *xsink) {
    QoreStringNode *str = new QoreStringNode();
    str->sprintf("%d.%d", v >> 16, v & 0xFFFF);
    return str;
+}
+
+void JniEnv::loadClass(ExceptionSink *xsink, const QoreStringNode *name) {
+   if (!attach(xsink)) {
+      return;
+   }
+
+   ModifiedUtf8String nameUtf8(name, xsink);
+   printd(LogLevel, "loadClass %s\n", nameUtf8.c_str());
+   LocalReference<jclass> clazz = env->FindClass(nameUtf8.c_str());
+   if (checkJavaException(xsink)) {
+      return;
+   }
+   //TODO
 }

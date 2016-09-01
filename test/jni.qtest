@@ -21,6 +21,6 @@ public class Main inherits QUnit::Test {
     }
 
     testJni() {
-        assertTrue(True);
+        assertThrows("JNI-ERROR", sub() {Jni::load_class("java/lang/Strin");});
     }
 }

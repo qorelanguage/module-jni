@@ -25,68 +25,78 @@
 //------------------------------------------------------------------------------
 ///
 /// \file
-/// \brief Defines the JniEnv class.
+/// \brief Defines the LocalReference helper class template
 ///
 //------------------------------------------------------------------------------
-#ifndef QORE_JNI_JNIENV_H_
-#define QORE_JNI_JNIENV_H_
+#ifndef QORE_JNI_LOCALREFERENCE_H_
+#define QORE_JNI_LOCALREFERENCE_H_
 
-#include <cassert>
 #include <qore/Qore.h>
-#include <jni.h>
+#include "JniEnv.h"
+#include "defs.h"
 
 /**
- * \brief Provides access to JNI functions.
+ * \brief A RAII wrapper for JNI's local references.
+ *
+ * Assumes that the current thread has been attached to the JVM.
+ * \tparam T the type of the reference (jobject, jclass etc.)
  */
-class JniEnv {
+template<typename T>
+class LocalReference {
 
 public:
    /**
-    * \brief Returns the JNIEnv* associated with this thread.
-    *
-    * Assumes that the thread has been attached to the JVM.
-    * \return the JNIEnv* associated with this thread.
+    * \brief Creates an instance.
+    * \param ref the local reference
     */
-   static JNIEnv *getEnv() {
-      assert(env != nullptr);
-      return env;
+   LocalReference(T ref = nullptr) : ref(ref) {
+      if (ref != nullptr) {
+         printd(LogLevel, "LocalReference created: %p\n", ref);
+      }
    }
 
+   /**
+    * \brief Destroys the local reference represented by this instance.
+    */
+   ~LocalReference() {
+      if (ref != nullptr) {
+         printd(LogLevel, "LocalReference deleted: %p\n", ref);
+         JniEnv::getEnv()->DeleteLocalRef(ref);
+      }
+   }
 
-   static QoreStringNode *createVM();
-   static void destroyVM();
-   static void threadCleanup();
+   /**
+    * \brief Move constructor.
+    * \param src the source local reference wrapper
+    */
+   LocalReference(LocalReference &&src) : ref(src.ref) {
+      src.ref = nullptr;
+   }
 
-   static QoreStringNode *getVersion(ExceptionSink *xsink);
-   static void loadClass(ExceptionSink *xsink, const QoreStringNode *name);
+   /**
+    * \brief Move assignment.
+    * \param src the source local reference wrapper
+    * \return *this
+    */
+   LocalReference &operator=(LocalReference &&src) {
+      ref = src.ref;
+      src.ref = nullptr;
+      return *this;
+   }
 
+   /**
+    * \brief Implicit conversion to the reference type.
+    */
+   operator T() const {
+      return ref;
+   }
 
 private:
-   /**
-    * \brief This is a static class - no instances are allowed.
-    */
-   JniEnv() = delete;
-
-   /**
-    * \brief Makes sure that this thread is attached to the JVM and thus the env member is a valid JNIEnv pointer.
-    * \param xsink the exception sink
-    * \return true if this thread is attached (and env is a valid pointer) or false when an error occurs in which case
-    *         it raises an exception
-    */
-   static bool attach(ExceptionSink *xsink);
-
-   /**
-    * \brief Raises a Qore exception if there is a pending Java exception.
-    *
-    * Assumes that the thread has been attached to the JVM. Marks the JAva exception as handled.
-    * \param xsink the exception sink
-    * \return true if an exception has been raised
-    */
-   static bool checkJavaException(ExceptionSink *xsink);
+   LocalReference(const LocalReference &) = delete;
+   LocalReference &operator=(const LocalReference &) = delete;
 
 private:
-   static JavaVM *vm;
-   static thread_local JNIEnv *env;
+   T ref;
 };
 
-#endif // QORE_JNI_JNIENV_H_
+#endif // QORE_JNI_LOCALREFERENCE_H_

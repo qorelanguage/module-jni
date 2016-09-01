@@ -25,68 +25,44 @@
 //------------------------------------------------------------------------------
 ///
 /// \file
-/// \brief Defines the JniEnv class.
+/// \brief Defines the ModifiedUtf8String class.
 ///
 //------------------------------------------------------------------------------
-#ifndef QORE_JNI_JNIENV_H_
-#define QORE_JNI_JNIENV_H_
+#ifndef QORE_JNI_MODIFIEDUTF8STRING_H_
+#define QORE_JNI_MODIFIEDUTF8STRING_H_
 
-#include <cassert>
 #include <qore/Qore.h>
-#include <jni.h>
 
 /**
- * \brief Provides access to JNI functions.
+ * \brief A helper class for converting strings to JNI's "modified utf-8" encoding.
  */
-class JniEnv {
+class ModifiedUtf8String {
 
 public:
    /**
-    * \brief Returns the JNIEnv* associated with this thread.
+    * \brief Converts the source string.
     *
-    * Assumes that the thread has been attached to the JVM.
-    * \return the JNIEnv* associated with this thread.
+    * Raises an exception if the string cannot be converted, in which case the instance represents an empty string
+    * \param src the source string to convert, must not be null
+    * \param xsink the exception sink
     */
-   static JNIEnv *getEnv() {
-      assert(env != nullptr);
-      return env;
+   explicit ModifiedUtf8String(const QoreString *src, ExceptionSink *xsink) : str(src) {
+      assert(src != nullptr);
+      //TODO implement conversion - for now we assume that the source string is already in modified utf-8 (or simply ASCII)
    }
 
-
-   static QoreStringNode *createVM();
-   static void destroyVM();
-   static void threadCleanup();
-
-   static QoreStringNode *getVersion(ExceptionSink *xsink);
-   static void loadClass(ExceptionSink *xsink, const QoreStringNode *name);
-
-
-private:
    /**
-    * \brief This is a static class - no instances are allowed.
-    */
-   JniEnv() = delete;
-
-   /**
-    * \brief Makes sure that this thread is attached to the JVM and thus the env member is a valid JNIEnv pointer.
-    * \param xsink the exception sink
-    * \return true if this thread is attached (and env is a valid pointer) or false when an error occurs in which case
-    *         it raises an exception
-    */
-   static bool attach(ExceptionSink *xsink);
-
-   /**
-    * \brief Raises a Qore exception if there is a pending Java exception.
+    * \brief Returns the string converted to modified utf-8 encoding.
     *
-    * Assumes that the thread has been attached to the JVM. Marks the JAva exception as handled.
-    * \param xsink the exception sink
-    * \return true if an exception has been raised
+    * The returned pointer remains valid until this instance is destroyed.
+    * \return the string converted to modified utf-8 encoding
     */
-   static bool checkJavaException(ExceptionSink *xsink);
+   const char *c_str() const {
+      return str->getBuffer();
+   }
 
 private:
-   static JavaVM *vm;
-   static thread_local JNIEnv *env;
+   const QoreString *str;
 };
 
-#endif // QORE_JNI_JNIENV_H_
+#endif // QORE_JNI_MODIFIEDUTF8STRING_H_
