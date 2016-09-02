@@ -32,8 +32,10 @@
 #define QORE_JNI_GLOBALREFERENCE_H_
 
 #include <qore/Qore.h>
-#include "JniEnv.h"
+#include "Env.h"
 #include "defs.h"
+
+namespace jni {
 
 /**
  * \brief A RAII wrapper for JNI's global references.
@@ -50,7 +52,7 @@ public:
     * \param ref the global reference
     */
    GlobalReference(T ref = nullptr) : ref(ref) {
-      assert(ref == nullptr || JniEnv::getEnv()->GetObjectRefType(ref) == JNIGlobalRefType);
+      assert(ref == nullptr || Env::getEnv()->GetObjectRefType(ref) == JNIGlobalRefType);
       if (ref != nullptr) {
          printd(LogLevel, "GlobalReference created: %p\n", ref);
       }
@@ -61,7 +63,7 @@ public:
     */
    ~GlobalReference() {
       if (ref != nullptr) {
-         JNIEnv *env = JniEnv::attachAndGetEnv();
+         JNIEnv *env = Env::attachAndGetEnv();
          if (env == nullptr) {
             printd(LogLevel, "Unable to delete GlobalReference");
          } else {
@@ -104,5 +106,7 @@ private:
 private:
    T ref;
 };
+
+} // namespace jni
 
 #endif // QORE_JNI_GLOBALREFERENCE_H_

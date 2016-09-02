@@ -31,9 +31,13 @@
 #ifndef QORE_JNI_DEFS_H_
 #define QORE_JNI_DEFS_H_
 
+namespace jni {
+
 /**
  * \brief Logging level used by the JNI module in calls to printd().
  */
 constexpr int LogLevel = 1;
+
+} // namespace jni
 
 #endif // QORE_JNI_DEFS_H_

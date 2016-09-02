@@ -32,9 +32,11 @@
 #define QORE_JNI_LOCALREFERENCE_H_
 
 #include <qore/Qore.h>
-#include "JniEnv.h"
+#include "Env.h"
 #include "GlobalReference.h"
 #include "defs.h"
+
+namespace jni {
 
 /**
  * \brief A RAII wrapper for JNI's local references.
@@ -51,7 +53,7 @@ public:
     * \param ref the local reference
     */
    LocalReference(T ref = nullptr) : ref(ref) {
-      assert(ref == nullptr || JniEnv::getEnv()->GetObjectRefType(ref) == JNILocalRefType);
+      assert(ref == nullptr || Env::getEnv()->GetObjectRefType(ref) == JNILocalRefType);
       if (ref != nullptr) {
          printd(LogLevel, "LocalReference created: %p\n", ref);
       }
@@ -63,7 +65,7 @@ public:
    ~LocalReference() {
       if (ref != nullptr) {
          printd(LogLevel, "LocalReference deleted: %p\n", ref);
-         JniEnv::getEnv()->DeleteLocalRef(ref);
+         Env::getEnv()->DeleteLocalRef(ref);
       }
    }
 
@@ -98,7 +100,7 @@ public:
     * \return a global reference representing the same object
     */
    GlobalReference<T> makeGlobal() const {
-      return ref == nullptr ? nullptr : static_cast<T>(JniEnv::getEnv()->NewGlobalRef(ref));
+      return ref == nullptr ? nullptr : static_cast<T>(Env::getEnv()->NewGlobalRef(ref));
    }
 
 private:
@@ -108,5 +110,7 @@ private:
 private:
    T ref;
 };
+
+} // namespace jni
 
 #endif // QORE_JNI_LOCALREFERENCE_H_

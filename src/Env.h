@@ -35,12 +35,14 @@
 #include <qore/Qore.h>
 #include <jni.h>
 
+namespace jni {
+
 class Class;
 
 /**
  * \brief Provides access to JNI functions.
  */
-class JniEnv {
+class Env {
 
 public:
    /**
@@ -75,7 +77,7 @@ private:
    /**
     * \brief This is a static class - no instances are allowed.
     */
-   JniEnv() = delete;
+   Env() = delete;
 
    /**
     * \brief Makes sure that this thread is attached to the JVM and thus the env member is a valid JNIEnv pointer.
@@ -98,5 +100,7 @@ private:
    static JavaVM *vm;
    static thread_local JNIEnv *env;
 };
+
+} // namespace jni
 
 #endif // QORE_JNI_JNIENV_H_

@@ -23,17 +23,18 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 //------------------------------------------------------------------------------
-#include "JniEnv.h"
-#include <jni.h>
+#include "Env.h"
 #include "LocalReference.h"
 #include "ModifiedUtf8String.h"
 #include "Class.h"
 #include "defs.h"
 
-JavaVM *JniEnv::vm = nullptr;
-thread_local JNIEnv *JniEnv::env = nullptr;
+namespace jni {
 
-QoreStringNode *JniEnv::createVM() {
+JavaVM *Env::vm = nullptr;
+thread_local JNIEnv *Env::env = nullptr;
+
+QoreStringNode *Env::createVM() {
    assert(vm == nullptr);
 
    JavaVMInitArgs vm_args;
@@ -48,14 +49,14 @@ QoreStringNode *JniEnv::createVM() {
    return nullptr;
 }
 
-void JniEnv::destroyVM() {
+void Env::destroyVM() {
    assert(vm != nullptr);
 
    vm->DestroyJavaVM();
    vm = nullptr;
 }
 
-JNIEnv *JniEnv::attachAndGetEnv() {
+JNIEnv *Env::attachAndGetEnv() {
    assert(vm != nullptr);
 
    if (env == nullptr) {
@@ -69,7 +70,7 @@ JNIEnv *JniEnv::attachAndGetEnv() {
    return env;
 }
 
-void JniEnv::threadCleanup() {
+void Env::threadCleanup() {
    assert(vm != nullptr);
 
    if (env != nullptr) {
@@ -79,7 +80,7 @@ void JniEnv::threadCleanup() {
    }
 }
 
-bool JniEnv::ensureAttached(ExceptionSink *xsink) {
+bool Env::ensureAttached(ExceptionSink *xsink) {
    assert(vm != nullptr);
 
    if (attachAndGetEnv() == nullptr) {
@@ -89,7 +90,7 @@ bool JniEnv::ensureAttached(ExceptionSink *xsink) {
    return true;
 }
 
-bool JniEnv::checkJavaException(ExceptionSink *xsink) {
+bool Env::checkJavaException(ExceptionSink *xsink) {
    assert(env != nullptr);
 
    LocalReference<jthrowable> throwable = env->ExceptionOccurred();
@@ -103,7 +104,7 @@ bool JniEnv::checkJavaException(ExceptionSink *xsink) {
    //TODO include causes
    //TODO stacktrace?
 
-//we should make throwable a global reference and attach it to Qore exception 
+//we should make throwable a global reference and attach it to Qore exception
 // - user code might want to use the Throwable object by passing it to a Java method
 
    jmethodID m = env->GetMethodID(env->GetObjectClass(throwable), "getMessage", "()Ljava/lang/String;");
@@ -132,7 +133,7 @@ bool JniEnv::checkJavaException(ExceptionSink *xsink) {
    return true;
 }
 
-QoreStringNode *JniEnv::getVersion(ExceptionSink *xsink) {
+QoreStringNode *Env::getVersion(ExceptionSink *xsink) {
    if (!ensureAttached(xsink)) {
       return nullptr;
    }
@@ -142,7 +143,7 @@ QoreStringNode *JniEnv::getVersion(ExceptionSink *xsink) {
    return str;
 }
 
-Class *JniEnv::loadClass(ExceptionSink *xsink, const QoreStringNode *name) {
+Class *Env::loadClass(ExceptionSink *xsink, const QoreStringNode *name) {
    if (!ensureAttached(xsink)) {
       return nullptr;
    }
@@ -159,3 +160,6 @@ Class *JniEnv::loadClass(ExceptionSink *xsink, const QoreStringNode *name) {
    }
    return new Class(std::move(globalClass));
 }
+
+} // namespace jni
+

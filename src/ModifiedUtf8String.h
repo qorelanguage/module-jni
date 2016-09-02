@@ -33,6 +33,8 @@
 
 #include <qore/Qore.h>
 
+namespace jni {
+
 /**
  * \brief A helper class for converting strings to JNI's "modified utf-8" encoding.
  */
@@ -64,5 +66,7 @@ public:
 private:
    const QoreString *str;
 };
+
+} // namespace jni
 
 #endif // QORE_JNI_MODIFIEDUTF8STRING_H_

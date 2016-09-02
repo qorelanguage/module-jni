@@ -23,7 +23,7 @@ set(QPP_SRC
 
 set(CPP_SRC
     src/jni-module.cpp
-    src/JniEnv.cpp
+    src/Env.cpp
 )
 
 qore_wrap_qpp_value(QPP_SOURCES ${QPP_SRC})

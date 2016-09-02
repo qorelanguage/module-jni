@@ -30,7 +30,7 @@
   information.
 */
 #include <qore/Qore.h>
-#include "JniEnv.h"
+#include "Env.h"
 
 static QoreNamespace JniNamespace("Jni");
 
@@ -59,11 +59,11 @@ DLLEXPORT qore_license_t qore_module_license = QL_LGPL;
 DLLEXPORT char qore_module_license_str[] = "MIT";
 
 static void jni_thread_cleanup(void *) {
-   JniEnv::threadCleanup();
+   jni::Env::threadCleanup();
 }
 
 static QoreStringNode *jni_module_init() {
-   QoreStringNode *err = JniEnv::createVM();
+   QoreStringNode *err = jni::Env::createVM();
    if (err != nullptr) {
       return err;
    }
@@ -81,5 +81,5 @@ static void jni_module_ns_init(QoreNamespace *rns, QoreNamespace *qns) {
 
 static void jni_module_delete() {
    tclist.pop(false);
-   JniEnv::destroyVM();
+   jni::Env::destroyVM();
 }

@@ -32,8 +32,9 @@
 #define QORE_JNI_CLASS_H_
 
 #include <qore/Qore.h>
-#include "JniEnv.h"
 #include "GlobalReference.h"
+
+namespace jni {
 
 /**
  * \brief Represents a Java class.
@@ -51,5 +52,7 @@ public:
 private:
    GlobalReference<jclass> clazz;
 };
+
+} // namespace jni
 
 #endif // QORE_JNI_CLASS_H_
