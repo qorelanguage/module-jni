@@ -63,12 +63,11 @@ public:
     */
    ~GlobalReference() {
       if (ref != nullptr) {
-         JNIEnv *env = Env::attachAndGetEnv();
-         if (env == nullptr) {
-            printd(LogLevel, "Unable to delete GlobalReference");
-         } else {
+         try {
             printd(LogLevel, "GlobalReference deleted: %p\n", ref);
-            env->DeleteGlobalRef(ref);
+            Env::attachAndGetEnv()->DeleteGlobalRef(ref);
+         } catch (Exception &) {
+            printd(LogLevel, "Unable to delete GlobalReference");
          }
       }
    }

@@ -31,12 +31,83 @@
 #ifndef QORE_JNI_DEFS_H_
 #define QORE_JNI_DEFS_H_
 
+#include <qore/Qore.h>
+#include <jni.h>
+
 namespace jni {
 
 /**
  * \brief Logging level used by the JNI module in calls to printd().
  */
 constexpr int LogLevel = 1;
+
+/**
+ * \brief Base class for exceptions.
+ */
+class Exception {
+
+public:
+   /**
+    * \brief Default virtual destructor.
+    */
+   virtual ~Exception() = default;
+
+   /**
+    * \brief Raises the corresponding Qore exception in the ExceptionSink.
+    * \param xsink the exception sink
+    */
+   virtual void convert(ExceptionSink *xsink) = 0;
+
+   Exception(Exception &&) = default;
+   Exception &operator=(Exception &&) = default;
+
+protected:
+   /**
+    * \brief Default constructor.
+    */
+   Exception() = default;
+
+private:
+   Exception(const Exception &) = delete;
+   Exception &operator=(const Exception &) = delete;
+};
+
+/**
+ * \brief An exception thrown when the current thread cannot be attached to the JVM.
+ */
+class UnableToAttachException : public Exception {
+
+public:
+   /**
+    * \brief Constructor.
+    * \param err the error code
+    */
+   UnableToAttachException(jint err) : err(err) {
+      printd(LogLevel, "JNI - error attaching thread %d, err: %d\n", gettid(), err);
+   }
+
+   void convert(ExceptionSink *xsink) override {
+      xsink->raiseException("JNI-ERROR", "Unable to attach thread to the JVM, error %d", err);
+   }
+
+private:
+   jint err;
+};
+
+/**
+ * \brief A C++ exception representing a Java exception.
+ */
+class JavaException : public Exception {
+
+public:
+   /**
+    * \brief Constructor.
+    */
+   JavaException() {
+   }
+
+   void convert(ExceptionSink *xsink) override;
+};
 
 } // namespace jni
 

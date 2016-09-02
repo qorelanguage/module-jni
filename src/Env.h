@@ -49,7 +49,7 @@ public:
     * \brief Returns the JNIEnv* associated with this thread.
     *
     * Assumes that the thread has been attached to the JVM.
-    * \return the JNIEnv* associated with this thread.
+    * \return the JNIEnv* associated with this thread
     */
    static JNIEnv *getEnv() {
       assert(env != nullptr);
@@ -57,21 +57,42 @@ public:
    }
 
    /**
-    * \brief Returns the JNIEnv* associated with this thread.
-    *
-    * Attaches the thread to the JVM if needed.
-    * \return the JNIEnv* associated with this thread or nullptr if the thread cannot be attached to the JVM.
+    * \brief Returns the JNIEnv* associated with this thread. Attaches the thread to the JVM if needed.
+    * \return the JNIEnv* associated with this thread
+    * \throws UnableToAttachException if the thread cannot be attached to the JVM
     */
    static JNIEnv *attachAndGetEnv();
 
+   /**
+    * \brief Creates the JVM.
+    * \return true if successful
+    */
+   static bool createVM();
 
-   static QoreStringNode *createVM();
+   /**
+    * \brief Destroys the JVM.
+    */
    static void destroyVM();
+
+   /**
+    * \brief Detaches the current thread from the JVM.
+    */
    static void threadCleanup();
 
-   static QoreStringNode *getVersion(ExceptionSink *xsink);
-   static Class *loadClass(ExceptionSink *xsink, const QoreStringNode *name);
+   /**
+    * \brief Determines the version of the JVM.
+    * \return the version of the JVM
+    * \throws UnableToAttachException if the thread cannot be attached to the JVM
+    */
+   static QoreStringNode *getVersion();
 
+   /**
+    * \brief Loads a Java class.
+    * \param name a fully-qualified class name or an array type signature
+    * \return loaded class
+    * \throws Exception if an error occurs
+    */
+   static Class *loadClass(const QoreStringNode *name);
 
 private:
    /**
@@ -81,20 +102,11 @@ private:
 
    /**
     * \brief Makes sure that this thread is attached to the JVM and thus the env member is a valid JNIEnv pointer.
-    * \param xsink the exception sink
-    * \return true if this thread is attached (and env is a valid pointer) or false when an error occurs in which case
-    *         it raises an exception
+    * \throws UnableToAttachException if the thread cannot be attached to the JVM
     */
-   static bool ensureAttached(ExceptionSink *xsink);
-
-   /**
-    * \brief Raises a Qore exception if there is a pending Java exception.
-    *
-    * Assumes that the thread has been attached to the JVM. Marks the JAva exception as handled.
-    * \param xsink the exception sink
-    * \return true if an exception has been raised
-    */
-   static bool checkJavaException(ExceptionSink *xsink);
+   static void ensureAttached() {
+      attachAndGetEnv();
+   }
 
 private:
    static JavaVM *vm;

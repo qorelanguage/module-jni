@@ -63,9 +63,8 @@ static void jni_thread_cleanup(void *) {
 }
 
 static QoreStringNode *jni_module_init() {
-   QoreStringNode *err = jni::Env::createVM();
-   if (err != nullptr) {
-      return err;
+   if (!jni::Env::createVM()) {
+      return new QoreStringNode("unable to create Java VM");
    }
    tclist.push(jni_thread_cleanup, nullptr);
 

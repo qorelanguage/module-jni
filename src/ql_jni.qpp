@@ -41,14 +41,23 @@ extern QoreClass* QC_CLASS;
 /**
  */
 string get_version() {
-   return jni::Env::getVersion(xsink);
+   try {
+      return jni::Env::getVersion();
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
 }
 
 //! TODO
 /**
  */
 Qore::Jni::Class load_class(string name) {
-   SimpleRefHolder<jni::Class> clazz(jni::Env::loadClass(xsink, name));
-   return *xsink ? nullptr : new QoreObject(QC_CLASS, getProgram(), clazz.release());
+   try {
+      return new QoreObject(QC_CLASS, getProgram(), jni::Env::loadClass(name));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
 }
 //@}

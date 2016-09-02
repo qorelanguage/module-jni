@@ -23,6 +23,7 @@ set(QPP_SRC
 
 set(CPP_SRC
     src/jni-module.cpp
+    src/defs.cpp
     src/Env.cpp
 )
 

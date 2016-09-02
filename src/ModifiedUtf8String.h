@@ -44,11 +44,11 @@ public:
    /**
     * \brief Converts the source string.
     *
-    * Raises an exception if the string cannot be converted, in which case the instance represents an empty string
+    * Raises an exception if the string cannot be converted
     * \param src the source string to convert, must not be null
-    * \param xsink the exception sink
+    * \throws StringException if the string cannot be converted
     */
-   explicit ModifiedUtf8String(const QoreString *src, ExceptionSink *xsink) : str(src) {
+   explicit ModifiedUtf8String(const QoreString *src) : str(src) {
       assert(src != nullptr);
       //TODO implement conversion - for now we assume that the source string is already in modified utf-8 (or simply ASCII)
    }

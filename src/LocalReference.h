@@ -98,9 +98,15 @@ public:
    /**
     * \brief Creates a corresponding GlobalReference.
     * \return a global reference representing the same object
+    * \throws JavaException if the global reference cannot be created
     */
    GlobalReference<T> makeGlobal() const {
-      return ref == nullptr ? nullptr : static_cast<T>(Env::getEnv()->NewGlobalRef(ref));
+      assert(ref != nullptr);
+      T global = static_cast<T>(Env::getEnv()->NewGlobalRef(ref));
+      if (global == nullptr) {
+         throw JavaException();
+      }
+      return global;
    }
 
 private:
