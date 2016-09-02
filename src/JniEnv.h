@@ -35,6 +35,8 @@
 #include <qore/Qore.h>
 #include <jni.h>
 
+class Class;
+
 /**
  * \brief Provides access to JNI functions.
  */
@@ -52,13 +54,21 @@ public:
       return env;
    }
 
+   /**
+    * \brief Returns the JNIEnv* associated with this thread.
+    *
+    * Attaches the thread to the JVM if needed.
+    * \return the JNIEnv* associated with this thread or nullptr if the thread cannot be attached to the JVM.
+    */
+   static JNIEnv *attachAndGetEnv();
+
 
    static QoreStringNode *createVM();
    static void destroyVM();
    static void threadCleanup();
 
    static QoreStringNode *getVersion(ExceptionSink *xsink);
-   static void loadClass(ExceptionSink *xsink, const QoreStringNode *name);
+   static Class *loadClass(ExceptionSink *xsink, const QoreStringNode *name);
 
 
 private:
@@ -73,7 +83,7 @@ private:
     * \return true if this thread is attached (and env is a valid pointer) or false when an error occurs in which case
     *         it raises an exception
     */
-   static bool attach(ExceptionSink *xsink);
+   static bool ensureAttached(ExceptionSink *xsink);
 
    /**
     * \brief Raises a Qore exception if there is a pending Java exception.

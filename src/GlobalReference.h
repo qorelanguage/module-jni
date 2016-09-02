@@ -25,62 +25,66 @@
 //------------------------------------------------------------------------------
 ///
 /// \file
-/// \brief Defines the LocalReference helper class template
+/// \brief Defines the GlobalReference helper class template
 ///
 //------------------------------------------------------------------------------
-#ifndef QORE_JNI_LOCALREFERENCE_H_
-#define QORE_JNI_LOCALREFERENCE_H_
+#ifndef QORE_JNI_GLOBALREFERENCE_H_
+#define QORE_JNI_GLOBALREFERENCE_H_
 
 #include <qore/Qore.h>
 #include "JniEnv.h"
-#include "GlobalReference.h"
 #include "defs.h"
 
 /**
- * \brief A RAII wrapper for JNI's local references.
+ * \brief A RAII wrapper for JNI's global references.
  *
- * Assumes that the current thread has been attached to the JVM.
+ * Destructor attempts to attach the current thread to the JVM - if it is not possible, the reference leaks.
  * \tparam T the type of the reference (jobject, jclass etc.)
  */
 template<typename T>
-class LocalReference {
+class GlobalReference {
 
 public:
    /**
     * \brief Creates an instance.
-    * \param ref the local reference
+    * \param ref the global reference
     */
-   LocalReference(T ref = nullptr) : ref(ref) {
-      assert(ref == nullptr || JniEnv::getEnv()->GetObjectRefType(ref) == JNILocalRefType);
+   GlobalReference(T ref = nullptr) : ref(ref) {
+      assert(ref == nullptr || JniEnv::getEnv()->GetObjectRefType(ref) == JNIGlobalRefType);
       if (ref != nullptr) {
-         printd(LogLevel, "LocalReference created: %p\n", ref);
+         printd(LogLevel, "GlobalReference created: %p\n", ref);
       }
    }
 
    /**
-    * \brief Destroys the local reference represented by this instance.
+    * \brief Destroys the global reference represented by this instance.
     */
-   ~LocalReference() {
+   ~GlobalReference() {
       if (ref != nullptr) {
-         printd(LogLevel, "LocalReference deleted: %p\n", ref);
-         JniEnv::getEnv()->DeleteLocalRef(ref);
+         JNIEnv *env = JniEnv::attachAndGetEnv();
+         if (env == nullptr) {
+            printd(LogLevel, "Unable to delete GlobalReference");
+         } else {
+            printd(LogLevel, "GlobalReference deleted: %p\n", ref);
+            env->DeleteGlobalRef(ref);
+         }
       }
    }
 
    /**
     * \brief Move constructor.
-    * \param src the source local reference wrapper
+    * \param src the source global reference wrapper
     */
-   LocalReference(LocalReference &&src) : ref(src.ref) {
+   GlobalReference(GlobalReference &&src) : ref(src.ref) {
       src.ref = nullptr;
    }
 
    /**
     * \brief Move assignment.
-    * \param src the source local reference wrapper
+    * \param src the source global reference wrapper
     * \return *this
     */
-   LocalReference &operator=(LocalReference &&src) {
+   GlobalReference &operator=(GlobalReference &&src) {
       ref = src.ref;
       src.ref = nullptr;
       return *this;
@@ -93,20 +97,12 @@ public:
       return ref;
    }
 
-   /**
-    * \brief Creates a corresponding GlobalReference.
-    * \return a global reference representing the same object
-    */
-   GlobalReference<T> makeGlobal() const {
-      return ref == nullptr ? nullptr : static_cast<T>(JniEnv::getEnv()->NewGlobalRef(ref));
-   }
-
 private:
-   LocalReference(const LocalReference &) = delete;
-   LocalReference &operator=(const LocalReference &) = delete;
+   GlobalReference(const GlobalReference &) = delete;
+   GlobalReference &operator=(const GlobalReference &) = delete;
 
 private:
    T ref;
 };
 
-#endif // QORE_JNI_LOCALREFERENCE_H_
+#endif // QORE_JNI_GLOBALREFERENCE_H_

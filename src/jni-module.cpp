@@ -39,6 +39,7 @@ static void jni_module_ns_init(QoreNamespace *rns, QoreNamespace *qns);
 static void jni_module_delete();
 
 DLLLOCAL void init_jni_functions(QoreNamespace& ns);
+DLLLOCAL QoreClass* initClassClass(QoreNamespace& ns);
 
 DLLEXPORT char qore_module_name[] = "jni";
 DLLEXPORT char qore_module_version[] = PACKAGE_VERSION;
@@ -68,6 +69,7 @@ static QoreStringNode *jni_module_init() {
    }
    tclist.push(jni_thread_cleanup, nullptr);
 
+   JniNamespace.addSystemClass(initClassClass(JniNamespace));
    init_jni_functions(JniNamespace);
 
    return nullptr;

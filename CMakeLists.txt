@@ -18,6 +18,7 @@ endif()
 
 set(QPP_SRC
     src/ql_jni.qpp
+    src/QC_Class.qpp
 )
 
 set(CPP_SRC

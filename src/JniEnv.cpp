@@ -27,6 +27,7 @@
 #include <jni.h>
 #include "LocalReference.h"
 #include "ModifiedUtf8String.h"
+#include "Class.h"
 #include "defs.h"
 
 JavaVM *JniEnv::vm = nullptr;
@@ -54,19 +55,18 @@ void JniEnv::destroyVM() {
    vm = nullptr;
 }
 
-bool JniEnv::attach(ExceptionSink *xsink) {
+JNIEnv *JniEnv::attachAndGetEnv() {
    assert(vm != nullptr);
 
    if (env == nullptr) {
       jint err = vm->AttachCurrentThread(reinterpret_cast<void **>(&env), nullptr);
       if (err != JNI_OK) {
          printd(LogLevel, "JNI - error attaching thread %d, err: %d\n", gettid(), err);
-         xsink->raiseException("JNI-ERROR", "Unable to attach thread to the JVM, error code %d", err);
-         return false;
+         return nullptr;
       }
       printd(LogLevel, "JNI - thread %d attached, env: %p\n", gettid(), env);
    }
-   return true;
+   return env;
 }
 
 void JniEnv::threadCleanup() {
@@ -77,6 +77,16 @@ void JniEnv::threadCleanup() {
       vm->DetachCurrentThread();
       env = nullptr;
    }
+}
+
+bool JniEnv::ensureAttached(ExceptionSink *xsink) {
+   assert(vm != nullptr);
+
+   if (attachAndGetEnv() == nullptr) {
+      xsink->raiseException("JNI-ERROR", "Unable to attach thread to the JVM");
+      return false;
+   }
+   return true;
 }
 
 bool JniEnv::checkJavaException(ExceptionSink *xsink) {
@@ -92,6 +102,9 @@ bool JniEnv::checkJavaException(ExceptionSink *xsink) {
    //TODO include exception class name
    //TODO include causes
    //TODO stacktrace?
+
+//we should make throwable a global reference and attach it to Qore exception 
+// - user code might want to use the Throwable object by passing it to a Java method
 
    jmethodID m = env->GetMethodID(env->GetObjectClass(throwable), "getMessage", "()Ljava/lang/String;");
    if (m == nullptr) {
@@ -120,7 +133,7 @@ bool JniEnv::checkJavaException(ExceptionSink *xsink) {
 }
 
 QoreStringNode *JniEnv::getVersion(ExceptionSink *xsink) {
-   if (!attach(xsink)) {
+   if (!ensureAttached(xsink)) {
       return nullptr;
    }
    jint v = env->GetVersion();
@@ -129,16 +142,20 @@ QoreStringNode *JniEnv::getVersion(ExceptionSink *xsink) {
    return str;
 }
 
-void JniEnv::loadClass(ExceptionSink *xsink, const QoreStringNode *name) {
-   if (!attach(xsink)) {
-      return;
+Class *JniEnv::loadClass(ExceptionSink *xsink, const QoreStringNode *name) {
+   if (!ensureAttached(xsink)) {
+      return nullptr;
    }
 
    ModifiedUtf8String nameUtf8(name, xsink);
    printd(LogLevel, "loadClass %s\n", nameUtf8.c_str());
-   LocalReference<jclass> clazz = env->FindClass(nameUtf8.c_str());
+   LocalReference<jclass> localClass = env->FindClass(nameUtf8.c_str());
    if (checkJavaException(xsink)) {
-      return;
+      return nullptr;
    }
-   //TODO
+   GlobalReference<jclass> globalClass = localClass.makeGlobal();
+   if (checkJavaException(xsink)) {
+      return nullptr;
+   }
+   return new Class(std::move(globalClass));
 }

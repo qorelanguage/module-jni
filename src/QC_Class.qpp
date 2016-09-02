@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Jni.qpp Jni class definition */
+/** @file QC_Class.qpp Class class definition */
 /*
   Qore Programming Language
 
@@ -28,27 +28,10 @@
   information.
 */
 
-#include "JniEnv.h"
+#include <qore/Qore.h>
 #include "Class.h"
 
-extern QoreClass* QC_CLASS;
-
-/** @defgroup TODO
- */
-//@{
-
 //! TODO
 /**
  */
-string get_version() {
-   return JniEnv::getVersion(xsink);
-}
-
-//! TODO
-/**
- */
-Qore::Jni::Class load_class(string name) {
-   SimpleRefHolder<Class> clazz(JniEnv::loadClass(xsink, name));
-   return *xsink ? nullptr : new QoreObject(QC_CLASS, getProgram(), clazz.release());
-}
-//@}
+qclass Class [arg=Class* clazz; ns=Qore::Jni];
