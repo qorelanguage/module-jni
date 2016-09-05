@@ -23,47 +23,29 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 //------------------------------------------------------------------------------
-///
-/// \file
-/// \brief Defines the Class class.
-///
-//------------------------------------------------------------------------------
-#ifndef QORE_JNI_CLASS_H_
-#define QORE_JNI_CLASS_H_
-
-#include <qore/Qore.h>
-#include "LocalReference.h"
+#include "Class.h"
+#include "Env.h"
+#include "ModifiedUtf8String.h"
+#include "Method.h"
 
 namespace jni {
 
-class Method;
+Method *Class::getMethod(const QoreStringNode *name, const QoreStringNode *descriptor) {
+   Env env;
+   ModifiedUtf8String nameUtf8(name);
+   ModifiedUtf8String descUtf8(descriptor);
+   printd(LogLevel, "getMethod %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
+   ref();
+   return new Method(this, env.getMethod(clazz, nameUtf8.c_str(), descUtf8.c_str()));
+}
 
-/**
- * \brief Represents a Java class.
- */
-class Class : public AbstractPrivateData {
-
-public:
-   /**
-    * \brief Constructor.
-    * \param clazz a local reference to a Java class
-    * \throws JavaException if a global reference cannot be created
-    */
-   Class(LocalReference<jclass> clazz) : clazz(clazz.makeGlobal()) {
-      printd(LogLevel, "Class::Class(), this: %p, clazz: %p\n", this, static_cast<jclass>(this->clazz));
-   }
-
-   ~Class() {
-      printd(LogLevel, "Class::~Class(), this: %p, clazz: %p\n", this, static_cast<jclass>(this->clazz));
-   }
-
-   Method *getMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
-   Method *getStaticMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
-
-private:
-   GlobalReference<jclass> clazz;
-};
+Method *Class::getStaticMethod(const QoreStringNode *name, const QoreStringNode *descriptor) {
+   Env env;
+   ModifiedUtf8String nameUtf8(name);
+   ModifiedUtf8String descUtf8(descriptor);
+   printd(LogLevel, "getStaticMethod %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
+   ref();
+   return new Method(this, env.getStaticMethod(clazz, nameUtf8.c_str(), descUtf8.c_str()));
+}
 
 } // namespace jni
-
-#endif // QORE_JNI_CLASS_H_

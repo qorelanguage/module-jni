@@ -73,6 +73,38 @@ public:
       return c;
    }
 
+   /**
+    * \brief Finds a method in a class.
+    * \param clazz the class
+    * \param name the name of the method
+    * \param descriptor the method signature
+    * \return method id
+    * \throws JavaException if the class cannot be found
+    */
+   jmethodID getMethod(jclass clazz, const char *name, const char *descriptor) {
+      jmethodID id = env->GetMethodID(clazz, name, descriptor);
+      if (id == nullptr) {
+         throw JavaException();
+      }
+      return id;
+   }
+
+   /**
+    * \brief Finds a static method in a class.
+    * \param clazz the class
+    * \param name the name of the method
+    * \param descriptor the method signature
+    * \return method id
+    * \throws JavaException if the class cannot be found
+    */
+   jmethodID getStaticMethod(jclass clazz, const char *name, const char *descriptor) {
+      jmethodID id = env->GetStaticMethodID(clazz, name, descriptor);
+      if (id == nullptr) {
+         throw JavaException();
+      }
+      return id;
+   }
+
 private:
    JNIEnv *env;
 };

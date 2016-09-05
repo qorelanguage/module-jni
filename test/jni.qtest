@@ -22,6 +22,7 @@ public class Main inherits QUnit::Test {
 
     testJni() {
         Jni::Class stringClass = Jni::load_class("java/lang/String");
-        delete stringClass;
+        Jni::Method valueOfMethod = stringClass.getStaticMethod("valueOf", "(I)Ljava/lang/String;");
+        delete valueOfMethod;
     }
 }

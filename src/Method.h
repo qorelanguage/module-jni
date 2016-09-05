@@ -25,45 +25,41 @@
 //------------------------------------------------------------------------------
 ///
 /// \file
-/// \brief Defines the Class class.
+/// \brief Defines the Method class.
 ///
 //------------------------------------------------------------------------------
-#ifndef QORE_JNI_CLASS_H_
-#define QORE_JNI_CLASS_H_
+#ifndef QORE_JNI_METHOD_H_
+#define QORE_JNI_METHOD_H_
 
 #include <qore/Qore.h>
-#include "LocalReference.h"
+#include "Class.h"
 
 namespace jni {
 
-class Method;
-
 /**
- * \brief Represents a Java class.
+ * \brief Represents a Java method.
  */
-class Class : public AbstractPrivateData {
+class Method : public AbstractPrivateData {
 
 public:
    /**
     * \brief Constructor.
-    * \param clazz a local reference to a Java class
-    * \throws JavaException if a global reference cannot be created
+    * \param clazz the class associated with the method id
+    * \param id the method id
     */
-   Class(LocalReference<jclass> clazz) : clazz(clazz.makeGlobal()) {
-      printd(LogLevel, "Class::Class(), this: %p, clazz: %p\n", this, static_cast<jclass>(this->clazz));
+   Method(Class *clazz, jmethodID id) : clazz(clazz), id(id) {
+      printd(LogLevel, "Method::Method(), this: %p, clazz: %p, id: %p\n", this, clazz, id);
    }
 
-   ~Class() {
-      printd(LogLevel, "Class::~Class(), this: %p, clazz: %p\n", this, static_cast<jclass>(this->clazz));
+   ~Method() {
+      printd(LogLevel, "Method::~Method(), this: %p, clazz: %p, id: %p\n", this, *clazz, id);
    }
-
-   Method *getMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
-   Method *getStaticMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
 
 private:
-   GlobalReference<jclass> clazz;
+   SimpleRefHolder<Class> clazz;
+   jmethodID id;
 };
 
 } // namespace jni
 
-#endif // QORE_JNI_CLASS_H_
+#endif // QORE_JNI_METHOD_H_

@@ -19,12 +19,14 @@ endif()
 set(QPP_SRC
     src/ql_jni.qpp
     src/QC_Class.qpp
+    src/QC_Method.qpp
 )
 
 set(CPP_SRC
     src/jni-module.cpp
     src/defs.cpp
     src/Jvm.cpp
+    src/Class.cpp
 )
 
 qore_wrap_qpp_value(QPP_SOURCES ${QPP_SRC})
