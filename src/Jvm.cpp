@@ -23,18 +23,16 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 //------------------------------------------------------------------------------
-#include "Env.h"
-#include "LocalReference.h"
-#include "ModifiedUtf8String.h"
-#include "Class.h"
+#include "Jvm.h"
+#include <qore/Qore.h>
 #include "defs.h"
 
 namespace jni {
 
-JavaVM *Env::vm = nullptr;
-thread_local JNIEnv *Env::env = nullptr;
+JavaVM *Jvm::vm = nullptr;
+thread_local JNIEnv *Jvm::env;
 
-bool Env::createVM() {
+bool Jvm::createVM() {
    assert(vm == nullptr);
 
    JavaVMInitArgs vm_args;
@@ -43,17 +41,21 @@ bool Env::createVM() {
    vm_args.options = nullptr;
    vm_args.ignoreUnrecognized = false;
 
-   return JNI_CreateJavaVM(&vm, reinterpret_cast<void **>(&env), &vm_args) == JNI_OK;
+   if (JNI_CreateJavaVM(&vm, reinterpret_cast<void **>(&env), &vm_args) != JNI_OK) {
+      return false;
+   }
+   return true;
 }
 
-void Env::destroyVM() {
+void Jvm::destroyVM() {
    assert(vm != nullptr);
 
    vm->DestroyJavaVM();
    vm = nullptr;
+   env = nullptr;
 }
 
-JNIEnv *Env::attachAndGetEnv() {
+JNIEnv *Jvm::attachAndGetEnv() {
    assert(vm != nullptr);
 
    if (env == nullptr) {
@@ -66,7 +68,7 @@ JNIEnv *Env::attachAndGetEnv() {
    return env;
 }
 
-void Env::threadCleanup() {
+void Jvm::threadCleanup() {
    assert(vm != nullptr);
 
    if (env != nullptr) {
@@ -76,29 +78,4 @@ void Env::threadCleanup() {
    }
 }
 
-QoreStringNode *Env::getVersion() {
-   ensureAttached();
-   jint v = env->GetVersion();
-   QoreStringNode *str = new QoreStringNode();
-   str->sprintf("%d.%d", v >> 16, v & 0xFFFF);
-   return str;
-}
-
-static LocalReference<jclass> findClass(JNIEnv *env, const char *name) {
-   jclass c = env->FindClass(name);
-   if (c == nullptr) {
-      throw JavaException();
-   }
-   return c;
-}
-
-Class *Env::loadClass(const QoreStringNode *name) {
-   ensureAttached();
-
-   ModifiedUtf8String nameUtf8(name);
-   printd(LogLevel, "loadClass %s\n", nameUtf8.c_str());
-   return new Class(findClass(env, nameUtf8.c_str()).makeGlobal());
-}
-
 } // namespace jni
-

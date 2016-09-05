@@ -24,13 +24,13 @@
 //
 //------------------------------------------------------------------------------
 #include "defs.h"
-#include "Env.h"
+#include "Jvm.h"
 #include "LocalReference.h"
 
 namespace jni {
 
 void JavaException::convert(ExceptionSink *xsink) {
-   JNIEnv *env = Env::getEnv();
+   JNIEnv *env = Jvm::getEnv();
    LocalReference<jthrowable> throwable = env->ExceptionOccurred();
    assert(throwable != nullptr);
    env->ExceptionDescribe();

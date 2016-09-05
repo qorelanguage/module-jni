@@ -32,7 +32,6 @@
 #define QORE_JNI_LOCALREFERENCE_H_
 
 #include <qore/Qore.h>
-#include "Env.h"
 #include "GlobalReference.h"
 #include "defs.h"
 
@@ -53,7 +52,7 @@ public:
     * \param ref the local reference
     */
    LocalReference(T ref = nullptr) : ref(ref) {
-      assert(ref == nullptr || Env::getEnv()->GetObjectRefType(ref) == JNILocalRefType);
+      assert(ref == nullptr || Jvm::getEnv()->GetObjectRefType(ref) == JNILocalRefType);
       if (ref != nullptr) {
          printd(LogLevel, "LocalReference created: %p\n", ref);
       }
@@ -65,7 +64,7 @@ public:
    ~LocalReference() {
       if (ref != nullptr) {
          printd(LogLevel, "LocalReference deleted: %p\n", ref);
-         Env::getEnv()->DeleteLocalRef(ref);
+         Jvm::getEnv()->DeleteLocalRef(ref);
       }
    }
 
@@ -102,7 +101,7 @@ public:
     */
    GlobalReference<T> makeGlobal() const {
       assert(ref != nullptr);
-      T global = static_cast<T>(Env::getEnv()->NewGlobalRef(ref));
+      T global = static_cast<T>(Jvm::getEnv()->NewGlobalRef(ref));
       if (global == nullptr) {
          throw JavaException();
       }

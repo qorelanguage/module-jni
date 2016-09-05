@@ -30,7 +30,7 @@
   information.
 */
 #include <qore/Qore.h>
-#include "Env.h"
+#include "Jvm.h"
 
 static QoreNamespace JniNamespace("Jni");
 
@@ -59,11 +59,11 @@ DLLEXPORT qore_license_t qore_module_license = QL_LGPL;
 DLLEXPORT char qore_module_license_str[] = "MIT";
 
 static void jni_thread_cleanup(void *) {
-   jni::Env::threadCleanup();
+   jni::Jvm::threadCleanup();
 }
 
 static QoreStringNode *jni_module_init() {
-   if (!jni::Env::createVM()) {
+   if (!jni::Jvm::createVM()) {
       return new QoreStringNode("unable to create Java VM");
    }
    tclist.push(jni_thread_cleanup, nullptr);
@@ -80,5 +80,5 @@ static void jni_module_ns_init(QoreNamespace *rns, QoreNamespace *qns) {
 
 static void jni_module_delete() {
    tclist.pop(false);
-   jni::Env::destroyVM();
+   jni::Jvm::destroyVM();
 }

@@ -28,8 +28,7 @@
   information.
 */
 
-#include "Env.h"
-#include "Class.h"
+#include "Functions.h"
 
 extern QoreClass* QC_CLASS;
 
@@ -42,7 +41,7 @@ extern QoreClass* QC_CLASS;
  */
 string get_version() {
    try {
-      return jni::Env::getVersion();
+      return jni::Functions::getVersion();
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
@@ -54,7 +53,7 @@ string get_version() {
  */
 Qore::Jni::Class load_class(string name) {
    try {
-      return new QoreObject(QC_CLASS, getProgram(), jni::Env::loadClass(name));
+      return new QoreObject(QC_CLASS, getProgram(), jni::Functions::loadClass(name));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();

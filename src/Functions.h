@@ -25,58 +25,43 @@
 //------------------------------------------------------------------------------
 ///
 /// \file
-/// \brief Defines the Env class.
+/// \brief Defines the Functions class.
 ///
 //------------------------------------------------------------------------------
-#ifndef QORE_JNI_ENV_H_
-#define QORE_JNI_ENV_H_
+#ifndef QORE_JNI_FUNCTIONS_H_
+#define QORE_JNI_FUNCTIONS_H_
 
-#include "Jvm.h"
-#include "LocalReference.h"
+#include "Env.h"
+#include "Class.h"
+#include "ModifiedUtf8String.h"
 
 namespace jni {
 
 /**
- * \brief Provides access to JNI functions.
- *
- * Wraps JNI references to RAII objects and uses C++ exceptions for error reporting.
+ * \brief Implementation of the global functions declared in ql_jni.qpp.
  */
-class Env {
+class Functions {
 
 public:
-   /**
-    * \brief Default constructor. Attaches current thread to the JVM.
-    * \throws UnableToAttachException if the thread cannot be attached to the JVM
-    */
-   Env() : env(Jvm::attachAndGetEnv()) {
+   static QoreStringNode *getVersion() {
+      Env env;
+      jint v = env.getVersion();
+      QoreStringNode *str = new QoreStringNode();
+      str->sprintf("%d.%d", v >> 16, v & 0xFFFF);
+      return str;
    }
 
-   /**
-    * \brief Returns the major version number in the higher 16 bits and the minor version number in the lower 16 bits.
-    * \return the major version number in the higher 16 bits and the minor version number in the lower 16 bits
-    */
-   jint getVersion() {
-      return env->GetVersion();
-   }
-
-   /**
-    * \brief Finds a class with given name.
-    * \param name fully-qualified class name or an array type signature
-    * \return a local reference to the class object
-    * \throws JavaException if the class cannot be found
-    */
-   LocalReference<jclass> findClass(const char *name) {
-      jclass c = env->FindClass(name);
-      if (c == nullptr) {
-         throw JavaException();
-      }
-      return c;
+   static Class *loadClass(const QoreStringNode *name) {
+      Env env;
+      ModifiedUtf8String nameUtf8(name);
+      printd(LogLevel, "loadClass %s\n", nameUtf8.c_str());
+      return new Class(env.findClass(nameUtf8.c_str()));
    }
 
 private:
-   JNIEnv *env;
+   Functions() = delete;
 };
 
 } // namespace jni
 
-#endif // QORE_JNI_ENV_H_
+#endif // QORE_JNI_FUNCTIONS_H_

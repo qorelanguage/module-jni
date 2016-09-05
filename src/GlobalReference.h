@@ -32,7 +32,7 @@
 #define QORE_JNI_GLOBALREFERENCE_H_
 
 #include <qore/Qore.h>
-#include "Env.h"
+#include "Jvm.h"
 #include "defs.h"
 
 namespace jni {
@@ -52,7 +52,7 @@ public:
     * \param ref the global reference
     */
    GlobalReference(T ref = nullptr) : ref(ref) {
-      assert(ref == nullptr || Env::getEnv()->GetObjectRefType(ref) == JNIGlobalRefType);
+      assert(ref == nullptr || Jvm::getEnv()->GetObjectRefType(ref) == JNIGlobalRefType);
       if (ref != nullptr) {
          printd(LogLevel, "GlobalReference created: %p\n", ref);
       }
@@ -65,7 +65,7 @@ public:
       if (ref != nullptr) {
          try {
             printd(LogLevel, "GlobalReference deleted: %p\n", ref);
-            Env::attachAndGetEnv()->DeleteGlobalRef(ref);
+            Jvm::attachAndGetEnv()->DeleteGlobalRef(ref);
          } catch (Exception &) {
             printd(LogLevel, "Unable to delete GlobalReference");
          }

@@ -32,7 +32,7 @@
 #define QORE_JNI_CLASS_H_
 
 #include <qore/Qore.h>
-#include "GlobalReference.h"
+#include "LocalReference.h"
 
 namespace jni {
 
@@ -44,9 +44,10 @@ class Class : public AbstractPrivateData {
 public:
    /**
     * \brief Constructor.
-    * \param clazz a global reference to a Java class
+    * \param clazz a local reference to a Java class
+    * \throws JavaException if a global reference cannot be created
     */
-   Class(GlobalReference<jclass> clazz) : clazz(std::move(clazz)) {
+   Class(LocalReference<jclass> clazz) : clazz(clazz.makeGlobal()) {
    }
 
 private:

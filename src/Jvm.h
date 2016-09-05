@@ -25,58 +25,68 @@
 //------------------------------------------------------------------------------
 ///
 /// \file
-/// \brief Defines the Env class.
+/// \brief Defines the Jvm class.
 ///
 //------------------------------------------------------------------------------
-#ifndef QORE_JNI_ENV_H_
-#define QORE_JNI_ENV_H_
+#ifndef QORE_JNI_JVM_H_
+#define QORE_JNI_JVM_H_
 
-#include "Jvm.h"
-#include "LocalReference.h"
+#include <cassert>
+#include <jni.h>
 
 namespace jni {
 
 /**
- * \brief Provides access to JNI functions.
- *
- * Wraps JNI references to RAII objects and uses C++ exceptions for error reporting.
+ * \brief Provides access to JNI Invocation API.
  */
-class Env {
+class Jvm {
 
 public:
    /**
-    * \brief Default constructor. Attaches current thread to the JVM.
+    * \brief Returns the Env object associated with this thread.
+    *
+    * Assumes that the thread has been attached to the JVM.
+    * \return the Env object associated with this thread
+    */
+   static JNIEnv *getEnv() {
+      assert(env != nullptr);
+      return env;
+   }
+
+   /**
+    * \brief Returns the Env object associated with this thread. Attaches the thread to the JVM if needed.
+    * \return the Env object associated with this thread
     * \throws UnableToAttachException if the thread cannot be attached to the JVM
     */
-   Env() : env(Jvm::attachAndGetEnv()) {
-   }
+   static JNIEnv *attachAndGetEnv();
 
    /**
-    * \brief Returns the major version number in the higher 16 bits and the minor version number in the lower 16 bits.
-    * \return the major version number in the higher 16 bits and the minor version number in the lower 16 bits
+    * \brief Creates the JVM.
+    * \return true if successful
     */
-   jint getVersion() {
-      return env->GetVersion();
-   }
+   static bool createVM();
 
    /**
-    * \brief Finds a class with given name.
-    * \param name fully-qualified class name or an array type signature
-    * \return a local reference to the class object
-    * \throws JavaException if the class cannot be found
+    * \brief Destroys the JVM.
     */
-   LocalReference<jclass> findClass(const char *name) {
-      jclass c = env->FindClass(name);
-      if (c == nullptr) {
-         throw JavaException();
-      }
-      return c;
-   }
+   static void destroyVM();
+
+   /**
+    * \brief Detaches the current thread from the JVM.
+    */
+   static void threadCleanup();
 
 private:
-   JNIEnv *env;
+   /**
+    * \brief This is a static class - no instances are allowed.
+    */
+   Jvm() = delete;
+
+private:
+   static JavaVM *vm;
+   static thread_local JNIEnv *env;
 };
 
 } // namespace jni
 
-#endif // QORE_JNI_ENV_H_
+#endif // QORE_JNI_JVM_H_
