@@ -46,8 +46,9 @@ public:
     * \brief Constructor.
     * \param clazz the class associated with the method id
     * \param id the method id
+    * \param desc the descriptor
     */
-   Method(Class *clazz, jmethodID id) : clazz(clazz), id(id) {
+   Method(Class *clazz, jmethodID id, std::string desc) : clazz(clazz), id(id), descriptor(std::move(desc)) {
       printd(LogLevel, "Method::Method(), this: %p, clazz: %p, id: %p\n", this, clazz, id);
    }
 
@@ -55,9 +56,18 @@ public:
       printd(LogLevel, "Method::~Method(), this: %p, clazz: %p, id: %p\n", this, *clazz, id);
    }
 
+   /**
+    * \brief Invokes a static method.
+    * \param args the arguments
+    * \return the return value
+    * \throws Exception if the arguments do not match the descriptor or if the method throws
+    */
+   QoreValue invokeStatic(const QoreValueList* args);
+
 private:
    SimpleRefHolder<Class> clazz;
    jmethodID id;
+   std::string descriptor;
 };
 
 } // namespace jni

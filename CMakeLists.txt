@@ -27,6 +27,7 @@ set(CPP_SRC
     src/defs.cpp
     src/Jvm.cpp
     src/Class.cpp
+    src/Method.cpp
 )
 
 qore_wrap_qpp_value(QPP_SOURCES ${QPP_SRC})

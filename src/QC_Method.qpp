@@ -34,4 +34,16 @@
 //! TODO
 /**
  */
-qclass Method [arg=Method* method; ns=Qore::Jni];
+qclass Method [arg=jni::Method* method; ns=Qore::Jni];
+
+//! TODO
+/**
+ */
+any Method::invokeStatic(...) {
+   try {
+      return method->invokeStatic(args);
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}

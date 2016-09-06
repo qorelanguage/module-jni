@@ -105,6 +105,164 @@ public:
       return id;
    }
 
+   /**
+    * \brief Invokes a static method.
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jboolean callStaticBooleanMethod(jclass clazz, jmethodID id, const jvalue *args) {
+      jboolean ret = env->CallStaticBooleanMethodA(clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes a static method.
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jbyte callStaticByteMethod(jclass clazz, jmethodID id, const jvalue *args) {
+      jbyte ret = env->CallStaticByteMethodA(clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes a static method.
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jchar callStaticCharMethod(jclass clazz, jmethodID id, const jvalue *args) {
+      jchar ret = env->CallStaticCharMethodA(clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes a static method.
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jdouble callStaticDoubleMethod(jclass clazz, jmethodID id, const jvalue *args) {
+      jdouble ret = env->CallStaticDoubleMethodA(clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes a static method.
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jfloat callStaticFloatMethod(jclass clazz, jmethodID id, const jvalue *args) {
+      jfloat ret = env->CallStaticFloatMethodA(clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes a static method.
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jint callStaticIntMethod(jclass clazz, jmethodID id, const jvalue *args) {
+      jint ret = env->CallStaticIntMethodA(clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes a static method.
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jlong callStaticLongMethod(jclass clazz, jmethodID id, const jvalue *args) {
+      jlong ret = env->CallStaticLongMethodA(clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes a static method.
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   LocalReference<jobject> callStaticObjectMethod(jclass clazz, jmethodID id, const jvalue *args) {
+      LocalReference<jobject> ret = env->CallStaticObjectMethodA(clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes a static method.
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jshort callStaticShortMethod(jclass clazz, jmethodID id, const jvalue *args) {
+      jshort ret = env->CallStaticShortMethodA(clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes a static method.
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \throws JavaException if the method throws an exception
+    */
+   void callStaticVoidMethod(jclass clazz, jmethodID id, const jvalue *args) {
+      env->CallStaticVoidMethodA(clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+   }
+
 private:
    JNIEnv *env;
 };

@@ -57,6 +57,14 @@ public:
       printd(LogLevel, "Class::~Class(), this: %p, clazz: %p\n", this, static_cast<jclass>(this->clazz));
    }
 
+   /**
+    * \brief Returns the reference to the JNI jclass object.
+    * \return the reference to the JNI jclass object
+    */
+   const GlobalReference<jclass> &getRef() const {
+      return clazz;
+   }
+
    Method *getMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
    Method *getStaticMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
 

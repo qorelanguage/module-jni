@@ -40,12 +40,13 @@ bool Jvm::createVM() {
    vm_args.ignoreUnrecognized = false;
 
    JavaVMOption option;
-   std::string classpath = getenv("QORE_JNI_CLASSPATH");
-   if (classpath.empty()) {
+   std::string classpath;
+   const char *classpathEnv = getenv("QORE_JNI_CLASSPATH");
+   if (classpathEnv == nullptr) {
       vm_args.nOptions = 0;
       vm_args.options = nullptr;
    } else {
-      classpath = "-Djava.class.path=" + classpath;
+      classpath = std::string("-Djava.class.path=") + classpathEnv;
       option.optionString = &classpath[0];
       vm_args.nOptions = 1;
       vm_args.options = &option;
