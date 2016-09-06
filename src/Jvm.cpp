@@ -37,9 +37,19 @@ bool Jvm::createVM() {
 
    JavaVMInitArgs vm_args;
    vm_args.version = JNI_VERSION_1_6;
-   vm_args.nOptions = 0;
-   vm_args.options = nullptr;
    vm_args.ignoreUnrecognized = false;
+
+   JavaVMOption option;
+   std::string classpath = getenv("QORE_JNI_CLASSPATH");
+   if (classpath.empty()) {
+      vm_args.nOptions = 0;
+      vm_args.options = nullptr;
+   } else {
+      classpath = "-Djava.class.path=" + classpath;
+      option.optionString = &classpath[0];
+      vm_args.nOptions = 1;
+      vm_args.options = &option;
+   }
 
    if (JNI_CreateJavaVM(&vm, reinterpret_cast<void **>(&env), &vm_args) != JNI_OK) {
       return false;
