@@ -34,6 +34,8 @@
 #include <qore/Qore.h>
 #include "Class.h"
 
+extern QoreClass* QC_METHOD;
+
 namespace jni {
 
 /**

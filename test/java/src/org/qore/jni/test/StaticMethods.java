@@ -42,4 +42,12 @@ public class StaticMethods {
     static double avg(double d1, double d2) {
         return (d1 + d2) / 2;
     }
+
+    static Integer wrap(int i) {
+        return i;
+    }
+
+    static int unwrap(Integer i) {
+        return i == null ? -123 : i;
+    }
 }

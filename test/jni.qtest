@@ -41,6 +41,8 @@ public class Main inherits QUnit::Test {
         Jni::Method max = clazz.getStaticMethod("max", "(JJ)S");
         Jni::Method avg2 = clazz.getStaticMethod("avg", "(FF)F");       # overloaded
         Jni::Method avg3 = clazz.getStaticMethod("avg", "(DD)D");       # overloaded
+        Jni::Method wrap = clazz.getStaticMethod("wrap", "(I)Ljava/lang/Integer;");
+        Jni::Method unwrap = clazz.getStaticMethod("unwrap", "(Ljava/lang/Integer;)I");
 
         # set() expects one argument
         assertThrows("JNI-ERROR", "Too few arguments", sub() { set.invokeStatic(); });
@@ -89,7 +91,17 @@ public class Main inherits QUnit::Test {
         # avg3() returns the average of its arguments
         assertFloatEq(2.92, avg3.invokeStatic(3.14, 2.7), 0.00000000000000001);
 
-        #TODO objects, arrays
+        # wrap() & unwrap()
+        Jni::Object o = wrap.invokeStatic(42);
+        assertEq(42, unwrap.invokeStatic(o));
+        assertEq(-123, unwrap.invokeStatic(NOTHING));
+        assertThrows("JNI-ERROR", sub() { unwrap.invokeStatic(True); });
+        assertThrows("JNI-ERROR", sub() { unwrap.invokeStatic(self); });
+        Jni::Object o2 = o;
+        delete o2;
+        assertThrows("OBJECT-ALREADY-DELETED", sub() { unwrap.invokeStatic(o); });
+
+        #TODO arrays
     }
 
     testFloatConversions() {

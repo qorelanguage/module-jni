@@ -24,7 +24,9 @@
 //
 //------------------------------------------------------------------------------
 #include "Method.h"
+#include <memory>
 #include "Env.h"
+#include "Object.h"
 
 namespace jni {
 
@@ -51,6 +53,11 @@ public:
       return descriptor[++pos];
    }
 
+   void skipClassName() {
+      while (descriptor[pos++] != ';')
+         ; // nop
+   }
+
 private:
    const std::string descriptor;
    std::string::size_type pos;
@@ -59,13 +66,13 @@ private:
 /**
  *
  */
-class InvalidArgumentCountException : public Exception {
+class InvalidArgumentException : public Exception {
 
 public:
    /**
     * \brief Constructor.
     */
-   InvalidArgumentCountException(std::string message) : message(std::move(message)) {
+   InvalidArgumentException(std::string message) : message(std::move(message)) {
    }
 
    void convert(ExceptionSink *xsink) override {
@@ -76,6 +83,26 @@ private:
    std::string message;
 };
 
+/**
+ *
+ */
+class XsinkException : public Exception {
+
+public:
+   /**
+    * \brief Constructor.
+    */
+   XsinkException(ExceptionSink &xsink) : sink(new ExceptionSink()) {
+      sink->assimilate(xsink);
+   }
+
+   void convert(ExceptionSink *xsink) override {
+      xsink->assimilate(*sink);
+   }
+
+private:
+   std::unique_ptr<ExceptionSink> sink;
+};
 
 std::vector<jvalue> convertArgs(MethodDescriptorParser &descParser, const QoreValueList* args) {
    std::vector<jvalue> jargs(args == nullptr ? 0 : args->size());
@@ -83,7 +110,7 @@ std::vector<jvalue> convertArgs(MethodDescriptorParser &descParser, const QoreVa
    size_t index = 0;
    while (descParser.hasNextArg()) {
       if (index >= jargs.size()) {
-         throw InvalidArgumentCountException("Too few arguments in a Java method invocation");
+         throw InvalidArgumentException("Too few arguments in a Java method invocation");
       }
       QoreValue qv = args->retrieveEntry(index);
 
@@ -112,7 +139,29 @@ std::vector<jvalue> convertArgs(MethodDescriptorParser &descParser, const QoreVa
          case 'D':
             jargs[index].d = static_cast<jdouble>(qv.getAsFloat());
             break;
-//         case 'L':
+         case 'L': {
+            descParser.skipClassName();
+            if (qv.getType() == NT_NOTHING) {
+               jargs[index].l = nullptr;
+               break;
+            }
+            if (qv.getType() != NT_OBJECT) {
+               //TODO string, autobox ptimitives?
+               throw InvalidArgumentException("A Java object argument expected");
+            }
+            QoreObject *o = qv.get<QoreObject>();
+            if (o->getClass() != QC_OBJECT) {
+               //TODO class, throwable, arrays?
+               throw InvalidArgumentException("A Java object argument expected");
+            }
+            ExceptionSink xsink;
+            SimpleRefHolder<Object> obj(static_cast<Object *>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
+            if (xsink) {
+               throw XsinkException(xsink);
+            }
+            jargs[index].l = obj->getRef();
+            break;
+         }
 //         case '[':
          default:
             assert(false);      //invalid descriptor - should not happen
@@ -121,7 +170,7 @@ std::vector<jvalue> convertArgs(MethodDescriptorParser &descParser, const QoreVa
    }
 
    if (index != jargs.size()) {
-      throw InvalidArgumentCountException("Too many arguments in a Java method invocation");
+      throw InvalidArgumentException("Too many arguments in a Java method invocation");
    }
    return std::move(jargs);
 }
@@ -151,7 +200,11 @@ QoreValue Method::invokeStatic(const QoreValueList* args) {
          return QoreValue(env.callStaticFloatMethod(clazz->getRef(), id, &jargs[0]));
       case 'D':
          return QoreValue(env.callStaticDoubleMethod(clazz->getRef(), id, &jargs[0]));
-//      case 'L':
+      case 'L': {
+         LocalReference<jobject> obj = env.callStaticObjectMethod(clazz->getRef(), id, &jargs[0]);
+         //handle strings, throwables?, class?
+         return QoreValue(new QoreObject(QC_OBJECT, getProgram(), new Object(std::move(obj))));
+      }
 //      case '[':
       default:
          assert(false);         //invalid descriptor - should not happen

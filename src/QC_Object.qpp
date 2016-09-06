@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Class.qpp Class class definition */
+/** @file QC_Object.qpp Object class definition */
 /*
   Qore Programming Language
 
@@ -29,34 +29,9 @@
 */
 
 #include <qore/Qore.h>
-#include "Class.h"
-#include "Method.h"
+#include "Object.h"
 
 //! TODO
 /**
  */
-qclass Class [arg=jni::Class* clazz; ns=Qore::Jni];
-
-//! TODO
-/**
- */
-Method Class::getMethod(string name, string descriptor) {
-   try {
-      return new QoreObject(QC_METHOD, getProgram(), clazz->getMethod(name, descriptor));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! TODO
-/**
- */
-Method Class::getStaticMethod(string name, string descriptor) {
-   try {
-      return new QoreObject(QC_METHOD, getProgram(), clazz->getStaticMethod(name, descriptor));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
+qclass Object [arg=jni::Object* object; ns=Qore::Jni];

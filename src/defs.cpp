@@ -56,16 +56,20 @@ void JavaException::convert(ExceptionSink *xsink) {
    }
 
    //TODO helper class for getting strings
-   const char *chars = env->GetStringUTFChars(msg, nullptr);
-   if (!chars) {
-      xsink->raiseException("JNI-ERROR", "Unable to get exception message - GetStringUTFChars() failed");
-      return;
+   if (msg == nullptr) {
+      xsink->raiseException("JNI-ERROR", "no messsage");
+   } else {
+      const char *chars = env->GetStringUTFChars(msg, nullptr);
+      if (!chars) {
+         xsink->raiseException("JNI-ERROR", "Unable to get exception message - GetStringUTFChars() failed");
+         return;
+      }
+
+      //TODO encoding conversion
+      xsink->raiseException("JNI-ERROR", chars);
+
+      env->ReleaseStringUTFChars(msg, chars);      //TODO RAII
    }
-
-   //TODO encoding conversion
-   xsink->raiseException("JNI-ERROR", chars);
-
-   env->ReleaseStringUTFChars(msg, chars);      //TODO RAII
 }
 
 } // namespace jni

@@ -25,55 +25,51 @@
 //------------------------------------------------------------------------------
 ///
 /// \file
-/// \brief Defines the Class class.
+/// \brief Defines the Object class.
 ///
 //------------------------------------------------------------------------------
-#ifndef QORE_JNI_CLASS_H_
-#define QORE_JNI_CLASS_H_
+#ifndef QORE_JNI_OBJECT_H_
+#define QORE_JNI_OBJECT_H_
 
 #include <qore/Qore.h>
 #include "LocalReference.h"
 
-extern QoreClass* QC_CLASS;
+extern QoreClass* QC_OBJECT;
+extern qore_classid_t CID_OBJECT;
 
 namespace jni {
 
-class Method;
-
 /**
- * \brief Represents a Java class.
+ * \brief Represents a Java object instance.
  */
-class Class : public AbstractPrivateData {
+class Object : public AbstractPrivateData {
 
 public:
    /**
     * \brief Constructor.
-    * \param clazz a local reference to a Java class
+    * \param object a local reference to a Java object instance
     * \throws JavaException if a global reference cannot be created
     */
-   Class(LocalReference<jclass> clazz) : clazz(clazz.makeGlobal()) {
-      printd(LogLevel, "Class::Class(), this: %p, clazz: %p\n", this, static_cast<jclass>(this->clazz));
+   Object(LocalReference<jobject> object) : object(object.makeGlobal()) {
+      printd(LogLevel, "Object::Object(), this: %p, object: %p\n", this, static_cast<jobject>(this->object));
    }
 
-   ~Class() {
-      printd(LogLevel, "Class::~Class(), this: %p, clazz: %p\n", this, static_cast<jclass>(this->clazz));
+   ~Object() {
+      printd(LogLevel, "Object::~Object(), this: %p, object: %p\n", this, static_cast<jobject>(this->object));
    }
 
    /**
-    * \brief Returns the reference to the JNI jclass object.
-    * \return the reference to the JNI jclass object
+    * \brief Returns the reference to the JNI jobject object.
+    * \return the reference to the JNI jobject object
     */
-   const GlobalReference<jclass> &getRef() const {
-      return clazz;
+   const GlobalReference<jobject> &getRef() const {
+      return object;
    }
 
-   Method *getMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
-   Method *getStaticMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
-
 private:
-   GlobalReference<jclass> clazz;
+   GlobalReference<jobject> object;
 };
 
 } // namespace jni
 
-#endif // QORE_JNI_CLASS_H_
+#endif // QORE_JNI_OBJECT_H_
