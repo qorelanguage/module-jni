@@ -23,39 +23,39 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 //------------------------------------------------------------------------------
-#include "Class.h"
-#include "Env.h"
 #include "Field.h"
-#include "ModifiedUtf8String.h"
-#include "Method.h"
+#include <memory>
+#include "Env.h"
+#include "JavaToQore.h"
 
 namespace jni {
 
-Field *Class::getStaticField(const QoreStringNode *name, const QoreStringNode *descriptor) {
+QoreValue Field::getStatic() {
    Env env;
-   ModifiedUtf8String nameUtf8(name);
-   ModifiedUtf8String descUtf8(descriptor);
-   printd(LogLevel, "getStaticField %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
-   ref();
-   return new Field(this, env.getStaticField(clazz, nameUtf8.c_str(), descUtf8.c_str()), descUtf8.c_str());
-}
-
-Method *Class::getMethod(const QoreStringNode *name, const QoreStringNode *descriptor) {
-   Env env;
-   ModifiedUtf8String nameUtf8(name);
-   ModifiedUtf8String descUtf8(descriptor);
-   printd(LogLevel, "getMethod %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
-   ref();
-   return new Method(this, env.getMethod(clazz, nameUtf8.c_str(), descUtf8.c_str()), descUtf8.c_str());
-}
-
-Method *Class::getStaticMethod(const QoreStringNode *name, const QoreStringNode *descriptor) {
-   Env env;
-   ModifiedUtf8String nameUtf8(name);
-   ModifiedUtf8String descUtf8(descriptor);
-   printd(LogLevel, "getStaticMethod %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
-   ref();
-   return new Method(this, env.getStaticMethod(clazz, nameUtf8.c_str(), descUtf8.c_str()), descUtf8.c_str());
+   switch (descriptor[0]) {
+      case 'Z':
+         return JavaToQore::convert(env.getStaticBooleanField(clazz->getRef(), id));
+      case 'B':
+         return JavaToQore::convert(env.getStaticByteField(clazz->getRef(), id));
+      case 'C':
+         return JavaToQore::convert(env.getStaticCharField(clazz->getRef(), id));
+      case 'S':
+         return JavaToQore::convert(env.getStaticShortField(clazz->getRef(), id));
+      case 'I':
+         return JavaToQore::convert(env.getStaticIntField(clazz->getRef(), id));
+      case 'J':
+         return JavaToQore::convert(env.getStaticLongField(clazz->getRef(), id));
+      case 'F':
+         return JavaToQore::convert(env.getStaticFloatField(clazz->getRef(), id));
+      case 'D':
+         return JavaToQore::convert(env.getStaticDoubleField(clazz->getRef(), id));
+      case 'L':
+         return JavaToQore::convert(env.getStaticObjectField(clazz->getRef(), id));
+//      case '[':
+      default:
+         assert(false);         //invalid descriptor - should not happen
+         return QoreValue();
+   }
 }
 
 } // namespace jni

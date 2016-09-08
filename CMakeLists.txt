@@ -20,6 +20,7 @@ set(QPP_SRC
     src/ql_jni.qpp
     src/QC_Object.qpp
     src/QC_Class.qpp
+    src/QC_Field.qpp
     src/QC_Method.qpp
 )
 
@@ -28,6 +29,7 @@ set(CPP_SRC
     src/defs.cpp
     src/Jvm.cpp
     src/Class.cpp
+    src/Field.cpp
     src/Method.cpp
 )
 

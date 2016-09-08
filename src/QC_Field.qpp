@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Class.qpp Class class definition */
+/** @file QC_Field.qpp Field class definition */
 /*
   Qore Programming Language
 
@@ -29,45 +29,19 @@
 */
 
 #include <qore/Qore.h>
-#include "Class.h"
 #include "Field.h"
-#include "Method.h"
 
 //! TODO
 /**
  */
-qclass Class [arg=jni::Class* clazz; ns=Qore::Jni; flags=final];
+qclass Field [arg=jni::Field* field; ns=Qore::Jni; flags=final];
 
 //! TODO
 /**
  */
-Field Class::getStaticField(string name, string descriptor) {
+any Field::getStatic() {
    try {
-      return new QoreObject(QC_FIELD, getProgram(), clazz->getStaticField(name, descriptor));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! TODO
-/**
- */
-Method Class::getMethod(string name, string descriptor) {
-   try {
-      return new QoreObject(QC_METHOD, getProgram(), clazz->getMethod(name, descriptor));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! TODO
-/**
- */
-Method Class::getStaticMethod(string name, string descriptor) {
-   try {
-      return new QoreObject(QC_METHOD, getProgram(), clazz->getStaticMethod(name, descriptor));
+      return field->getStatic();
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();

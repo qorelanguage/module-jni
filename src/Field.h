@@ -25,57 +25,52 @@
 //------------------------------------------------------------------------------
 ///
 /// \file
-/// \brief Defines the Class class.
+/// \brief Defines the Field class.
 ///
 //------------------------------------------------------------------------------
-#ifndef QORE_JNI_CLASS_H_
-#define QORE_JNI_CLASS_H_
+#ifndef QORE_JNI_FIELD_H_
+#define QORE_JNI_FIELD_H_
 
 #include <qore/Qore.h>
-#include "LocalReference.h"
+#include "Class.h"
 
-extern QoreClass* QC_CLASS;
+extern QoreClass* QC_FIELD;
 
 namespace jni {
 
-class Field;
-class Method;
-
 /**
- * \brief Represents a Java class.
+ * \brief Represents a Java field.
  */
-class Class : public AbstractPrivateData {
+class Field : public AbstractPrivateData {
 
 public:
    /**
     * \brief Constructor.
-    * \param clazz a local reference to a Java class
-    * \throws JavaException if a global reference cannot be created
+    * \param clazz the class associated with the field id
+    * \param id the field id
+    * \param desc the descriptor
     */
-   Class(LocalReference<jclass> clazz) : clazz(clazz.makeGlobal()) {
-      printd(LogLevel, "Class::Class(), this: %p, clazz: %p\n", this, static_cast<jclass>(this->clazz));
+   Field(Class *clazz, jfieldID id, std::string desc) : clazz(clazz), id(id), descriptor(std::move(desc)) {
+      printd(LogLevel, "Field::Field(), this: %p, clazz: %p, id: %p\n", this, clazz, id);
    }
 
-   ~Class() {
-      printd(LogLevel, "Class::~Class(), this: %p, clazz: %p\n", this, static_cast<jclass>(this->clazz));
+   ~Field() {
+      printd(LogLevel, "Field::~Field(), this: %p, clazz: %p, id: %p\n", this, *clazz, id);
    }
 
    /**
-    * \brief Returns the reference to the JNI jclass object.
-    * \return the reference to the JNI jclass object
+    * \brief Gets the value of a static field.
+    * \return the value of the static field
+    * \throws Exception if the value cannot be retrieved
     */
-   const GlobalReference<jclass> &getRef() const {
-      return clazz;
-   }
-
-   Field *getStaticField(const QoreStringNode *name, const QoreStringNode *descriptor);
-   Method *getMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
-   Method *getStaticMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
+   QoreValue getStatic();
 
 private:
-   GlobalReference<jclass> clazz;
+   SimpleRefHolder<Class> clazz;
+   jfieldID id;
+   std::string descriptor;
 };
 
 } // namespace jni
 
-#endif // QORE_JNI_CLASS_H_
+#endif // QORE_JNI_FIELD_H_

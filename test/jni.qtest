@@ -26,6 +26,8 @@ public class Main inherits QUnit::Test {
         Jni::Class mathClass = Jni::load_class("java/lang/Math");
         Jni::Method acosMethod = mathClass.getStaticMethod("acos", "(D)D");
         printf("PI: %n\n", acosMethod.invokeStatic(-1));
+
+        Jni::Object out = Jni::load_class("java/lang/System").getStaticField("out", "Ljava/io/PrintStream;").getStatic();
     }
 
     testStaticMethods() {

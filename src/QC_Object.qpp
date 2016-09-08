@@ -34,4 +34,4 @@
 //! TODO
 /**
  */
-qclass Object [arg=jni::Object* object; ns=Qore::Jni];
+qclass Object [arg=jni::Object* object; ns=Qore::Jni; flags=final];

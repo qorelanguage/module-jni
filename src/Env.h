@@ -74,12 +74,28 @@ public:
    }
 
    /**
+    * \brief Finds a static field in a class.
+    * \param clazz the class
+    * \param name the name of the field
+    * \param descriptor the field descriptor
+    * \return field id
+    * \throws JavaException if the field cannot be found
+    */
+   jfieldID getStaticField(jclass clazz, const char *name, const char *descriptor) {
+      jfieldID id = env->GetStaticFieldID(clazz, name, descriptor);
+      if (id == nullptr) {
+         throw JavaException();
+      }
+      return id;
+   }
+
+   /**
     * \brief Finds a method in a class.
     * \param clazz the class
     * \param name the name of the method
     * \param descriptor the method signature
     * \return method id
-    * \throws JavaException if the class cannot be found
+    * \throws JavaException if the method cannot be found
     */
    jmethodID getMethod(jclass clazz, const char *name, const char *descriptor) {
       jmethodID id = env->GetMethodID(clazz, name, descriptor);
@@ -95,7 +111,7 @@ public:
     * \param name the name of the method
     * \param descriptor the method signature
     * \return method id
-    * \throws JavaException if the class cannot be found
+    * \throws JavaException if the method cannot be found
     */
    jmethodID getStaticMethod(jclass clazz, const char *name, const char *descriptor) {
       jmethodID id = env->GetStaticMethodID(clazz, name, descriptor);
@@ -103,6 +119,96 @@ public:
          throw JavaException();
       }
       return id;
+   }
+
+   /**
+    * \brief Gets the value of a static boolean field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \return the field value
+    */
+   jboolean getStaticBooleanField(jclass clazz, jfieldID id) {
+      return env->GetStaticBooleanField(clazz, id);
+   }
+
+   /**
+    * \brief Gets the value of a static byte field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \return the field value
+    */
+   jbyte getStaticByteField(jclass clazz, jfieldID id) {
+      return env->GetStaticByteField(clazz, id);
+   }
+
+   /**
+    * \brief Gets the value of a static char field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \return the field value
+    */
+   jchar getStaticCharField(jclass clazz, jfieldID id) {
+      return env->GetStaticCharField(clazz, id);
+   }
+
+   /**
+    * \brief Gets the value of a static double field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \return the field value
+    */
+   jdouble getStaticDoubleField(jclass clazz, jfieldID id) {
+      return env->GetStaticDoubleField(clazz, id);
+   }
+
+   /**
+    * \brief Gets the value of a static float field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \return the field value
+    */
+   jfloat getStaticFloatField(jclass clazz, jfieldID id) {
+      return env->GetStaticFloatField(clazz, id);
+   }
+
+   /**
+    * \brief Gets the value of a static int field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \return the field value
+    */
+   jint getStaticIntField(jclass clazz, jfieldID id) {
+      return env->GetStaticIntField(clazz, id);
+   }
+
+   /**
+    * \brief Gets the value of a static long field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \return the field value
+    */
+   jlong getStaticLongField(jclass clazz, jfieldID id) {
+      return env->GetStaticLongField(clazz, id);
+   }
+
+   /**
+    * \brief Gets the value of a static Object field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \return the field value
+    */
+   LocalReference<jobject> getStaticObjectField(jclass clazz, jfieldID id) {
+      return env->GetStaticObjectField(clazz, id);
+   }
+
+   /**
+    * \brief Gets the value of a static short field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \return the field value
+    */
+   jshort getStaticShortField(jclass clazz, jfieldID id) {
+      return env->GetStaticShortField(clazz, id);
    }
 
    /**

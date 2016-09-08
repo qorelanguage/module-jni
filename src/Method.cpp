@@ -26,7 +26,7 @@
 #include "Method.h"
 #include <memory>
 #include "Env.h"
-#include "Object.h"
+#include "JavaToQore.h"
 
 namespace jni {
 
@@ -146,7 +146,7 @@ std::vector<jvalue> convertArgs(MethodDescriptorParser &descParser, const QoreVa
                break;
             }
             if (qv.getType() != NT_OBJECT) {
-               //TODO string, autobox ptimitives?
+               //TODO string, autobox primitives?
                throw InvalidArgumentException("A Java object argument expected");
             }
             QoreObject *o = qv.get<QoreObject>();
@@ -185,25 +185,23 @@ QoreValue Method::invokeStatic(const QoreValueList* args) {
          env.callStaticVoidMethod(clazz->getRef(), id, &jargs[0]);
          return QoreValue();
       case 'Z':
-         return QoreValue(env.callStaticBooleanMethod(clazz->getRef(), id, &jargs[0]) == JNI_TRUE);
+         return JavaToQore::convert(env.callStaticBooleanMethod(clazz->getRef(), id, &jargs[0]));
       case 'B':
-         return QoreValue(env.callStaticByteMethod(clazz->getRef(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticByteMethod(clazz->getRef(), id, &jargs[0]));
       case 'C':
-         return QoreValue(env.callStaticCharMethod(clazz->getRef(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticCharMethod(clazz->getRef(), id, &jargs[0]));
       case 'S':
-         return QoreValue(env.callStaticShortMethod(clazz->getRef(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticShortMethod(clazz->getRef(), id, &jargs[0]));
       case 'I':
-         return QoreValue(env.callStaticIntMethod(clazz->getRef(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticIntMethod(clazz->getRef(), id, &jargs[0]));
       case 'J':
-         return QoreValue(env.callStaticLongMethod(clazz->getRef(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticLongMethod(clazz->getRef(), id, &jargs[0]));
       case 'F':
-         return QoreValue(env.callStaticFloatMethod(clazz->getRef(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticFloatMethod(clazz->getRef(), id, &jargs[0]));
       case 'D':
-         return QoreValue(env.callStaticDoubleMethod(clazz->getRef(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticDoubleMethod(clazz->getRef(), id, &jargs[0]));
       case 'L': {
-         LocalReference<jobject> obj = env.callStaticObjectMethod(clazz->getRef(), id, &jargs[0]);
-         //handle strings, throwables?, class?
-         return QoreValue(new QoreObject(QC_OBJECT, getProgram(), new Object(std::move(obj))));
+         return JavaToQore::convert(env.callStaticObjectMethod(clazz->getRef(), id, &jargs[0]));
       }
 //      case '[':
       default:

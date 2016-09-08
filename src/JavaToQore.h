@@ -25,57 +25,65 @@
 //------------------------------------------------------------------------------
 ///
 /// \file
-/// \brief Defines the Class class.
-///
+/// \brief Defines the JavaToQore class
 //------------------------------------------------------------------------------
-#ifndef QORE_JNI_CLASS_H_
-#define QORE_JNI_CLASS_H_
+#ifndef QORE_JNI_JAVATOQORE_H_
+#define QORE_JNI_JAVATOQORE_H_
 
 #include <qore/Qore.h>
+#include <jni.h>
 #include "LocalReference.h"
-
-extern QoreClass* QC_CLASS;
+#include "Object.h"
 
 namespace jni {
 
-class Field;
-class Method;
-
 /**
- * \brief Represents a Java class.
+ * \brief Provides functions for converting Java values to Qore.
+ * 
+ * Although the majority of the methods is trivial, their purpose is to have a single point where a given conversion
+ * is performed. This will allow to change the conversion (e.g. add range checking) in the future consistently.
  */
-class Class : public AbstractPrivateData {
+class JavaToQore {
 
 public:
-   /**
-    * \brief Constructor.
-    * \param clazz a local reference to a Java class
-    * \throws JavaException if a global reference cannot be created
-    */
-   Class(LocalReference<jclass> clazz) : clazz(clazz.makeGlobal()) {
-      printd(LogLevel, "Class::Class(), this: %p, clazz: %p\n", this, static_cast<jclass>(this->clazz));
+   static QoreValue convert(jboolean v) {
+      return QoreValue(v == JNI_TRUE);
    }
 
-   ~Class() {
-      printd(LogLevel, "Class::~Class(), this: %p, clazz: %p\n", this, static_cast<jclass>(this->clazz));
+   static QoreValue convert(jbyte v) {
+      return QoreValue(v);
    }
 
-   /**
-    * \brief Returns the reference to the JNI jclass object.
-    * \return the reference to the JNI jclass object
-    */
-   const GlobalReference<jclass> &getRef() const {
-      return clazz;
+   static QoreValue convert(jchar v) {
+      return QoreValue(v);
    }
 
-   Field *getStaticField(const QoreStringNode *name, const QoreStringNode *descriptor);
-   Method *getMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
-   Method *getStaticMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
+   static QoreValue convert(jdouble v) {
+      return QoreValue(v);
+   }
 
-private:
-   GlobalReference<jclass> clazz;
+   static QoreValue convert(jfloat v) {
+      return QoreValue(v);
+   }
+
+   static QoreValue convert(jint v) {
+      return QoreValue(v);
+   }
+
+   static QoreValue convert(jlong v) {
+      return QoreValue(v);
+   }
+
+   static QoreValue convert(jshort v) {
+      return QoreValue(v);
+   }
+
+   static QoreValue convert(LocalReference<jobject> v) {
+      //handle strings, throwables?, class?
+      return QoreValue(new QoreObject(QC_OBJECT, getProgram(), new Object(std::move(v))));
+   }
 };
 
 } // namespace jni
 
-#endif // QORE_JNI_CLASS_H_
+#endif // QORE_JNI_JAVATOQORE_H_
