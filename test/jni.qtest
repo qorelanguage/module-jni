@@ -17,6 +17,7 @@ public class Main inherits QUnit::Test {
         addTestCase("base test", \testJni());
         addTestCase("static method invocation test", \testStaticMethods());
         addTestCase("float conversion test", \testFloatConversions());
+        addTestCase("static fields access test", \testStaticFields());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -122,5 +123,55 @@ public class Main inherits QUnit::Test {
         assertTrue(clazz.getStaticMethod("getNaNDouble", "()D").invokeStatic().nanp());
         assertEq(-@Inf@, clazz.getStaticMethod("getNInfDouble", "()D").invokeStatic());
         assertEq(@Inf@, clazz.getStaticMethod("getPInfDouble", "()D").invokeStatic());
+    }
+
+    testStaticFields() {
+        Jni::Class clazz = Jni::load_class("org/qore/jni/test/StaticFields");
+
+        Jni::Field z = clazz.getStaticField("z", "Z");
+        Jni::Field b = clazz.getStaticField("b", "B");
+        Jni::Field c = clazz.getStaticField("c", "C");
+        Jni::Field s = clazz.getStaticField("s", "S");
+        Jni::Field i = clazz.getStaticField("i", "I");
+        Jni::Field j = clazz.getStaticField("j", "J");
+        Jni::Field f = clazz.getStaticField("f", "F");
+        Jni::Field d = clazz.getStaticField("d", "D");
+        Jni::Field n = clazz.getStaticField("n", "Ljava/lang/Number;");
+        Jni::Field l = clazz.getStaticField("l", "Ljava/lang/Long;");
+
+        z.setStatic(True);
+        assertTrue(z.getStatic());
+
+        b.setStatic(42);
+        assertEq(42, b.getStatic());
+
+        c.setStatic(32768);
+        assertEq(32768, c.getStatic());
+
+        s.setStatic(65535);
+        assertEq(-1, s.getStatic());
+
+        i.setStatic(0x123456789);
+        assertEq(0x23456789, i.getStatic());
+
+        j.setStatic(0x123456789);
+        assertEq(0x123456789, j.getStatic());
+
+        f.setStatic(3.14);
+        assertFloatEq(3.14, f.getStatic(), 0.0001);
+        f.setStatic(@NaN@);
+        assertTrue(f.getStatic().nanp());
+
+        d.setStatic(2.7);
+        assertFloatEq(2.7, d.getStatic(), 0.0000001);
+        d.setStatic(@Inf@);
+        assertTrue(d.getStatic().infp());
+
+        Jni::Object intObj = clazz.getStaticMethod("wrap", "(I)Ljava/lang/Integer;").invokeStatic(42);
+        n.setStatic(intObj);
+        assertEq(42, clazz.getStaticMethod("unwrapN", "()I").invokeStatic());
+
+        assertThrows("JNI-ERROR", sub(){ l.setStatic(intObj); });
+        assertEq(NOTHING, l.getStatic());
     }
 }

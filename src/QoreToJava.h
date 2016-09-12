@@ -25,71 +25,85 @@
 //------------------------------------------------------------------------------
 ///
 /// \file
-/// \brief Defines the JavaToQore class
+/// \brief Defines the QoreToJava class
 //------------------------------------------------------------------------------
-#ifndef QORE_JNI_JAVATOQORE_H_
-#define QORE_JNI_JAVATOQORE_H_
+#ifndef QORE_JNI_QORETOJAVA_H_
+#define QORE_JNI_QORETOJAVA_H_
 
 #include <qore/Qore.h>
 #include <jni.h>
 #include "LocalReference.h"
 #include "Object.h"
+#include "defs.h"
 
 namespace jni {
 
 /**
- * \brief Provides functions for converting Java values to Qore.
+ * \brief Provides functions for converting Qore values to Java.
  *
  * Although the majority of the methods is trivial, their purpose is to have a single point where a given conversion
  * is performed. This will allow to change the conversion (e.g. add range checking) in the future consistently.
  */
-class JavaToQore {
+class QoreToJava {
 
 public:
-   static QoreValue convert(jboolean v) {
-      return QoreValue(v == JNI_TRUE);
+   static jboolean toBoolean(const QoreValue &value) {
+      return value.getAsBool() ? JNI_TRUE : JNI_FALSE;
    }
 
-   static QoreValue convert(jbyte v) {
-      return QoreValue(v);
+   static jbyte toByte(const QoreValue &value) {
+      return static_cast<jbyte>(value.getAsBigInt());
    }
 
-   static QoreValue convert(jchar v) {
-      return QoreValue(v);
+   static jchar toChar(const QoreValue &value) {
+      return static_cast<jchar>(value.getAsBigInt());
    }
 
-   static QoreValue convert(jdouble v) {
-      return QoreValue(v);
+   static jdouble toDouble(const QoreValue &value) {
+      return static_cast<jdouble>(value.getAsFloat());
    }
 
-   static QoreValue convert(jfloat v) {
-      return QoreValue(v);
+   static jfloat toFloat(const QoreValue &value) {
+      return static_cast<jfloat>(value.getAsFloat());
    }
 
-   static QoreValue convert(jint v) {
-      return QoreValue(v);
+   static jint toInt(const QoreValue &value) {
+      return static_cast<jint>(value.getAsBigInt());
    }
 
-   static QoreValue convert(jlong v) {
-      return QoreValue(v);
+   static jlong toLong(const QoreValue &value) {
+      return static_cast<jlong>(value.getAsBigInt());
    }
 
-   static QoreValue convert(jshort v) {
-      return QoreValue(v);
+   static jshort toShort(const QoreValue &value) {
+      return static_cast<jshort>(value.getAsBigInt());
    }
 
-   static QoreValue convert(LocalReference<jobject> v) {
-      if (v == nullptr) {
-         return QoreValue();
+   static jobject toObject(const QoreValue &value) {
+      if (value.getType() == NT_NOTHING) {
+         return nullptr;
       }
-      //handle strings, throwables?, class?
-      return QoreValue(new QoreObject(QC_OBJECT, getProgram(), new Object(std::move(v))));
+      if (value.getType() != NT_OBJECT) {
+         //TODO string, autobox primitives?
+         throw BasicException("A Java object argument expected");
+      }
+      const QoreObject *o = value.get<QoreObject>();
+      if (o->getClass() != QC_OBJECT) {
+         //TODO class, throwable, arrays?
+         throw BasicException("A Java object argument expected");
+      }
+      ExceptionSink xsink;
+      SimpleRefHolder<Object> obj(static_cast<Object *>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
+      if (xsink) {
+         throw XsinkException(xsink);
+      }
+      return obj->getRef();
    }
 
 private:
-   JavaToQore() = delete;
+   QoreToJava() = delete;
 };
 
 } // namespace jni
 
-#endif // QORE_JNI_JAVATOQORE_H_
+#endif // QORE_JNI_QORETOJAVA_H_

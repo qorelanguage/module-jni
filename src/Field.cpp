@@ -27,6 +27,7 @@
 #include <memory>
 #include "Env.h"
 #include "JavaToQore.h"
+#include "QoreToJava.h"
 
 namespace jni {
 
@@ -55,6 +56,42 @@ QoreValue Field::getStatic() {
       default:
          assert(false);         //invalid descriptor - should not happen
          return QoreValue();
+   }
+}
+
+void Field::setStatic(const QoreValue &value) {
+   Env env;
+   switch (descriptor[0]) {
+      case 'Z':
+         env.setStaticBooleanField(clazz->getRef(), id, QoreToJava::toBoolean(value));
+         break;
+      case 'B':
+         env.setStaticByteField(clazz->getRef(), id, QoreToJava::toByte(value));
+         break;
+      case 'C':
+         env.setStaticCharField(clazz->getRef(), id, QoreToJava::toChar(value));
+         break;
+      case 'S':
+         env.setStaticShortField(clazz->getRef(), id, QoreToJava::toShort(value));
+         break;
+      case 'I':
+         env.setStaticIntField(clazz->getRef(), id, QoreToJava::toInt(value));
+         break;
+      case 'J':
+         env.setStaticLongField(clazz->getRef(), id, QoreToJava::toLong(value));
+         break;
+      case 'F':
+         env.setStaticFloatField(clazz->getRef(), id, QoreToJava::toFloat(value));
+         break;
+      case 'D':
+         env.setStaticDoubleField(clazz->getRef(), id, QoreToJava::toDouble(value));
+         break;
+      case 'L':
+         env.setStaticObjectField(clazz->getRef(), id, QoreToJava::toObject(value));
+         break;
+//      case '[':
+      default:
+         assert(false);         //invalid descriptor - should not happen
    }
 }
 

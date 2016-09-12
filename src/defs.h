@@ -31,6 +31,7 @@
 #ifndef QORE_JNI_DEFS_H_
 #define QORE_JNI_DEFS_H_
 
+#include <memory>
 #include <qore/Qore.h>
 #include <jni.h>
 
@@ -107,6 +108,49 @@ public:
    }
 
    void convert(ExceptionSink *xsink) override;
+};
+
+/**
+ * \brief Basic exception with a simple string messsage.
+ */
+class BasicException : public Exception {
+
+public:
+   /**
+    * \brief Constructor.
+    * \param message the exception message
+    */
+   BasicException(std::string message) : message(std::move(message)) {
+   }
+
+   void convert(ExceptionSink *xsink) override {
+      xsink->raiseException("JNI-ERROR", message.c_str());
+   }
+
+private:
+   std::string message;
+};
+
+/**
+ * \brief A C++ wrapper for an exception raised in the ExceptionSink.
+ */
+class XsinkException : public Exception {
+
+public:
+   /**
+    * \brief Constructor.
+    * \param xsink the exception sink with an exception
+    */
+   XsinkException(ExceptionSink &xsink) : sink(new ExceptionSink()) {
+      sink->assimilate(xsink);
+   }
+
+   void convert(ExceptionSink *xsink) override {
+      xsink->assimilate(*sink);
+   }
+
+private:
+   std::unique_ptr<ExceptionSink> sink;
 };
 
 } // namespace jni

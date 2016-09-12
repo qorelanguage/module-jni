@@ -65,6 +65,13 @@ public:
     */
    QoreValue getStatic();
 
+   /**
+    * \brief Sets the value of a static field.
+    * \param value the new value
+    * \throws Exception if the value cannot be set
+    */
+   void setStatic(const QoreValue &value);
+
 private:
    SimpleRefHolder<Class> clazz;
    jfieldID id;

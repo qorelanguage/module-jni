@@ -212,6 +212,96 @@ public:
    }
 
    /**
+    * \brief Sets the value of a static boolean field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \param value the field value
+    */
+   void setStaticBooleanField(jclass clazz, jfieldID id, jboolean value) {
+      env->SetStaticBooleanField(clazz, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a static byte field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \param value the field value
+    */
+   void setStaticByteField(jclass clazz, jfieldID id, jbyte value) {
+      env->SetStaticByteField(clazz, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a static char field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \param value the field value
+    */
+   void setStaticCharField(jclass clazz, jfieldID id, jchar value) {
+      env->SetStaticCharField(clazz, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a static double field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \param value the field value
+    */
+   void setStaticDoubleField(jclass clazz, jfieldID id, jdouble value) {
+      env->SetStaticDoubleField(clazz, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a static float field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \param value the field value
+    */
+   void setStaticFloatField(jclass clazz, jfieldID id, jfloat value) {
+      env->SetStaticFloatField(clazz, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a static int field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \param value the field value
+    */
+   void setStaticIntField(jclass clazz, jfieldID id, jint value) {
+      env->SetStaticIntField(clazz, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a static long field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \param value the field value
+    */
+   void setStaticLongField(jclass clazz, jfieldID id, jlong value) {
+      env->SetStaticLongField(clazz, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a static Object field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \param value the field value
+    */
+   void setStaticObjectField(jclass clazz, jfieldID id, jobject value) {
+      env->SetStaticObjectField(clazz, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a static short field.
+    * \param clazz the class of the field
+    * \param id the field id
+    * \param value the field value
+    */
+   void setStaticShortField(jclass clazz, jfieldID id, jshort value) {
+      env->SetStaticShortField(clazz, id, value);
+   }
+
+   /**
     * \brief Invokes a static method.
     * \param clazz the class of the method
     * \param id the method id

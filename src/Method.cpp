@@ -24,9 +24,9 @@
 //
 //------------------------------------------------------------------------------
 #include "Method.h"
-#include <memory>
 #include "Env.h"
 #include "JavaToQore.h"
+#include "QoreToJava.h"
 
 namespace jni {
 
@@ -63,105 +63,45 @@ private:
    std::string::size_type pos;
 };
 
-/**
- *
- */
-class InvalidArgumentException : public Exception {
-
-public:
-   /**
-    * \brief Constructor.
-    */
-   InvalidArgumentException(std::string message) : message(std::move(message)) {
-   }
-
-   void convert(ExceptionSink *xsink) override {
-      xsink->raiseException("JNI-ERROR", message.c_str());
-   }
-
-private:
-   std::string message;
-};
-
-/**
- *
- */
-class XsinkException : public Exception {
-
-public:
-   /**
-    * \brief Constructor.
-    */
-   XsinkException(ExceptionSink &xsink) : sink(new ExceptionSink()) {
-      sink->assimilate(xsink);
-   }
-
-   void convert(ExceptionSink *xsink) override {
-      xsink->assimilate(*sink);
-   }
-
-private:
-   std::unique_ptr<ExceptionSink> sink;
-};
-
 std::vector<jvalue> convertArgs(MethodDescriptorParser &descParser, const QoreValueList* args) {
    std::vector<jvalue> jargs(args == nullptr ? 0 : args->size());
 
    size_t index = 0;
    while (descParser.hasNextArg()) {
       if (index >= jargs.size()) {
-         throw InvalidArgumentException("Too few arguments in a Java method invocation");
+         throw BasicException("Too few arguments in a Java method invocation");
       }
       QoreValue qv = args->retrieveEntry(index);
 
       switch (descParser.nextArgType()) {
          case 'Z':
-            jargs[index].z = qv.getAsBool() ? JNI_TRUE : JNI_FALSE;
+            jargs[index].z = QoreToJava::toBoolean(qv);
             break;
          case 'B':
-            jargs[index].b = static_cast<jbyte>(qv.getAsBigInt());
+            jargs[index].b = QoreToJava::toByte(qv);
             break;
          case 'C':
-            jargs[index].c = static_cast<jchar>(qv.getAsBigInt());
+            jargs[index].c = QoreToJava::toChar(qv);
             break;
          case 'S':
-            jargs[index].s = static_cast<jshort>(qv.getAsBigInt());
+            jargs[index].s = QoreToJava::toShort(qv);
             break;
          case 'I':
-            jargs[index].i = static_cast<jint>(qv.getAsBigInt());
+            jargs[index].i = QoreToJava::toInt(qv);
             break;
          case 'J':
-            jargs[index].j = static_cast<jlong>(qv.getAsBigInt());
+            jargs[index].j = QoreToJava::toLong(qv);
             break;
          case 'F':
-            jargs[index].f = static_cast<jfloat>(qv.getAsFloat());
+            jargs[index].f = QoreToJava::toFloat(qv);
             break;
          case 'D':
-            jargs[index].d = static_cast<jdouble>(qv.getAsFloat());
+            jargs[index].d = QoreToJava::toDouble(qv);
             break;
-         case 'L': {
+         case 'L':
             descParser.skipClassName();
-            if (qv.getType() == NT_NOTHING) {
-               jargs[index].l = nullptr;
-               break;
-            }
-            if (qv.getType() != NT_OBJECT) {
-               //TODO string, autobox primitives?
-               throw InvalidArgumentException("A Java object argument expected");
-            }
-            QoreObject *o = qv.get<QoreObject>();
-            if (o->getClass() != QC_OBJECT) {
-               //TODO class, throwable, arrays?
-               throw InvalidArgumentException("A Java object argument expected");
-            }
-            ExceptionSink xsink;
-            SimpleRefHolder<Object> obj(static_cast<Object *>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
-            if (xsink) {
-               throw XsinkException(xsink);
-            }
-            jargs[index].l = obj->getRef();
+            jargs[index].l = QoreToJava::toObject(qv);
             break;
-         }
 //         case '[':
          default:
             assert(false);      //invalid descriptor - should not happen
@@ -170,7 +110,7 @@ std::vector<jvalue> convertArgs(MethodDescriptorParser &descParser, const QoreVa
    }
 
    if (index != jargs.size()) {
-      throw InvalidArgumentException("Too many arguments in a Java method invocation");
+      throw BasicException("Too many arguments in a Java method invocation");
    }
    return std::move(jargs);
 }

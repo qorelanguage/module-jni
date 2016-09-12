@@ -47,3 +47,14 @@ any Field::getStatic() {
       return QoreValue();
    }
 }
+
+//! TODO
+/**
+ */
+any Field::setStatic(any value) {
+   try {
+      field->setStatic(value);
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+   }
+}
