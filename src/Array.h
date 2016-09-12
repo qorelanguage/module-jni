@@ -1,0 +1,77 @@
+//--------------------------------------------------------------------*- C++ -*-
+//
+//  Qore Programming Language
+//
+//  Copyright (C) 2015 Qore Technologies
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//
+//------------------------------------------------------------------------------
+///
+/// \file
+/// \brief Defines the Array class.
+///
+//------------------------------------------------------------------------------
+#ifndef QORE_JNI_ARRAY_H_
+#define QORE_JNI_ARRAY_H_
+
+#include <qore/Qore.h>
+#include "LocalReference.h"
+
+extern QoreClass* QC_ARRAY;
+extern qore_classid_t CID_ARRAY;
+
+namespace jni {
+
+/**
+ * \brief Represents a Java array instance.
+ */
+class Array : public AbstractPrivateData {
+
+public:
+   /**
+    * \brief Constructor.
+    * \param array a local reference to a Java array instance
+    * \param descriptor the type of the elements
+    * \throws JavaException if a global reference cannot be created
+    */
+   Array(LocalReference<jarray> array, std::string desc) : array(array.makeGlobal()), descriptor(std::move(desc)) {
+      printd(LogLevel, "Array::Array(), this: %p, object: %p\n", this, static_cast<jarray>(this->array));
+   }
+
+   ~Array() {
+      printd(LogLevel, "Array::~Array(), this: %p, object: %p\n", this, static_cast<jarray>(this->array));
+   }
+
+   /**
+    * \brief Returns the reference to the JNI jarray object.
+    * \return the reference to the JNI jarray object
+    */
+   const GlobalReference<jarray> &getRef() const {
+      return array;
+   }
+
+private:
+   GlobalReference<jarray> array;
+   std::string descriptor;
+};
+
+} // namespace jni
+
+#endif // QORE_JNI_ARRAY_H_

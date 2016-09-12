@@ -19,6 +19,7 @@ endif()
 set(QPP_SRC
     src/ql_jni.qpp
     src/QC_Object.qpp
+    src/QC_Array.qpp
     src/QC_Class.qpp
     src/QC_Field.qpp
     src/QC_Method.qpp

@@ -40,6 +40,7 @@ static void jni_module_delete();
 
 DLLLOCAL void init_jni_functions(QoreNamespace& ns);
 DLLLOCAL QoreClass* initObjectClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initArrayClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initClassClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initFieldClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initMethodClass(QoreNamespace& ns);
@@ -72,6 +73,7 @@ static QoreStringNode *jni_module_init() {
    tclist.push(jni_thread_cleanup, nullptr);
 
    JniNamespace.addSystemClass(initObjectClass(JniNamespace));
+   JniNamespace.addSystemClass(initArrayClass(JniNamespace));
    JniNamespace.addSystemClass(initFieldClass(JniNamespace));
    JniNamespace.addSystemClass(initMethodClass(JniNamespace));
    JniNamespace.addSystemClass(initClassClass(JniNamespace));

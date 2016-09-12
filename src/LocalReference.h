@@ -108,6 +108,20 @@ public:
       return global;
    }
 
+   /**
+    * \brief Converts the reference to another type.
+    *
+    * This object becomes empty - the reference it contains is moved to the new object.
+    * \tparam T2 the type of the resulting reference
+    * \return a local reference of type T2
+    */
+   template<typename T2>
+   LocalReference<T2> as() {
+      T2 r = static_cast<T2>(ref);
+      ref = nullptr;
+      return r;
+   }
+
 private:
    LocalReference(const LocalReference &) = delete;
    LocalReference &operator=(const LocalReference &) = delete;

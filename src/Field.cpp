@@ -31,33 +31,10 @@
 
 namespace jni {
 
-class FieldDescriptorParser {
-
-public:
-   FieldDescriptorParser(const std::string &descriptor) : descriptor(descriptor), pos(0) {
-      //we assume that the descriptor is well-formed since it was successfully used to get the jfieldID
-   }
-
-   char getType() {
-      return descriptor[pos++];
-   }
-
-   std::string getClassName() {
-      std::string::size_type begin = pos;
-      pos = descriptor.find(';', begin);
-      assert(pos != std::string::npos);
-      ++pos;
-      return descriptor.substr(begin, pos - begin - 1);
-   }
-
-private:
-   const std::string descriptor;
-   std::string::size_type pos;
-};
-
 QoreValue Field::getStatic() {
    Env env;
-   switch (descriptor[0]) {
+   DescriptorParser parser(descriptor);
+   switch (parser.getType()) {
       case 'Z':
          return JavaToQore::convert(env.getStaticBooleanField(clazz->getRef(), id));
       case 'B':
@@ -75,8 +52,9 @@ QoreValue Field::getStatic() {
       case 'D':
          return JavaToQore::convert(env.getStaticDoubleField(clazz->getRef(), id));
       case 'L':
-         return JavaToQore::convert(env.getStaticObjectField(clazz->getRef(), id));
-//      case '[':
+         return JavaToQore::convertObject(env.getStaticObjectField(clazz->getRef(), id), parser);
+      case '[':
+         return JavaToQore::convertArray(env.getStaticObjectField(clazz->getRef(), id), parser);
       default:
          assert(false);         //invalid descriptor - should not happen
          return QoreValue();
@@ -85,7 +63,7 @@ QoreValue Field::getStatic() {
 
 void Field::setStatic(const QoreValue &value) {
    Env env;
-   FieldDescriptorParser parser(descriptor);
+   DescriptorParser parser(descriptor);
    switch (parser.getType()) {
       case 'Z':
          env.setStaticBooleanField(clazz->getRef(), id, QoreToJava::toBoolean(value));
