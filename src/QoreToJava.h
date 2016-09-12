@@ -79,7 +79,7 @@ public:
       return static_cast<jshort>(value.getAsBigInt());
    }
 
-   static jobject toObject(const QoreValue &value) {
+   static jobject toObject(const QoreValue &value, const std::string &className) {
       if (value.getType() == NT_NOTHING) {
          return nullptr;
       }
@@ -97,6 +97,13 @@ public:
       if (xsink) {
          throw XsinkException(xsink);
       }
+
+      Env env;
+      LocalReference<jclass> clazz = env.findClass(className.c_str());
+      if (!env.isInstanceOf(obj->getRef(), clazz)) {
+         throw BasicException("CAST");
+      }
+
       return obj->getRef();
    }
 

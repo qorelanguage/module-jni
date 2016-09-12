@@ -459,6 +459,16 @@ public:
       }
    }
 
+   /**
+    * \brief Tests whether an object is an instance of a class.
+    * \param obj the object
+    * \param clazz the class
+    * \return true if obj can be cast to clazz
+    */
+   bool isInstanceOf(jobject obj, jclass clazz) {
+      return env->IsInstanceOf(obj, clazz) == JNI_TRUE;
+   }
+
 private:
    JNIEnv *env;
 };

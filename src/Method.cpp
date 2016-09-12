@@ -53,9 +53,12 @@ public:
       return descriptor[++pos];
    }
 
-   void skipClassName() {
-      while (descriptor[pos++] != ';')
-         ; // nop
+   std::string getClassName() {
+      std::string::size_type begin = pos;
+      pos = descriptor.find(';', begin);
+      assert(pos != std::string::npos);
+      ++pos;
+      return descriptor.substr(begin, pos - begin - 1);
    }
 
 private:
@@ -99,8 +102,7 @@ std::vector<jvalue> convertArgs(MethodDescriptorParser &descParser, const QoreVa
             jargs[index].d = QoreToJava::toDouble(qv);
             break;
          case 'L':
-            descParser.skipClassName();
-            jargs[index].l = QoreToJava::toObject(qv);
+            jargs[index].l = QoreToJava::toObject(qv, descParser.getClassName());
             break;
 //         case '[':
          default:
