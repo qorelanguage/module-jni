@@ -68,6 +68,7 @@ public:
       return clazz;
    }
 
+   Field *getField(const QoreStringNode *name, const QoreStringNode *descriptor);
    Field *getStaticField(const QoreStringNode *name, const QoreStringNode *descriptor);
    Method *getMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
    Method *getStaticMethod(const QoreStringNode *name, const QoreStringNode *descriptor);

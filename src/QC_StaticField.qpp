@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Field.qpp Field class definition */
+/** @file QC_StaticField.qpp StaticField class definition */
 /*
   Qore Programming Language
 
@@ -34,4 +34,27 @@
 //! TODO
 /**
  */
-qclass Field [arg=jni::Field* field; ns=Qore::Jni; flags=final];
+qclass StaticField [arg=jni::Field* field; ns=Qore::Jni; flags=final];
+
+//! TODO
+/**
+ */
+any StaticField::get() {
+   try {
+      return field->getStatic();
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! TODO
+/**
+ */
+any StaticField::set(any value) {
+   try {
+      field->setStatic(value);
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+   }
+}

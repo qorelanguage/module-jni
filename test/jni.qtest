@@ -25,172 +25,172 @@ public class Main inherits QUnit::Test {
 
     testJni() {
         Jni::Class mathClass = Jni::load_class("java/lang/Math");
-        Jni::Method acosMethod = mathClass.getStaticMethod("acos", "(D)D");
-        printf("PI: %n\n", acosMethod.invokeStatic(-1));
+        Jni::StaticMethod acosMethod = mathClass.getStaticMethod("acos", "(D)D");
+        printf("PI: %n\n", acosMethod.invoke(-1));
 
-        Jni::Object out = Jni::load_class("java/lang/System").getStaticField("out", "Ljava/io/PrintStream;").getStatic();
+        Jni::Object out = Jni::load_class("java/lang/System").getStaticField("out", "Ljava/io/PrintStream;").get();
     }
 
     testStaticMethods() {
         Jni::Class clazz = Jni::load_class("org/qore/jni/test/StaticMethods");
 
         # the purpose is to test all possible argument and return value types
-        Jni::Method set = clazz.getStaticMethod("set", "(I)V");
-        Jni::Method get = clazz.getStaticMethod("get", "()I");          # overloaded
-        Jni::Method cmp = clazz.getStaticMethod("cmp", "(SJ)Z");
-        Jni::Method add = clazz.getStaticMethod("add", "(BC)C");
-        Jni::Method get2 = clazz.getStaticMethod("get", "(Z)J");        # overloaded
-        Jni::Method avg = clazz.getStaticMethod("avg", "(BBB)B");       # overloaded
-        Jni::Method max = clazz.getStaticMethod("max", "(JJ)S");
-        Jni::Method avg2 = clazz.getStaticMethod("avg", "(FF)F");       # overloaded
-        Jni::Method avg3 = clazz.getStaticMethod("avg", "(DD)D");       # overloaded
-        Jni::Method wrap = clazz.getStaticMethod("wrap", "(I)Ljava/lang/Integer;");
-        Jni::Method unwrap = clazz.getStaticMethod("unwrap", "(Ljava/lang/Integer;)I");
-        Jni::Method getLongArray = clazz.getStaticMethod("getLongArray", "()[Ljava/lang/Long;");
-        Jni::Method useArray = clazz.getStaticMethod("useArray", "([Ljava/lang/Object;)V");
+        Jni::StaticMethod set = clazz.getStaticMethod("set", "(I)V");
+        Jni::StaticMethod get = clazz.getStaticMethod("get", "()I");          # overloaded
+        Jni::StaticMethod cmp = clazz.getStaticMethod("cmp", "(SJ)Z");
+        Jni::StaticMethod add = clazz.getStaticMethod("add", "(BC)C");
+        Jni::StaticMethod get2 = clazz.getStaticMethod("get", "(Z)J");        # overloaded
+        Jni::StaticMethod avg = clazz.getStaticMethod("avg", "(BBB)B");       # overloaded
+        Jni::StaticMethod max = clazz.getStaticMethod("max", "(JJ)S");
+        Jni::StaticMethod avg2 = clazz.getStaticMethod("avg", "(FF)F");       # overloaded
+        Jni::StaticMethod avg3 = clazz.getStaticMethod("avg", "(DD)D");       # overloaded
+        Jni::StaticMethod wrap = clazz.getStaticMethod("wrap", "(I)Ljava/lang/Integer;");
+        Jni::StaticMethod unwrap = clazz.getStaticMethod("unwrap", "(Ljava/lang/Integer;)I");
+        Jni::StaticMethod getLongArray = clazz.getStaticMethod("getLongArray", "()[Ljava/lang/Long;");
+        Jni::StaticMethod useArray = clazz.getStaticMethod("useArray", "([Ljava/lang/Object;)V");
 
         # set() expects one argument
-        assertThrows("JNI-ERROR", "Too few arguments", sub() { set.invokeStatic(); });
+        assertThrows("JNI-ERROR", "Too few arguments", sub() { set.invoke(); });
 
         # get() expects no arguments
-        assertThrows("JNI-ERROR", "Too many arguments", sub() { get.invokeStatic(123); });
+        assertThrows("JNI-ERROR", "Too many arguments", sub() { get.invoke(123); });
 
         # cmp() expects two arguments
-        assertThrows("JNI-ERROR", "Too few arguments", sub() { cmp.invokeStatic(1); });
-        assertThrows("JNI-ERROR", "Too many arguments", sub() { cmp.invokeStatic(1, 2, 3); });
+        assertThrows("JNI-ERROR", "Too few arguments", sub() { cmp.invoke(1); });
+        assertThrows("JNI-ERROR", "Too many arguments", sub() { cmp.invoke(1, 2, 3); });
 
         # set() has no retval, we test the side effect below using get()
-        set.invokeStatic(42);
+        set.invoke(42);
 
         # get() returns the value previously passed to set()
-        assertEq(42, get.invokeStatic());
+        assertEq(42, get.invoke());
 
         # cmp() 'converts' first arg to short and returns true if it is greater than the second argument
-        assertTrue(cmp.invokeStatic(1000, -1234567890123));
-        assertTrue(cmp.invokeStatic(32767, 1));
-        assertFalse(cmp.invokeStatic(32768, 1));  #the first argument overflows to -32768, which is not greater than 1
+        assertTrue(cmp.invoke(1000, -1234567890123));
+        assertTrue(cmp.invoke(32767, 1));
+        assertFalse(cmp.invoke(32768, 1));  #the first argument overflows to -32768, which is not greater than 1
 
         # add() 'converts' first arg to byte (signed 8bit), second arg to char (unsigned 16bit) and adds them together
-        assertEq(32768, add.invokeStatic(1, 32767));
-        assertEq(0, add.invokeStatic(36, 65500));
-        assertEq(65530, add.invokeStatic(-5, -1));      #-1 is 65535
-        assertEq(999, add.invokeStatic(255, 1000));     #255 is -1
+        assertEq(32768, add.invoke(1, 32767));
+        assertEq(0, add.invoke(36, 65500));
+        assertEq(65530, add.invoke(-5, -1));      #-1 is 65535
+        assertEq(999, add.invoke(255, 1000));     #255 is -1
 
         # get2() throws if called with true, otherwise returns 2^63-1
-        assertThrows("JNI-ERROR", sub() { get2.invokeStatic(True); });
-        assertEq(0x7FFFFFFFFFFFFFFF, get2.invokeStatic(False));
+        assertThrows("JNI-ERROR", sub() { get2.invoke(True); });
+        assertEq(0x7FFFFFFFFFFFFFFF, get2.invoke(False));
 
         # avg() 'converts' all args to byte and returns their average
-        assertEq(2, avg.invokeStatic(1, 2, 3));
-        assertEq(85, avg.invokeStatic(126, 2, 127));
-        assertEq(-43, avg.invokeStatic(128, 256, -1));  #128 -> -128, 256 -> 0
+        assertEq(2, avg.invoke(1, 2, 3));
+        assertEq(85, avg.invoke(126, 2, 127));
+        assertEq(-43, avg.invoke(128, 256, -1));  #128 -> -128, 256 -> 0
 
         # max() compares the arguments, converts the larger to short and returns it
-        assertEq(10, max.invokeStatic(10, -4));
-        assertEq(-1, max.invokeStatic(65535, 0));
-        assertEq(-32768, max.invokeStatic(32768, 32768));
+        assertEq(10, max.invoke(10, -4));
+        assertEq(-1, max.invoke(65535, 0));
+        assertEq(-32768, max.invoke(32768, 32768));
 
         # avg2() 'converts' all args to float and returns their average
-        assertFloatEq(2.92, avg2.invokeStatic(3.14, 2.7), 0.0000001);
+        assertFloatEq(2.92, avg2.invoke(3.14, 2.7), 0.0000001);
 
         # avg3() returns the average of its arguments
-        assertFloatEq(2.92, avg3.invokeStatic(3.14, 2.7), 0.00000000000000001);
+        assertFloatEq(2.92, avg3.invoke(3.14, 2.7), 0.00000000000000001);
 
         # wrap() & unwrap()
-        Jni::Object o = wrap.invokeStatic(42);
-        assertEq(42, unwrap.invokeStatic(o));
-        assertEq(-123, unwrap.invokeStatic(NOTHING));
-        assertThrows("JNI-ERROR", sub() { unwrap.invokeStatic(True); });
-        assertThrows("JNI-ERROR", sub() { unwrap.invokeStatic(self); });
+        Jni::Object o = wrap.invoke(42);
+        assertEq(42, unwrap.invoke(o));
+        assertEq(-123, unwrap.invoke(NOTHING));
+        assertThrows("JNI-ERROR", sub() { unwrap.invoke(True); });
+        assertThrows("JNI-ERROR", sub() { unwrap.invoke(self); });
         Jni::Object o2 = o;
         delete o2;
-        assertThrows("OBJECT-ALREADY-DELETED", sub() { unwrap.invokeStatic(o); });
+        assertThrows("OBJECT-ALREADY-DELETED", sub() { unwrap.invoke(o); });
 
         # arrays
-        Jni::Array longArray = getLongArray.invokeStatic();
-        useArray.invokeStatic(longArray);
+        Jni::Array longArray = getLongArray.invoke();
+        useArray.invoke(longArray);
     }
 
     testFloatConversions() {
         Jni::Class clazz = Jni::load_class("org/qore/jni/test/FloatConversions");
 
-        assertTrue(clazz.getStaticMethod("isNaNFloat", "(F)Z").invokeStatic(@NaN@));
-        assertTrue(clazz.getStaticMethod("isNInfFloat", "(F)Z").invokeStatic(-@Inf@));
-        assertTrue(clazz.getStaticMethod("isPInfFloat", "(F)Z").invokeStatic(@Inf@));
-        assertTrue(clazz.getStaticMethod("getNaNFloat", "()F").invokeStatic().nanp());
-        assertEq(-@Inf@, clazz.getStaticMethod("getNInfFloat", "()F").invokeStatic());
-        assertEq(@Inf@, clazz.getStaticMethod("getPInfFloat", "()F").invokeStatic());
+        assertTrue(clazz.getStaticMethod("isNaNFloat", "(F)Z").invoke(@NaN@));
+        assertTrue(clazz.getStaticMethod("isNInfFloat", "(F)Z").invoke(-@Inf@));
+        assertTrue(clazz.getStaticMethod("isPInfFloat", "(F)Z").invoke(@Inf@));
+        assertTrue(clazz.getStaticMethod("getNaNFloat", "()F").invoke().nanp());
+        assertEq(-@Inf@, clazz.getStaticMethod("getNInfFloat", "()F").invoke());
+        assertEq(@Inf@, clazz.getStaticMethod("getPInfFloat", "()F").invoke());
 
-        assertTrue(clazz.getStaticMethod("isNaNDouble", "(D)Z").invokeStatic(@NaN@));
-        assertTrue(clazz.getStaticMethod("isNInfDouble", "(D)Z").invokeStatic(-@Inf@));
-        assertTrue(clazz.getStaticMethod("isPInfDouble", "(D)Z").invokeStatic(@Inf@));
-        assertTrue(clazz.getStaticMethod("getNaNDouble", "()D").invokeStatic().nanp());
-        assertEq(-@Inf@, clazz.getStaticMethod("getNInfDouble", "()D").invokeStatic());
-        assertEq(@Inf@, clazz.getStaticMethod("getPInfDouble", "()D").invokeStatic());
+        assertTrue(clazz.getStaticMethod("isNaNDouble", "(D)Z").invoke(@NaN@));
+        assertTrue(clazz.getStaticMethod("isNInfDouble", "(D)Z").invoke(-@Inf@));
+        assertTrue(clazz.getStaticMethod("isPInfDouble", "(D)Z").invoke(@Inf@));
+        assertTrue(clazz.getStaticMethod("getNaNDouble", "()D").invoke().nanp());
+        assertEq(-@Inf@, clazz.getStaticMethod("getNInfDouble", "()D").invoke());
+        assertEq(@Inf@, clazz.getStaticMethod("getPInfDouble", "()D").invoke());
     }
 
     testStaticFields() {
         Jni::Class clazz = Jni::load_class("org/qore/jni/test/StaticFields");
 
-        Jni::Field z = clazz.getStaticField("z", "Z");
-        Jni::Field b = clazz.getStaticField("b", "B");
-        Jni::Field c = clazz.getStaticField("c", "C");
-        Jni::Field s = clazz.getStaticField("s", "S");
-        Jni::Field i = clazz.getStaticField("i", "I");
-        Jni::Field j = clazz.getStaticField("j", "J");
-        Jni::Field f = clazz.getStaticField("f", "F");
-        Jni::Field d = clazz.getStaticField("d", "D");
-        Jni::Field n = clazz.getStaticField("n", "Ljava/lang/Number;");
-        Jni::Field l = clazz.getStaticField("l", "Ljava/lang/Long;");
-        Jni::Field ba = clazz.getStaticField("ba", "[B");
-        Jni::Field o = clazz.getStaticField("o", "Ljava/lang/Object;");
-        Jni::Field oa = clazz.getStaticField("oa", "[Ljava/lang/Object;");
-        Jni::Field ia = clazz.getStaticField("ia", "[Ljava/lang/Integer;");
+        Jni::StaticField z = clazz.getStaticField("z", "Z");
+        Jni::StaticField b = clazz.getStaticField("b", "B");
+        Jni::StaticField c = clazz.getStaticField("c", "C");
+        Jni::StaticField s = clazz.getStaticField("s", "S");
+        Jni::StaticField i = clazz.getStaticField("i", "I");
+        Jni::StaticField j = clazz.getStaticField("j", "J");
+        Jni::StaticField f = clazz.getStaticField("f", "F");
+        Jni::StaticField d = clazz.getStaticField("d", "D");
+        Jni::StaticField n = clazz.getStaticField("n", "Ljava/lang/Number;");
+        Jni::StaticField l = clazz.getStaticField("l", "Ljava/lang/Long;");
+        Jni::StaticField ba = clazz.getStaticField("ba", "[B");
+        Jni::StaticField o = clazz.getStaticField("o", "Ljava/lang/Object;");
+        Jni::StaticField oa = clazz.getStaticField("oa", "[Ljava/lang/Object;");
+        Jni::StaticField ia = clazz.getStaticField("ia", "[Ljava/lang/Integer;");
 
-        z.setStatic(True);
-        assertTrue(z.getStatic());
+        z.set(True);
+        assertTrue(z.get());
 
-        b.setStatic(42);
-        assertEq(42, b.getStatic());
+        b.set(42);
+        assertEq(42, b.get());
 
-        c.setStatic(32768);
-        assertEq(32768, c.getStatic());
+        c.set(32768);
+        assertEq(32768, c.get());
 
-        s.setStatic(65535);
-        assertEq(-1, s.getStatic());
+        s.set(65535);
+        assertEq(-1, s.get());
 
-        i.setStatic(0x123456789);
-        assertEq(0x23456789, i.getStatic());
+        i.set(0x123456789);
+        assertEq(0x23456789, i.get());
 
-        j.setStatic(0x123456789);
-        assertEq(0x123456789, j.getStatic());
+        j.set(0x123456789);
+        assertEq(0x123456789, j.get());
 
-        f.setStatic(3.14);
-        assertFloatEq(3.14, f.getStatic(), 0.0001);
-        f.setStatic(@NaN@);
-        assertTrue(f.getStatic().nanp());
+        f.set(3.14);
+        assertFloatEq(3.14, f.get(), 0.0001);
+        f.set(@NaN@);
+        assertTrue(f.get().nanp());
 
-        d.setStatic(2.7);
-        assertFloatEq(2.7, d.getStatic(), 0.0000001);
-        d.setStatic(@Inf@);
-        assertTrue(d.getStatic().infp());
+        d.set(2.7);
+        assertFloatEq(2.7, d.get(), 0.0000001);
+        d.set(@Inf@);
+        assertTrue(d.get().infp());
 
-        Jni::Object intObj = clazz.getStaticMethod("wrap", "(I)Ljava/lang/Integer;").invokeStatic(42);
-        n.setStatic(intObj);
-        assertEq(42, clazz.getStaticMethod("unwrapN", "()I").invokeStatic());
+        Jni::Object intObj = clazz.getStaticMethod("wrap", "(I)Ljava/lang/Integer;").invoke(42);
+        n.set(intObj);
+        assertEq(42, clazz.getStaticMethod("unwrapN", "()I").invoke());
 
-        assertThrows("JNI-ERROR", sub(){ l.setStatic(intObj); });
-        assertEq(NOTHING, l.getStatic());
+        assertThrows("JNI-ERROR", sub(){ l.set(intObj); });
+        assertEq(NOTHING, l.get());
 
-        Jni::Array byteArray = ba.getStatic();
-        Jni::Array objectArray = oa.getStatic();
-        Jni::Array intArray = ia.getStatic();
+        Jni::Array byteArray = ba.get();
+        Jni::Array objectArray = oa.get();
+        Jni::Array intArray = ia.get();
 
-        o.setStatic(byteArray);                                             # arrays in Java are Objects
-        assertThrows("JNI-ERROR", sub() { oa.setStatic(byteArray); });      # byte[] is not a subtype of Object[]
-        oa.setStatic(intArray);                                             # arrays in Java are covariant
-        assertThrows("JNI-ERROR", sub() { ia.setStatic(objectArray); });    # Object[] is not a subtype of Integer[]
-        assertThrows("JNI-ERROR", sub() { n.setStatic(byteArray); });       # byte[] is not a Number
-        assertThrows("JNI-ERROR", sub() { ba.setStatic(intObj); });         # Integer is not a byte[]
+        o.set(byteArray);                                               # arrays in Java are Objects
+        assertThrows("JNI-ERROR", sub() { oa.set(byteArray); });        # byte[] is not a subtype of Object[]
+        oa.set(intArray);                                               # arrays in Java are covariant
+        assertThrows("JNI-ERROR", sub() { ia.set(objectArray); });      # Object[] is not a subtype of Integer[]
+        assertThrows("JNI-ERROR", sub() { n.set(byteArray); });         # byte[] is not a Number
+        assertThrows("JNI-ERROR", sub() { ba.set(intObj); });           # Integer is not a byte[]
     }
 }

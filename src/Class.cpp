@@ -31,6 +31,15 @@
 
 namespace jni {
 
+Field *Class::getField(const QoreStringNode *name, const QoreStringNode *descriptor) {
+   Env env;
+   ModifiedUtf8String nameUtf8(name);
+   ModifiedUtf8String descUtf8(descriptor);
+   printd(LogLevel, "getField %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
+   ref();
+   return new Field(this, env.getField(clazz, nameUtf8.c_str(), descUtf8.c_str()), descUtf8.c_str());
+}
+
 Field *Class::getStaticField(const QoreStringNode *name, const QoreStringNode *descriptor) {
    Env env;
    ModifiedUtf8String nameUtf8(name);

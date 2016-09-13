@@ -35,15 +35,3 @@
 /**
  */
 qclass Method [arg=jni::Method* method; ns=Qore::Jni; flags=final];
-
-//! TODO
-/**
- */
-any Method::invokeStatic(...) {
-   try {
-      return method->invokeStatic(args);
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}

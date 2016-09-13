@@ -35,6 +35,7 @@
 #include "Class.h"
 
 extern QoreClass* QC_FIELD;
+extern QoreClass* QC_STATICFIELD;
 
 namespace jni {
 

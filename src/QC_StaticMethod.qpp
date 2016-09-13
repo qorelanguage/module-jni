@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Field.qpp Field class definition */
+/** @file QC_Method.qpp Method class definition */
 /*
   Qore Programming Language
 
@@ -29,9 +29,21 @@
 */
 
 #include <qore/Qore.h>
-#include "Field.h"
+#include "Method.h"
 
 //! TODO
 /**
  */
-qclass Field [arg=jni::Field* field; ns=Qore::Jni; flags=final];
+qclass StaticMethod [arg=jni::Method* method; ns=Qore::Jni; flags=final];
+
+//! TODO
+/**
+ */
+any StaticMethod::invoke(...) {
+   try {
+      return method->invokeStatic(args);
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}

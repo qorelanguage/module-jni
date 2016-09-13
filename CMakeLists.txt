@@ -22,7 +22,9 @@ set(QPP_SRC
     src/QC_Array.qpp
     src/QC_Class.qpp
     src/QC_Field.qpp
+    src/QC_StaticField.qpp
     src/QC_Method.qpp
+    src/QC_StaticMethod.qpp
 )
 
 set(CPP_SRC

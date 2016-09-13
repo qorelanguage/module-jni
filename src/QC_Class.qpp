@@ -41,9 +41,21 @@ qclass Class [arg=jni::Class* clazz; ns=Qore::Jni; flags=final];
 //! TODO
 /**
  */
-Field Class::getStaticField(string name, string descriptor) {
+Field Class::getField(string name, string descriptor) {
    try {
-      return new QoreObject(QC_FIELD, getProgram(), clazz->getStaticField(name, descriptor));
+      return new QoreObject(QC_FIELD, getProgram(), clazz->getField(name, descriptor));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! TODO
+/**
+ */
+StaticField Class::getStaticField(string name, string descriptor) {
+   try {
+      return new QoreObject(QC_STATICFIELD, getProgram(), clazz->getStaticField(name, descriptor));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
@@ -65,9 +77,9 @@ Method Class::getMethod(string name, string descriptor) {
 //! TODO
 /**
  */
-Method Class::getStaticMethod(string name, string descriptor) {
+StaticMethod Class::getStaticMethod(string name, string descriptor) {
    try {
-      return new QoreObject(QC_METHOD, getProgram(), clazz->getStaticMethod(name, descriptor));
+      return new QoreObject(QC_STATICMETHOD, getProgram(), clazz->getStaticMethod(name, descriptor));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();

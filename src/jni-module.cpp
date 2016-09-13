@@ -43,7 +43,9 @@ DLLLOCAL QoreClass* initObjectClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initArrayClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initClassClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initFieldClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initStaticFieldClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initMethodClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initStaticMethodClass(QoreNamespace& ns);
 
 DLLEXPORT char qore_module_name[] = "jni";
 DLLEXPORT char qore_module_version[] = PACKAGE_VERSION;
@@ -75,7 +77,9 @@ static QoreStringNode *jni_module_init() {
    JniNamespace.addSystemClass(initObjectClass(JniNamespace));
    JniNamespace.addSystemClass(initArrayClass(JniNamespace));
    JniNamespace.addSystemClass(initFieldClass(JniNamespace));
+   JniNamespace.addSystemClass(initStaticFieldClass(JniNamespace));
    JniNamespace.addSystemClass(initMethodClass(JniNamespace));
+   JniNamespace.addSystemClass(initStaticMethodClass(JniNamespace));
    JniNamespace.addSystemClass(initClassClass(JniNamespace));
    init_jni_functions(JniNamespace);
 

@@ -35,6 +35,7 @@
 #include "Class.h"
 
 extern QoreClass* QC_METHOD;
+extern QoreClass* QC_STATICMETHOD;
 
 namespace jni {
 

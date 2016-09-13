@@ -74,6 +74,22 @@ public:
    }
 
    /**
+    * \brief Finds a field in a class.
+    * \param clazz the class
+    * \param name the name of the field
+    * \param descriptor the field descriptor
+    * \return field id
+    * \throws JavaException if the field cannot be found
+    */
+   jfieldID getField(jclass clazz, const char *name, const char *descriptor) {
+      jfieldID id = env->GetFieldID(clazz, name, descriptor);
+      if (id == nullptr) {
+         throw JavaException();
+      }
+      return id;
+   }
+
+   /**
     * \brief Finds a static field in a class.
     * \param clazz the class
     * \param name the name of the field
