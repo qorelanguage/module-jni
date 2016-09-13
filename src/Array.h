@@ -33,6 +33,7 @@
 
 #include <qore/Qore.h>
 #include "LocalReference.h"
+#include "Object.h"
 
 extern QoreClass* QC_ARRAY;
 extern qore_classid_t CID_ARRAY;
@@ -42,7 +43,7 @@ namespace jni {
 /**
  * \brief Represents a Java array instance.
  */
-class Array : public AbstractPrivateData {
+class Array : public ObjectBase {
 
 public:
    /**
@@ -59,11 +60,7 @@ public:
       printd(LogLevel, "Array::~Array(), this: %p, object: %p\n", this, static_cast<jarray>(this->array));
    }
 
-   /**
-    * \brief Returns the reference to the JNI jarray object.
-    * \return the reference to the JNI jarray object
-    */
-   const GlobalReference<jarray> &getRef() const {
+   jarray getJavaObject() const override {
       return array;
    }
 

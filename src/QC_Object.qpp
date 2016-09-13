@@ -34,4 +34,10 @@
 //! TODO
 /**
  */
-qclass Object [arg=jni::Object* object; ns=Qore::Jni; flags=final];
+qclass Object [arg=jni::ObjectBase* object; ns=Qore::Jni];
+
+//! TODO
+/**
+ */
+private:internal Object::constructor() {
+}

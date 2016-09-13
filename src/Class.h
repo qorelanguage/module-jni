@@ -33,6 +33,7 @@
 
 #include <qore/Qore.h>
 #include "LocalReference.h"
+#include "Object.h"
 
 extern QoreClass* QC_CLASS;
 
@@ -44,7 +45,7 @@ class Method;
 /**
  * \brief Represents a Java class.
  */
-class Class : public AbstractPrivateData {
+class Class : public ObjectBase {
 
 public:
    /**
@@ -60,11 +61,7 @@ public:
       printd(LogLevel, "Class::~Class(), this: %p, clazz: %p\n", this, static_cast<jclass>(this->clazz));
    }
 
-   /**
-    * \brief Returns the reference to the JNI jclass object.
-    * \return the reference to the JNI jclass object
-    */
-   const GlobalReference<jclass> &getRef() const {
+   jclass getJavaObject() const override {
       return clazz;
    }
 

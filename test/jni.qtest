@@ -192,5 +192,7 @@ public class Main inherits QUnit::Test {
         assertThrows("JNI-ERROR", sub() { ia.set(objectArray); });      # Object[] is not a subtype of Integer[]
         assertThrows("JNI-ERROR", sub() { n.set(byteArray); });         # byte[] is not a Number
         assertThrows("JNI-ERROR", sub() { ba.set(intObj); });           # Integer is not a byte[]
+
+        o.set(clazz);                                                   # classes are objects, too
     }
 }

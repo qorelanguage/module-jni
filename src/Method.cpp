@@ -110,28 +110,28 @@ QoreValue Method::invokeStatic(const QoreValueList* args) {
    Env env;
    switch (parser.getType()) {
       case 'V':
-         env.callStaticVoidMethod(clazz->getRef(), id, &jargs[0]);
+         env.callStaticVoidMethod(clazz->getJavaObject(), id, &jargs[0]);
          return QoreValue();
       case 'Z':
-         return JavaToQore::convert(env.callStaticBooleanMethod(clazz->getRef(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticBooleanMethod(clazz->getJavaObject(), id, &jargs[0]));
       case 'B':
-         return JavaToQore::convert(env.callStaticByteMethod(clazz->getRef(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticByteMethod(clazz->getJavaObject(), id, &jargs[0]));
       case 'C':
-         return JavaToQore::convert(env.callStaticCharMethod(clazz->getRef(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticCharMethod(clazz->getJavaObject(), id, &jargs[0]));
       case 'S':
-         return JavaToQore::convert(env.callStaticShortMethod(clazz->getRef(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticShortMethod(clazz->getJavaObject(), id, &jargs[0]));
       case 'I':
-         return JavaToQore::convert(env.callStaticIntMethod(clazz->getRef(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticIntMethod(clazz->getJavaObject(), id, &jargs[0]));
       case 'J':
-         return JavaToQore::convert(env.callStaticLongMethod(clazz->getRef(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticLongMethod(clazz->getJavaObject(), id, &jargs[0]));
       case 'F':
-         return JavaToQore::convert(env.callStaticFloatMethod(clazz->getRef(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticFloatMethod(clazz->getJavaObject(), id, &jargs[0]));
       case 'D':
-         return JavaToQore::convert(env.callStaticDoubleMethod(clazz->getRef(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticDoubleMethod(clazz->getJavaObject(), id, &jargs[0]));
       case 'L':
-         return JavaToQore::convertObject(env.callStaticObjectMethod(clazz->getRef(), id, &jargs[0]), parser.getClassName());
+         return JavaToQore::convertObject(env.callStaticObjectMethod(clazz->getJavaObject(), id, &jargs[0]), parser.getClassName());
       case '[':
-         return JavaToQore::convertArray(env.callStaticObjectMethod(clazz->getRef(), id, &jargs[0]), parser.getArrayDescriptor());
+         return JavaToQore::convertArray(env.callStaticObjectMethod(clazz->getJavaObject(), id, &jargs[0]), parser.getArrayDescriptor());
       default:
          assert(false);         //invalid descriptor - should not happen
          return QoreValue();

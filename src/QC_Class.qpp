@@ -36,7 +36,7 @@
 //! TODO
 /**
  */
-qclass Class [arg=jni::Class* clazz; ns=Qore::Jni; flags=final];
+qclass Class [arg=jni::Class* clazz; ns=Qore::Jni; flags=final; vparent=Object];
 
 //! TODO
 /**

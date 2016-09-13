@@ -37,25 +37,25 @@ QoreValue Field::getStatic() {
    DescriptorParser parser(descriptor);
    switch (parser.getType()) {
       case 'Z':
-         return JavaToQore::convert(env.getStaticBooleanField(clazz->getRef(), id));
+         return JavaToQore::convert(env.getStaticBooleanField(clazz->getJavaObject(), id));
       case 'B':
-         return JavaToQore::convert(env.getStaticByteField(clazz->getRef(), id));
+         return JavaToQore::convert(env.getStaticByteField(clazz->getJavaObject(), id));
       case 'C':
-         return JavaToQore::convert(env.getStaticCharField(clazz->getRef(), id));
+         return JavaToQore::convert(env.getStaticCharField(clazz->getJavaObject(), id));
       case 'S':
-         return JavaToQore::convert(env.getStaticShortField(clazz->getRef(), id));
+         return JavaToQore::convert(env.getStaticShortField(clazz->getJavaObject(), id));
       case 'I':
-         return JavaToQore::convert(env.getStaticIntField(clazz->getRef(), id));
+         return JavaToQore::convert(env.getStaticIntField(clazz->getJavaObject(), id));
       case 'J':
-         return JavaToQore::convert(env.getStaticLongField(clazz->getRef(), id));
+         return JavaToQore::convert(env.getStaticLongField(clazz->getJavaObject(), id));
       case 'F':
-         return JavaToQore::convert(env.getStaticFloatField(clazz->getRef(), id));
+         return JavaToQore::convert(env.getStaticFloatField(clazz->getJavaObject(), id));
       case 'D':
-         return JavaToQore::convert(env.getStaticDoubleField(clazz->getRef(), id));
+         return JavaToQore::convert(env.getStaticDoubleField(clazz->getJavaObject(), id));
       case 'L':
-         return JavaToQore::convertObject(env.getStaticObjectField(clazz->getRef(), id), parser.getClassName());
+         return JavaToQore::convertObject(env.getStaticObjectField(clazz->getJavaObject(), id), parser.getClassName());
       case '[':
-         return JavaToQore::convertArray(env.getStaticObjectField(clazz->getRef(), id), parser.getArrayDescriptor());
+         return JavaToQore::convertArray(env.getStaticObjectField(clazz->getJavaObject(), id), parser.getArrayDescriptor());
       default:
          assert(false);         //invalid descriptor - should not happen
          return QoreValue();
@@ -67,34 +67,34 @@ void Field::setStatic(const QoreValue &value) {
    DescriptorParser parser(descriptor);
    switch (parser.getType()) {
       case 'Z':
-         env.setStaticBooleanField(clazz->getRef(), id, QoreToJava::toBoolean(value));
+         env.setStaticBooleanField(clazz->getJavaObject(), id, QoreToJava::toBoolean(value));
          break;
       case 'B':
-         env.setStaticByteField(clazz->getRef(), id, QoreToJava::toByte(value));
+         env.setStaticByteField(clazz->getJavaObject(), id, QoreToJava::toByte(value));
          break;
       case 'C':
-         env.setStaticCharField(clazz->getRef(), id, QoreToJava::toChar(value));
+         env.setStaticCharField(clazz->getJavaObject(), id, QoreToJava::toChar(value));
          break;
       case 'S':
-         env.setStaticShortField(clazz->getRef(), id, QoreToJava::toShort(value));
+         env.setStaticShortField(clazz->getJavaObject(), id, QoreToJava::toShort(value));
          break;
       case 'I':
-         env.setStaticIntField(clazz->getRef(), id, QoreToJava::toInt(value));
+         env.setStaticIntField(clazz->getJavaObject(), id, QoreToJava::toInt(value));
          break;
       case 'J':
-         env.setStaticLongField(clazz->getRef(), id, QoreToJava::toLong(value));
+         env.setStaticLongField(clazz->getJavaObject(), id, QoreToJava::toLong(value));
          break;
       case 'F':
-         env.setStaticFloatField(clazz->getRef(), id, QoreToJava::toFloat(value));
+         env.setStaticFloatField(clazz->getJavaObject(), id, QoreToJava::toFloat(value));
          break;
       case 'D':
-         env.setStaticDoubleField(clazz->getRef(), id, QoreToJava::toDouble(value));
+         env.setStaticDoubleField(clazz->getJavaObject(), id, QoreToJava::toDouble(value));
          break;
       case 'L':
-         env.setStaticObjectField(clazz->getRef(), id, QoreToJava::toObject(value, parser.getClassName()));
+         env.setStaticObjectField(clazz->getJavaObject(), id, QoreToJava::toObject(value, parser.getClassName()));
          break;
       case '[':
-         env.setStaticObjectField(clazz->getRef(), id, QoreToJava::toArray(value, parser.getArrayDescriptor()));
+         env.setStaticObjectField(clazz->getJavaObject(), id, QoreToJava::toArray(value, parser.getArrayDescriptor()));
          break;
       default:
          assert(false);         //invalid descriptor - should not happen

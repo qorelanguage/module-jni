@@ -90,20 +90,13 @@ public:
       }
       const QoreObject *o = value.get<QoreObject>();
       jobject javaObjectRef;
-      if (o->getClass() == QC_ARRAY) {
+      if (o->getClass(CID_OBJECT) != nullptr) {
          ExceptionSink xsink;
-         SimpleRefHolder<Array> array(static_cast<Array *>(o->getReferencedPrivateData(CID_ARRAY, &xsink)));
+         SimpleRefHolder<ObjectBase> obj(static_cast<ObjectBase *>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
          if (xsink) {
             throw XsinkException(xsink);
          }
-         javaObjectRef = array->getRef();
-      } else if (o->getClass() == QC_OBJECT) {
-         ExceptionSink xsink;
-         SimpleRefHolder<Object> obj(static_cast<Object *>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
-         if (xsink) {
-            throw XsinkException(xsink);
-         }
-         javaObjectRef = obj->getRef();
+         javaObjectRef = obj->getJavaObject();
       } else {
          //TODO class, throwable, arrays?
          throw BasicException("A Java object argument expected");

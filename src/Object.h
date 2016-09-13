@@ -40,9 +40,29 @@ extern qore_classid_t CID_OBJECT;
 namespace jni {
 
 /**
+ * \brief Base class for private data of Qore objects that represent Java object.
+ */
+class ObjectBase : public AbstractPrivateData {
+
+public:
+   /**
+    * \brief Constructor.
+    */
+   ObjectBase() = default;
+
+   virtual ~ObjectBase() = default;
+
+   /**
+    * \brief Returns the reference to the JNI object.
+    * \return the reference to the JNI object
+    */
+   virtual jobject getJavaObject() const = 0;
+};
+
+/**
  * \brief Represents a Java object instance.
  */
-class Object : public AbstractPrivateData {
+class Object : public ObjectBase {
 
 public:
    /**
@@ -62,7 +82,7 @@ public:
     * \brief Returns the reference to the JNI jobject object.
     * \return the reference to the JNI jobject object
     */
-   const GlobalReference<jobject> &getRef() const {
+   jobject getJavaObject() const override {
       return object;
    }
 

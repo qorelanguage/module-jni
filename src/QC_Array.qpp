@@ -34,4 +34,4 @@
 //! TODO
 /**
  */
-qclass Array [arg=jni::Array* array; ns=Qore::Jni; flags=final];
+qclass Array [arg=jni::Array* array; ns=Qore::Jni; flags=final; vparent=Object];
