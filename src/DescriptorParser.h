@@ -55,8 +55,9 @@ public:
       return descriptor.substr(begin, pos - begin - 1);
    }
 
-   std::string getFieldDescriptor() {
-      std::string::size_type begin = pos;
+   std::string getArrayDescriptor() {
+      assert(pos > 0 && descriptor[pos - 1] == '[');
+      std::string::size_type begin = pos - 1;
 
       while (descriptor[pos] == '[') {
          ++pos;

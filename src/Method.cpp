@@ -24,6 +24,7 @@
 //
 //------------------------------------------------------------------------------
 #include "Method.h"
+#include "DescriptorParser.h"
 #include "Env.h"
 #include "JavaToQore.h"
 #include "QoreToJava.h"
@@ -41,12 +42,11 @@ public:
    }
 
    bool hasNextArg() {
-      return descriptor[pos] != ')';
-   }
-
-   char retValType() {
-      assert(descriptor[pos] == ')');
-      return descriptor[++pos];
+      if (descriptor[pos] == ')') {
+         ++pos;
+         return false;
+      }
+      return true;
    }
 };
 
@@ -88,7 +88,9 @@ std::vector<jvalue> convertArgs(MethodDescriptorParser &parser, const QoreValueL
          case 'L':
             jargs[index].l = QoreToJava::toObject(qv, parser.getClassName());
             break;
-//         case '[':
+         case '[':
+            jargs[index].l = QoreToJava::toArray(qv, parser.getArrayDescriptor());
+            break;
          default:
             assert(false);      //invalid descriptor - should not happen
       }
@@ -106,7 +108,7 @@ QoreValue Method::invokeStatic(const QoreValueList* args) {
    std::vector<jvalue> jargs = convertArgs(parser, args);
 
    Env env;
-   switch (parser.retValType()) {
+   switch (parser.getType()) {
       case 'V':
          env.callStaticVoidMethod(clazz->getRef(), id, &jargs[0]);
          return QoreValue();
@@ -127,9 +129,9 @@ QoreValue Method::invokeStatic(const QoreValueList* args) {
       case 'D':
          return JavaToQore::convert(env.callStaticDoubleMethod(clazz->getRef(), id, &jargs[0]));
       case 'L':
-         return JavaToQore::convertObject(env.callStaticObjectMethod(clazz->getRef(), id, &jargs[0]), parser);
+         return JavaToQore::convertObject(env.callStaticObjectMethod(clazz->getRef(), id, &jargs[0]), parser.getClassName());
       case '[':
-         return JavaToQore::convertArray(env.callStaticObjectMethod(clazz->getRef(), id, &jargs[0]), parser);
+         return JavaToQore::convertArray(env.callStaticObjectMethod(clazz->getRef(), id, &jargs[0]), parser.getArrayDescriptor());
       default:
          assert(false);         //invalid descriptor - should not happen
          return QoreValue();

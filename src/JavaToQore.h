@@ -32,7 +32,6 @@
 
 #include <qore/Qore.h>
 #include <jni.h>
-#include "DescriptorParser.h"
 #include "LocalReference.h"
 #include "Object.h"
 #include "Array.h"
@@ -80,8 +79,7 @@ public:
       return QoreValue(v);
    }
 
-   static QoreValue convertObject(LocalReference<jobject> v, DescriptorParser &parser) {
-      parser.getClassName();
+   static QoreValue convertObject(LocalReference<jobject> v, const std::string &className) {
       if (v == nullptr) {
          return QoreValue();
       }
@@ -89,12 +87,11 @@ public:
       return QoreValue(new QoreObject(QC_OBJECT, getProgram(), new Object(std::move(v))));
    }
 
-   static QoreValue convertArray(LocalReference<jobject> v, DescriptorParser &parser) {
-      std::string desc = parser.getFieldDescriptor();
+   static QoreValue convertArray(LocalReference<jobject> v, const std::string &arrayType) {
       if (v == nullptr) {
          return QoreValue();
       }
-      return QoreValue(new QoreObject(QC_ARRAY, getProgram(), new Array(v.as<jarray>(), std::move(desc))));
+      return QoreValue(new QoreObject(QC_ARRAY, getProgram(), new Array(v.as<jarray>(), arrayType)));
    }
 
 private:

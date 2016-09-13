@@ -32,6 +32,7 @@
 
 #include <qore/Qore.h>
 #include <jni.h>
+#include "Array.h"
 #include "LocalReference.h"
 #include "Object.h"
 #include "defs.h"
@@ -88,23 +89,37 @@ public:
          throw BasicException("A Java object argument expected");
       }
       const QoreObject *o = value.get<QoreObject>();
-      if (o->getClass() != QC_OBJECT) {
+      jobject javaObjectRef;
+      if (o->getClass() == QC_ARRAY) {
+         ExceptionSink xsink;
+         SimpleRefHolder<Array> array(static_cast<Array *>(o->getReferencedPrivateData(CID_ARRAY, &xsink)));
+         if (xsink) {
+            throw XsinkException(xsink);
+         }
+         javaObjectRef = array->getRef();
+      } else if (o->getClass() == QC_OBJECT) {
+         ExceptionSink xsink;
+         SimpleRefHolder<Object> obj(static_cast<Object *>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
+         if (xsink) {
+            throw XsinkException(xsink);
+         }
+         javaObjectRef = obj->getRef();
+      } else {
          //TODO class, throwable, arrays?
          throw BasicException("A Java object argument expected");
-      }
-      ExceptionSink xsink;
-      SimpleRefHolder<Object> obj(static_cast<Object *>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
-      if (xsink) {
-         throw XsinkException(xsink);
       }
 
       Env env;
       LocalReference<jclass> clazz = env.findClass(className.c_str());
-      if (!env.isInstanceOf(obj->getRef(), clazz)) {
-         throw BasicException("CAST");
+      if (!env.isInstanceOf(javaObjectRef, clazz)) {
+         throw BasicException("Passed object is not an instance of expected class " + className);
       }
 
-      return obj->getRef();
+      return javaObjectRef;
+   }
+
+   static jarray toArray(const QoreValue &value, const std::string &arrayType) {
+      return static_cast<jarray>(toObject(value, arrayType));
    }
 
 private:

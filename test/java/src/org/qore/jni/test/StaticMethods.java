@@ -50,4 +50,11 @@ public class StaticMethods {
     static int unwrap(Integer i) {
         return i == null ? -123 : i;
     }
+
+    static Long[] getLongArray() {
+        return new Long[3];
+    }
+
+    static void useArray(Object[] a) {
+    }
 }

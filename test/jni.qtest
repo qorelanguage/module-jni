@@ -46,6 +46,8 @@ public class Main inherits QUnit::Test {
         Jni::Method avg3 = clazz.getStaticMethod("avg", "(DD)D");       # overloaded
         Jni::Method wrap = clazz.getStaticMethod("wrap", "(I)Ljava/lang/Integer;");
         Jni::Method unwrap = clazz.getStaticMethod("unwrap", "(Ljava/lang/Integer;)I");
+        Jni::Method getLongArray = clazz.getStaticMethod("getLongArray", "()[Ljava/lang/Long;");
+        Jni::Method useArray = clazz.getStaticMethod("useArray", "([Ljava/lang/Object;)V");
 
         # set() expects one argument
         assertThrows("JNI-ERROR", "Too few arguments", sub() { set.invokeStatic(); });
@@ -104,7 +106,9 @@ public class Main inherits QUnit::Test {
         delete o2;
         assertThrows("OBJECT-ALREADY-DELETED", sub() { unwrap.invokeStatic(o); });
 
-        #TODO arrays
+        # arrays
+        Jni::Array longArray = getLongArray.invokeStatic();
+        useArray.invokeStatic(longArray);
     }
 
     testFloatConversions() {
@@ -138,6 +142,10 @@ public class Main inherits QUnit::Test {
         Jni::Field d = clazz.getStaticField("d", "D");
         Jni::Field n = clazz.getStaticField("n", "Ljava/lang/Number;");
         Jni::Field l = clazz.getStaticField("l", "Ljava/lang/Long;");
+        Jni::Field ba = clazz.getStaticField("ba", "[B");
+        Jni::Field o = clazz.getStaticField("o", "Ljava/lang/Object;");
+        Jni::Field oa = clazz.getStaticField("oa", "[Ljava/lang/Object;");
+        Jni::Field ia = clazz.getStaticField("ia", "[Ljava/lang/Integer;");
 
         z.setStatic(True);
         assertTrue(z.getStatic());
@@ -173,5 +181,16 @@ public class Main inherits QUnit::Test {
 
         assertThrows("JNI-ERROR", sub(){ l.setStatic(intObj); });
         assertEq(NOTHING, l.getStatic());
+
+        Jni::Array byteArray = ba.getStatic();
+        Jni::Array objectArray = oa.getStatic();
+        Jni::Array intArray = ia.getStatic();
+
+        o.setStatic(byteArray);                                             # arrays in Java are Objects
+        assertThrows("JNI-ERROR", sub() { oa.setStatic(byteArray); });      # byte[] is not a subtype of Object[]
+        oa.setStatic(intArray);                                             # arrays in Java are covariant
+        assertThrows("JNI-ERROR", sub() { ia.setStatic(objectArray); });    # Object[] is not a subtype of Integer[]
+        assertThrows("JNI-ERROR", sub() { n.setStatic(byteArray); });       # byte[] is not a Number
+        assertThrows("JNI-ERROR", sub() { ba.setStatic(intObj); });         # Integer is not a byte[]
     }
 }

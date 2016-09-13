@@ -25,6 +25,7 @@
 //------------------------------------------------------------------------------
 #include "Field.h"
 #include <memory>
+#include "DescriptorParser.h"
 #include "Env.h"
 #include "JavaToQore.h"
 #include "QoreToJava.h"
@@ -52,9 +53,9 @@ QoreValue Field::getStatic() {
       case 'D':
          return JavaToQore::convert(env.getStaticDoubleField(clazz->getRef(), id));
       case 'L':
-         return JavaToQore::convertObject(env.getStaticObjectField(clazz->getRef(), id), parser);
+         return JavaToQore::convertObject(env.getStaticObjectField(clazz->getRef(), id), parser.getClassName());
       case '[':
-         return JavaToQore::convertArray(env.getStaticObjectField(clazz->getRef(), id), parser);
+         return JavaToQore::convertArray(env.getStaticObjectField(clazz->getRef(), id), parser.getArrayDescriptor());
       default:
          assert(false);         //invalid descriptor - should not happen
          return QoreValue();
@@ -92,7 +93,9 @@ void Field::setStatic(const QoreValue &value) {
       case 'L':
          env.setStaticObjectField(clazz->getRef(), id, QoreToJava::toObject(value, parser.getClassName()));
          break;
-//      case '[':
+      case '[':
+         env.setStaticObjectField(clazz->getRef(), id, QoreToJava::toArray(value, parser.getArrayDescriptor()));
+         break;
       default:
          assert(false);         //invalid descriptor - should not happen
    }

@@ -13,6 +13,11 @@ public class StaticFields {
     static Number n;
     static Long l;
 
+    static byte[] ba = new byte[3];
+    static Object o;
+    static Object[] oa = new Object[3];
+    static Integer[] ia = new Integer[3];
+
     static Integer wrap(int i) {
         return i;
     }
