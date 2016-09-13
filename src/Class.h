@@ -36,6 +36,7 @@
 #include "Object.h"
 
 extern QoreClass* QC_CLASS;
+extern qore_classid_t CID_CLASS;
 
 namespace jni {
 

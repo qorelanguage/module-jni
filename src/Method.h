@@ -60,6 +60,24 @@ public:
    }
 
    /**
+    * \brief Invokes an instance method.
+    * \param object the instance
+    * \param args the arguments
+    * \return the return value
+    * \throws Exception if the arguments do not match the descriptor or if the method throws
+    */
+   QoreValue invoke(jobject object, const QoreValueList* args);
+
+   /**
+    * \brief Invokes an instance method non-virtually.
+    * \param object the instance
+    * \param args the arguments
+    * \return the return value
+    * \throws Exception if the arguments do not match the descriptor or if the method throws
+    */
+   QoreValue invokeNonvirtual(jobject object, const QoreValueList* args);
+
+   /**
     * \brief Invokes a static method.
     * \param args the arguments
     * \return the return value

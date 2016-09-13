@@ -498,6 +498,332 @@ public:
    }
 
    /**
+    * \brief Invokes an instance method.
+    * \param object the instance
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jboolean callBooleanMethod(jobject object, jmethodID id, const jvalue *args) {
+      jboolean ret = env->CallBooleanMethodA(object, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method.
+    * \param object the instance
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jbyte callByteMethod(jobject object, jmethodID id, const jvalue *args) {
+      jbyte ret = env->CallByteMethodA(object, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method.
+    * \param object the instance
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jchar callCharMethod(jobject object, jmethodID id, const jvalue *args) {
+      jchar ret = env->CallCharMethodA(object, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method.
+    * \param object the instance
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jdouble callDoubleMethod(jobject object, jmethodID id, const jvalue *args) {
+      jdouble ret = env->CallDoubleMethodA(object, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method.
+    * \param object the instance
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jfloat callFloatMethod(jobject object, jmethodID id, const jvalue *args) {
+      jfloat ret = env->CallFloatMethodA(object, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method.
+    * \param object the instance
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jint callIntMethod(jobject object, jmethodID id, const jvalue *args) {
+      jint ret = env->CallIntMethodA(object, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method.
+    * \param object the instance
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jlong callLongMethod(jobject object, jmethodID id, const jvalue *args) {
+      jlong ret = env->CallLongMethodA(object, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method.
+    * \param object the instance
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   LocalReference<jobject> callObjectMethod(jobject object, jmethodID id, const jvalue *args) {
+      LocalReference<jobject> ret = env->CallObjectMethodA(object, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method.
+    * \param object the instance
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jshort callShortMethod(jobject object, jmethodID id, const jvalue *args) {
+      jshort ret = env->CallShortMethodA(object, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method.
+    * \param object the instance
+    * \param id the method id
+    * \param args the arguments
+    * \throws JavaException if the method throws an exception
+    */
+   void callVoidMethod(jobject object, jmethodID id, const jvalue *args) {
+      env->CallVoidMethodA(object, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+   }
+
+   /**
+    * \brief Invokes an instance method non-virtually.
+    * \param object the instance
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jboolean callNonvirtualBooleanMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
+      jboolean ret = env->CallNonvirtualBooleanMethodA(object, clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method non-virtually.
+    * \param object the instance
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jbyte callNonvirtualByteMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
+      jbyte ret = env->CallNonvirtualByteMethodA(object, clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method non-virtually.
+    * \param object the instance
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jchar callNonvirtualCharMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
+      jchar ret = env->CallNonvirtualCharMethodA(object, clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method non-virtually.
+    * \param object the instance
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jdouble callNonvirtualDoubleMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
+      jdouble ret = env->CallNonvirtualDoubleMethodA(object, clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method non-virtually.
+    * \param object the instance
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jfloat callNonvirtualFloatMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
+      jfloat ret = env->CallNonvirtualFloatMethodA(object, clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method non-virtually.
+    * \param object the instance
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jint callNonvirtualIntMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
+      jint ret = env->CallNonvirtualIntMethodA(object, clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method non-virtually.
+    * \param object the instance
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jlong callNonvirtualLongMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
+      jlong ret = env->CallNonvirtualLongMethodA(object, clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method non-virtually.
+    * \param object the instance
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   LocalReference<jobject> callNonvirtualObjectMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
+      LocalReference<jobject> ret = env->CallNonvirtualObjectMethodA(object, clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method non-virtually.
+    * \param object the instance
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \return the return value
+    * \throws JavaException if the method throws an exception
+    */
+   jshort callNonvirtualShortMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
+      jshort ret = env->CallNonvirtualShortMethodA(object, clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   /**
+    * \brief Invokes an instance method non-virtually.
+    * \param object the instance
+    * \param clazz the class of the method
+    * \param id the method id
+    * \param args the arguments
+    * \throws JavaException if the method throws an exception
+    */
+   void callNonvirtualVoidMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
+      env->CallNonvirtualVoidMethodA(object, clazz, id, args);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+   }
+
+   /**
     * \brief Invokes a static method.
     * \param clazz the class of the method
     * \param id the method id
