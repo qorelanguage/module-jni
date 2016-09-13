@@ -35,3 +35,26 @@
 /**
  */
 qclass Field [arg=jni::Field* field; ns=Qore::Jni; flags=final];
+
+//! TODO
+/**
+ */
+any Field::get(Qore::Jni::Object[jni::ObjectBase] obj) {
+   try {
+      return field->get(obj->getJavaObject());
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! TODO
+/**
+ */
+any Field::set(Qore::Jni::Object[jni::ObjectBase] obj, any value) {
+   try {
+      field->set(obj->getJavaObject(), value);
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+   }
+}

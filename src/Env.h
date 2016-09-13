@@ -138,6 +138,96 @@ public:
    }
 
    /**
+    * \brief Gets the value of a boolean field.
+    * \param object the instance
+    * \param id the field id
+    * \return the field value
+    */
+   jboolean getBooleanField(jobject object, jfieldID id) {
+      return env->GetBooleanField(object, id);
+   }
+
+   /**
+    * \brief Gets the value of a byte field.
+    * \param object the instance
+    * \param id the field id
+    * \return the field value
+    */
+   jbyte getByteField(jobject object, jfieldID id) {
+      return env->GetByteField(object, id);
+   }
+
+   /**
+    * \brief Gets the value of a char field.
+    * \param object the instance
+    * \param id the field id
+    * \return the field value
+    */
+   jchar getCharField(jobject object, jfieldID id) {
+      return env->GetCharField(object, id);
+   }
+
+   /**
+    * \brief Gets the value of a double field.
+    * \param object the instance
+    * \param id the field id
+    * \return the field value
+    */
+   jdouble getDoubleField(jobject object, jfieldID id) {
+      return env->GetDoubleField(object, id);
+   }
+
+   /**
+    * \brief Gets the value of a float field.
+    * \param object the instance
+    * \param id the field id
+    * \return the field value
+    */
+   jfloat getFloatField(jobject object, jfieldID id) {
+      return env->GetFloatField(object, id);
+   }
+
+   /**
+    * \brief Gets the value of an int field.
+    * \param object the instance
+    * \param id the field id
+    * \return the field value
+    */
+   jint getIntField(jobject object, jfieldID id) {
+      return env->GetIntField(object, id);
+   }
+
+   /**
+    * \brief Gets the value of a long field.
+    * \param object the instance
+    * \param id the field id
+    * \return the field value
+    */
+   jlong getLongField(jobject object, jfieldID id) {
+      return env->GetLongField(object, id);
+   }
+
+   /**
+    * \brief Gets the value of an Object field.
+    * \param object the instance
+    * \param id the field id
+    * \return the field value
+    */
+   LocalReference<jobject> getObjectField(jobject object, jfieldID id) {
+      return env->GetObjectField(object, id);
+   }
+
+   /**
+    * \brief Gets the value of a short field.
+    * \param object the instance
+    * \param id the field id
+    * \return the field value
+    */
+   jshort getShortField(jobject object, jfieldID id) {
+      return env->GetShortField(object, id);
+   }
+
+   /**
     * \brief Gets the value of a static boolean field.
     * \param clazz the class of the field
     * \param id the field id
@@ -225,6 +315,96 @@ public:
     */
    jshort getStaticShortField(jclass clazz, jfieldID id) {
       return env->GetStaticShortField(clazz, id);
+   }
+
+   /**
+    * \brief Sets the value of a boolean field.
+    * \param object the instance
+    * \param id the field id
+    * \param value the field value
+    */
+   void setBooleanField(jobject object, jfieldID id, jboolean value) {
+      env->SetBooleanField(object, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a byte field.
+    * \param object the instance
+    * \param id the field id
+    * \param value the field value
+    */
+   void setByteField(jobject object, jfieldID id, jbyte value) {
+      env->SetByteField(object, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a char field.
+    * \param object the instance
+    * \param id the field id
+    * \param value the field value
+    */
+   void setCharField(jobject object, jfieldID id, jchar value) {
+      env->SetCharField(object, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a double field.
+    * \param object the instance
+    * \param id the field id
+    * \param value the field value
+    */
+   void setDoubleField(jobject object, jfieldID id, jdouble value) {
+      env->SetDoubleField(object, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a float field.
+    * \param object the instance
+    * \param id the field id
+    * \param value the field value
+    */
+   void setFloatField(jobject object, jfieldID id, jfloat value) {
+      env->SetFloatField(object, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a int field.
+    * \param object the instance
+    * \param id the field id
+    * \param value the field value
+    */
+   void setIntField(jobject object, jfieldID id, jint value) {
+      env->SetIntField(object, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a long field.
+    * \param object the instance
+    * \param id the field id
+    * \param value the field value
+    */
+   void setLongField(jobject object, jfieldID id, jlong value) {
+      env->SetLongField(object, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a Object field.
+    * \param object the instance
+    * \param id the field id
+    * \param value the field value
+    */
+   void setObjectField(jobject object, jfieldID id, jobject value) {
+      env->SetObjectField(object, id, value);
+   }
+
+   /**
+    * \brief Sets the value of a short field.
+    * \param object the instance
+    * \param id the field id
+    * \param value the field value
+    */
+   void setShortField(jobject object, jfieldID id, jshort value) {
+      env->SetShortField(object, id, value);
    }
 
    /**

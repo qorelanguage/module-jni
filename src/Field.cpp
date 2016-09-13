@@ -32,6 +32,75 @@
 
 namespace jni {
 
+QoreValue Field::get(jobject object) {
+   Env env;
+   DescriptorParser parser(descriptor);
+   switch (parser.getType()) {
+      case 'Z':
+         return JavaToQore::convert(env.getBooleanField(object, id));
+      case 'B':
+         return JavaToQore::convert(env.getByteField(object, id));
+      case 'C':
+         return JavaToQore::convert(env.getCharField(object, id));
+      case 'S':
+         return JavaToQore::convert(env.getShortField(object, id));
+      case 'I':
+         return JavaToQore::convert(env.getIntField(object, id));
+      case 'J':
+         return JavaToQore::convert(env.getLongField(object, id));
+      case 'F':
+         return JavaToQore::convert(env.getFloatField(object, id));
+      case 'D':
+         return JavaToQore::convert(env.getDoubleField(object, id));
+      case 'L':
+         return JavaToQore::convertObject(env.getObjectField(object, id), parser.getClassName());
+      case '[':
+         return JavaToQore::convertArray(env.getObjectField(object, id), parser.getArrayDescriptor());
+      default:
+         assert(false);         //invalid descriptor - should not happen
+         return QoreValue();
+   }
+}
+
+void Field::set(jobject object, const QoreValue &value) {
+   Env env;
+   DescriptorParser parser(descriptor);
+   switch (parser.getType()) {
+      case 'Z':
+         env.setBooleanField(object, id, QoreToJava::toBoolean(value));
+         break;
+      case 'B':
+         env.setByteField(object, id, QoreToJava::toByte(value));
+         break;
+      case 'C':
+         env.setCharField(object, id, QoreToJava::toChar(value));
+         break;
+      case 'S':
+         env.setShortField(object, id, QoreToJava::toShort(value));
+         break;
+      case 'I':
+         env.setIntField(object, id, QoreToJava::toInt(value));
+         break;
+      case 'J':
+         env.setLongField(object, id, QoreToJava::toLong(value));
+         break;
+      case 'F':
+         env.setFloatField(object, id, QoreToJava::toFloat(value));
+         break;
+      case 'D':
+         env.setDoubleField(object, id, QoreToJava::toDouble(value));
+         break;
+      case 'L':
+         env.setObjectField(object, id, QoreToJava::toObject(value, parser.getClassName()));
+         break;
+      case '[':
+         env.setObjectField(object, id, QoreToJava::toArray(value, parser.getArrayDescriptor()));
+         break;
+      default:
+         assert(false);         //invalid descriptor - should not happen
+   }
+}
+
 QoreValue Field::getStatic() {
    Env env;
    DescriptorParser parser(descriptor);

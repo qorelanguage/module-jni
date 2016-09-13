@@ -18,6 +18,7 @@ public class Main inherits QUnit::Test {
         addTestCase("static method invocation test", \testStaticMethods());
         addTestCase("float conversion test", \testFloatConversions());
         addTestCase("static fields access test", \testStaticFields());
+        addTestCase("instance fields access test", \testInstanceFields());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -194,5 +195,63 @@ public class Main inherits QUnit::Test {
         assertThrows("JNI-ERROR", sub() { ba.set(intObj); });           # Integer is not a byte[]
 
         o.set(clazz);                                                   # classes are objects, too
+    }
+
+    testInstanceFields() {
+        Jni::Class clazz = Jni::load_class("org/qore/jni/test/Fields");
+
+        Jni::Object instance = clazz.getStaticField("instance", "Lorg/qore/jni/test/Fields;").get();
+
+        Jni::Field z = clazz.getField("z", "Z");
+        Jni::Field b = clazz.getField("b", "B");
+        Jni::Field c = clazz.getField("c", "C");
+        Jni::Field s = clazz.getField("s", "S");
+        Jni::Field i = clazz.getField("i", "I");
+        Jni::Field j = clazz.getField("j", "J");
+        Jni::Field f = clazz.getField("f", "F");
+        Jni::Field d = clazz.getField("d", "D");
+        Jni::Field ba = clazz.getField("ba", "[B");
+        Jni::Field o = clazz.getField("o", "Ljava/lang/Object;");
+        Jni::Field oa = clazz.getField("oa", "[Ljava/lang/Object;");
+        Jni::Field ia = clazz.getField("ia", "[Ljava/lang/Integer;");
+
+        z.set(instance, True);
+        assertTrue(z.get(instance));
+
+        b.set(instance, 42);
+        assertEq(42, b.get(instance));
+
+        c.set(instance, 32768);
+        assertEq(32768, c.get(instance));
+
+        s.set(instance, 65535);
+        assertEq(-1, s.get(instance));
+
+        i.set(instance, 0x123456789);
+        assertEq(0x23456789, i.get(instance));
+
+        j.set(instance, 0x123456789);
+        assertEq(0x123456789, j.get(instance));
+
+        f.set(instance, 3.14);
+        assertFloatEq(3.14, f.get(instance), 0.0001);
+        f.set(instance, @NaN@);
+        assertTrue(f.get(instance).nanp());
+
+        d.set(instance, 2.7);
+        assertFloatEq(2.7, d.get(instance), 0.0000001);
+        d.set(instance, @Inf@);
+        assertTrue(d.get(instance).infp());
+
+        Jni::Array byteArray = ba.get(instance);
+        Jni::Array objectArray = oa.get(instance);
+        Jni::Array intArray = ia.get(instance);
+
+        o.set(instance, byteArray);                                             # arrays in Java are Objects
+        assertThrows("JNI-ERROR", sub() { oa.set(instance, byteArray); });      # byte[] is not a subtype of Object[]
+        oa.set(instance, intArray);                                             # arrays in Java are covariant
+        assertThrows("JNI-ERROR", sub() { ia.set(instance, objectArray); });    # Object[] is not a subtype of Integer[]
+
+        o.set(instance, clazz);                                                 # classes are objects, too
     }
 }

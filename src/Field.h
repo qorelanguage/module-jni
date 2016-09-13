@@ -60,6 +60,22 @@ public:
    }
 
    /**
+    * \brief Gets the value of an instance field.
+    * \param object the instance
+    * \return the value of the static field
+    * \throws Exception if the value cannot be retrieved
+    */
+   QoreValue get(jobject object);
+
+   /**
+    * \brief Sets the value of an instance field.
+    * \param object the instance
+    * \param value the new value
+    * \throws Exception if the value cannot be set
+    */
+   void set(jobject object, const QoreValue &value);
+
+   /**
     * \brief Gets the value of a static field.
     * \return the value of the static field
     * \throws Exception if the value cannot be retrieved
