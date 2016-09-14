@@ -40,6 +40,7 @@ qclass Field [arg=jni::Field* field; ns=Qore::Jni; flags=final];
 /**
  */
 any Field::get(Qore::Jni::Object[jni::ObjectBase] obj) {
+   SimpleRefHolder<jni::ObjectBase> objHolder(obj);
    try {
       return field->get(obj->getJavaObject());
    } catch (jni::Exception &e) {
@@ -52,6 +53,7 @@ any Field::get(Qore::Jni::Object[jni::ObjectBase] obj) {
 /**
  */
 any Field::set(Qore::Jni::Object[jni::ObjectBase] obj, any value) {
+   SimpleRefHolder<jni::ObjectBase> objHolder(obj);
    try {
       field->set(obj->getJavaObject(), value);
    } catch (jni::Exception &e) {

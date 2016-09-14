@@ -40,6 +40,7 @@ qclass Method [arg=jni::Method* method; ns=Qore::Jni; flags=final];
 /**
  */
 any Method::invoke(Qore::Jni::Object[jni::ObjectBase] obj, ...) {
+   SimpleRefHolder<jni::ObjectBase> objHolder(obj);
    try {
       return method->invoke(obj->getJavaObject(), args);
    } catch (jni::Exception &e) {
@@ -52,6 +53,7 @@ any Method::invoke(Qore::Jni::Object[jni::ObjectBase] obj, ...) {
 /**
  */
 any Method::invokeNonvirtual(Qore::Jni::Object[jni::ObjectBase] obj, ...) {
+   SimpleRefHolder<jni::ObjectBase> objHolder(obj);
    try {
       return method->invokeNonvirtual(obj->getJavaObject(), args);
    } catch (jni::Exception &e) {
