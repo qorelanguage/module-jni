@@ -28,9 +28,11 @@ public class Main inherits QUnit::Test {
     testJni() {
         Jni::Class mathClass = Jni::load_class("java/lang/Math");
         Jni::StaticMethod acosMethod = mathClass.getStaticMethod("acos", "(D)D");
-        printf("PI: %n\n", acosMethod.invoke(-1));
-
-        Jni::Object out = Jni::load_class("java/lang/System").getStaticField("out", "Ljava/io/PrintStream;").get();
+        Jni::Class systemClass = Jni::load_class("java/lang/System");
+        Jni::StaticField outField = systemClass.getStaticField("out", "Ljava/io/PrintStream;");
+        Jni::Class printStreamClass = Jni::load_class("java/io/PrintStream");
+        Jni::Method printlnMethod = printStreamClass.getMethod("println", "(D)V");
+        printlnMethod.invoke(outField.get(), acosMethod.invoke(-1));
     }
 
     testStaticMethods() {
@@ -114,25 +116,32 @@ public class Main inherits QUnit::Test {
     }
 
     testInstanceMethods() {
-        Jni::Object instance = Jni::load_class("org/qore/jni/test/Methods").getStaticField("instance", "Lorg/qore/jni/test/C;").get();
-
+        Jni::Class clsMethods = Jni::load_class("org/qore/jni/test/Methods");
         Jni::Class clsA = Jni::load_class("org/qore/jni/test/A");
         Jni::Class clsB = Jni::load_class("org/qore/jni/test/B");
         Jni::Class clsC = Jni::load_class("org/qore/jni/test/C");
 
+        Jni::Object c = clsMethods.getStaticField("c", "Lorg/qore/jni/test/C;").get();
+        Jni::Object b = clsMethods.getStaticField("b", "Lorg/qore/jni/test/B;").get();
+
         Jni::Method fInA = clsA.getMethod("f", "()I");
         Jni::Method fInB = clsB.getMethod("f", "()I");
         Jni::Method fInC = clsC.getMethod("f", "()I");
+        Jni::Method mInC = clsC.getMethod("m", "()I");
 
         # virtual dispatch
-        assertEq(3, fInA.invoke(instance));
-        assertEq(3, fInB.invoke(instance));
-        assertEq(3, fInC.invoke(instance));
+        assertEq(3, fInA.invoke(c));
+        assertEq(3, fInB.invoke(c));
+        assertEq(3, fInC.invoke(c));
 
         # non-virtual dispatch
-        assertEq(1, fInA.invokeNonvirtual(instance));
-        assertEq(2, fInB.invokeNonvirtual(instance));
-        assertEq(3, fInC.invokeNonvirtual(instance));
+        assertEq(1, fInA.invokeNonvirtual(c));
+        assertEq(2, fInB.invokeNonvirtual(c));
+        assertEq(3, fInC.invokeNonvirtual(c));
+
+        # class mismatch
+        assertThrows("JNI-ERROR", sub() { mInC.invoke(b); });
+        assertThrows("JNI-ERROR", sub() { mInC.invokeNonvirtual(b); });
     }
 
     testFloatConversions() {
@@ -276,5 +285,7 @@ public class Main inherits QUnit::Test {
         assertThrows("JNI-ERROR", sub() { ia.set(instance, objectArray); });    # Object[] is not a subtype of Integer[]
 
         o.set(instance, clazz);                                                 # classes are objects, too
+
+        assertThrows("JNI-ERROR", sub() { z.set(byteArray, True); });
     }
 }

@@ -4,14 +4,16 @@ class A {
     int f() { return 1; }
 }
 
-class B {
+class B extends A {
     int f() { return 2; }
 }
 
-class C {
+class C extends B {
     int f() { return 3; }
+    int m() { return 4; }
 }
 
 public class Methods {
-    static C instance = new C();
+    static C c = new C();
+    static B b = new B();
 }

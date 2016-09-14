@@ -64,6 +64,9 @@ QoreValue Field::get(jobject object) {
 
 void Field::set(jobject object, const QoreValue &value) {
    Env env;
+   if (!env.isInstanceOf(object, clazz->getJavaObject())) {
+      throw BasicException("Passed instance does not match the field's class");
+   }
    DescriptorParser parser(descriptor);
    switch (parser.getType()) {
       case 'Z':

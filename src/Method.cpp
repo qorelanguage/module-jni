@@ -109,6 +109,9 @@ QoreValue Method::invoke(jobject object, const QoreValueList* args) {
    std::vector<jvalue> jargs = convertArgs(parser, args, 1);
 
    Env env;
+   if (!env.isInstanceOf(object, clazz->getJavaObject())) {
+      throw BasicException("Passed instance does not match the method's class");
+   }
    switch (parser.getType()) {
       case 'V':
          env.callVoidMethod(object, id, &jargs[0]);
@@ -144,6 +147,9 @@ QoreValue Method::invokeNonvirtual(jobject object, const QoreValueList* args) {
    std::vector<jvalue> jargs = convertArgs(parser, args, 1);
 
    Env env;
+   if (!env.isInstanceOf(object, clazz->getJavaObject())) {
+      throw BasicException("Passed instance does not match the method's class");
+   }
    switch (parser.getType()) {
       case 'V':
          env.callNonvirtualVoidMethod(object, clazz->getJavaObject(), id, &jargs[0]);
