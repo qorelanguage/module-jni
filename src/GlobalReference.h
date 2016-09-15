@@ -62,14 +62,7 @@ public:
     * \brief Destroys the global reference represented by this instance.
     */
    ~GlobalReference() {
-      if (ref != nullptr) {
-         try {
-            printd(LogLevel, "GlobalReference deleted: %p\n", ref);
-            Jvm::attachAndGetEnv()->DeleteGlobalRef(ref);
-         } catch (Exception &) {
-            printd(LogLevel, "Unable to delete GlobalReference");
-         }
-      }
+      del();
    }
 
    /**
@@ -86,6 +79,7 @@ public:
     * \return *this
     */
    GlobalReference &operator=(GlobalReference &&src) {
+      del();
       ref = src.ref;
       src.ref = nullptr;
       return *this;
@@ -101,6 +95,17 @@ public:
 private:
    GlobalReference(const GlobalReference &) = delete;
    GlobalReference &operator=(const GlobalReference &) = delete;
+
+   void del() {
+      if (ref != nullptr) {
+         try {
+            printd(LogLevel, "GlobalReference deleted: %p\n", ref);
+            Jvm::attachAndGetEnv()->DeleteGlobalRef(ref);
+         } catch (Exception &) {
+            printd(LogLevel, "Unable to delete GlobalReference");
+         }
+      }
+   }
 
 private:
    T ref;

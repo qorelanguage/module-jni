@@ -62,10 +62,7 @@ public:
     * \brief Destroys the local reference represented by this instance.
     */
    ~LocalReference() {
-      if (ref != nullptr) {
-         printd(LogLevel, "LocalReference deleted: %p\n", ref);
-         Jvm::getEnv()->DeleteLocalRef(ref);
-      }
+      del();
    }
 
    /**
@@ -82,6 +79,7 @@ public:
     * \return *this
     */
    LocalReference &operator=(LocalReference &&src) {
+      del();
       ref = src.ref;
       src.ref = nullptr;
       return *this;
@@ -125,6 +123,14 @@ public:
 private:
    LocalReference(const LocalReference &) = delete;
    LocalReference &operator=(const LocalReference &) = delete;
+
+   void del() {
+      if (ref != nullptr) {
+         printd(LogLevel, "LocalReference deleted: %p\n", ref);
+         Jvm::getEnv()->DeleteLocalRef(ref);
+         ref = nullptr;
+      }
+   }
 
 private:
    T ref;
