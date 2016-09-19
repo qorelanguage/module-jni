@@ -34,6 +34,7 @@
 #include "Env.h"
 #include "Class.h"
 #include "ModifiedUtf8String.h"
+#include "InvocationHandler.h"
 
 namespace jni {
 
@@ -56,6 +57,25 @@ public:
       ModifiedUtf8String nameUtf8(name);
       printd(LogLevel, "loadClass %s\n", nameUtf8.c_str());
       return new Class(env.findClass(nameUtf8.c_str()));
+   }
+
+   static Object *implementInterface(const InvocationHandler *invocationHandler, const Class *clazz) {
+      Env env;
+      //FIXME cache these
+      LocalReference<jclass> proxyClass = env.findClass("java/lang/reflect/Proxy");
+      jmethodID newProxyInstanceId = env.getStaticMethod(proxyClass, "newProxyInstance", "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
+
+      LocalReference<jclass> classClass = env.findClass("java/lang/Class");
+      LocalReference<jobjectArray> interfaces = env.newObjectArray(1, classClass);
+      env.setObjectArrayElement(interfaces, 0, clazz->getJavaObject());
+
+      jvalue args[3];
+      args[0].l = nullptr;
+      args[1].l = interfaces;
+      args[2].l = invocationHandler->getJavaObject();
+      LocalReference<jobject> obj = env.callStaticObjectMethod(proxyClass, newProxyInstanceId, args);
+
+      return new Object(obj);
    }
 
 private:

@@ -96,6 +96,24 @@ private:
 };
 
 /**
+ * \brief An exception thrown when the current thread cannot be registered with Qore.
+ */
+class UnableToRegisterException : public Exception {
+
+public:
+   /**
+    * \brief Constructor.
+    */
+   UnableToRegisterException() {
+      printd(LogLevel, "JNI - error registering thread %ld with Qore\n", pthread_self());
+   }
+
+   void convert(ExceptionSink *xsink) override {
+      xsink->raiseException("JNI-ERROR", "Unable to register thread with Qore");
+   }
+};
+
+/**
  * \brief A C++ exception representing a Java exception.
  */
 class JavaException : public Exception {
@@ -152,6 +170,35 @@ public:
 private:
    std::unique_ptr<ExceptionSink> sink;
 };
+
+class QoreThreadAttacher {
+
+public:
+   QoreThreadAttacher() : attached(false) {
+   }
+
+   ~QoreThreadAttacher() {
+      if (attached) {
+         printd(LogLevel, "Detaching thread %ld from Qore\n", pthread_self());
+         q_deregister_foreign_thread();
+      }
+   }
+
+   void attach() {
+      int rc = q_register_foreign_thread();
+      if (rc == QFT_OK) {
+         attached = true;
+         printd(LogLevel, "Thread %ld attached to Qore\n", pthread_self());
+      } else if (rc != QFT_REGISTERED) {
+         throw UnableToRegisterException();
+      }
+   }
+
+private:
+   bool attached;
+};
+
+extern thread_local QoreThreadAttacher qoreThreadAttacher;
 
 } // namespace jni
 

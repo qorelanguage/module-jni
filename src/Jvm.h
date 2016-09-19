@@ -54,6 +54,14 @@ public:
    }
 
    /**
+    * \brief Sets the Env object associated with this thread.
+    * \param the Env object associated with this thread
+    */
+   static void setEnv(JNIEnv *env) {
+      Jvm::env = env;
+   }
+
+   /**
     * \brief Returns the Env object associated with this thread. Attaches the thread to the JVM if needed.
     * \return the Env object associated with this thread
     * \throws UnableToAttachException if the thread cannot be attached to the JVM

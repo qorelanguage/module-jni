@@ -29,6 +29,8 @@
 
 namespace jni {
 
+thread_local QoreThreadAttacher qoreThreadAttacher;
+
 void JavaException::convert(ExceptionSink *xsink) {
    JNIEnv *env = Jvm::getEnv();
    LocalReference<jthrowable> throwable = env->ExceptionOccurred();

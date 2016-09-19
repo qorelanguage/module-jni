@@ -25,71 +25,45 @@
 //------------------------------------------------------------------------------
 ///
 /// \file
-/// \brief Defines the Object class.
+/// \brief TODO file description
 ///
 //------------------------------------------------------------------------------
-#ifndef QORE_JNI_OBJECT_H_
-#define QORE_JNI_OBJECT_H_
+#ifndef QORE_JNI_INVOCATIONHANDLER_H_
+#define QORE_JNI_INVOCATIONHANDLER_H_
 
-#include <qore/Qore.h>
-#include "LocalReference.h"
+#include <memory>
+#include "Object.h"
+#include "Dispatcher.h"
 
-extern QoreClass* QC_OBJECT;
-extern qore_classid_t CID_OBJECT;
+extern QoreClass* QC_INVOCATIONHANDLER;
+extern qore_classid_t CID_INVOCATIONHANDLER;
 
 namespace jni {
 
-/**
- * \brief Base class for private data of Qore objects that represent Java object.
- */
-class ObjectBase : public AbstractPrivateData {
+class InvocationHandler : public ObjectBase {
 
 public:
-   /**
-    * \brief Constructor.
-    */
-   ObjectBase() = default;
+   InvocationHandler(std::unique_ptr<Dispatcher> dispatcher);
+   InvocationHandler(const ResolvedCallReferenceNode *callback);
 
-   virtual ~ObjectBase() = default;
-
-   /**
-    * \brief Returns the reference to the JNI object.
-    * \return the reference to the JNI object
-    */
-   virtual jobject getJavaObject() const = 0;
-};
-
-/**
- * \brief Represents a Java object instance.
- */
-class Object : public ObjectBase {
-
-public:
-   /**
-    * \brief Constructor.
-    * \param object a local reference to a Java object instance
-    * \throws JavaException if a global reference cannot be created
-    */
-   Object(const LocalReference<jobject> &object) : object(object.makeGlobal()) {
-      printd(LogLevel, "Object::Object(), this: %p, object: %p\n", this, static_cast<jobject>(this->object));
-   }
-
-   ~Object() {
-      printd(LogLevel, "Object::~Object(), this: %p, object: %p\n", this, static_cast<jobject>(this->object));
-   }
-
-   /**
-    * \brief Returns the reference to the JNI jobject object.
-    * \return the reference to the JNI jobject object
-    */
    jobject getJavaObject() const override {
-      return object;
+      return handler;
    }
+
+   void destroy();
+
+   static void init();
+   static void cleanup();
 
 private:
-   GlobalReference<jobject> object;
+   GlobalReference<jobject> handler;
+
+private:
+   static GlobalReference<jclass> clazz;
+   static jmethodID ctorId;
+   static jmethodID derefId;
 };
 
 } // namespace jni
 
-#endif // QORE_JNI_OBJECT_H_
+#endif // QORE_JNI_INVOCATIONHANDLER_H_

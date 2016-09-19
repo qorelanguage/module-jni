@@ -52,6 +52,14 @@ public:
    }
 
    /**
+    * \brief Constructor.
+    * \param env the Env object associated with this thread
+    */
+   Env(JNIEnv *env) : env(env) {
+      Jvm::setEnv(env);
+   }
+
+   /**
     * \brief Returns the major version number in the higher 16 bits and the minor version number in the lower 16 bits.
     * \return the major version number in the higher 16 bits and the minor version number in the lower 16 bits
     */
@@ -989,6 +997,43 @@ public:
     */
    bool isInstanceOf(jobject obj, jclass clazz) {
       return env->IsInstanceOf(obj, clazz) == JNI_TRUE;
+   }
+
+   /**
+    * \brief Creates a new Java object.
+    * \param clazz the class of the object
+    * \param id the id of the constructor
+    * \param args the arguments for the constructor
+    * \return a reference to the new object
+    * \throws JavaException if the construction fails
+    */
+   LocalReference<jobject> newObject(jclass clazz, jmethodID id, const jvalue *args) {
+      jobject ret = env->NewObjectA(clazz, id, args);
+      if (ret == nullptr) {
+         throw JavaException();
+      }
+      return ret;
+   }
+
+   void registerNatives(jclass clazz, const JNINativeMethod *methods, jint count) {
+      if (env->RegisterNatives(clazz, methods, count) != 0) {
+         throw JavaException();
+      }
+   }
+
+   LocalReference<jobjectArray> newObjectArray(jsize len, jclass clazz) {
+      jobjectArray array = env->NewObjectArray(len, clazz, nullptr);
+      if (array == nullptr) {
+         throw JavaException();
+      }
+      return array;
+   }
+
+   void setObjectArrayElement(jobjectArray array, jsize index, jobject val) {
+      env->SetObjectArrayElement(array, index, val);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
    }
 
 private:

@@ -25,71 +25,48 @@
 //------------------------------------------------------------------------------
 ///
 /// \file
-/// \brief Defines the Object class.
+/// \brief Defines the method invocation dispatcher.
 ///
 //------------------------------------------------------------------------------
-#ifndef QORE_JNI_OBJECT_H_
-#define QORE_JNI_OBJECT_H_
+#ifndef QORE_JNI_DISPATCHER_H_
+#define QORE_JNI_DISPATCHER_H_
 
-#include <qore/Qore.h>
-#include "LocalReference.h"
-
-extern QoreClass* QC_OBJECT;
-extern qore_classid_t CID_OBJECT;
+#include "Env.h"
 
 namespace jni {
 
-/**
- * \brief Base class for private data of Qore objects that represent Java object.
- */
-class ObjectBase : public AbstractPrivateData {
+class Dispatcher {
 
 public:
-   /**
-    * \brief Constructor.
-    */
-   ObjectBase() = default;
+   virtual ~Dispatcher() = default;
 
-   virtual ~ObjectBase() = default;
+   virtual jobject dispatch(Env &env, jobject proxy, jobject method, jobjectArray args) = 0;
 
-   /**
-    * \brief Returns the reference to the JNI object.
-    * \return the reference to the JNI object
-    */
-   virtual jobject getJavaObject() const = 0;
+protected:
+   Dispatcher() = default;
+
+private:
+   Dispatcher(const Dispatcher &) = delete;
+   Dispatcher(Dispatcher &&) = delete;
+   Dispatcher &operator=(const Dispatcher &) = delete;
+   Dispatcher &operator=(Dispatcher &&) = delete;
 };
 
 /**
- * \brief Represents a Java object instance.
+ * \brief An implementation of Dispatcher that delegates the dispatch() call to a Qore function.
  */
-class Object : public ObjectBase {
+class QoreCodeDispatcher : public Dispatcher {
 
 public:
-   /**
-    * \brief Constructor.
-    * \param object a local reference to a Java object instance
-    * \throws JavaException if a global reference cannot be created
-    */
-   Object(const LocalReference<jobject> &object) : object(object.makeGlobal()) {
-      printd(LogLevel, "Object::Object(), this: %p, object: %p\n", this, static_cast<jobject>(this->object));
-   }
+   QoreCodeDispatcher(const ResolvedCallReferenceNode *callback);
+   ~QoreCodeDispatcher();
 
-   ~Object() {
-      printd(LogLevel, "Object::~Object(), this: %p, object: %p\n", this, static_cast<jobject>(this->object));
-   }
-
-   /**
-    * \brief Returns the reference to the JNI jobject object.
-    * \return the reference to the JNI jobject object
-    */
-   jobject getJavaObject() const override {
-      return object;
-   }
+   jobject dispatch(Env &env, jobject proxy, jobject method, jobjectArray args) override;
 
 private:
-   GlobalReference<jobject> object;
+   ResolvedCallReferenceNode *callback;
 };
 
 } // namespace jni
 
-#endif // QORE_JNI_OBJECT_H_
+#endif // QORE_JNI_DISPATCHER_H_

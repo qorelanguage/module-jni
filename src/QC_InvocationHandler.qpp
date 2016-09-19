@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Jni.qpp Jni class definition */
+/** @file QC_Class.qpp Class class definition */
 /*
   Qore Programming Language
 
@@ -28,49 +28,28 @@
   information.
 */
 
-#include "Functions.h"
-
-extern QoreClass* QC_CLASS;
-
-/** @defgroup TODO
- */
-//@{
+#include <qore/Qore.h>
+#include "InvocationHandler.h"
 
 //! TODO
 /**
  */
-string get_version() {
+qclass InvocationHandler [arg=jni::InvocationHandler* handler; ns=Qore::Jni; flags=final; vparent=Object];
+
+//! TODO
+/**
+ */
+InvocationHandler::constructor(code dispatcher) {
    try {
-      return jni::Functions::getVersion();
+      self->setPrivate(CID_INVOCATIONHANDLER, new jni::InvocationHandler(dispatcher));
    } catch (jni::Exception &e) {
       e.convert(xsink);
-      return QoreValue();
    }
 }
 
 //! TODO
 /**
  */
-Qore::Jni::Class load_class(string name) {
-   try {
-      return new QoreObject(QC_CLASS, getProgram(), jni::Functions::loadClass(name));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
+nothing InvocationHandler::destroy() {
+   handler->destroy();
 }
-
-//! TODO
-/**
- */
-Qore::Jni::Object implement_interface(Qore::Jni::InvocationHandler[jni::InvocationHandler] invocationHandler, Qore::Jni::Class[jni::Class] clazz) {
-   SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
-   SimpleRefHolder<jni::Class> classHolder(clazz);
-   try {
-      return new QoreObject(QC_OBJECT, getProgram(), jni::Functions::implementInterface(invocationHandler, clazz));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-//@}

@@ -84,7 +84,7 @@ public:
          return QoreValue();
       }
       //handle strings, throwables?, class?
-      return QoreValue(new QoreObject(QC_OBJECT, getProgram(), new Object(std::move(v))));
+      return QoreValue(new QoreObject(QC_OBJECT, getProgram(), new Object(v)));
    }
 
    static QoreValue convertArray(LocalReference<jobject> v, const std::string &arrayType) {
