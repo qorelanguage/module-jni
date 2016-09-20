@@ -1029,6 +1029,18 @@ public:
       return array;
    }
 
+   jsize getArrayLength(jarray array) {
+      return env->GetArrayLength(array);
+   }
+
+   LocalReference<jobject> getObjectArrayElement(jobjectArray array, jsize index) {
+      jobject o = env->GetObjectArrayElement(array, index);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return o;
+   }
+
    void setObjectArrayElement(jobjectArray array, jsize index, jobject val) {
       env->SetObjectArrayElement(array, index, val);
       if (env->ExceptionCheck()) {

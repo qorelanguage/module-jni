@@ -52,13 +52,21 @@ public:
     * \param clazz the class associated with the method id
     * \param id the method id
     * \param isStatic true if the method is static
-    * \param desc the descriptor
     */
-   Method(Class *clazz, jmethodID id, bool isStatic, std::string desc) : clazz(clazz), id(id), descriptor(std::move(desc)) {
+   Method(Class *clazz, jmethodID id, bool isStatic) : clazz(clazz), id(id) {
       printd(LogLevel, "Method::Method(), this: %p, clazz: %p, id: %p\n", this, clazz, id);
       Env env;
       method = env.toReflectedMethod(clazz->getJavaObject(), id, isStatic).makeGlobal();
       retValType = Globals::getType(env.callObjectMethod(method, Globals::methodMethodGetReturnType, nullptr).as<jclass>());
+
+      LocalReference<jobjectArray> paramTypesArray = env.callObjectMethod(method, Globals::methodMethodGetParameterTypes, nullptr).as<jobjectArray>();
+      jsize paramCount = env.getArrayLength(paramTypesArray);
+      paramTypes.reserve(paramCount);
+      for (jsize p = 0; p < paramCount; ++p) {
+         LocalReference<jclass> paramType = env.getObjectArrayElement(paramTypesArray, p).as<jclass>();
+         paramTypes.emplace_back(Globals::getType(paramType), paramType.makeGlobal());
+      }
+
       clazz->ref();
    }
 
@@ -93,11 +101,14 @@ public:
    QoreValue invokeStatic(const QoreValueList* args);
 
 private:
+   std::vector<jvalue> convertArgs(const QoreValueList* args, size_t base = 0);
+
+private:
    SimpleRefHolder<Class> clazz;
    jmethodID id;
    GlobalReference<jobject> method;             // the instance of java.lang.reflect.Method
    Type retValType;
-   std::string descriptor;
+   std::vector<std::pair<Type, GlobalReference<jclass>>> paramTypes;
 };
 
 } // namespace jni

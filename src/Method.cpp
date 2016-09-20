@@ -24,89 +24,67 @@
 //
 //------------------------------------------------------------------------------
 #include "Method.h"
-#include "DescriptorParser.h"
 #include "Env.h"
 #include "JavaToQore.h"
 #include "QoreToJava.h"
 
 namespace jni {
 
-//FIXME WIP
-
-class MethodDescriptorParser : public DescriptorParser {
-
-public:
-   MethodDescriptorParser(const std::string &descriptor) : DescriptorParser(descriptor) {
-      //we assume that the descriptor is well-formed since it was successfully used to get the jmethodID
-      assert(descriptor[pos++] == '(');
-   }
-
-   bool hasNextArg() {
-      if (descriptor[pos] == ')') {
-         ++pos;
-         return false;
-      }
-      return true;
-   }
-};
-
-std::vector<jvalue> convertArgs(MethodDescriptorParser &parser, const QoreValueList* args, size_t base = 0) {
+std::vector<jvalue> Method::convertArgs(const QoreValueList* args, size_t base) {
    assert(base == 0 || (args != nullptr && args->size() >= base));
-   std::vector<jvalue> jargs(args == nullptr ? 0 : (args->size() - base));
 
-   size_t index = 0;
-   while (parser.hasNextArg()) {
-      if (index >= jargs.size()) {
-         throw BasicException("Too few arguments in a Java method invocation");
-      }
-      QoreValue qv = args->retrieveEntry(index + base);
+   size_t paramCount = paramTypes.size();
+   size_t argCount = args == nullptr ? 0 : args->size() - base;
 
-      switch (parser.getType()) {
-         case 'Z':
-            jargs[index].z = QoreToJava::toBoolean(qv);
-            break;
-         case 'B':
-            jargs[index].b = QoreToJava::toByte(qv);
-            break;
-         case 'C':
-            jargs[index].c = QoreToJava::toChar(qv);
-            break;
-         case 'S':
-            jargs[index].s = QoreToJava::toShort(qv);
-            break;
-         case 'I':
-            jargs[index].i = QoreToJava::toInt(qv);
-            break;
-         case 'J':
-            jargs[index].j = QoreToJava::toLong(qv);
-            break;
-         case 'F':
-            jargs[index].f = QoreToJava::toFloat(qv);
-            break;
-         case 'D':
-            jargs[index].d = QoreToJava::toDouble(qv);
-            break;
-         case 'L':
-            jargs[index].l = QoreToJava::toObject(qv, parser.getClassName());
-            break;
-         case '[':
-            jargs[index].l = QoreToJava::toArray(qv, parser.getArrayDescriptor());
-            break;
-         default:
-            assert(false);      //invalid descriptor - should not happen
-      }
-      ++index;
+   if (paramCount > argCount) {
+      throw BasicException("Too few arguments in a Java method invocation");
    }
-
-   if (index != jargs.size()) {
+   if (paramCount < argCount) {
       throw BasicException("Too many arguments in a Java method invocation");
    }
+
+   std::vector<jvalue> jargs(paramCount);
+   for (size_t index = 0; index < paramCount; ++index) {
+      QoreValue qv = args->retrieveEntry(index + base);
+
+      switch (paramTypes[index].first) {
+         case Type::Boolean:
+            jargs[index].z = QoreToJava::toBoolean(qv);
+            break;
+         case Type::Byte:
+            jargs[index].b = QoreToJava::toByte(qv);
+            break;
+         case Type::Char:
+            jargs[index].c = QoreToJava::toChar(qv);
+            break;
+         case Type::Short:
+            jargs[index].s = QoreToJava::toShort(qv);
+            break;
+         case Type::Int:
+            jargs[index].i = QoreToJava::toInt(qv);
+            break;
+         case Type::Long:
+            jargs[index].j = QoreToJava::toLong(qv);
+            break;
+         case Type::Float:
+            jargs[index].f = QoreToJava::toFloat(qv);
+            break;
+         case Type::Double:
+            jargs[index].d = QoreToJava::toDouble(qv);
+            break;
+         case Type::Reference:
+         default:
+            assert(paramTypes[index].first == Type::Reference);
+            jargs[index].l = QoreToJava::toObject(qv, paramTypes[index].second);
+            break;
+      }
+   }
+
    return std::move(jargs);
 }
 
 QoreValue Method::invoke(jobject object, const QoreValueList* args) {
-   MethodDescriptorParser parser(descriptor);
-   std::vector<jvalue> jargs = convertArgs(parser, args, 1);
+   std::vector<jvalue> jargs = convertArgs(args, 1);
 
    Env env;
    if (!env.isInstanceOf(object, clazz->getJavaObject())) {
@@ -140,8 +118,7 @@ QoreValue Method::invoke(jobject object, const QoreValueList* args) {
 }
 
 QoreValue Method::invokeNonvirtual(jobject object, const QoreValueList* args) {
-   MethodDescriptorParser parser(descriptor);
-   std::vector<jvalue> jargs = convertArgs(parser, args, 1);
+   std::vector<jvalue> jargs = convertArgs(args, 1);
 
    Env env;
    if (!env.isInstanceOf(object, clazz->getJavaObject())) {
@@ -175,8 +152,7 @@ QoreValue Method::invokeNonvirtual(jobject object, const QoreValueList* args) {
 }
 
 QoreValue Method::invokeStatic(const QoreValueList* args) {
-   MethodDescriptorParser parser(descriptor);
-   std::vector<jvalue> jargs = convertArgs(parser, args);
+   std::vector<jvalue> jargs = convertArgs(args);
 
    Env env;
    switch (retValType) {

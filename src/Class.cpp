@@ -53,7 +53,7 @@ Method *Class::getMethod(const QoreStringNode *name, const QoreStringNode *descr
    ModifiedUtf8String nameUtf8(name);
    ModifiedUtf8String descUtf8(descriptor);
    printd(LogLevel, "getMethod %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
-   return new Method(this, env.getMethod(clazz, nameUtf8.c_str(), descUtf8.c_str()), false, descUtf8.c_str());
+   return new Method(this, env.getMethod(clazz, nameUtf8.c_str(), descUtf8.c_str()), false);
 }
 
 Method *Class::getStaticMethod(const QoreStringNode *name, const QoreStringNode *descriptor) {
@@ -61,7 +61,7 @@ Method *Class::getStaticMethod(const QoreStringNode *name, const QoreStringNode 
    ModifiedUtf8String nameUtf8(name);
    ModifiedUtf8String descUtf8(descriptor);
    printd(LogLevel, "getStaticMethod %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
-   return new Method(this, env.getStaticMethod(clazz, nameUtf8.c_str(), descUtf8.c_str()), true, descUtf8.c_str());
+   return new Method(this, env.getStaticMethod(clazz, nameUtf8.c_str(), descUtf8.c_str()), true);
 }
 
 } // namespace jni

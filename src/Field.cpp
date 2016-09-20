@@ -25,7 +25,6 @@
 //------------------------------------------------------------------------------
 #include "Field.h"
 #include <memory>
-#include "DescriptorParser.h"
 #include "Env.h"
 #include "JavaToQore.h"
 #include "QoreToJava.h"
