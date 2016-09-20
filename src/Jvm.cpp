@@ -26,6 +26,7 @@
 #include "Jvm.h"
 #include <qore/Qore.h>
 #include "defs.h"
+#include "Globals.h"
 #include "InvocationHandler.h"
 
 namespace jni {
@@ -57,6 +58,7 @@ bool Jvm::createVM() {
       return false;
    }
    try {
+      Globals::init();
       InvocationHandler::init();
    } catch (Exception &e) {
       return false;
@@ -68,6 +70,7 @@ void Jvm::destroyVM() {
    assert(vm != nullptr);
 
    InvocationHandler::cleanup();
+   Globals::cleanup();
    vm->DestroyJavaVM();
    vm = nullptr;
    env = nullptr;

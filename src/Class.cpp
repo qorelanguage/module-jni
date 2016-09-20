@@ -26,6 +26,7 @@
 #include "Class.h"
 #include "Env.h"
 #include "Field.h"
+#include "Globals.h"
 #include "ModifiedUtf8String.h"
 #include "Method.h"
 
@@ -36,8 +37,10 @@ Field *Class::getField(const QoreStringNode *name, const QoreStringNode *descrip
    ModifiedUtf8String nameUtf8(name);
    ModifiedUtf8String descUtf8(descriptor);
    printd(LogLevel, "getField %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
-   ref();
-   return new Field(this, env.getField(clazz, nameUtf8.c_str(), descUtf8.c_str()), descUtf8.c_str());
+   jfieldID id = env.getField(clazz, nameUtf8.c_str(), descUtf8.c_str());
+   LocalReference<jobject> f = env.toReflectedField(clazz, id, false);
+   LocalReference<jclass> type = env.callObjectMethod(f, Globals::methodFieldGetType, nullptr).as<jclass>();
+   return new Field(this, id, f, type);
 }
 
 Field *Class::getStaticField(const QoreStringNode *name, const QoreStringNode *descriptor) {
@@ -45,8 +48,10 @@ Field *Class::getStaticField(const QoreStringNode *name, const QoreStringNode *d
    ModifiedUtf8String nameUtf8(name);
    ModifiedUtf8String descUtf8(descriptor);
    printd(LogLevel, "getStaticField %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
-   ref();
-   return new Field(this, env.getStaticField(clazz, nameUtf8.c_str(), descUtf8.c_str()), descUtf8.c_str());
+   jfieldID id = env.getStaticField(clazz, nameUtf8.c_str(), descUtf8.c_str());
+   LocalReference<jobject> f = env.toReflectedField(clazz, id, true);
+   LocalReference<jclass> type = env.callObjectMethod(f, Globals::methodFieldGetType, nullptr).as<jclass>();
+   return new Field(this, id, f, type);
 }
 
 Method *Class::getMethod(const QoreStringNode *name, const QoreStringNode *descriptor) {

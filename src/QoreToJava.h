@@ -80,6 +80,34 @@ public:
       return static_cast<jshort>(value.getAsBigInt());
    }
 
+   static jobject toObject(const QoreValue &value, jclass clazz) {
+      if (value.getType() == NT_NOTHING) {
+         return nullptr;
+      }
+      if (value.getType() != NT_OBJECT) {
+         //TODO string, autobox primitives?
+         throw BasicException("A Java object argument expected");
+      }
+      const QoreObject *o = value.get<QoreObject>();
+      if (o->getClass(CID_OBJECT) == nullptr) {
+         throw BasicException("A Java object argument expected");
+      }
+
+      ExceptionSink xsink;
+      SimpleRefHolder<ObjectBase> obj(static_cast<ObjectBase *>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
+      if (xsink) {
+         throw XsinkException(xsink);
+      }
+      jobject javaObjectRef = obj->getJavaObject();
+
+      Env env;
+      if (!env.isInstanceOf(javaObjectRef, clazz)) {
+         throw BasicException("Passed object is not an instance of expected class");
+      }
+      return javaObjectRef;
+   }
+
+   //DEPRECATED
    static jobject toObject(const QoreValue &value, const std::string &className) {
       if (value.getType() == NT_NOTHING) {
          return nullptr;
@@ -89,18 +117,16 @@ public:
          throw BasicException("A Java object argument expected");
       }
       const QoreObject *o = value.get<QoreObject>();
-      jobject javaObjectRef;
-      if (o->getClass(CID_OBJECT) != nullptr) {
-         ExceptionSink xsink;
-         SimpleRefHolder<ObjectBase> obj(static_cast<ObjectBase *>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
-         if (xsink) {
-            throw XsinkException(xsink);
-         }
-         javaObjectRef = obj->getJavaObject();
-      } else {
-         //TODO class, throwable, arrays?
+      if (o->getClass(CID_OBJECT) == nullptr) {
          throw BasicException("A Java object argument expected");
       }
+
+      ExceptionSink xsink;
+      SimpleRefHolder<ObjectBase> obj(static_cast<ObjectBase *>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
+      if (xsink) {
+         throw XsinkException(xsink);
+      }
+      jobject javaObjectRef = obj->getJavaObject();
 
       Env env;
       LocalReference<jclass> clazz = env.findClass(className.c_str());
@@ -111,6 +137,7 @@ public:
       return javaObjectRef;
    }
 
+   //DEPRECATED
    static jarray toArray(const QoreValue &value, const std::string &arrayType) {
       return static_cast<jarray>(toObject(value, arrayType));
    }

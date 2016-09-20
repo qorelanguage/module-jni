@@ -1036,6 +1036,23 @@ public:
       }
    }
 
+   LocalReference<jobject> toReflectedField(jclass clazz, jfieldID id, jboolean isStatic) {
+      jobject o = env->ToReflectedField(clazz, id, isStatic);
+      if (o == nullptr) {
+         throw JavaException();
+      }
+      return o;
+   }
+
+   bool isSameObject(jobject obj1, jobject obj2) {
+      return env->IsSameObject(obj1, obj2) == JNI_TRUE;
+   }
+
+   LocalReference<jclass> getObjectClass(jobject obj) {
+      assert(obj != nullptr);
+      return env->GetObjectClass(obj);
+   }
+
 private:
    JNIEnv *env;
 };

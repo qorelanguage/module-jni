@@ -35,6 +35,7 @@ set(CPP_SRC
     src/Class.cpp
     src/Dispatcher.cpp
     src/Field.cpp
+    src/Globals.cpp
     src/InvocationHandler.cpp
     src/Method.cpp
 )

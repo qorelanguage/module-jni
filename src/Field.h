@@ -33,6 +33,7 @@
 
 #include <qore/Qore.h>
 #include "Class.h"
+#include "Globals.h"
 
 extern QoreClass* QC_FIELD;
 extern QoreClass* QC_STATICFIELD;
@@ -49,10 +50,14 @@ public:
     * \brief Constructor.
     * \param clazz the class associated with the field id
     * \param id the field id
-    * \param desc the descriptor
+    * \param field the instance of java.lang.reflect.Field
+    * \param typeClass the class of the field's type
     */
-   Field(Class *clazz, jfieldID id, std::string desc) : clazz(clazz), id(id), descriptor(std::move(desc)) {
+   Field(Class *clazz, jfieldID id, const LocalReference<jobject> &field, const LocalReference<jclass> &typeClass)
+         : clazz(clazz), id(id), field(field.makeGlobal()), typeClass(typeClass.makeGlobal()) {
       printd(LogLevel, "Field::Field(), this: %p, clazz: %p, id: %p\n", this, clazz, id);
+      type = Globals::getType(typeClass);
+      clazz->ref();
    }
 
    ~Field() {
@@ -92,7 +97,9 @@ public:
 private:
    SimpleRefHolder<Class> clazz;
    jfieldID id;
-   std::string descriptor;
+   GlobalReference<jobject> field;              // the instance of java.lang.reflect.Field
+   GlobalReference<jclass> typeClass;           // the type of the field
+   Type type;
 };
 
 } // namespace jni

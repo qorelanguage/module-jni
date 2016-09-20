@@ -49,10 +49,9 @@ public:
    /**
     * \brief Constructor.
     * \param array a local reference to a Java array instance
-    * \param arrayType the type of the array
     * \throws JavaException if a global reference cannot be created
     */
-   Array(LocalReference<jarray> array, const std::string &arrayType) : array(array.makeGlobal()) {
+   Array(LocalReference<jarray> array) : array(array.makeGlobal()) {
       printd(LogLevel, "Array::Array(), this: %p, object: %p\n", this, static_cast<jarray>(this->array));
    }
 
