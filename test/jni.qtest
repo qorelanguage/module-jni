@@ -20,6 +20,7 @@ public class Main inherits QUnit::Test {
         addTestCase("float conversion test", \testFloatConversions());
         addTestCase("static fields access test", \testStaticFields());
         addTestCase("instance fields access test", \testInstanceFields());
+        addTestCase("callback test", \testCallback());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -287,5 +288,22 @@ public class Main inherits QUnit::Test {
         o.set(instance, clazz);                                                 # classes are objects, too
 
         assertThrows("JNI-ERROR", sub() { z.set(byteArray, True); });
+    }
+
+    testCallback() {
+        int i = 1;
+        Jni::InvocationHandler h = new Jni::InvocationHandler(sub(int j) { ++i; });
+
+        Jni::Object o = Jni::implement_interface(h, Jni::load_class("java/lang/Runnable"));
+        Jni::Class clazz = Jni::load_class("org/qore/jni/test/Callbacks");
+        Jni::StaticMethod callNow = clazz.getStaticMethod("callNow", "(Ljava/lang/Runnable;)V");
+        Jni::StaticMethod callInThread = clazz.getStaticMethod("callInThread", "(Ljava/lang/Runnable;)V");
+        callNow.invoke(o);
+        assertEq(2, i);
+        callInThread.invoke(o);
+        usleep(200ms);
+        assertEq(3, i);
+
+        h.destroy();
     }
 }
