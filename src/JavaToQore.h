@@ -86,29 +86,13 @@ public:
       }
       Env env;
       //if v is instance of java.lang.Class -> new QC_CLASS
+      //?method, field?
       //if v is instance of java.lang.Throwable -> new QC_THROWABLE
       //if v is instance of java.lang.String -> create qore string
       if (env.callBooleanMethod(env.getObjectClass(v), Globals::methodClassIsArray, nullptr)) {
          return QoreValue(new QoreObject(QC_ARRAY, getProgram(), new Array(v.as<jarray>())));
       }
       return QoreValue(new QoreObject(QC_OBJECT, getProgram(), new Object(v)));
-   }
-
-   //DEPRECATED
-   static QoreValue convertObject(LocalReference<jobject> v, const std::string &className) {
-      if (v == nullptr) {
-         return QoreValue();
-      }
-      //handle strings, throwables?, class?
-      return QoreValue(new QoreObject(QC_OBJECT, getProgram(), new Object(v)));
-   }
-
-   //DEPRECATED
-   static QoreValue convertArray(LocalReference<jobject> v, const std::string &arrayType) {
-      if (v == nullptr) {
-         return QoreValue();
-      }
-      return QoreValue(new QoreObject(QC_ARRAY, getProgram(), new Array(v.as<jarray>())));
    }
 
 private:

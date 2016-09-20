@@ -1044,6 +1044,14 @@ public:
       return o;
    }
 
+   LocalReference<jobject> toReflectedMethod(jclass clazz, jmethodID id, jboolean isStatic) {
+      jobject o = env->ToReflectedMethod(clazz, id, isStatic);
+      if (o == nullptr) {
+         throw JavaException();
+      }
+      return o;
+   }
+
    bool isSameObject(jobject obj1, jobject obj2) {
       return env->IsSameObject(obj1, obj2) == JNI_TRUE;
    }

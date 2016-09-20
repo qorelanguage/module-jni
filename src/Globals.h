@@ -36,12 +36,13 @@
 namespace jni {
 
 enum class Type {
-   Boolean, Byte, Char, Short, Int, Long, Float, Double, Reference
+   Void, Boolean, Byte, Char, Short, Int, Long, Float, Double, Reference
 };
 
 class Globals {
 
 public:
+   static GlobalReference<jclass> classVoid;                            // class for the void return type
    static GlobalReference<jclass> classBoolean;                         // class for the primitive type boolean
    static GlobalReference<jclass> classByte;                            // class for the primitive type byte
    static GlobalReference<jclass> classChar;                            // class for the primitive type char
@@ -56,6 +57,9 @@ public:
 
    static GlobalReference<jclass> classField;                           // java.lang.reflect.Field
    static jmethodID methodFieldGetType;                                 // Class<?> Field.getType();
+
+   static GlobalReference<jclass> classMethod;                          // java.lang.reflect.Method
+   static jmethodID methodMethodGetReturnType;                          // Class<?> Method.getReturnType();
 
 public:
    static void init();

@@ -33,6 +33,8 @@
 
 #include <qore/Qore.h>
 #include "Class.h"
+#include "Globals.h"
+#include "Env.h"
 
 extern QoreClass* QC_METHOD;
 extern QoreClass* QC_STATICMETHOD;
@@ -49,10 +51,15 @@ public:
     * \brief Constructor.
     * \param clazz the class associated with the method id
     * \param id the method id
+    * \param isStatic true if the method is static
     * \param desc the descriptor
     */
-   Method(Class *clazz, jmethodID id, std::string desc) : clazz(clazz), id(id), descriptor(std::move(desc)) {
+   Method(Class *clazz, jmethodID id, bool isStatic, std::string desc) : clazz(clazz), id(id), descriptor(std::move(desc)) {
       printd(LogLevel, "Method::Method(), this: %p, clazz: %p, id: %p\n", this, clazz, id);
+      Env env;
+      method = env.toReflectedMethod(clazz->getJavaObject(), id, isStatic).makeGlobal();
+      retValType = Globals::getType(env.callObjectMethod(method, Globals::methodMethodGetReturnType, nullptr).as<jclass>());
+      clazz->ref();
    }
 
    ~Method() {
@@ -88,6 +95,8 @@ public:
 private:
    SimpleRefHolder<Class> clazz;
    jmethodID id;
+   GlobalReference<jobject> method;             // the instance of java.lang.reflect.Method
+   Type retValType;
    std::string descriptor;
 };
 

@@ -112,32 +112,29 @@ QoreValue Method::invoke(jobject object, const QoreValueList* args) {
    if (!env.isInstanceOf(object, clazz->getJavaObject())) {
       throw BasicException("Passed instance does not match the method's class");
    }
-   switch (parser.getType()) {
-      case 'V':
-         env.callVoidMethod(object, id, &jargs[0]);
-         return QoreValue();
-      case 'Z':
+   switch (retValType) {
+      case Type::Boolean:
          return JavaToQore::convert(env.callBooleanMethod(object, id, &jargs[0]));
-      case 'B':
+      case Type::Byte:
          return JavaToQore::convert(env.callByteMethod(object, id, &jargs[0]));
-      case 'C':
+      case Type::Char:
          return JavaToQore::convert(env.callCharMethod(object, id, &jargs[0]));
-      case 'S':
+      case Type::Short:
          return JavaToQore::convert(env.callShortMethod(object, id, &jargs[0]));
-      case 'I':
+      case Type::Int:
          return JavaToQore::convert(env.callIntMethod(object, id, &jargs[0]));
-      case 'J':
+      case Type::Long:
          return JavaToQore::convert(env.callLongMethod(object, id, &jargs[0]));
-      case 'F':
+      case Type::Float:
          return JavaToQore::convert(env.callFloatMethod(object, id, &jargs[0]));
-      case 'D':
+      case Type::Double:
          return JavaToQore::convert(env.callDoubleMethod(object, id, &jargs[0]));
-      case 'L':
-         return JavaToQore::convertObject(env.callObjectMethod(object, id, &jargs[0]), parser.getClassName());
-      case '[':
-         return JavaToQore::convertArray(env.callObjectMethod(object, id, &jargs[0]), parser.getArrayDescriptor());
+      case Type::Reference:
+         return JavaToQore::convert(env.callObjectMethod(object, id, &jargs[0]));
+      case Type::Void:
       default:
-         assert(false);         //invalid descriptor - should not happen
+         assert(retValType == Type::Void);
+         env.callVoidMethod(object, id, &jargs[0]);
          return QoreValue();
    }
 }
@@ -150,32 +147,29 @@ QoreValue Method::invokeNonvirtual(jobject object, const QoreValueList* args) {
    if (!env.isInstanceOf(object, clazz->getJavaObject())) {
       throw BasicException("Passed instance does not match the method's class");
    }
-   switch (parser.getType()) {
-      case 'V':
-         env.callNonvirtualVoidMethod(object, clazz->getJavaObject(), id, &jargs[0]);
-         return QoreValue();
-      case 'Z':
+   switch (retValType) {
+      case Type::Boolean:
          return JavaToQore::convert(env.callNonvirtualBooleanMethod(object, clazz->getJavaObject(), id, &jargs[0]));
-      case 'B':
+      case Type::Byte:
          return JavaToQore::convert(env.callNonvirtualByteMethod(object, clazz->getJavaObject(), id, &jargs[0]));
-      case 'C':
+      case Type::Char:
          return JavaToQore::convert(env.callNonvirtualCharMethod(object, clazz->getJavaObject(), id, &jargs[0]));
-      case 'S':
+      case Type::Short:
          return JavaToQore::convert(env.callNonvirtualShortMethod(object, clazz->getJavaObject(), id, &jargs[0]));
-      case 'I':
+      case Type::Int:
          return JavaToQore::convert(env.callNonvirtualIntMethod(object, clazz->getJavaObject(), id, &jargs[0]));
-      case 'J':
+      case Type::Long:
          return JavaToQore::convert(env.callNonvirtualLongMethod(object, clazz->getJavaObject(), id, &jargs[0]));
-      case 'F':
+      case Type::Float:
          return JavaToQore::convert(env.callNonvirtualFloatMethod(object, clazz->getJavaObject(), id, &jargs[0]));
-      case 'D':
+      case Type::Double:
          return JavaToQore::convert(env.callNonvirtualDoubleMethod(object, clazz->getJavaObject(), id, &jargs[0]));
-      case 'L':
-         return JavaToQore::convertObject(env.callNonvirtualObjectMethod(object, clazz->getJavaObject(), id, &jargs[0]), parser.getClassName());
-      case '[':
-         return JavaToQore::convertArray(env.callNonvirtualObjectMethod(object, clazz->getJavaObject(), id, &jargs[0]), parser.getArrayDescriptor());
+      case Type::Reference:
+         return JavaToQore::convert(env.callNonvirtualObjectMethod(object, clazz->getJavaObject(), id, &jargs[0]));
+      case Type::Void:
       default:
-         assert(false);         //invalid descriptor - should not happen
+         assert(retValType == Type::Void);
+         env.callNonvirtualVoidMethod(object, clazz->getJavaObject(), id, &jargs[0]);
          return QoreValue();
    }
 }
@@ -185,32 +179,29 @@ QoreValue Method::invokeStatic(const QoreValueList* args) {
    std::vector<jvalue> jargs = convertArgs(parser, args);
 
    Env env;
-   switch (parser.getType()) {
-      case 'V':
-         env.callStaticVoidMethod(clazz->getJavaObject(), id, &jargs[0]);
-         return QoreValue();
-      case 'Z':
+   switch (retValType) {
+      case Type::Boolean:
          return JavaToQore::convert(env.callStaticBooleanMethod(clazz->getJavaObject(), id, &jargs[0]));
-      case 'B':
+      case Type::Byte:
          return JavaToQore::convert(env.callStaticByteMethod(clazz->getJavaObject(), id, &jargs[0]));
-      case 'C':
+      case Type::Char:
          return JavaToQore::convert(env.callStaticCharMethod(clazz->getJavaObject(), id, &jargs[0]));
-      case 'S':
+      case Type::Short:
          return JavaToQore::convert(env.callStaticShortMethod(clazz->getJavaObject(), id, &jargs[0]));
-      case 'I':
+      case Type::Int:
          return JavaToQore::convert(env.callStaticIntMethod(clazz->getJavaObject(), id, &jargs[0]));
-      case 'J':
+      case Type::Long:
          return JavaToQore::convert(env.callStaticLongMethod(clazz->getJavaObject(), id, &jargs[0]));
-      case 'F':
+      case Type::Float:
          return JavaToQore::convert(env.callStaticFloatMethod(clazz->getJavaObject(), id, &jargs[0]));
-      case 'D':
+      case Type::Double:
          return JavaToQore::convert(env.callStaticDoubleMethod(clazz->getJavaObject(), id, &jargs[0]));
-      case 'L':
-         return JavaToQore::convertObject(env.callStaticObjectMethod(clazz->getJavaObject(), id, &jargs[0]), parser.getClassName());
-      case '[':
-         return JavaToQore::convertArray(env.callStaticObjectMethod(clazz->getJavaObject(), id, &jargs[0]), parser.getArrayDescriptor());
+      case Type::Reference:
+         return JavaToQore::convert(env.callStaticObjectMethod(clazz->getJavaObject(), id, &jargs[0]));
+      case Type::Void:
       default:
-         assert(false);         //invalid descriptor - should not happen
+         assert(retValType == Type::Void);
+         env.callStaticVoidMethod(clazz->getJavaObject(), id, &jargs[0]);
          return QoreValue();
    }
 }

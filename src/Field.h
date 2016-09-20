@@ -34,6 +34,7 @@
 #include <qore/Qore.h>
 #include "Class.h"
 #include "Globals.h"
+#include "Env.h"
 
 extern QoreClass* QC_FIELD;
 extern QoreClass* QC_STATICFIELD;
@@ -50,12 +51,13 @@ public:
     * \brief Constructor.
     * \param clazz the class associated with the field id
     * \param id the field id
-    * \param field the instance of java.lang.reflect.Field
-    * \param typeClass the class of the field's type
+    * \param isStatic true if the field is static
     */
-   Field(Class *clazz, jfieldID id, const LocalReference<jobject> &field, const LocalReference<jclass> &typeClass)
-         : clazz(clazz), id(id), field(field.makeGlobal()), typeClass(typeClass.makeGlobal()) {
+   Field(Class *clazz, jfieldID id, bool isStatic) : clazz(clazz), id(id) {
       printd(LogLevel, "Field::Field(), this: %p, clazz: %p, id: %p\n", this, clazz, id);
+      Env env;
+      field = env.toReflectedField(clazz->getJavaObject(), id, isStatic).makeGlobal();
+      typeClass = env.callObjectMethod(field, Globals::methodFieldGetType, nullptr).as<jclass>().makeGlobal();
       type = Globals::getType(typeClass);
       clazz->ref();
    }

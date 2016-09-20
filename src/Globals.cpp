@@ -33,6 +33,7 @@
 
 namespace jni {
 
+GlobalReference<jclass> Globals::classVoid;
 GlobalReference<jclass> Globals::classBoolean;
 GlobalReference<jclass> Globals::classByte;
 GlobalReference<jclass> Globals::classChar;
@@ -48,6 +49,9 @@ jmethodID Globals::methodClassIsArray;
 GlobalReference<jclass> Globals::classField;
 jmethodID Globals::methodFieldGetType;
 
+GlobalReference<jclass> Globals::classMethod;
+jmethodID Globals::methodMethodGetReturnType;
+
 static GlobalReference<jclass> getPrimitiveClass(Env &env, const char *wrapperName) {
    LocalReference<jclass> wrapperClass = env.findClass(wrapperName);
    jfieldID typeFieldId = env.getStaticField(wrapperClass, "TYPE", "Ljava/lang/Class;");
@@ -56,6 +60,7 @@ static GlobalReference<jclass> getPrimitiveClass(Env &env, const char *wrapperNa
 
 void Globals::init() {
    Env env;
+   classVoid = getPrimitiveClass(env, "java/lang/Void");
    classBoolean = getPrimitiveClass(env, "java/lang/Boolean");
    classByte = getPrimitiveClass(env, "java/lang/Byte");
    classChar = getPrimitiveClass(env, "java/lang/Character");
@@ -70,9 +75,13 @@ void Globals::init() {
 
    classField = env.findClass("java/lang/reflect/Field").makeGlobal();
    methodFieldGetType = env.getMethod(classField, "getType", "()Ljava/lang/Class;");
+
+   classMethod = env.findClass("java/lang/reflect/Method").makeGlobal();
+   methodMethodGetReturnType = env.getMethod(classMethod, "getReturnType", "()Ljava/lang/Class;");
 }
 
 void Globals::cleanup() {
+   classVoid = nullptr;
    classBoolean = nullptr;
    classByte = nullptr;
    classChar = nullptr;
@@ -83,12 +92,16 @@ void Globals::cleanup() {
    classDouble = nullptr;
    classClass = nullptr;
    classField = nullptr;
+   classMethod = nullptr;
 }
 
 Type Globals::getType(jclass clazz) {
    Env env;
    if (env.isSameObject(clazz, classInt)) {
       return Type::Int;
+   }
+   if (env.isSameObject(clazz, classVoid)) {
+      return Type::Void;
    }
    if (env.isSameObject(clazz, classBoolean)) {
       return Type::Boolean;
