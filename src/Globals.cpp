@@ -52,6 +52,8 @@ jmethodID Globals::methodFieldGetType;
 GlobalReference<jclass> Globals::classMethod;
 jmethodID Globals::methodMethodGetReturnType;
 jmethodID Globals::methodMethodGetParameterTypes;
+jmethodID Globals::methodMethodGetDeclaringClass;
+jmethodID Globals::methodMethodGetModifiers;
 
 static GlobalReference<jclass> getPrimitiveClass(Env &env, const char *wrapperName) {
    LocalReference<jclass> wrapperClass = env.findClass(wrapperName);
@@ -80,6 +82,8 @@ void Globals::init() {
    classMethod = env.findClass("java/lang/reflect/Method").makeGlobal();
    methodMethodGetReturnType = env.getMethod(classMethod, "getReturnType", "()Ljava/lang/Class;");
    methodMethodGetParameterTypes = env.getMethod(classMethod, "getParameterTypes", "()[Ljava/lang/Class;");
+   methodMethodGetDeclaringClass = env.getMethod(classMethod, "getDeclaringClass", "()Ljava/lang/Class;");
+   methodMethodGetModifiers = env.getMethod(classMethod, "getModifiers", "()I");
 }
 
 void Globals::cleanup() {

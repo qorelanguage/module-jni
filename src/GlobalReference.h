@@ -92,6 +92,20 @@ public:
       return ref;
    }
 
+   /**
+    * \brief Creates a global reference from a local reference.
+    * \param ref the local reference
+    * \return global reference
+    */
+   static GlobalReference<T> fromLocal(T ref) {
+      assert(ref != nullptr);
+      T global = static_cast<T>(Jvm::getEnv()->NewGlobalRef(ref));
+      if (global == nullptr) {
+         throw JavaException();
+      }
+      return global;
+   }
+
 private:
    GlobalReference(const GlobalReference &) = delete;
    GlobalReference &operator=(const GlobalReference &) = delete;

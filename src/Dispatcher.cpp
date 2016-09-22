@@ -24,6 +24,8 @@
 //
 //------------------------------------------------------------------------------
 #include "Dispatcher.h"
+#include "Array.h"
+#include "Method.h"
 
 namespace jni {
 
@@ -45,7 +47,7 @@ QoreCodeDispatcher::~QoreCodeDispatcher() {
    //FIXME raise Java exception?
 }
 
-jobject QoreCodeDispatcher::dispatch(Env &env, jobject proxy, jobject method, jobjectArray args) {
+jobject QoreCodeDispatcher::dispatch(Env &env, jobject proxy, jobject method, jobjectArray jargs) {
    try {
       qoreThreadAttacher.attach();
    } catch (Exception &e) {
@@ -58,12 +60,14 @@ jobject QoreCodeDispatcher::dispatch(Env &env, jobject proxy, jobject method, jo
    ExceptionSink xsink;
    {
       ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
-      //FIXME convert arguments
-      args->push(new QoreBigIntNode(42));
+      int mods = env.callIntMethod(method, Globals::methodMethodGetModifiers, nullptr);
+      args->push(new QoreObject(mods & 8 ? QC_STATICMETHOD : QC_METHOD, getProgram(), new Method(method)));
+      args->push(jargs == nullptr ? nullptr : new QoreObject(QC_ARRAY, getProgram(), new Array(jargs)));
       callback->execValue(*args, &xsink);
       if (xsink) {
          //FIXME raise Java exception
       }
+      //FIXME convert return value
    }
    return nullptr;
 }

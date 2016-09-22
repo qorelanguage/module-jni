@@ -44,7 +44,7 @@ namespace jni {
 /**
  * \brief Represents a Java field.
  */
-class Field : public AbstractPrivateData {
+class Field : public ObjectBase {
 
 public:
    /**
@@ -95,6 +95,10 @@ public:
     * \throws Exception if the value cannot be set
     */
    void setStatic(const QoreValue &value);
+
+   jobject getJavaObject() const override {
+      return field;
+   }
 
 private:
    SimpleRefHolder<Class> clazz;

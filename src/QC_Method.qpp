@@ -34,7 +34,7 @@
 //! TODO
 /**
  */
-qclass Method [arg=jni::Method* method; ns=Qore::Jni; flags=final];
+qclass Method [arg=jni::Method* method; ns=Qore::Jni; flags=final; vparent=Object];
 
 //! TODO
 /**

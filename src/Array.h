@@ -51,7 +51,7 @@ public:
     * \param array a local reference to a Java array instance
     * \throws JavaException if a global reference cannot be created
     */
-   Array(LocalReference<jarray> array) : array(array.makeGlobal()) {
+   Array(jarray array) : array(GlobalReference<jarray>::fromLocal(array)) {
       printd(LogLevel, "Array::Array(), this: %p, object: %p\n", this, static_cast<jarray>(this->array));
    }
 

@@ -1064,6 +1064,14 @@ public:
       return o;
    }
 
+   jmethodID fromReflectedMethod(jobject method) {
+      jmethodID id = env->FromReflectedMethod(method);
+      if (id == nullptr) {
+         throw JavaException();
+      }
+      return id;
+   }
+
    bool isSameObject(jobject obj1, jobject obj2) {
       return env->IsSameObject(obj1, obj2) == JNI_TRUE;
    }

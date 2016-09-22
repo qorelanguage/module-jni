@@ -34,7 +34,7 @@
 //! TODO
 /**
  */
-qclass StaticMethod [arg=jni::Method* method; ns=Qore::Jni; flags=final];
+qclass StaticMethod [arg=jni::Method* method; ns=Qore::Jni; flags=final; vparent=Object];
 
 //! TODO
 /**

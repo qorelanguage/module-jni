@@ -44,7 +44,7 @@ namespace jni {
 /**
  * \brief Represents a Java method.
  */
-class Method : public AbstractPrivateData {
+class Method : public ObjectBase {
 
 public:
    /**
@@ -57,17 +57,21 @@ public:
       printd(LogLevel, "Method::Method(), this: %p, clazz: %p, id: %p\n", this, clazz, id);
       Env env;
       method = env.toReflectedMethod(clazz->getJavaObject(), id, isStatic).makeGlobal();
-      retValType = Globals::getType(env.callObjectMethod(method, Globals::methodMethodGetReturnType, nullptr).as<jclass>());
-
-      LocalReference<jobjectArray> paramTypesArray = env.callObjectMethod(method, Globals::methodMethodGetParameterTypes, nullptr).as<jobjectArray>();
-      jsize paramCount = env.getArrayLength(paramTypesArray);
-      paramTypes.reserve(paramCount);
-      for (jsize p = 0; p < paramCount; ++p) {
-         LocalReference<jclass> paramType = env.getObjectArrayElement(paramTypesArray, p).as<jclass>();
-         paramTypes.emplace_back(Globals::getType(paramType), paramType.makeGlobal());
-      }
-
+      init(env);
       clazz->ref();
+   }
+
+   /**
+    * \brief Constructor.
+    * \param method an instance of java.lang.reflect.Method
+    */
+   Method(jobject method) {
+      Env env;
+      clazz = new Class(env.callObjectMethod(method, Globals::methodMethodGetDeclaringClass, nullptr).as<jclass>());
+      id = env.fromReflectedMethod(method);
+      this->method = GlobalReference<jobject>::fromLocal(method);
+      printd(LogLevel, "Method::Method(), this: %p, clazz: %p, id: %p\n", this, *clazz, id);
+      init(env);
    }
 
    ~Method() {
@@ -100,8 +104,24 @@ public:
     */
    QoreValue invokeStatic(const QoreValueList* args);
 
+   jobject getJavaObject() const override {
+      return method;
+   }
+
 private:
    std::vector<jvalue> convertArgs(const QoreValueList* args, size_t base = 0);
+
+   void init(Env &env) {
+      retValType = Globals::getType(env.callObjectMethod(method, Globals::methodMethodGetReturnType, nullptr).as<jclass>());
+
+      LocalReference<jobjectArray> paramTypesArray = env.callObjectMethod(method, Globals::methodMethodGetParameterTypes, nullptr).as<jobjectArray>();
+      jsize paramCount = env.getArrayLength(paramTypesArray);
+      paramTypes.reserve(paramCount);
+      for (jsize p = 0; p < paramCount; ++p) {
+         LocalReference<jclass> paramType = env.getObjectArrayElement(paramTypesArray, p).as<jclass>();
+         paramTypes.emplace_back(Globals::getType(paramType), paramType.makeGlobal());
+      }
+   }
 
 private:
    SimpleRefHolder<Class> clazz;

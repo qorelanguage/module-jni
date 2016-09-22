@@ -61,6 +61,8 @@ public:
    static GlobalReference<jclass> classMethod;                          // java.lang.reflect.Method
    static jmethodID methodMethodGetReturnType;                          // Class<?> Method.getReturnType();
    static jmethodID methodMethodGetParameterTypes;                      // Class<?>[] Method.getParameterTypes();
+   static jmethodID methodMethodGetDeclaringClass;                      // Class<?> Method.getDeclaringClass();
+   static jmethodID methodMethodGetModifiers;                           // int Method.getModifiers();
 
 public:
    static void init();

@@ -54,7 +54,7 @@ public:
     * \param clazz a local reference to a Java class
     * \throws JavaException if a global reference cannot be created
     */
-   Class(LocalReference<jclass> clazz) : clazz(clazz.makeGlobal()) {
+   Class(const LocalReference<jclass> &clazz) : clazz(clazz.makeGlobal()) {
       printd(LogLevel, "Class::Class(), this: %p, clazz: %p\n", this, static_cast<jclass>(this->clazz));
    }
 

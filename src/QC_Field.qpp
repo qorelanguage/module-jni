@@ -34,7 +34,7 @@
 //! TODO
 /**
  */
-qclass Field [arg=jni::Field* field; ns=Qore::Jni; flags=final];
+qclass Field [arg=jni::Field* field; ns=Qore::Jni; flags=final; vparent=Object];
 
 //! TODO
 /**

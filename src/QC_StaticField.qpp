@@ -34,7 +34,7 @@
 //! TODO
 /**
  */
-qclass StaticField [arg=jni::Field* field; ns=Qore::Jni; flags=final];
+qclass StaticField [arg=jni::Field* field; ns=Qore::Jni; flags=final; vparent=Object];
 
 //! TODO
 /**

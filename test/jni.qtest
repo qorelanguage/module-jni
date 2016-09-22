@@ -292,7 +292,7 @@ public class Main inherits QUnit::Test {
 
     testCallback() {
         int i = 1;
-        Jni::InvocationHandler h = new Jni::InvocationHandler(sub(int j) { ++i; });
+        Jni::InvocationHandler h = new Jni::InvocationHandler(sub(Jni::Method m, *Jni::Array args) { ++i; });
 
         Jni::Object o = Jni::implement_interface(h, Jni::load_class("java/lang/Runnable"));
         Jni::Class clazz = Jni::load_class("org/qore/jni/test/Callbacks");
