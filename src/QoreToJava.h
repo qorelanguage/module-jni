@@ -35,6 +35,7 @@
 #include "Array.h"
 #include "LocalReference.h"
 #include "Object.h"
+#include "Throwable.h"
 #include "defs.h"
 
 namespace jni {
@@ -100,11 +101,40 @@ public:
       }
       jobject javaObjectRef = obj->getJavaObject();
 
-      Env env;
-      if (!env.isInstanceOf(javaObjectRef, clazz)) {
-         throw BasicException("Passed object is not an instance of expected class");
+      if (clazz) {
+         Env env;
+         if (!env.isInstanceOf(javaObjectRef, clazz)) {
+            throw BasicException("Passed object is not an instance of expected class");
+         }
       }
       return javaObjectRef;
+   }
+
+   static void wrapException(ExceptionSink &src) {
+      Env env;
+      AbstractQoreNode *n = src.getExceptionArg();
+      if (n && n->getType() == NT_OBJECT) {
+         const QoreObject *o = static_cast<QoreObject *>(n);
+         if (o->getClass(CID_THROWABLE) != nullptr) {
+
+            ExceptionSink tempSink;
+            SimpleRefHolder<Throwable> obj(static_cast<Throwable *>(o->getReferencedPrivateData(CID_THROWABLE, &tempSink)));
+            if (!tempSink) {
+               env.throwException(obj->getJavaObject());
+               src.clear();
+               return;
+            }
+         }
+      }
+
+      std::unique_ptr<ExceptionSink> xsink = std::unique_ptr<ExceptionSink>(new ExceptionSink());
+      xsink->assimilate(src);
+
+      jvalue arg;
+      arg.j = reinterpret_cast<jlong>(xsink.get());
+      LocalReference<jobject> obj = env.newObject(Globals::classQoreExceptionWrapper, Globals::ctorQoreExceptionWrapper, &arg);
+      xsink.release();      //from now on, the Java instance of InvocationHandlerImpl is responsible for the dispatcher
+      env.throwException(obj.as<jthrowable>());
    }
 
 private:

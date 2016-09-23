@@ -292,18 +292,24 @@ public class Main inherits QUnit::Test {
 
     testCallback() {
         int i = 1;
-        Jni::InvocationHandler h = new Jni::InvocationHandler(sub(Jni::Method m, *Jni::Array args) { ++i; });
+        Jni::InvocationHandler h = new Jni::InvocationHandler(sub(Jni::Method m, *Jni::Array args) { if (++i == 4) throw "CALLBACK-ERROR";});
 
         Jni::Object o = Jni::implement_interface(h, Jni::load_class("java/lang/Runnable"));
         Jni::Class clazz = Jni::load_class("org/qore/jni/test/Callbacks");
         Jni::StaticMethod callNow = clazz.getStaticMethod("callNow", "(Ljava/lang/Runnable;)V");
         Jni::StaticMethod callInThread = clazz.getStaticMethod("callInThread", "(Ljava/lang/Runnable;)V");
+        Jni::StaticMethod trueIfThrows = clazz.getStaticMethod("trueIfThrows", "(Ljava/lang/Runnable;)Z");
+        Jni::StaticMethod doThrow = clazz.getStaticMethod("doThrow", "()V");
         callNow.invoke(o);
         assertEq(2, i);
         callInThread.invoke(o);
         usleep(200ms);
         assertEq(3, i);
+        assertThrows("CALLBACK-ERROR", sub() { callNow.invoke(o); });
+        h.destroy();
 
+        h = new Jni::InvocationHandler(sub(Jni::Method m, *Jni::Array args) { doThrow.invoke(); });
+        assertTrue(trueIfThrows.invoke(Jni::implement_interface(h, Jni::load_class("java/lang/Runnable"))));
         h.destroy();
     }
 }

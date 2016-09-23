@@ -24,19 +24,32 @@
 //
 //------------------------------------------------------------------------------
 #include "defs.h"
+#include <qore/Qore.h>
 #include "Jvm.h"
 #include "LocalReference.h"
+#include "Globals.h"
+#include "Throwable.h"
 
 namespace jni {
 
 thread_local QoreThreadAttacher qoreThreadAttacher;
 
 void JavaException::convert(ExceptionSink *xsink) {
-   JNIEnv *env = Jvm::getEnv();
+   JNIEnv *env = Jvm::getEnv();         //not using the Env wrapper because we don't want any C++ exceptions here
    LocalReference<jthrowable> throwable = env->ExceptionOccurred();
    assert(throwable != nullptr);
-   env->ExceptionDescribe();
    env->ExceptionClear();
+
+   if (env->IsInstanceOf(throwable, Globals::classQoreExceptionWrapper)) {
+      jlong l = env->CallLongMethod(throwable, Globals::methodQoreExceptionWrapperGet);
+      if (l != 0) {
+         ExceptionSink *src = reinterpret_cast<ExceptionSink *>(l);
+         xsink->assimilate(src);
+         return;
+      }
+      //if l is zero, it means that the xsink wrapped in QoreExceptionWrapper has already been consumed. This should
+      //not happen, but if it does, we simply report the QoreExceptionWrapper as if it was any Java exception
+   }
 
    //TODO include exception class name
    //TODO include causes
@@ -59,7 +72,8 @@ void JavaException::convert(ExceptionSink *xsink) {
 
    //TODO helper class for getting strings
    if (msg == nullptr) {
-      xsink->raiseException("JNI-ERROR", "no messsage");
+//      xsink->raiseException("JNI-ERROR", "no messsage");
+      xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(QC_THROWABLE, getProgram(), new Throwable(throwable)), new QoreStringNode("no message"));
    } else {
       const char *chars = env->GetStringUTFChars(msg, nullptr);
       if (!chars) {
@@ -68,7 +82,9 @@ void JavaException::convert(ExceptionSink *xsink) {
       }
 
       //TODO encoding conversion
-      xsink->raiseException("JNI-ERROR", chars);
+//      xsink->raiseException("JNI-ERROR", chars);
+
+      xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(QC_THROWABLE, getProgram(), new Throwable(throwable)), new QoreStringNode(chars));
 
       env->ReleaseStringUTFChars(msg, chars);      //TODO RAII
    }

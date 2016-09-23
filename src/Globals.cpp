@@ -60,6 +60,10 @@ GlobalReference<jclass> Globals::classInvocationHandlerImpl;
 jmethodID Globals::ctorInvocationHandlerImpl;
 jmethodID Globals::methodInvocationHandlerImplDeref;
 
+GlobalReference<jclass> Globals::classQoreExceptionWrapper;
+jmethodID Globals::ctorQoreExceptionWrapper;
+jmethodID Globals::methodQoreExceptionWrapperGet;
+
 static void JNICALL invocation_handler_finalize(JNIEnv *, jclass, jlong ptr) {
    delete reinterpret_cast<Dispatcher *>(ptr);
 }
@@ -68,6 +72,10 @@ static jobject JNICALL invocation_handler_invoke(JNIEnv *jenv, jobject, jlong pt
    Env env(jenv);
    Dispatcher *dispatcher = reinterpret_cast<Dispatcher *>(ptr);
    return dispatcher->dispatch(env, proxy, method, args);
+}
+
+static void JNICALL qore_exception_wrapper_finalize(JNIEnv *, jclass, jlong ptr) {
+   delete reinterpret_cast<ExceptionSink *>(ptr);
 }
 
 static JNINativeMethod invocationHandlerNativeMethods[2] = {
@@ -80,6 +88,14 @@ static JNINativeMethod invocationHandlerNativeMethods[2] = {
             const_cast<char *>("invoke0"),
             const_cast<char *>("(JLjava/lang/Object;Ljava/lang/reflect/Method;[Ljava/lang/Object;)Ljava/lang/Object;"),
             reinterpret_cast<void*>(invocation_handler_invoke)
+      }
+};
+
+static JNINativeMethod qoreExceptionWrapperNativeMethods[1] = {
+      {
+            const_cast<char *>("finalize0"),
+            const_cast<char *>("(J)V"),
+            reinterpret_cast<void*>(qore_exception_wrapper_finalize)
       }
 };
 
@@ -117,6 +133,11 @@ void Globals::init() {
    env.registerNatives(classInvocationHandlerImpl, invocationHandlerNativeMethods, 2);
    ctorInvocationHandlerImpl = env.getMethod(classInvocationHandlerImpl, "<init>", "(J)V");
    methodInvocationHandlerImplDeref = env.getMethod(classInvocationHandlerImpl, "deref", "()V");
+
+   classQoreExceptionWrapper = env.findClass("org/qore/jni/QoreExceptionWrapper").makeGlobal();
+   env.registerNatives(classQoreExceptionWrapper, qoreExceptionWrapperNativeMethods, 1);
+   ctorQoreExceptionWrapper = env.getMethod(classQoreExceptionWrapper, "<init>", "(J)V");
+   methodQoreExceptionWrapperGet = env.getMethod(classQoreExceptionWrapper, "get", "()J");
 }
 
 void Globals::cleanup() {
@@ -133,6 +154,7 @@ void Globals::cleanup() {
    classField = nullptr;
    classMethod = nullptr;
    classInvocationHandlerImpl = nullptr;
+   classQoreExceptionWrapper = nullptr;
 }
 
 Type Globals::getType(jclass clazz) {

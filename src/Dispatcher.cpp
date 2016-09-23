@@ -26,6 +26,7 @@
 #include "Dispatcher.h"
 #include "Array.h"
 #include "Method.h"
+#include "QoreToJava.h"
 
 namespace jni {
 
@@ -63,13 +64,14 @@ jobject QoreCodeDispatcher::dispatch(Env &env, jobject proxy, jobject method, jo
       int mods = env.callIntMethod(method, Globals::methodMethodGetModifiers, nullptr);
       args->push(new QoreObject(mods & 8 ? QC_STATICMETHOD : QC_METHOD, getProgram(), new Method(method)));
       args->push(jargs == nullptr ? nullptr : new QoreObject(QC_ARRAY, getProgram(), new Array(jargs)));
-      callback->execValue(*args, &xsink);
+      QoreValue qv = callback->execValue(*args, &xsink);
       if (xsink) {
-         //FIXME raise Java exception
+         QoreToJava::wrapException(xsink);
+         return nullptr;
       }
-      //FIXME convert return value
+      return QoreToJava::toObject(qv, nullptr);
+      //FIXME tests for return value
    }
-   return nullptr;
 }
 
 } // namespace jni

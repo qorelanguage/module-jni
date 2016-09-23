@@ -26,6 +26,7 @@ set(QPP_SRC
     src/QC_Method.qpp
     src/QC_StaticField.qpp
     src/QC_StaticMethod.qpp
+    src/QC_Throwable.qpp
 )
 
 set(CPP_SRC

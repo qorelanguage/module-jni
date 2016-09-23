@@ -1081,6 +1081,10 @@ public:
       return env->GetObjectClass(obj);
    }
 
+   void throwException(jthrowable throwable) {
+      env->Throw(throwable);
+   }
+
 private:
    JNIEnv *env;
 };

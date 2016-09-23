@@ -8,7 +8,21 @@ public class Callbacks {
 
     static void callInThread(Runnable r) {
         new Thread(r).start();
-//        try {Thread.sleep(1000);} catch (Exception e) {}
     }
 
+    static boolean trueIfThrows(Runnable r) {
+        try {
+            r.run();
+            return false;
+        } catch (MyException e) {
+            return true;
+        }
+    }
+
+    static void doThrow() {
+        throw new MyException();
+    }
+
+    private static class MyException extends RuntimeException {
+    }
 }
