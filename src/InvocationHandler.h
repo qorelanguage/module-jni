@@ -52,16 +52,8 @@ public:
 
    void destroy();
 
-   static void init();
-   static void cleanup();
-
 private:
    GlobalReference<jobject> handler;
-
-private:
-   static GlobalReference<jclass> clazz;
-   static jmethodID ctorId;
-   static jmethodID derefId;
 };
 
 } // namespace jni

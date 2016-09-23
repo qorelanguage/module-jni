@@ -64,6 +64,10 @@ public:
    static jmethodID methodMethodGetDeclaringClass;                      // Class<?> Method.getDeclaringClass();
    static jmethodID methodMethodGetModifiers;                           // int Method.getModifiers();
 
+   static GlobalReference<jclass> classInvocationHandlerImpl;           // qore.org.jni.InvocationHandlerImpl
+   static jmethodID ctorInvocationHandlerImpl;                          // InvocationHandlerImpl(long)
+   static jmethodID methodInvocationHandlerImplDeref;                   // void InvocationHandlerImpl.deref()
+
 public:
    static void init();
    static void cleanup();

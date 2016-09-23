@@ -24,53 +24,15 @@
 //
 //------------------------------------------------------------------------------
 #include "InvocationHandler.h"
+#include "Globals.h"
 
 namespace jni {
-
-GlobalReference<jclass> InvocationHandler::clazz;
-jmethodID InvocationHandler::ctorId;
-jmethodID InvocationHandler::derefId;
-
-static void JNICALL invocation_handler_finalize(JNIEnv *, jclass, jlong ptr) {
-   delete reinterpret_cast<Dispatcher *>(ptr);
-}
-
-static jobject JNICALL invocation_handler_invoke(JNIEnv *jenv, jobject, jlong ptr, jobject proxy, jobject method, jobjectArray args) {
-   Env env(jenv);
-   Dispatcher *dispatcher = reinterpret_cast<Dispatcher *>(ptr);
-   return dispatcher->dispatch(env, proxy, method, args);
-}
-
-static JNINativeMethod invocationHandlerNativeMethods[2] = {
-      {
-            const_cast<char *>("finalize0"),
-            const_cast<char *>("(J)V"),
-            reinterpret_cast<void*>(invocation_handler_finalize)
-      },
-      {
-            const_cast<char *>("invoke0"),
-            const_cast<char *>("(JLjava/lang/Object;Ljava/lang/reflect/Method;[Ljava/lang/Object;)Ljava/lang/Object;"),
-            reinterpret_cast<void*>(invocation_handler_invoke)
-      }
-};
-
-void InvocationHandler::init() {
-   Env env;
-   clazz = env.findClass("org/qore/jni/InvocationHandlerImpl").makeGlobal();
-   env.registerNatives(clazz, invocationHandlerNativeMethods, 2);
-   ctorId = env.getMethod(clazz, "<init>", "(J)V");
-   derefId = env.getMethod(clazz, "deref", "()V");
-}
-
-void InvocationHandler::cleanup() {
-   clazz = nullptr;
-}
 
 InvocationHandler::InvocationHandler(std::unique_ptr<Dispatcher> dispatcher) {
    Env env;
    jvalue arg;
    arg.j = reinterpret_cast<jlong>(dispatcher.get());
-   LocalReference<jobject> obj = env.newObject(clazz, ctorId, &arg);
+   LocalReference<jobject> obj = env.newObject(Globals::classInvocationHandlerImpl, Globals::ctorInvocationHandlerImpl, &arg);
    dispatcher.release();      //from now on, the Java instance of InvocationHandlerImpl is responsible for the dispatcher
    handler = obj.makeGlobal();
 }
@@ -81,7 +43,7 @@ InvocationHandler::InvocationHandler(const ResolvedCallReferenceNode *callback)
 
 void InvocationHandler::destroy() {
    Env env;
-   env.callVoidMethod(handler, derefId, nullptr);
+   env.callVoidMethod(handler, Globals::methodInvocationHandlerImplDeref, nullptr);
 }
 
 } // namespace jni

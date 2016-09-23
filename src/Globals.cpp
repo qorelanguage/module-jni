@@ -30,6 +30,7 @@
 //------------------------------------------------------------------------------
 #include "Globals.h"
 #include "Env.h"
+#include "Dispatcher.h"
 
 namespace jni {
 
@@ -54,6 +55,33 @@ jmethodID Globals::methodMethodGetReturnType;
 jmethodID Globals::methodMethodGetParameterTypes;
 jmethodID Globals::methodMethodGetDeclaringClass;
 jmethodID Globals::methodMethodGetModifiers;
+
+GlobalReference<jclass> Globals::classInvocationHandlerImpl;
+jmethodID Globals::ctorInvocationHandlerImpl;
+jmethodID Globals::methodInvocationHandlerImplDeref;
+
+static void JNICALL invocation_handler_finalize(JNIEnv *, jclass, jlong ptr) {
+   delete reinterpret_cast<Dispatcher *>(ptr);
+}
+
+static jobject JNICALL invocation_handler_invoke(JNIEnv *jenv, jobject, jlong ptr, jobject proxy, jobject method, jobjectArray args) {
+   Env env(jenv);
+   Dispatcher *dispatcher = reinterpret_cast<Dispatcher *>(ptr);
+   return dispatcher->dispatch(env, proxy, method, args);
+}
+
+static JNINativeMethod invocationHandlerNativeMethods[2] = {
+      {
+            const_cast<char *>("finalize0"),
+            const_cast<char *>("(J)V"),
+            reinterpret_cast<void*>(invocation_handler_finalize)
+      },
+      {
+            const_cast<char *>("invoke0"),
+            const_cast<char *>("(JLjava/lang/Object;Ljava/lang/reflect/Method;[Ljava/lang/Object;)Ljava/lang/Object;"),
+            reinterpret_cast<void*>(invocation_handler_invoke)
+      }
+};
 
 static GlobalReference<jclass> getPrimitiveClass(Env &env, const char *wrapperName) {
    LocalReference<jclass> wrapperClass = env.findClass(wrapperName);
@@ -84,6 +112,11 @@ void Globals::init() {
    methodMethodGetParameterTypes = env.getMethod(classMethod, "getParameterTypes", "()[Ljava/lang/Class;");
    methodMethodGetDeclaringClass = env.getMethod(classMethod, "getDeclaringClass", "()Ljava/lang/Class;");
    methodMethodGetModifiers = env.getMethod(classMethod, "getModifiers", "()I");
+
+   classInvocationHandlerImpl = env.findClass("org/qore/jni/InvocationHandlerImpl").makeGlobal();
+   env.registerNatives(classInvocationHandlerImpl, invocationHandlerNativeMethods, 2);
+   ctorInvocationHandlerImpl = env.getMethod(classInvocationHandlerImpl, "<init>", "(J)V");
+   methodInvocationHandlerImplDeref = env.getMethod(classInvocationHandlerImpl, "deref", "()V");
 }
 
 void Globals::cleanup() {
@@ -99,6 +132,7 @@ void Globals::cleanup() {
    classClass = nullptr;
    classField = nullptr;
    classMethod = nullptr;
+   classInvocationHandlerImpl = nullptr;
 }
 
 Type Globals::getType(jclass clazz) {
