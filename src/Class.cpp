@@ -64,4 +64,11 @@ Method *Class::getStaticMethod(const QoreStringNode *name, const QoreStringNode 
    return new Method(this, env.getStaticMethod(clazz, nameUtf8.c_str(), descUtf8.c_str()), true);
 }
 
+Method *Class::getConstructor(const QoreStringNode *descriptor) {
+   Env env;
+   ModifiedUtf8String descUtf8(descriptor);
+   printd(LogLevel, "getConstructor %s\n", descUtf8.c_str());
+   return new Method(this, env.getMethod(clazz, "<init>", descUtf8.c_str()), false);
+}
+
 } // namespace jni

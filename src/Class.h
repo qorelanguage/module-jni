@@ -70,6 +70,7 @@ public:
    Field *getStaticField(const QoreStringNode *name, const QoreStringNode *descriptor);
    Method *getMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
    Method *getStaticMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
+   Method *getConstructor(const QoreStringNode *descriptor);
 
 private:
    GlobalReference<jclass> clazz;

@@ -38,6 +38,7 @@
 
 extern QoreClass* QC_METHOD;
 extern QoreClass* QC_STATICMETHOD;
+extern QoreClass* QC_CONSTRUCTOR;
 
 namespace jni {
 
@@ -103,6 +104,14 @@ public:
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
    QoreValue invokeStatic(const QoreValueList* args);
+
+   /**
+    * \brief Creates a new object by invoking a constructor.
+    * \param args the arguments
+    * \return the return value
+    * \throws Exception if the arguments do not match the descriptor or if the method throws
+    */
+   QoreValue newInstance(const QoreValueList* args);
 
    jobject getJavaObject() const override {
       return method;

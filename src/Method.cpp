@@ -182,4 +182,10 @@ QoreValue Method::invokeStatic(const QoreValueList* args) {
    }
 }
 
+QoreValue Method::newInstance(const QoreValueList* args) {
+   std::vector<jvalue> jargs = convertArgs(args);
+   Env env;
+   return JavaToQore::convert(env.newObject(clazz->getJavaObject(), id, &jargs[0]));
+}
+
 } // namespace jni

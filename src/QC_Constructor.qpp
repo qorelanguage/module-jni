@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Class.qpp Class class definition */
+/** @file QC_Constructor.qpp Constructor class definition */
 /*
   Qore Programming Language
 
@@ -29,69 +29,19 @@
 */
 
 #include <qore/Qore.h>
-#include "Class.h"
-#include "Field.h"
 #include "Method.h"
 
 //! TODO
 /**
  */
-qclass Class [arg=jni::Class* clazz; ns=Qore::Jni; flags=final; vparent=Object];
+qclass Constructor [arg=jni::Method* method; ns=Qore::Jni; flags=final; vparent=Object];
 
 //! TODO
 /**
  */
-Field Class::getField(string name, string descriptor) {
+Object Constructor::newInstance(...) {
    try {
-      return new QoreObject(QC_FIELD, getProgram(), clazz->getField(name, descriptor));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! TODO
-/**
- */
-StaticField Class::getStaticField(string name, string descriptor) {
-   try {
-      return new QoreObject(QC_STATICFIELD, getProgram(), clazz->getStaticField(name, descriptor));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! TODO
-/**
- */
-Method Class::getMethod(string name, string descriptor) {
-   try {
-      return new QoreObject(QC_METHOD, getProgram(), clazz->getMethod(name, descriptor));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! TODO
-/**
- */
-StaticMethod Class::getStaticMethod(string name, string descriptor) {
-   try {
-      return new QoreObject(QC_STATICMETHOD, getProgram(), clazz->getStaticMethod(name, descriptor));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! TODO
-/**
- */
-Constructor Class::getConstructor(string descriptor) {
-   try {
-      return new QoreObject(QC_CONSTRUCTOR, getProgram(), clazz->getConstructor(descriptor));
+      return method->newInstance(args);
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
