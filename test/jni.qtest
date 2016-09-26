@@ -22,6 +22,7 @@ public class Main inherits QUnit::Test {
         addTestCase("instance fields access test", \testInstanceFields());
         addTestCase("callback test", \testCallback());
         addTestCase("constructor test", \testConstructor());
+        addTestCase("string test", \testString());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -319,5 +320,14 @@ public class Main inherits QUnit::Test {
         Jni::Constructor ctor = cls.getConstructor("(I)V");
         Jni::Object obj = ctor.newInstance(42);
         assertEq(42, cls.getMethod("intValue", "()I").invoke(obj));
+    }
+
+    testString() {
+        Jni::Class cls = Jni::load_class("java/lang/Integer");
+        Jni::Object obj = cls.getStaticMethod("valueOf", "(Ljava/lang/String;)Ljava/lang/Integer;").invoke("42");
+        assertEq(42, cls.getMethod("intValue", "()I").invoke(obj));
+
+        obj = cls.getConstructor("(I)V").newInstance(123);
+        assertEq("123", cls.getMethod("toString", "()Ljava/lang/String;").invoke(obj));
     }
 }

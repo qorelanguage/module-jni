@@ -1015,6 +1015,14 @@ public:
       return ret;
    }
 
+   LocalReference<jstring> newString(const char *utf8) {
+      jstring s = env->NewStringUTF(utf8);
+      if (s == nullptr) {
+         throw JavaException();
+      }
+      return s;
+   }
+
    void registerNatives(jclass clazz, const JNINativeMethod *methods, jint count) {
       if (env->RegisterNatives(clazz, methods, count) != 0) {
          throw JavaException();
@@ -1085,8 +1093,35 @@ public:
       env->Throw(throwable);
    }
 
+public:
+   class GetStringUtfChars {
+   public:
+      GetStringUtfChars(Env &env, const LocalReference<jstring> &str) : env(env), str(str),
+            chars(env.env->GetStringUTFChars(str, nullptr)) {
+         if (chars == nullptr) {
+            throw new JavaException();
+         }
+      }
+
+
+      ~GetStringUtfChars() {
+         env.env->ReleaseStringUTFChars(str, chars);
+      }
+
+      const char *c_str() const {
+         return chars;
+      }
+
+   private:
+      Env &env;
+      const LocalReference<jstring> &str;
+      const char *chars;
+   };
+
 private:
    JNIEnv *env;
+
+   friend class GetStringUtfChars;
 };
 
 } // namespace jni

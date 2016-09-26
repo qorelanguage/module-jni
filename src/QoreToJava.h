@@ -37,6 +37,7 @@
 #include "Object.h"
 #include "Throwable.h"
 #include "defs.h"
+#include "ModifiedUtf8String.h"
 
 namespace jni {
 
@@ -85,21 +86,26 @@ public:
       if (value.getType() == NT_NOTHING) {
          return nullptr;
       }
-      if (value.getType() != NT_OBJECT) {
-         //TODO string, autobox primitives?
-         throw BasicException("A Java object argument expected");
-      }
-      const QoreObject *o = value.get<QoreObject>();
-      if (o->getClass(CID_OBJECT) == nullptr) {
-         throw BasicException("A Java object argument expected");
-      }
+      jobject javaObjectRef;
+      if (value.getType() == NT_STRING) {
+         ModifiedUtf8String str(value.get<QoreStringNode>());
+         Env env;
+         javaObjectRef = env.newString(str.c_str()).release();
+      } else if (value.getType() == NT_OBJECT) {
+         const QoreObject *o = value.get<QoreObject>();
+         if (o->getClass(CID_OBJECT) == nullptr) {
+            throw BasicException("A Java object argument expected");
+         }
 
-      ExceptionSink xsink;
-      SimpleRefHolder<ObjectBase> obj(static_cast<ObjectBase *>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
-      if (xsink) {
-         throw XsinkException(xsink);
+         ExceptionSink xsink;
+         SimpleRefHolder<ObjectBase> obj(static_cast<ObjectBase *>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
+         if (xsink) {
+            throw XsinkException(xsink);
+         }
+         javaObjectRef = obj->getJavaObject();
+      } else {
+         throw BasicException("A Java object argument expected");
       }
-      jobject javaObjectRef = obj->getJavaObject();
 
       if (clazz) {
          Env env;

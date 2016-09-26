@@ -47,6 +47,10 @@ GlobalReference<jclass> Globals::classDouble;
 GlobalReference<jclass> Globals::classClass;
 jmethodID Globals::methodClassIsArray;
 
+GlobalReference<jclass> Globals::classThrowable;
+
+GlobalReference<jclass> Globals::classString;
+
 GlobalReference<jclass> Globals::classField;
 jmethodID Globals::methodFieldGetType;
 
@@ -120,6 +124,10 @@ void Globals::init() {
    classClass = env.findClass("java/lang/Class").makeGlobal();
    methodClassIsArray = env.getMethod(classClass, "isArray", "()Z");
 
+   classThrowable = env.findClass("java/lang/Throwable").makeGlobal();
+
+   classString = env.findClass("java/lang/String").makeGlobal();
+
    classField = env.findClass("java/lang/reflect/Field").makeGlobal();
    methodFieldGetType = env.getMethod(classField, "getType", "()Ljava/lang/Class;");
 
@@ -151,6 +159,8 @@ void Globals::cleanup() {
    classFloat = nullptr;
    classDouble = nullptr;
    classClass = nullptr;
+   classThrowable = nullptr;
+   classString = nullptr;
    classField = nullptr;
    classMethod = nullptr;
    classInvocationHandlerImpl = nullptr;

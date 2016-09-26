@@ -120,6 +120,12 @@ public:
       return r;
    }
 
+   T release() {
+      T r = ref;
+      ref = nullptr;
+      return r;
+   }
+
 private:
    LocalReference(const LocalReference &) = delete;
    LocalReference &operator=(const LocalReference &) = delete;

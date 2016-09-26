@@ -55,6 +55,10 @@ public:
    static GlobalReference<jclass> classClass;                           // java.lang.Class
    static jmethodID methodClassIsArray;                                 // boolean Class.isArray();
 
+   static GlobalReference<jclass> classThrowable;                       // java.lang.Throwable
+
+   static GlobalReference<jclass> classString;                          // java.lang.String
+
    static GlobalReference<jclass> classField;                           // java.lang.reflect.Field
    static jmethodID methodFieldGetType;                                 // Class<?> Field.getType();
 

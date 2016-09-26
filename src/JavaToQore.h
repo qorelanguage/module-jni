@@ -36,6 +36,7 @@
 #include "Object.h"
 #include "Array.h"
 #include "Globals.h"
+#include "Throwable.h"
 
 namespace jni {
 
@@ -85,10 +86,17 @@ public:
          return QoreValue();
       }
       Env env;
-      //if v is instance of java.lang.Class -> new QC_CLASS
-      //?method, field?
-      //if v is instance of java.lang.Throwable -> new QC_THROWABLE
-      //if v is instance of java.lang.String -> create qore string
+      if (env.isInstanceOf(v, Globals::classClass)) {
+         return QoreValue(new QoreObject(QC_CLASS, getProgram(), new Class(v.as<jclass>())));
+      }
+      if (env.isInstanceOf(v, Globals::classThrowable)) {
+         return QoreValue(new QoreObject(QC_THROWABLE, getProgram(), new Throwable(v.as<jthrowable>())));
+      }
+      if (env.isInstanceOf(v, Globals::classString)) {
+         Env::GetStringUtfChars chars(env, v.as<jstring>());
+         return QoreValue(new QoreStringNode(chars.c_str(), QCS_UTF8));
+      }
+      //FIXME ?method, field?
       if (env.callBooleanMethod(env.getObjectClass(v), Globals::methodClassIsArray, nullptr)) {
          return QoreValue(new QoreObject(QC_ARRAY, getProgram(), new Array(v.as<jarray>())));
       }
