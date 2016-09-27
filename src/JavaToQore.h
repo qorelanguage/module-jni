@@ -35,8 +35,10 @@
 #include "LocalReference.h"
 #include "Object.h"
 #include "Array.h"
+#include "Class.h"
 #include "Globals.h"
 #include "Throwable.h"
+#include "Env.h"
 
 namespace jni {
 

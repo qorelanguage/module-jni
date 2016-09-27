@@ -23,6 +23,7 @@ public class Main inherits QUnit::Test {
         addTestCase("callback test", \testCallback());
         addTestCase("constructor test", \testConstructor());
         addTestCase("string test", \testString());
+        addTestCase("array test", \testArray());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -329,5 +330,97 @@ public class Main inherits QUnit::Test {
 
         obj = cls.getConstructor("(I)V").newInstance(123);
         assertEq("123", cls.getMethod("toString", "()Ljava/lang/String;").invoke(obj));
+    }
+
+    testArray() {
+        Jni::Array a = Jni::new_boolean_array(3);
+        a.set(0, True);
+        assertThrows("JNI-ERROR", sub() { a.set(3, True); });
+        assertEq(3, a.length());
+        assertTrue(a.get(0));
+        assertFalse(a.get(1));
+
+        a = Jni::new_byte_array(4);
+        a.set(0, 127);
+        a.set(2, -128);
+        a.set(3, 257);
+        assertThrows("JNI-ERROR", sub() { a.get(4); });
+        assertEq(127, a.get(0));
+        assertEq(0, a.get(1));
+        assertEq(-128, a.get(2));
+        assertEq(1, a.get(3));
+
+        a = Jni::new_char_array(4);
+        a.set(0, 65535);
+        a.set(2, -1);
+        a.set(3, 65537);
+        assertEq(65535, a.get(0));
+        assertEq(0, a.get(1));
+        assertEq(65535, a.get(2));
+        assertEq(1, a.get(3));
+
+        a = Jni::new_short_array(4);
+        a.set(0, 32767);
+        a.set(2, -32768);
+        a.set(3, 65537);
+        assertEq(32767, a.get(0));
+        assertEq(0, a.get(1));
+        assertEq(-32768, a.get(2));
+        assertEq(1, a.get(3));
+
+        a = Jni::new_int_array(4);
+        a.set(0, 2147483647);
+        a.set(2, -2147483648);
+        a.set(3, 0x100000001);
+        assertEq(2147483647, a.get(0));
+        assertEq(0, a.get(1));
+        assertEq(-2147483648, a.get(2));
+        assertEq(1, a.get(3));
+
+        a = Jni::new_long_array(4);
+        a.set(0, 9223372036854775807);
+        a.set(2, -9223372036854775807 - 1);
+        assertEq(9223372036854775807, a.get(0));
+        assertEq(0, a.get(1));
+        assertEq(-9223372036854775807 - 1, a.get(2));
+
+        a = Jni::new_float_array(4);
+        a.set(0, 3.14);
+        a.set(2, @NaN@);
+        a.set(3, -@Inf@);
+        assertFloatEq(3.14, a.get(0), 0.00001);
+        assertFloatEq(0, a.get(1), 0.00001);
+        assertTrue(a.get(2).nanp());
+        assertTrue(a.get(3) < 0 && a.get(3).infp());
+
+        a = Jni::new_double_array(4);
+        a.set(0, 3.14);
+        a.set(2, @NaN@);
+        a.set(3, -@Inf@);
+        assertFloatEq(3.14, a.get(0), 0.00000000001);
+        assertFloatEq(0, a.get(1), 0.00000000001);
+        assertTrue(a.get(2).nanp());
+        assertTrue(a.get(3) < 0 && a.get(3).infp());
+
+        a = Jni::new_object_array(4, Jni::load_class("java/lang/String"));
+        a.set(0, "Hello, world!");
+        a.set(2, NOTHING);
+        assertThrows("JNI-ERROR", sub() { a.set(3, a); });
+        assertEq("Hello, world!", a.get(0));
+        assertEq(NOTHING, a.get(1));
+        assertEq(NOTHING, a.get(2));
+
+        #two-dimensional int array
+        a = Jni::new_object_array(2, Jni::load_class("[I"));
+        a.set(0, Jni::new_int_array(2));
+        a.set(1, Jni::new_int_array(2));
+        a.get(0).set(0, 1);
+        a.get(0).set(1, 2);
+        a.get(1).set(0, 3);
+        a.get(1).set(1, 4);
+        assertEq(1, a.get(0).get(0));
+        assertEq(2, a.get(0).get(1));
+        assertEq(3, a.get(1).get(0));
+        assertEq(4, a.get(1).get(1));
     }
 }

@@ -73,4 +73,113 @@ Qore::Jni::Object implement_interface(Qore::Jni::InvocationHandler[jni::Invocati
       return QoreValue();
    }
 }
+
+//! TODO
+/**
+ */
+Qore::Jni::Array new_boolean_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newBooleanArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! TODO
+/**
+ */
+Qore::Jni::Array new_byte_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newByteArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! TODO
+/**
+ */
+Qore::Jni::Array new_char_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newCharArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! TODO
+/**
+ */
+Qore::Jni::Array new_short_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newShortArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! TODO
+/**
+ */
+Qore::Jni::Array new_int_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newIntArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! TODO
+/**
+ */
+Qore::Jni::Array new_long_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newLongArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! TODO
+/**
+ */
+Qore::Jni::Array new_float_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newFloatArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! TODO
+/**
+ */
+Qore::Jni::Array new_double_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newDoubleArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! TODO
+/**
+ */
+Qore::Jni::Array new_object_array(int size, Qore::Jni::Class[jni::Class] clazz) {
+   SimpleRefHolder<jni::Class> classHolder(clazz);
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newObjectArray(size, clazz));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
 //@}

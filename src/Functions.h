@@ -32,6 +32,7 @@
 #define QORE_JNI_FUNCTIONS_H_
 
 #include "Env.h"
+#include "Array.h"
 #include "Class.h"
 #include "ModifiedUtf8String.h"
 #include "InvocationHandler.h"
@@ -76,6 +77,51 @@ public:
       LocalReference<jobject> obj = env.callStaticObjectMethod(proxyClass, newProxyInstanceId, args);
 
       return new Object(obj);
+   }
+
+   static Array *newBooleanArray(int64 size) {
+      Env env;
+      return new Array(env.newBooleanArray(size));
+   }
+
+   static Array *newByteArray(int64 size) {
+      Env env;
+      return new Array(env.newByteArray(size));
+   }
+
+   static Array *newCharArray(int64 size) {
+      Env env;
+      return new Array(env.newCharArray(size));
+   }
+
+   static Array *newShortArray(int64 size) {
+      Env env;
+      return new Array(env.newShortArray(size));
+   }
+
+   static Array *newIntArray(int64 size) {
+      Env env;
+      return new Array(env.newIntArray(size));
+   }
+
+   static Array *newLongArray(int64 size) {
+      Env env;
+      return new Array(env.newLongArray(size));
+   }
+
+   static Array *newFloatArray(int64 size) {
+      Env env;
+      return new Array(env.newFloatArray(size));
+   }
+
+   static Array *newDoubleArray(int64 size) {
+      Env env;
+      return new Array(env.newDoubleArray(size));
+   }
+
+   static Array *newObjectArray(int64 size, const Class *clazz) {
+      Env env;
+      return new Array(env.newObjectArray(size, clazz->getJavaObject()));
    }
 
 private:

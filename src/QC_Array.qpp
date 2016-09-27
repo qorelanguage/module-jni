@@ -35,3 +35,39 @@
 /**
  */
 qclass Array [arg=jni::Array* array; ns=Qore::Jni; flags=final; vparent=Object];
+
+//! TODO
+/**
+ */
+int Array::length() {
+   try {
+      return array->length();
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return 0;
+   }
+}
+
+//! TODO
+/**
+ */
+any Array::get(int index) {
+   try {
+      return array->get(index);
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! TODO
+/**
+ */
+nothing Array::set(int index, any value) {
+   try {
+      array->set(index, value);
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+   }
+   return QoreValue();
+}

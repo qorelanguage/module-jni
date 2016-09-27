@@ -34,6 +34,7 @@ set(CPP_SRC
     src/jni-module.cpp
     src/defs.cpp
     src/Jvm.cpp
+    src/Array.cpp
     src/Class.cpp
     src/Dispatcher.cpp
     src/Field.cpp

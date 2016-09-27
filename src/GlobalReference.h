@@ -92,6 +92,11 @@ public:
       return ref;
    }
 
+   template<typename T2>
+   T2 cast() const {
+      return static_cast<T2>(ref);
+   }
+
    /**
     * \brief Creates a global reference from a local reference.
     * \param ref the local reference

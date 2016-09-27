@@ -1029,6 +1029,70 @@ public:
       }
    }
 
+   LocalReference<jbooleanArray> newBooleanArray(jsize len) {
+      jbooleanArray array = env->NewBooleanArray(len);
+      if (array == nullptr) {
+         throw JavaException();
+      }
+      return array;
+   }
+
+   LocalReference<jbyteArray> newByteArray(jsize len) {
+      jbyteArray array = env->NewByteArray(len);
+      if (array == nullptr) {
+         throw JavaException();
+      }
+      return array;
+   }
+
+   LocalReference<jcharArray> newCharArray(jsize len) {
+      jcharArray array = env->NewCharArray(len);
+      if (array == nullptr) {
+         throw JavaException();
+      }
+      return array;
+   }
+
+   LocalReference<jshortArray> newShortArray(jsize len) {
+      jshortArray array = env->NewShortArray(len);
+      if (array == nullptr) {
+         throw JavaException();
+      }
+      return array;
+   }
+
+   LocalReference<jintArray> newIntArray(jsize len) {
+      jintArray array = env->NewIntArray(len);
+      if (array == nullptr) {
+         throw JavaException();
+      }
+      return array;
+   }
+
+   LocalReference<jlongArray> newLongArray(jsize len) {
+      jlongArray array = env->NewLongArray(len);
+      if (array == nullptr) {
+         throw JavaException();
+      }
+      return array;
+   }
+
+   LocalReference<jfloatArray> newFloatArray(jsize len) {
+      jfloatArray array = env->NewFloatArray(len);
+      if (array == nullptr) {
+         throw JavaException();
+      }
+      return array;
+   }
+
+   LocalReference<jdoubleArray> newDoubleArray(jsize len) {
+      jdoubleArray array = env->NewDoubleArray(len);
+      if (array == nullptr) {
+         throw JavaException();
+      }
+      return array;
+   }
+
    LocalReference<jobjectArray> newObjectArray(jsize len, jclass clazz) {
       jobjectArray array = env->NewObjectArray(len, clazz, nullptr);
       if (array == nullptr) {
@@ -1041,12 +1105,140 @@ public:
       return env->GetArrayLength(array);
    }
 
+   jboolean getBooleanArrayElement(jbooleanArray array, jsize index) {
+      jboolean value;
+      env->GetBooleanArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return value;
+   }
+
+   jbyte getByteArrayElement(jbyteArray array, jsize index) {
+      jbyte value;
+      env->GetByteArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return value;
+   }
+
+   jchar getCharArrayElement(jcharArray array, jsize index) {
+      jchar value;
+      env->GetCharArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return value;
+   }
+
+   jshort getShortArrayElement(jshortArray array, jsize index) {
+      jshort value;
+      env->GetShortArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return value;
+   }
+
+   jint getIntArrayElement(jintArray array, jsize index) {
+      jint value;
+      env->GetIntArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return value;
+   }
+
+   jlong getLongArrayElement(jlongArray array, jsize index) {
+      jlong value;
+      env->GetLongArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return value;
+   }
+
+   jfloat getFloatArrayElement(jfloatArray array, jsize index) {
+      jfloat value;
+      env->GetFloatArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return value;
+   }
+
+   jdouble getDoubleArrayElement(jdoubleArray array, jsize index) {
+      jdouble value;
+      env->GetDoubleArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+      return value;
+   }
+
    LocalReference<jobject> getObjectArrayElement(jobjectArray array, jsize index) {
       jobject o = env->GetObjectArrayElement(array, index);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
       return o;
+   }
+
+   void setBooleanArrayElement(jbooleanArray array, jsize index, jboolean value) {
+      env->SetBooleanArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+   }
+
+   void setByteArrayElement(jbyteArray array, jsize index, jbyte value) {
+      env->SetByteArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+   }
+
+   void setCharArrayElement(jcharArray array, jsize index, jchar value) {
+      env->SetCharArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+   }
+
+   void setShortArrayElement(jshortArray array, jsize index, jshort value) {
+      env->SetShortArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+   }
+
+   void setIntArrayElement(jintArray array, jsize index, jint value) {
+      env->SetIntArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+   }
+
+   void setLongArrayElement(jlongArray array, jsize index, jlong value) {
+      env->SetLongArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+   }
+
+   void setFloatArrayElement(jfloatArray array, jsize index, jfloat value) {
+      env->SetFloatArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
+   }
+
+   void setDoubleArrayElement(jdoubleArray array, jsize index, jdouble value) {
+      env->SetDoubleArrayRegion(array, index, 1, &value);
+      if (env->ExceptionCheck()) {
+         throw JavaException();
+      }
    }
 
    void setObjectArrayElement(jobjectArray array, jsize index, jobject val) {

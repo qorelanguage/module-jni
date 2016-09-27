@@ -54,6 +54,7 @@ public:
 
    static GlobalReference<jclass> classClass;                           // java.lang.Class
    static jmethodID methodClassIsArray;                                 // boolean Class.isArray();
+   static jmethodID methodClassGetComponentType;                        // Class<?> Class.getComponentType
 
    static GlobalReference<jclass> classThrowable;                       // java.lang.Throwable
 

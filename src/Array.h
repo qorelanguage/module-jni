@@ -34,6 +34,7 @@
 #include <qore/Qore.h>
 #include "LocalReference.h"
 #include "Object.h"
+#include "Globals.h"
 
 extern QoreClass* QC_ARRAY;
 extern qore_classid_t CID_ARRAY;
@@ -51,9 +52,7 @@ public:
     * \param array a local reference to a Java array instance
     * \throws JavaException if a global reference cannot be created
     */
-   Array(jarray array) : array(GlobalReference<jarray>::fromLocal(array)) {
-      printd(LogLevel, "Array::Array(), this: %p, object: %p\n", this, static_cast<jarray>(this->array));
-   }
+   Array(jarray array);
 
    ~Array() {
       printd(LogLevel, "Array::~Array(), this: %p, object: %p\n", this, static_cast<jarray>(this->array));
@@ -63,8 +62,14 @@ public:
       return array;
    }
 
+   int64 length();
+   QoreValue get(int64 index);
+   void set(int64 index, const QoreValue &value);
+
 private:
    GlobalReference<jarray> array;
+   GlobalReference<jclass> elementClass;
+   Type elementType;
 };
 
 } // namespace jni
