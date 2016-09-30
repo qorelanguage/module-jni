@@ -118,9 +118,9 @@ public:
 
    static void wrapException(ExceptionSink &src) {
       Env env;
-      AbstractQoreNode *n = src.getExceptionArg();
+      const AbstractQoreNode *n = src.getExceptionArg();
       if (n && n->getType() == NT_OBJECT) {
-         const QoreObject *o = static_cast<QoreObject *>(n);
+         const QoreObject *o = static_cast<const QoreObject *>(n);
          if (o->getClass(CID_THROWABLE) != nullptr) {
 
             ExceptionSink tempSink;

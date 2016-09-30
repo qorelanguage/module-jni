@@ -8,6 +8,11 @@ public class QoreExceptionWrapper extends RuntimeException {
         this.xsink = xsink;
     }
 
+    @Override
+    public String getMessage() {
+        return getMessage0(xsink);
+    }
+
     long get() {
         long x = xsink;
         xsink = 0;
@@ -21,5 +26,5 @@ public class QoreExceptionWrapper extends RuntimeException {
     }
 
     private native void finalize0(long ptr);
-
+    private native String getMessage0(long ptr);
 }
