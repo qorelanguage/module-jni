@@ -48,7 +48,6 @@ private:internal Object::constructor() {
 /**
  */
 Class Object::getClass() {
-   //FIXME return value
    try {
       jni::Env env;
       return new QoreObject(QC_CLASS, getProgram(), new jni::Class(env.getObjectClass(object->getJavaObject())));

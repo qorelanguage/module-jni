@@ -82,8 +82,10 @@ static jobject JNICALL invocation_handler_invoke(JNIEnv *jenv, jobject, jlong pt
 
 static void JNICALL qore_exception_wrapper_finalize(JNIEnv *, jclass, jlong ptr) {
    ExceptionSink *xsink = reinterpret_cast<ExceptionSink *>(ptr);
-   xsink->clear();
-   delete xsink;
+   if (xsink != nullptr) {
+      xsink->clear();
+      delete xsink;
+   }
 }
 
 static jstring JNICALL qore_exception_wrapper_get_message(JNIEnv *, jclass, jlong ptr) {
@@ -130,6 +132,9 @@ static GlobalReference<jclass> getPrimitiveClass(Env &env, const char *wrapperNa
    return std::move(env.getStaticObjectField(wrapperClass, typeFieldId).as<jclass>().makeGlobal());
 }
 
+#include "JavaClassInvocationHandlerImpl.inc"
+#include "JavaClassQoreExceptionWrapper.inc"
+
 void Globals::init() {
    Env env;
    classVoid = getPrimitiveClass(env, "java/lang/Void");
@@ -159,12 +164,12 @@ void Globals::init() {
    methodMethodGetDeclaringClass = env.getMethod(classMethod, "getDeclaringClass", "()Ljava/lang/Class;");
    methodMethodGetModifiers = env.getMethod(classMethod, "getModifiers", "()I");
 
-   classInvocationHandlerImpl = env.findClass("org/qore/jni/InvocationHandlerImpl").makeGlobal();
+   classInvocationHandlerImpl = env.defineClass("org/qore/jni/InvocationHandlerImpl", nullptr, java_org_qore_jni_InvocationHandlerImpl_class, java_org_qore_jni_InvocationHandlerImpl_class_len).makeGlobal();
    env.registerNatives(classInvocationHandlerImpl, invocationHandlerNativeMethods, 2);
    ctorInvocationHandlerImpl = env.getMethod(classInvocationHandlerImpl, "<init>", "(J)V");
    methodInvocationHandlerImplDeref = env.getMethod(classInvocationHandlerImpl, "deref", "()V");
 
-   classQoreExceptionWrapper = env.findClass("org/qore/jni/QoreExceptionWrapper").makeGlobal();
+   classQoreExceptionWrapper = env.defineClass("org/qore/jni/QoreExceptionWrapper", nullptr, java_org_qore_jni_QoreExceptionWrapper_class, java_org_qore_jni_QoreExceptionWrapper_class_len).makeGlobal();
    env.registerNatives(classQoreExceptionWrapper, qoreExceptionWrapperNativeMethods, 2);
    ctorQoreExceptionWrapper = env.getMethod(classQoreExceptionWrapper, "<init>", "(J)V");
    methodQoreExceptionWrapperGet = env.getMethod(classQoreExceptionWrapper, "get", "()J");

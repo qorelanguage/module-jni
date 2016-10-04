@@ -1285,6 +1285,14 @@ public:
       env->Throw(throwable);
    }
 
+   LocalReference<jclass> defineClass(const char *name, jobject loader, const unsigned char *buf, jsize bufLen) {
+      jclass c = env->DefineClass(name, loader, reinterpret_cast<const jbyte*>(buf), bufLen);
+      if (c == nullptr) {
+         throw JavaException();
+      }
+      return c;
+   }
+
 public:
    class GetStringUtfChars {
    public:
