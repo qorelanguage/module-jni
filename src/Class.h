@@ -71,6 +71,7 @@ public:
    Method *getMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
    Method *getStaticMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
    Method *getConstructor(const QoreStringNode *descriptor);
+   bool isInstance(const ObjectBase *obj);
 
 private:
    GlobalReference<jclass> clazz;

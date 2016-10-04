@@ -30,6 +30,8 @@
 
 #include <qore/Qore.h>
 #include "Object.h"
+#include "Class.h"
+#include "Env.h"
 
 //! TODO
 /**
@@ -40,4 +42,18 @@ qclass Object [arg=jni::ObjectBase* object; ns=Qore::Jni];
 /**
  */
 private:internal Object::constructor() {
+}
+
+//! TODO
+/**
+ */
+Class Object::getClass() {
+   //FIXME return value
+   try {
+      jni::Env env;
+      return new QoreObject(QC_CLASS, getProgram(), new jni::Class(env.getObjectClass(object->getJavaObject())));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
 }

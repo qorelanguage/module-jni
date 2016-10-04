@@ -67,7 +67,22 @@ Qore::Jni::Object implement_interface(Qore::Jni::InvocationHandler[jni::Invocati
    SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
    SimpleRefHolder<jni::Class> classHolder(clazz);
    try {
-      return new QoreObject(QC_OBJECT, getProgram(), jni::Functions::implementInterface(invocationHandler, clazz));
+      return new QoreObject(QC_OBJECT, getProgram(), jni::Functions::implementInterface(nullptr, invocationHandler, clazz));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! TODO
+/**
+ */
+Qore::Jni::Object implement_interface(Qore::Jni::Object[jni::ObjectBase] classLoader, Qore::Jni::InvocationHandler[jni::InvocationHandler] invocationHandler, Qore::Jni::Class[jni::Class] clazz) {
+   SimpleRefHolder<jni::ObjectBase> classLoaderHolder(classLoader);
+   SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
+   SimpleRefHolder<jni::Class> classHolder(clazz);
+   try {
+      return new QoreObject(QC_OBJECT, getProgram(), jni::Functions::implementInterface(classLoader, invocationHandler, clazz));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();

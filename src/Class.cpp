@@ -71,4 +71,9 @@ Method *Class::getConstructor(const QoreStringNode *descriptor) {
    return new Method(this, env.getMethod(clazz, "<init>", descUtf8.c_str()), false);
 }
 
+bool Class::isInstance(const ObjectBase *obj) {
+   Env env;
+   return env.isInstanceOf(obj->getJavaObject(), clazz) == JNI_TRUE;
+}
+
 } // namespace jni

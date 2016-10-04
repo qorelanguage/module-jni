@@ -60,7 +60,7 @@ public:
       return new Class(env.findClass(nameUtf8.c_str()));
    }
 
-   static Object *implementInterface(const InvocationHandler *invocationHandler, const Class *clazz) {
+   static Object *implementInterface(const ObjectBase *classLoader, const InvocationHandler *invocationHandler, const Class *clazz) {
       Env env;
       //FIXME cache these
       LocalReference<jclass> proxyClass = env.findClass("java/lang/reflect/Proxy");
@@ -71,7 +71,7 @@ public:
       env.setObjectArrayElement(interfaces, 0, clazz->getJavaObject());
 
       jvalue args[3];
-      args[0].l = nullptr;
+      args[0].l = classLoader == nullptr ? nullptr : classLoader->getJavaObject();
       args[1].l = interfaces;
       args[2].l = invocationHandler->getJavaObject();
       LocalReference<jobject> obj = env.callStaticObjectMethod(proxyClass, newProxyInstanceId, args);

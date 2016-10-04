@@ -97,3 +97,17 @@ Constructor Class::getConstructor(string descriptor) {
       return QoreValue();
    }
 }
+
+//! TODO
+/**
+ */
+bool Class::isInstance(Jni::Qore::Object[jni::ObjectBase] obj) {
+   SimpleRefHolder<jni::ObjectBase> objHolder(obj);
+   try {
+      return clazz->isInstance(obj);
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
