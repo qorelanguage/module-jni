@@ -57,4 +57,23 @@ public class StaticMethods {
 
     static void useArray(Object[] a) {
     }
+
+    static Object conversions(String name) throws Exception {
+        if (name.equals("method")) {
+            return Object.class.getMethod("toString", new Class[] {});
+        }
+        if (name.equals("static method")) {
+            return Integer.class.getMethod("valueOf", new Class[] {int.class});
+        }
+        if (name.equals("constructor")) {
+            return Integer.class.getConstructor(new Class[] {int.class});
+        }
+        if (name.equals("field")) {
+            return Fields.class.getDeclaredField("i");
+        }
+        if (name.equals("static field")) {
+            return StaticFields.class.getDeclaredField("i");
+        }
+        return null;
+    }
 }

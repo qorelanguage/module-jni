@@ -55,11 +55,23 @@ public:
     */
    Field(Class *clazz, jfieldID id, bool isStatic) : clazz(clazz), id(id) {
       printd(LogLevel, "Field::Field(), this: %p, clazz: %p, id: %p\n", this, clazz, id);
+      clazz->ref();
       Env env;
       field = env.toReflectedField(clazz->getJavaObject(), id, isStatic).makeGlobal();
-      typeClass = env.callObjectMethod(field, Globals::methodFieldGetType, nullptr).as<jclass>().makeGlobal();
-      type = Globals::getType(typeClass);
-      clazz->ref();
+      init(env);
+   }
+
+   /**
+    * \brief Constructor.
+    * \param field an instance of java.lang.reflect.Field
+    */
+   Field(jobject field) {
+      Env env;
+      clazz = new Class(env.callObjectMethod(field, Globals::methodFieldGetDeclaringClass, nullptr).as<jclass>());
+      id = env.fromReflectedField(field);
+      this->field = GlobalReference<jobject>::fromLocal(field);
+      printd(LogLevel, "Field::Field(), this: %p, clazz: %p, id: %p\n", this, *clazz, id);
+      init(env);
    }
 
    ~Field() {
@@ -98,6 +110,12 @@ public:
 
    jobject getJavaObject() const override {
       return field;
+   }
+
+private:
+   void init(Env &env) {
+      typeClass = env.callObjectMethod(field, Globals::methodFieldGetType, nullptr).as<jclass>().makeGlobal();
+      type = Globals::getType(typeClass);
    }
 
 private:

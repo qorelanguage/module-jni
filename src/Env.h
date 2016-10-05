@@ -1264,6 +1264,14 @@ public:
       return o;
    }
 
+   jfieldID fromReflectedField(jobject field) {
+      jfieldID id = env->FromReflectedField(field);
+      if (id == nullptr) {
+         throw JavaException();
+      }
+      return id;
+   }
+
    jmethodID fromReflectedMethod(jobject method) {
       jmethodID id = env->FromReflectedMethod(method);
       if (id == nullptr) {

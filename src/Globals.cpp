@@ -55,13 +55,17 @@ GlobalReference<jclass> Globals::classThrowable;
 GlobalReference<jclass> Globals::classString;
 
 GlobalReference<jclass> Globals::classField;
+jmethodID Globals::methodFieldGetDeclaringClass;
 jmethodID Globals::methodFieldGetType;
+jmethodID Globals::methodFieldGetModifiers;
 
 GlobalReference<jclass> Globals::classMethod;
 jmethodID Globals::methodMethodGetReturnType;
 jmethodID Globals::methodMethodGetParameterTypes;
 jmethodID Globals::methodMethodGetDeclaringClass;
 jmethodID Globals::methodMethodGetModifiers;
+
+GlobalReference<jclass> Globals::classConstructor;
 
 GlobalReference<jclass> Globals::classInvocationHandlerImpl;
 jmethodID Globals::ctorInvocationHandlerImpl;
@@ -162,12 +166,16 @@ void Globals::init() {
 
    classField = env.findClass("java/lang/reflect/Field").makeGlobal();
    methodFieldGetType = env.getMethod(classField, "getType", "()Ljava/lang/Class;");
+   methodFieldGetDeclaringClass = env.getMethod(classField, "getDeclaringClass", "()Ljava/lang/Class;");
+   methodFieldGetModifiers = env.getMethod(classField, "getModifiers", "()I");
 
    classMethod = env.findClass("java/lang/reflect/Method").makeGlobal();
    methodMethodGetReturnType = env.getMethod(classMethod, "getReturnType", "()Ljava/lang/Class;");
    methodMethodGetParameterTypes = env.getMethod(classMethod, "getParameterTypes", "()[Ljava/lang/Class;");
    methodMethodGetDeclaringClass = env.getMethod(classMethod, "getDeclaringClass", "()Ljava/lang/Class;");
    methodMethodGetModifiers = env.getMethod(classMethod, "getModifiers", "()I");
+
+   classConstructor = env.findClass("java/lang/reflect/Constructor").makeGlobal();
 
    classInvocationHandlerImpl = env.defineClass("org/qore/jni/InvocationHandlerImpl", nullptr, java_org_qore_jni_InvocationHandlerImpl_class, java_org_qore_jni_InvocationHandlerImpl_class_len).makeGlobal();
    env.registerNatives(classInvocationHandlerImpl, invocationHandlerNativeMethods, 2);
@@ -198,6 +206,7 @@ void Globals::cleanup() {
    classString = nullptr;
    classField = nullptr;
    classMethod = nullptr;
+   classConstructor = nullptr;
    classInvocationHandlerImpl = nullptr;
    classQoreExceptionWrapper = nullptr;
    classProxy = nullptr;

@@ -63,12 +63,16 @@ public:
 
    static GlobalReference<jclass> classField;                           // java.lang.reflect.Field
    static jmethodID methodFieldGetType;                                 // Class<?> Field.getType();
+   static jmethodID methodFieldGetDeclaringClass;                       // Class<?> Field.getDeclaringClass();
+   static jmethodID methodFieldGetModifiers;                            // int Field.getModifiers();
 
    static GlobalReference<jclass> classMethod;                          // java.lang.reflect.Method
    static jmethodID methodMethodGetReturnType;                          // Class<?> Method.getReturnType();
    static jmethodID methodMethodGetParameterTypes;                      // Class<?>[] Method.getParameterTypes();
    static jmethodID methodMethodGetDeclaringClass;                      // Class<?> Method.getDeclaringClass();
    static jmethodID methodMethodGetModifiers;                           // int Method.getModifiers();
+
+   static GlobalReference<jclass> classConstructor;                     // java.lang.reflect.Constructor
 
    static GlobalReference<jclass> classInvocationHandlerImpl;           // qore.org.jni.InvocationHandlerImpl
    static jmethodID ctorInvocationHandlerImpl;                          // InvocationHandlerImpl(long)

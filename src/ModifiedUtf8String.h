@@ -48,9 +48,14 @@ public:
     * \param src the source string to convert, must not be null
     * \throws StringException if the string cannot be converted
     */
-   explicit ModifiedUtf8String(const QoreString *src) : str(src) {
+   explicit ModifiedUtf8String(const QoreString *src) {
       assert(src != nullptr);
-      //TODO implement conversion - for now we assume that the source string is already in modified utf-8 (or simply ASCII)
+      ExceptionSink xsink;
+      helper.set(src, QCS_UTF8, &xsink);
+      //XXX check and convert special characters
+      if (xsink) {
+         throw XsinkException(xsink);
+      }
    }
 
    /**
@@ -59,12 +64,12 @@ public:
     * The returned pointer remains valid until this instance is destroyed.
     * \return the string converted to modified utf-8 encoding
     */
-   const char *c_str() const {
-      return str->getBuffer();
+   const char *c_str() {
+      return helper->getBuffer();
    }
 
 private:
-   const QoreString *str;
+   TempEncodingHelper helper;
 };
 
 } // namespace jni

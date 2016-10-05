@@ -39,6 +39,8 @@
 #include "Globals.h"
 #include "Throwable.h"
 #include "Env.h"
+#include "Method.h"
+#include "Field.h"
 
 namespace jni {
 
@@ -98,7 +100,17 @@ public:
          Env::GetStringUtfChars chars(env, v.as<jstring>());
          return QoreValue(new QoreStringNode(chars.c_str(), QCS_UTF8));
       }
-      //FIXME ?method, field?
+      if (env.isInstanceOf(v, Globals::classMethod)) {
+         int mods = env.callIntMethod(v, Globals::methodMethodGetModifiers, nullptr);
+         return QoreValue(new QoreObject(mods & 8 ? QC_STATICMETHOD : QC_METHOD, getProgram(), new Method(v)));
+      }
+      if (env.isInstanceOf(v, Globals::classConstructor)) {
+         return QoreValue(new QoreObject(QC_CONSTRUCTOR, getProgram(), new Method(v)));
+      }
+      if (env.isInstanceOf(v, Globals::classField)) {
+         int mods = env.callIntMethod(v, Globals::methodFieldGetModifiers, nullptr);
+         return QoreValue(new QoreObject(mods & 8 ? QC_STATICFIELD : QC_FIELD, getProgram(), new Field(v)));
+      }
       if (env.callBooleanMethod(env.getObjectClass(v), Globals::methodClassIsArray, nullptr)) {
          return QoreValue(new QoreObject(QC_ARRAY, getProgram(), new Array(v.as<jarray>())));
       }
