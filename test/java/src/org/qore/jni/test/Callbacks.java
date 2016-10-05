@@ -23,6 +23,10 @@ public class Callbacks {
         throw new MyException();
     }
 
+    static String createString(StringFactory factory) {
+        return "*" + factory.create() + "*";
+    }
+
     private static class MyException extends RuntimeException {
     }
 }

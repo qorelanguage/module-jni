@@ -44,15 +44,16 @@ QoreCodeDispatcher::~QoreCodeDispatcher() {
    printd(LogLevel, "QoreCodeDispatcher::~QoreCodeDispatcher(), this: %p\n", this);
    ExceptionSink xsink;
    callback->deref(&xsink);
-   xsink.handleExceptions();
-   //FIXME raise Java exception?
+   if (xsink) {
+      QoreToJava::wrapException(xsink);
+   }
 }
 
 jobject QoreCodeDispatcher::dispatch(Env &env, jobject proxy, jobject method, jobjectArray jargs) {
    try {
       qoreThreadAttacher.attach();
    } catch (Exception &e) {
-      //FIXME raise Java exception
+      env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
       return nullptr;
    }
 
@@ -70,7 +71,6 @@ jobject QoreCodeDispatcher::dispatch(Env &env, jobject proxy, jobject method, jo
          return nullptr;
       }
       return QoreToJava::toObject(qv, nullptr);
-      //FIXME tests for return value
    }
 }
 

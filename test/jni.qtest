@@ -11,6 +11,14 @@
 
 %exec-class Main
 
+class DtorThrows {
+    destructor() {
+        throw "DTOR-ERROR";
+    }
+    dummy() {
+    }
+}
+
 public class Main inherits QUnit::Test {
 
     constructor() : Test("jni test", "1.0") {
@@ -24,6 +32,8 @@ public class Main inherits QUnit::Test {
         addTestCase("constructor test", \testConstructor());
         addTestCase("string test", \testString());
         addTestCase("array test", \testArray());
+        addTestCase("dispatcher destructor throws a Qore exception", \testDispatchDtorThrows());
+        addTestCase("callback return value test", \testCallbackRetVal());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -422,5 +432,22 @@ public class Main inherits QUnit::Test {
         assertEq(2, a.get(0).get(1));
         assertEq(3, a.get(1).get(0));
         assertEq(4, a.get(1).get(1));
+    }
+
+    testDispatchDtorThrows() {
+        Jni::InvocationHandler h;
+        {
+            DtorThrows instance();
+            h = new Jni::InvocationHandler(sub(Jni::Method m, *Jni::Array args) { instance.dummy(); });
+        }
+        assertThrows("DTOR-ERROR", sub() { h.destroy(); });
+    }
+
+    testCallbackRetVal() {
+        Jni::InvocationHandler h = new Jni::InvocationHandler(any sub(Jni::Method m, *Jni::Array args) { return "STR"; });
+        Jni::Object f = Jni::implement_interface(h, Jni::load_class("org/qore/jni/test/StringFactory"));
+        Jni::Class clazz = Jni::load_class("org/qore/jni/test/Callbacks");
+        Jni::StaticMethod createString = clazz.getStaticMethod("createString", "(Lorg/qore/jni/test/StringFactory;)Ljava/lang/String;");
+        assertEq("*STR*", createString.invoke(f));
     }
 }

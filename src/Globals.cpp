@@ -48,6 +48,7 @@ GlobalReference<jclass> Globals::classDouble;
 GlobalReference<jclass> Globals::classClass;
 jmethodID Globals::methodClassIsArray;
 jmethodID Globals::methodClassGetComponentType;
+jmethodID Globals::methodClassGetClassLoader;
 
 GlobalReference<jclass> Globals::classThrowable;
 
@@ -69,6 +70,9 @@ jmethodID Globals::methodInvocationHandlerImplDeref;
 GlobalReference<jclass> Globals::classQoreExceptionWrapper;
 jmethodID Globals::ctorQoreExceptionWrapper;
 jmethodID Globals::methodQoreExceptionWrapperGet;
+
+GlobalReference<jclass> Globals::classProxy;
+jmethodID Globals::methodProxyNewProxyInstance;
 
 static void JNICALL invocation_handler_finalize(JNIEnv *, jclass, jlong ptr) {
    delete reinterpret_cast<Dispatcher *>(ptr);
@@ -150,6 +154,7 @@ void Globals::init() {
    classClass = env.findClass("java/lang/Class").makeGlobal();
    methodClassIsArray = env.getMethod(classClass, "isArray", "()Z");
    methodClassGetComponentType = env.getMethod(classClass, "getComponentType", "()Ljava/lang/Class;");
+   methodClassGetClassLoader = env.getMethod(classClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
 
    classThrowable = env.findClass("java/lang/Throwable").makeGlobal();
 
@@ -173,6 +178,9 @@ void Globals::init() {
    env.registerNatives(classQoreExceptionWrapper, qoreExceptionWrapperNativeMethods, 2);
    ctorQoreExceptionWrapper = env.getMethod(classQoreExceptionWrapper, "<init>", "(J)V");
    methodQoreExceptionWrapperGet = env.getMethod(classQoreExceptionWrapper, "get", "()J");
+
+   classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
+   methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance", "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
 }
 
 void Globals::cleanup() {
@@ -192,6 +200,7 @@ void Globals::cleanup() {
    classMethod = nullptr;
    classInvocationHandlerImpl = nullptr;
    classQoreExceptionWrapper = nullptr;
+   classProxy = nullptr;
 }
 
 Type Globals::getType(jclass clazz) {

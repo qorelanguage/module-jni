@@ -55,6 +55,7 @@ public:
    static GlobalReference<jclass> classClass;                           // java.lang.Class
    static jmethodID methodClassIsArray;                                 // boolean Class.isArray();
    static jmethodID methodClassGetComponentType;                        // Class<?> Class.getComponentType
+   static jmethodID methodClassGetClassLoader;                          // ClassLoader Class.getClassLoader();
 
    static GlobalReference<jclass> classThrowable;                       // java.lang.Throwable
 
@@ -76,6 +77,9 @@ public:
    static GlobalReference<jclass> classQoreExceptionWrapper;            // qore.org.jni.QoreExceptionWrapper
    static jmethodID ctorQoreExceptionWrapper;                           // QoreExceptionWrapper(long)
    static jmethodID methodQoreExceptionWrapperGet;                      // long QoreExceptionWrapper.get()
+
+   static GlobalReference<jclass> classProxy;                           // java.lang.reflect.Proxy
+   static jmethodID methodProxyNewProxyInstance;                        // Object Proxy.newProxyInstance(ClassLoader, Class[], InvocationHandler)
 
 public:
    static void init();

@@ -36,6 +36,7 @@
 #include "Class.h"
 #include "ModifiedUtf8String.h"
 #include "InvocationHandler.h"
+#include "Globals.h"
 
 namespace jni {
 
@@ -62,19 +63,21 @@ public:
 
    static Object *implementInterface(const ObjectBase *classLoader, const InvocationHandler *invocationHandler, const Class *clazz) {
       Env env;
-      //FIXME cache these
-      LocalReference<jclass> proxyClass = env.findClass("java/lang/reflect/Proxy");
-      jmethodID newProxyInstanceId = env.getStaticMethod(proxyClass, "newProxyInstance", "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
 
-      LocalReference<jclass> classClass = env.findClass("java/lang/Class");
-      LocalReference<jobjectArray> interfaces = env.newObjectArray(1, classClass);
+      LocalReference<jobject> cl;
+      LocalReference<jobjectArray> interfaces = env.newObjectArray(1, Globals::classClass);
       env.setObjectArrayElement(interfaces, 0, clazz->getJavaObject());
 
       jvalue args[3];
-      args[0].l = classLoader == nullptr ? nullptr : classLoader->getJavaObject();
+      if (classLoader == nullptr) {
+         cl = env.callObjectMethod(clazz->getJavaObject(), Globals::methodClassGetClassLoader, nullptr);
+         args[0].l = cl;
+      } else {
+         args[0].l = classLoader->getJavaObject();
+      }
       args[1].l = interfaces;
       args[2].l = invocationHandler->getJavaObject();
-      LocalReference<jobject> obj = env.callStaticObjectMethod(proxyClass, newProxyInstanceId, args);
+      LocalReference<jobject> obj = env.callStaticObjectMethod(Globals::classProxy, Globals::methodProxyNewProxyInstance, args);
 
       return new Object(obj);
    }

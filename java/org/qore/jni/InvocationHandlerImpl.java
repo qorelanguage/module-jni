@@ -27,7 +27,7 @@ public class InvocationHandlerImpl implements InvocationHandler {
     protected void finalize() throws Throwable {
         deref();
     }
-    
+
     private synchronized long ref() {
         if (counter == 0) {
             throw new IllegalStateException("Invocation handler has already been destroyed");
@@ -41,8 +41,9 @@ public class InvocationHandlerImpl implements InvocationHandler {
             --counter;
         }
         if (counter == 0) {
-            finalize0(ptr);
+            long p = ptr;
             ptr = 0;
+            finalize0(p);
         }
     }
 

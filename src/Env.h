@@ -1285,6 +1285,10 @@ public:
       env->Throw(throwable);
    }
 
+   void throwNew(jclass clazz, const char *msg) {
+      env->ThrowNew(clazz, msg);
+   }
+
    LocalReference<jclass> defineClass(const char *name, jobject loader, const unsigned char *buf, jsize bufLen) {
       jclass c = env->DefineClass(name, loader, reinterpret_cast<const jbyte*>(buf), bufLen);
       if (c == nullptr) {
