@@ -456,7 +456,7 @@ public class Main inherits QUnit::Test {
         Jni::StaticMethod m = Jni::load_class("org/qore/jni/test/StaticMethods").getStaticMethod("conversions", "(Ljava/lang/String;)Ljava/lang/Object;");
         assertEq(NOTHING, m.invoke(""));
 
-        Jni::Object o = m.invoke("method");
+        any o = m.invoke("method");
         assertTrue(o instanceof Jni::Method);
         assertEq("42", o.invoke(Jni::load_class("java/lang/Integer").getConstructor("(I)V").newInstance(42)));
 

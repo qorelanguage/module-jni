@@ -25,7 +25,7 @@ public class InvocationHandlerImpl implements InvocationHandler {
 
     @Override
     protected void finalize() throws Throwable {
-        deref();
+        cleanup();
     }
 
     private synchronized long ref() {
@@ -37,14 +37,34 @@ public class InvocationHandlerImpl implements InvocationHandler {
     }
 
     private synchronized void deref() {
-        if (counter > 0) {
-            --counter;
+        --counter;
+        if (counter == 1) {
+            notify();
         }
-        if (counter == 0) {
-            long p = ptr;
-            ptr = 0;
-            finalize0(p);
+    }
+
+    private synchronized void destroy() {
+        while (true) {
+            if (counter == 0) {
+                return;
+            }
+            if (counter == 1) {
+                cleanup();
+                return;
+            }
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                // ignored
+            }
         }
+    }
+
+    private void cleanup() {
+        long p = ptr;
+        counter = 0;
+        ptr = 0;
+        finalize0(p);
     }
 
     private native static void finalize0(long ptr);

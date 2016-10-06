@@ -43,7 +43,7 @@ InvocationHandler::InvocationHandler(const ResolvedCallReferenceNode *callback)
 
 void InvocationHandler::destroy() {
    Env env;
-   env.callVoidMethod(handler, Globals::methodInvocationHandlerImplDeref, nullptr);
+   env.callVoidMethod(handler, Globals::methodInvocationHandlerImplDestroy, nullptr);
 }
 
 } // namespace jni

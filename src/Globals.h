@@ -54,9 +54,10 @@ public:
 
    static GlobalReference<jclass> classClass;                           // java.lang.Class
    static jmethodID methodClassIsArray;                                 // boolean Class.isArray();
-   static jmethodID methodClassGetComponentType;                        // Class<?> Class.getComponentType
+   static jmethodID methodClassGetComponentType;                        // Class<?> Class.getComponentType();
    static jmethodID methodClassGetClassLoader;                          // ClassLoader Class.getClassLoader();
    static jmethodID methodClassGetName;                                 // String Class.getName();
+   static jmethodID methodClassGetFields;                               // Field[] Class.getFields();
 
    static GlobalReference<jclass> classThrowable;                       // java.lang.Throwable
    static jmethodID methodThrowableGetMessage;                          // String Throwable.getMessage();
@@ -78,7 +79,7 @@ public:
 
    static GlobalReference<jclass> classInvocationHandlerImpl;           // qore.org.jni.InvocationHandlerImpl
    static jmethodID ctorInvocationHandlerImpl;                          // InvocationHandlerImpl(long)
-   static jmethodID methodInvocationHandlerImplDeref;                   // void InvocationHandlerImpl.deref()
+   static jmethodID methodInvocationHandlerImplDestroy;                 // void InvocationHandlerImpl.destroy()
 
    static GlobalReference<jclass> classQoreExceptionWrapper;            // qore.org.jni.QoreExceptionWrapper
    static jmethodID ctorQoreExceptionWrapper;                           // QoreExceptionWrapper(long)
