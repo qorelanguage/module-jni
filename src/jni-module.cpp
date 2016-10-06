@@ -30,12 +30,26 @@
   information.
 */
 #include <qore/Qore.h>
+#include "Jvm.h"
 
-static QoreNamespace JniNamespace("JNI");
+static QoreNamespace JniNamespace("Jni");
 
 static QoreStringNode *jni_module_init();
 static void jni_module_ns_init(QoreNamespace *rns, QoreNamespace *qns);
 static void jni_module_delete();
+
+DLLLOCAL void init_jni_functions(QoreNamespace& ns);
+DLLLOCAL QoreClass* initObjectClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initArrayClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initThrowableClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initClassClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initFieldClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initStaticFieldClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initMethodClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initStaticMethodClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initConstructorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initInvocationHandlerClass(QoreNamespace& ns);
+DLLLOCAL void preinitClassClass();
 
 DLLEXPORT char qore_module_name[] = "jni";
 DLLEXPORT char qore_module_version[] = PACKAGE_VERSION;
@@ -54,8 +68,30 @@ DLLEXPORT qore_license_t qore_module_license = QL_LGPL;
 #endif
 DLLEXPORT char qore_module_license_str[] = "MIT";
 
+static void jni_thread_cleanup(void *) {
+   jni::Jvm::threadCleanup();
+}
+
 static QoreStringNode *jni_module_init() {
-   return 0;
+   if (!jni::Jvm::createVM()) {
+      return new QoreStringNode("unable to create Java VM");
+   }
+   tclist.push(jni_thread_cleanup, nullptr);
+
+   preinitClassClass();
+   JniNamespace.addSystemClass(initObjectClass(JniNamespace));
+   JniNamespace.addSystemClass(initInvocationHandlerClass(JniNamespace));
+   JniNamespace.addSystemClass(initArrayClass(JniNamespace));
+   JniNamespace.addSystemClass(initThrowableClass(JniNamespace));
+   JniNamespace.addSystemClass(initFieldClass(JniNamespace));
+   JniNamespace.addSystemClass(initStaticFieldClass(JniNamespace));
+   JniNamespace.addSystemClass(initMethodClass(JniNamespace));
+   JniNamespace.addSystemClass(initStaticMethodClass(JniNamespace));
+   JniNamespace.addSystemClass(initConstructorClass(JniNamespace));
+   JniNamespace.addSystemClass(initClassClass(JniNamespace));
+   init_jni_functions(JniNamespace);
+
+   return nullptr;
 }
 
 static void jni_module_ns_init(QoreNamespace *rns, QoreNamespace *qns) {
@@ -63,4 +99,6 @@ static void jni_module_ns_init(QoreNamespace *rns, QoreNamespace *qns) {
 }
 
 static void jni_module_delete() {
+   tclist.pop(false);
+   jni::Jvm::destroyVM();
 }

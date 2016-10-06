@@ -1,0 +1,252 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file ql_jni.qpp Definition of functions in the Jni namespace */
+/*
+  Qore Programming Language
+
+  Copyright (C) 2016 Qore Technologies, sro
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include "Functions.h"
+
+extern QoreClass* QC_CLASS;
+
+/** @defgroup JNI functions.
+ */
+//@{
+
+//! Returns the version of the JNI API.
+/**
+    @return the version of the JNI API
+ */
+string get_version() {
+   try {
+      return jni::Functions::getVersion();
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Loads a Java class with given name.
+/**
+    @param name the name of the class to load in internal format (use slash instead of dot to separate packages)
+    @return the loaded class
+    @throws JNI-ERROR if the class cannot be loaded
+
+    @par Example:
+    @code{.py}
+    Jni::load_class("java/lang/String");
+    @endcode
+ */
+Qore::Jni::Class load_class(string name) {
+   try {
+      return new QoreObject(QC_CLASS, getProgram(), jni::Functions::loadClass(name));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Creates a Java object that implements given interface using an invocation handler.
+/**
+    @param invocationHandler the invocation handler
+    @param clazz the interface to implement
+    @return a Java object that implement the interface by calling the invocation handler
+
+    @par Example:
+    @code{.py}
+    Jni::Class runnableClass = Jni::load_class("java/lang/Runnable");
+    Jni::InvocationHandler h = new Jni::InvocationHandler(any sub(Method m, *Array args) { doRun(); });
+    Jni::Object runnableInstance = Jni::implement_interface(h, runnableClass);
+    # runnableInstance now has a Java method void run() that calls Qore function doRun()
+    @endcode
+ */
+Qore::Jni::Object implement_interface(Qore::Jni::InvocationHandler[jni::InvocationHandler] invocationHandler, Qore::Jni::Class[jni::Class] clazz) {
+   SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
+   SimpleRefHolder<jni::Class> classHolder(clazz);
+   try {
+      return new QoreObject(QC_OBJECT, getProgram(), jni::Functions::implementInterface(nullptr, invocationHandler, clazz));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Creates a Java object that implements given interface using an invocation handler using an explicit class loader.
+/**
+    @param classLoader the class loader that loaded the interface
+    @param invocationHandler the invocation handler
+    @param clazz the interface to implement
+    @return a Java object that implement the interface by calling the invocation handler
+
+    @par Example:
+    @code{.py}
+    Jni::Object classLoader = ...;
+    Jni::Class runnableClass = use classLoader to load class "java/lang/Runnable"
+    Jni::InvocationHandler h = new Jni::InvocationHandler(any sub(Method m, *Array args) { doRun(); });
+    Jni::Object runnableInstance = Jni::implement_interface(classLoader, h, runnableClass);
+    # runnableInstance now has a Java method void run() that calls Qore function doRun()
+    @endcode
+ */
+Qore::Jni::Object implement_interface(Qore::Jni::Object[jni::ObjectBase] classLoader, Qore::Jni::InvocationHandler[jni::InvocationHandler] invocationHandler, Qore::Jni::Class[jni::Class] clazz) {
+   SimpleRefHolder<jni::ObjectBase> classLoaderHolder(classLoader);
+   SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
+   SimpleRefHolder<jni::Class> classHolder(clazz);
+   try {
+      return new QoreObject(QC_OBJECT, getProgram(), jni::Functions::implementInterface(classLoader, invocationHandler, clazz));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Allocates a new Java array of booleans.
+/**
+    @param size the size of the array to allocate
+    @return the allocated array
+ */
+Qore::Jni::Array new_boolean_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newBooleanArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Allocates a new Java array of bytes.
+/**
+    @param size the size of the array to allocate
+    @return the allocated array
+ */
+Qore::Jni::Array new_byte_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newByteArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Allocates a new Java array of chars.
+/**
+    @param size the size of the array to allocate
+    @return the allocated array
+ */
+Qore::Jni::Array new_char_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newCharArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Allocates a new Java array of shorts.
+/**
+    @param size the size of the array to allocate
+    @return the allocated array
+ */
+Qore::Jni::Array new_short_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newShortArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Allocates a new Java array of ints.
+/**
+    @param size the size of the array to allocate
+    @return the allocated array
+ */
+Qore::Jni::Array new_int_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newIntArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Allocates a new Java array of longs.
+/**
+    @param size the size of the array to allocate
+    @return the allocated array
+ */
+Qore::Jni::Array new_long_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newLongArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Allocates a new Java array of floats.
+/**
+    @param size the size of the array to allocate
+    @return the allocated array
+ */
+Qore::Jni::Array new_float_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newFloatArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Allocates a new Java array of doubles.
+/**
+    @param size the size of the array to allocate
+    @return the allocated array
+ */
+Qore::Jni::Array new_double_array(int size) {
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newDoubleArray(size));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Allocates a new Java array of object references.
+/**
+    @param size the size of the array to allocate
+    @param clazz the type of the array elements
+    @return the allocated array
+ */
+Qore::Jni::Array new_object_array(int size, Qore::Jni::Class[jni::Class] clazz) {
+   SimpleRefHolder<jni::Class> classHolder(clazz);
+   try {
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newObjectArray(size, clazz));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+//@}

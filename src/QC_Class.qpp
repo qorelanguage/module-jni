@@ -1,0 +1,140 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_Class.qpp Class class definition */
+/*
+  Qore Programming Language
+
+  Copyright (C) 2016 Qore Technologies, sro
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include <qore/Qore.h>
+#include "Class.h"
+#include "Field.h"
+#include "Method.h"
+
+//! Represents a Java class.
+/**
+ */
+qclass Class [arg=jni::Class* clazz; ns=Qore::Jni; flags=final; vparent=Object];
+
+//! Defined private to prevent Qore code from creating instances.
+/**
+ */
+private Class::constructor() {
+}
+
+//! Looks up a non-static field in the class.
+/**
+    @param name the name of the field
+    @param descriptor the descriptor of the field (see JVM specification)
+    @return an object representing the resolved field
+    @throws JNI-ERROR if the field cannot be resolved
+ */
+Field Class::getField(string name, string descriptor) {
+   try {
+      return new QoreObject(QC_FIELD, getProgram(), clazz->getField(name, descriptor));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Looks up a static field in the class.
+/**
+    @param name the name of the field
+    @param descriptor the descriptor of the field (see JVM specification)
+    @return an object representing the resolved static field
+    @throws JNI-ERROR if the field cannot be resolved
+ */
+StaticField Class::getStaticField(string name, string descriptor) {
+   try {
+      return new QoreObject(QC_STATICFIELD, getProgram(), clazz->getStaticField(name, descriptor));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Looks up a non-static method in the class.
+/**
+    @param name the name of the method
+    @param descriptor the descriptor of the method (see JVM specification)
+    @return an object representing the resolved method
+    @throws JNI-ERROR if the method cannot be resolved
+ */
+Method Class::getMethod(string name, string descriptor) {
+   try {
+      return new QoreObject(QC_METHOD, getProgram(), clazz->getMethod(name, descriptor));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Looks up a static method in the class.
+/**
+    @param name the name of the method
+    @param descriptor the descriptor of the method (see JVM specification)
+    @return an object representing the resolved static method
+    @throws JNI-ERROR if the method cannot be resolved
+ */
+StaticMethod Class::getStaticMethod(string name, string descriptor) {
+   try {
+      return new QoreObject(QC_STATICMETHOD, getProgram(), clazz->getStaticMethod(name, descriptor));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Looks up a constructor in the class.
+/**
+    @param descriptor the descriptor of the method (see JVM specification)
+    @return an object representing the resolved constructor
+    @throws JNI-ERROR if the constructor cannot be resolved
+ */
+Constructor Class::getConstructor(string descriptor) {
+   try {
+      return new QoreObject(QC_CONSTRUCTOR, getProgram(), clazz->getConstructor(descriptor));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Determines whether a given object is an instance of this class.
+/**
+    @param obj the Java object to test
+    @return True if obj is an instance of this class
+ */
+bool Class::isInstance(Jni::Qore::Object[jni::ObjectBase] obj) {
+   SimpleRefHolder<jni::ObjectBase> objHolder(obj);
+   try {
+      return clazz->isInstance(obj);
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
