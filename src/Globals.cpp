@@ -49,8 +49,10 @@ GlobalReference<jclass> Globals::classClass;
 jmethodID Globals::methodClassIsArray;
 jmethodID Globals::methodClassGetComponentType;
 jmethodID Globals::methodClassGetClassLoader;
+jmethodID Globals::methodClassGetName;
 
 GlobalReference<jclass> Globals::classThrowable;
+jmethodID Globals::methodThrowableGetMessage;
 
 GlobalReference<jclass> Globals::classString;
 
@@ -159,8 +161,10 @@ void Globals::init() {
    methodClassIsArray = env.getMethod(classClass, "isArray", "()Z");
    methodClassGetComponentType = env.getMethod(classClass, "getComponentType", "()Ljava/lang/Class;");
    methodClassGetClassLoader = env.getMethod(classClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
+   methodClassGetName = env.getMethod(classClass, "getName", "()Ljava/lang/String;");
 
    classThrowable = env.findClass("java/lang/Throwable").makeGlobal();
+   methodThrowableGetMessage = env.getMethod(classThrowable, "getMessage", "()Ljava/lang/String;");
 
    classString = env.findClass("java/lang/String").makeGlobal();
 

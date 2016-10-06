@@ -48,46 +48,39 @@ void JavaException::convert(ExceptionSink *xsink) {
          return;
       }
       //if l is zero, it means that the xsink wrapped in QoreExceptionWrapper has already been consumed. This should
-      //not happen, but if it does, we simply report the QoreExceptionWrapper as if it was any Java exception
+      //not happen, but if it does, we simply report the QoreExceptionWrapper as if it was normal Java exception
    }
 
-   //TODO include exception class name
-   //TODO include causes
-   //TODO stacktrace?
-
-//we should make throwable a global reference and attach it to Qore exception
-// - user code might want to use the Throwable object by passing it to a Java method
-
-   jmethodID m = env->GetMethodID(env->GetObjectClass(throwable), "getMessage", "()Ljava/lang/String;");
-   if (m == nullptr) {
-      xsink->raiseException("JNI-ERROR", "Unable to get exception message - getMessage() not found");
-      return;
-   }
-
-   LocalReference<jstring> msg = static_cast<jstring>(env->CallObjectMethod(throwable, m));
+   LocalReference<jstring> excName = static_cast<jstring>(env->CallObjectMethod(env->GetObjectClass(throwable), Globals::methodClassGetName));
    if (env->ExceptionCheck()) {
-      xsink->raiseException("JNI-ERROR", "Unable to get exception message - another exception thrown");
+      env->ExceptionClear();
+      xsink->raiseException("JNI-ERROR", "Unable to get exception class name - another exception thrown");
       return;
    }
 
-   //TODO helper class for getting strings
-   if (msg == nullptr) {
-//      xsink->raiseException("JNI-ERROR", "no messsage");
-      xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(QC_THROWABLE, getProgram(), new Throwable(throwable)), new QoreStringNode("no message"));
-   } else {
-      const char *chars = env->GetStringUTFChars(msg, nullptr);
-      if (!chars) {
-         xsink->raiseException("JNI-ERROR", "Unable to get exception message - GetStringUTFChars() failed");
-         return;
-      }
-
-      //TODO encoding conversion
-//      xsink->raiseException("JNI-ERROR", chars);
-
-      xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(QC_THROWABLE, getProgram(), new Throwable(throwable)), new QoreStringNode(chars));
-
-      env->ReleaseStringUTFChars(msg, chars);      //TODO RAII
+   const char *chars = env->GetStringUTFChars(excName, nullptr);
+   if (!chars) {
+      env->ExceptionClear();
+      xsink->raiseException("JNI-ERROR", "Unable to get exception class name - GetStringUTFChars() failed");
+      return;
    }
+   SimpleRefHolder<QoreStringNode> desc(new QoreStringNode(chars, QCS_UTF8));
+   env->ReleaseStringUTFChars(excName, chars);
+
+   LocalReference<jstring> msg = static_cast<jstring>(env->CallObjectMethod(throwable, Globals::methodThrowableGetMessage));
+   if (env->ExceptionCheck()) {
+      env->ExceptionClear();
+   } else if (msg != nullptr) {
+      desc->concat(": ");
+      chars = env->GetStringUTFChars(msg, nullptr);
+      if (!chars) {
+         env->ExceptionClear();
+      } else {
+         desc->concat(chars);
+         env->ReleaseStringUTFChars(msg, chars);
+      }
+   }
+   xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(QC_THROWABLE, getProgram(), new Throwable(throwable)), desc.release());
 }
 
 } // namespace jni

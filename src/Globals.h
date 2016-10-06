@@ -56,8 +56,10 @@ public:
    static jmethodID methodClassIsArray;                                 // boolean Class.isArray();
    static jmethodID methodClassGetComponentType;                        // Class<?> Class.getComponentType
    static jmethodID methodClassGetClassLoader;                          // ClassLoader Class.getClassLoader();
+   static jmethodID methodClassGetName;                                 // String Class.getName();
 
    static GlobalReference<jclass> classThrowable;                       // java.lang.Throwable
+   static jmethodID methodThrowableGetMessage;                          // String Throwable.getMessage();
 
    static GlobalReference<jclass> classString;                          // java.lang.String
 
