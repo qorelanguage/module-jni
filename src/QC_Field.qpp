@@ -31,13 +31,21 @@
 #include <qore/Qore.h>
 #include "Field.h"
 
-//! TODO
+//! Represents a non-static field of a Java class.
 /**
  */
 qclass Field [arg=jni::Field* field; ns=Qore::Jni; flags=final; vparent=Object];
 
-//! TODO
+//! Defined private to prevent Qore code from creating instances.
 /**
+ */
+private Field::constructor() {
+}
+
+//! Gets the value of the field.
+/**
+    @param obj the instance whose field should be returned
+    @return the value of the field
  */
 any Field::get(Qore::Jni::Object[jni::ObjectBase] obj) {
    SimpleRefHolder<jni::ObjectBase> objHolder(obj);
@@ -49,8 +57,11 @@ any Field::get(Qore::Jni::Object[jni::ObjectBase] obj) {
    }
 }
 
-//! TODO
+//! Sets the value of the field.
 /**
+    @param obj the instance whose field should be returned
+    @param value the value of the field
+    @throws JNI-ERROR if the value cannot be converted
  */
 any Field::set(Qore::Jni::Object[jni::ObjectBase] obj, any value) {
    SimpleRefHolder<jni::ObjectBase> objHolder(obj);

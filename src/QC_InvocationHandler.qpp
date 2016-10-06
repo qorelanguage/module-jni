@@ -31,13 +31,21 @@
 #include <qore/Qore.h>
 #include "InvocationHandler.h"
 
-//! TODO
+//! Represents an invocation handler used to implement callback from Java to Qore.
 /**
  */
 qclass InvocationHandler [arg=jni::InvocationHandler* handler; ns=Qore::Jni; flags=final; vparent=Object];
 
-//! TODO
+//! Creates a new invocation handler.
 /**
+    @param dispatcher a function that implements the dispatching, see example
+
+    @par Example:
+    @code{.py}
+    new InvocationHandler(any sub(Jni::Method m, *Jni::Array args) {
+        # handle invocation of method m with arguments args
+    });
+    @endcode
  */
 InvocationHandler::constructor(code dispatcher) {
    try {
@@ -47,7 +55,7 @@ InvocationHandler::constructor(code dispatcher) {
    }
 }
 
-//! TODO
+//! Explicitly destroys the invocation handler even if it is still reachable from Java.
 /**
  */
 nothing InvocationHandler::destroy() {

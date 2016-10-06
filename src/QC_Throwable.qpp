@@ -31,7 +31,13 @@
 #include <qore/Qore.h>
 #include "Throwable.h"
 
-//! TODO
+//! Represents instances of java.lang.Throwable and its subclasses.
 /**
  */
 qclass Throwable [arg=jni::Throwable* throwable; ns=Qore::Jni; flags=final; vparent=Object];
+
+//! Defined private to prevent Qore code from creating instances.
+/**
+ */
+private Throwable::constructor() {
+}

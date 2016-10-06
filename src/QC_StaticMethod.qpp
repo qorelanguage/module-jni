@@ -31,13 +31,22 @@
 #include <qore/Qore.h>
 #include "Method.h"
 
-//! TODO
+//! Represents a static method in a Java class.
 /**
  */
 qclass StaticMethod [arg=jni::Method* method; ns=Qore::Jni; flags=final; vparent=Object];
 
-//! TODO
+//! Defined private to prevent Qore code from creating instances.
 /**
+ */
+private StaticMethod::constructor() {
+}
+
+//! Invokes the method.
+/**
+    @param ... arguments of the method
+    @return the return value
+    @throws JNI-ERROR if the arguments cannot be converted or if the method throws an exception
  */
 any StaticMethod::invoke(...) {
    try {

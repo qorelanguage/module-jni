@@ -31,13 +31,23 @@
 #include <qore/Qore.h>
 #include "Method.h"
 
-//! TODO
+//! Represents a non-static method in a Java class.
 /**
  */
 qclass Method [arg=jni::Method* method; ns=Qore::Jni; flags=final; vparent=Object];
 
-//! TODO
+//! Defined private to prevent Qore code from creating instances.
 /**
+ */
+private Method::constructor() {
+}
+
+//! Invokes the method with virtual dispatch.
+/**
+    @param obj the instance to invoke the method on
+    @param ... arguments of the method
+    @return the return value
+    @throws JNI-ERROR if the arguments cannot be converted or if the method throws an exception
  */
 any Method::invoke(Qore::Jni::Object[jni::ObjectBase] obj, ...) {
    SimpleRefHolder<jni::ObjectBase> objHolder(obj);
@@ -49,8 +59,13 @@ any Method::invoke(Qore::Jni::Object[jni::ObjectBase] obj, ...) {
    }
 }
 
-//! TODO
+//! Invokes the method without virtual dispatch.
 /**
+    Can be used for invocation of methods in a superclass that are overridden in the subclass.
+    @param obj the instance to invoke the method on
+    @param ... arguments of the method
+    @return the return value
+    @throws JNI-ERROR if the arguments cannot be converted or if the method throws an exception
  */
 any Method::invokeNonvirtual(Qore::Jni::Object[jni::ObjectBase] obj, ...) {
    SimpleRefHolder<jni::ObjectBase> objHolder(obj);

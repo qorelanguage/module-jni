@@ -31,13 +31,20 @@
 #include <qore/Qore.h>
 #include "Array.h"
 
-//! TODO
+//! Instances of this class represent Java arrays.
 /**
  */
 qclass Array [arg=jni::Array* array; ns=Qore::Jni; flags=final; vparent=Object];
 
-//! TODO
+//! Defined private to prevent Qore code from creating instances.
 /**
+ */
+private Array::constructor() {
+}
+
+//! Returns the length of the array.
+/**
+    @return the length of the array
  */
 int Array::length() {
    try {
@@ -48,8 +55,11 @@ int Array::length() {
    }
 }
 
-//! TODO
+//! Retrieves an element.
 /**
+    @param index the 0-based index of the element
+    @return the value of the element
+    @throws JNI-ERROR if the index is out of bounds
  */
 any Array::get(int index) {
    try {
@@ -60,8 +70,11 @@ any Array::get(int index) {
    }
 }
 
-//! TODO
+//! Sets the value of a an element.
 /**
+    @param index the 0-based index of the element
+    @param value the value of the element
+    @throws JNI-ERROR if the index is out of bounds or if the value type is incompatible with the array type
  */
 nothing Array::set(int index, any value) {
    try {

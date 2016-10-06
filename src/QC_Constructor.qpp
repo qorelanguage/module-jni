@@ -31,13 +31,22 @@
 #include <qore/Qore.h>
 #include "Method.h"
 
-//! TODO
+//! Represents a constructor of a Java class.
 /**
  */
 qclass Constructor [arg=jni::Method* method; ns=Qore::Jni; flags=final; vparent=Object];
 
-//! TODO
+//! Defined private to prevent Qore code from creating instances.
 /**
+ */
+private Constructor::constructor() {
+}
+
+//! Creates a new instance by allocating memory and invoking the constructor represented by this class.
+/**
+    @param arguments to the constructor
+    @return the newly constructed Java object
+    @throws JNI-ERROR if the arguments cannot be converted or if the constructor throws an exception
  */
 Object Constructor::newInstance(...) {
    try {

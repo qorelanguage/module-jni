@@ -33,19 +33,20 @@
 #include "Class.h"
 #include "Env.h"
 
-//! TODO
+//! Represents a Java object.
 /**
  */
 qclass Object [arg=jni::ObjectBase* object; ns=Qore::Jni];
 
-//! TODO
+//! Defined private to prevent Qore code from creating instances.
 /**
  */
 private:internal Object::constructor() {
 }
 
-//! TODO
+//! Returns the class of the object.
 /**
+    @return the class of the object
  */
 Class Object::getClass() {
    try {

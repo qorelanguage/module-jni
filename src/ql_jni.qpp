@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Jni.qpp Jni class definition */
+/** @file ql_jni.qpp Definition of functions in the Jni namespace */
 /*
   Qore Programming Language
 
@@ -32,12 +32,13 @@
 
 extern QoreClass* QC_CLASS;
 
-/** @defgroup TODO
+/** @defgroup JNI functions.
  */
 //@{
 
-//! TODO
+//! Returns the version of the JNI API.
 /**
+    @return the version of the JNI API
  */
 string get_version() {
    try {
@@ -48,8 +49,16 @@ string get_version() {
    }
 }
 
-//! TODO
+//! Loads a Java class with given name.
 /**
+    @param name the name of the class to load in internal format (use slash instead of dot to separate packages)
+    @return the loaded class
+    @throws JNI-ERROR if the class cannot be loaded
+
+    @par Example:
+    @code{.py}
+    Jni::load_class("java/lang/String");
+    @endcode
  */
 Qore::Jni::Class load_class(string name) {
    try {
@@ -60,8 +69,19 @@ Qore::Jni::Class load_class(string name) {
    }
 }
 
-//! TODO
+//! Creates a Java object that implements given interface using an invocation handler.
 /**
+    @param invocationHandler the invocation handler
+    @param clazz the interface to implement
+    @return a Java object that implement the interface by calling the invocation handler
+
+    @par Example:
+    @code{.py}
+    Jni::Class runnableClass = Jni::load_class("java/lang/Runnable");
+    Jni::InvocationHandler h = new Jni::InvocationHandler(any sub(Method m, *Array args) { doRun(); });
+    Jni::Object runnableInstance = Jni::implement_interface(h, runnableClass);
+    # runnableInstance now has a Java method void run() that calls Qore function doRun()
+    @endcode
  */
 Qore::Jni::Object implement_interface(Qore::Jni::InvocationHandler[jni::InvocationHandler] invocationHandler, Qore::Jni::Class[jni::Class] clazz) {
    SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
@@ -74,8 +94,21 @@ Qore::Jni::Object implement_interface(Qore::Jni::InvocationHandler[jni::Invocati
    }
 }
 
-//! TODO
+//! Creates a Java object that implements given interface using an invocation handler using an explicit class loader.
 /**
+    @param classLoader the class loader that loaded the interface
+    @param invocationHandler the invocation handler
+    @param clazz the interface to implement
+    @return a Java object that implement the interface by calling the invocation handler
+
+    @par Example:
+    @code{.py}
+    Jni::Object classLoader = ...;
+    Jni::Class runnableClass = use classLoader to load class "java/lang/Runnable"
+    Jni::InvocationHandler h = new Jni::InvocationHandler(any sub(Method m, *Array args) { doRun(); });
+    Jni::Object runnableInstance = Jni::implement_interface(classLoader, h, runnableClass);
+    # runnableInstance now has a Java method void run() that calls Qore function doRun()
+    @endcode
  */
 Qore::Jni::Object implement_interface(Qore::Jni::Object[jni::ObjectBase] classLoader, Qore::Jni::InvocationHandler[jni::InvocationHandler] invocationHandler, Qore::Jni::Class[jni::Class] clazz) {
    SimpleRefHolder<jni::ObjectBase> classLoaderHolder(classLoader);
@@ -89,8 +122,10 @@ Qore::Jni::Object implement_interface(Qore::Jni::Object[jni::ObjectBase] classLo
    }
 }
 
-//! TODO
+//! Allocates a new Java array of booleans.
 /**
+    @param size the size of the array to allocate
+    @return the allocated array
  */
 Qore::Jni::Array new_boolean_array(int size) {
    try {
@@ -101,8 +136,10 @@ Qore::Jni::Array new_boolean_array(int size) {
    }
 }
 
-//! TODO
+//! Allocates a new Java array of bytes.
 /**
+    @param size the size of the array to allocate
+    @return the allocated array
  */
 Qore::Jni::Array new_byte_array(int size) {
    try {
@@ -113,8 +150,10 @@ Qore::Jni::Array new_byte_array(int size) {
    }
 }
 
-//! TODO
+//! Allocates a new Java array of chars.
 /**
+    @param size the size of the array to allocate
+    @return the allocated array
  */
 Qore::Jni::Array new_char_array(int size) {
    try {
@@ -125,8 +164,10 @@ Qore::Jni::Array new_char_array(int size) {
    }
 }
 
-//! TODO
+//! Allocates a new Java array of shorts.
 /**
+    @param size the size of the array to allocate
+    @return the allocated array
  */
 Qore::Jni::Array new_short_array(int size) {
    try {
@@ -137,8 +178,10 @@ Qore::Jni::Array new_short_array(int size) {
    }
 }
 
-//! TODO
+//! Allocates a new Java array of ints.
 /**
+    @param size the size of the array to allocate
+    @return the allocated array
  */
 Qore::Jni::Array new_int_array(int size) {
    try {
@@ -149,8 +192,10 @@ Qore::Jni::Array new_int_array(int size) {
    }
 }
 
-//! TODO
+//! Allocates a new Java array of longs.
 /**
+    @param size the size of the array to allocate
+    @return the allocated array
  */
 Qore::Jni::Array new_long_array(int size) {
    try {
@@ -161,8 +206,10 @@ Qore::Jni::Array new_long_array(int size) {
    }
 }
 
-//! TODO
+//! Allocates a new Java array of floats.
 /**
+    @param size the size of the array to allocate
+    @return the allocated array
  */
 Qore::Jni::Array new_float_array(int size) {
    try {
@@ -173,8 +220,10 @@ Qore::Jni::Array new_float_array(int size) {
    }
 }
 
-//! TODO
+//! Allocates a new Java array of doubles.
 /**
+    @param size the size of the array to allocate
+    @return the allocated array
  */
 Qore::Jni::Array new_double_array(int size) {
    try {
@@ -185,8 +234,11 @@ Qore::Jni::Array new_double_array(int size) {
    }
 }
 
-//! TODO
+//! Allocates a new Java array of object references.
 /**
+    @param size the size of the array to allocate
+    @param clazz the type of the array elements
+    @return the allocated array
  */
 Qore::Jni::Array new_object_array(int size, Qore::Jni::Class[jni::Class] clazz) {
    SimpleRefHolder<jni::Class> classHolder(clazz);
