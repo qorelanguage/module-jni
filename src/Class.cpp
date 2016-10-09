@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -34,39 +34,39 @@ namespace jni {
 
 Field *Class::getField(const QoreStringNode *name, const QoreStringNode *descriptor) {
    Env env;
-   ModifiedUtf8String nameUtf8(name);
-   ModifiedUtf8String descUtf8(descriptor);
+   ModifiedUtf8String nameUtf8(*name);
+   ModifiedUtf8String descUtf8(*descriptor);
    printd(LogLevel, "getField %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
    return new Field(this, env.getField(clazz, nameUtf8.c_str(), descUtf8.c_str()), false);
 }
 
 Field *Class::getStaticField(const QoreStringNode *name, const QoreStringNode *descriptor) {
    Env env;
-   ModifiedUtf8String nameUtf8(name);
-   ModifiedUtf8String descUtf8(descriptor);
+   ModifiedUtf8String nameUtf8(*name);
+   ModifiedUtf8String descUtf8(*descriptor);
    printd(LogLevel, "getStaticField %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
    return new Field(this, env.getStaticField(clazz, nameUtf8.c_str(), descUtf8.c_str()), true);
 }
 
 Method *Class::getMethod(const QoreStringNode *name, const QoreStringNode *descriptor) {
    Env env;
-   ModifiedUtf8String nameUtf8(name);
-   ModifiedUtf8String descUtf8(descriptor);
+   ModifiedUtf8String nameUtf8(*name);
+   ModifiedUtf8String descUtf8(*descriptor);
    printd(LogLevel, "getMethod %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
    return new Method(this, env.getMethod(clazz, nameUtf8.c_str(), descUtf8.c_str()), false);
 }
 
 Method *Class::getStaticMethod(const QoreStringNode *name, const QoreStringNode *descriptor) {
    Env env;
-   ModifiedUtf8String nameUtf8(name);
-   ModifiedUtf8String descUtf8(descriptor);
+   ModifiedUtf8String nameUtf8(*name);
+   ModifiedUtf8String descUtf8(*descriptor);
    printd(LogLevel, "getStaticMethod %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
    return new Method(this, env.getStaticMethod(clazz, nameUtf8.c_str(), descUtf8.c_str()), true);
 }
 
 Method *Class::getConstructor(const QoreStringNode *descriptor) {
    Env env;
-   ModifiedUtf8String descUtf8(descriptor);
+   ModifiedUtf8String descUtf8(*descriptor);
    printd(LogLevel, "getConstructor %s\n", descUtf8.c_str());
    return new Method(this, env.getMethod(clazz, "<init>", descUtf8.c_str()), false);
 }

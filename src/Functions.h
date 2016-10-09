@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,7 @@ namespace jni {
 class Functions {
 
 public:
-   static QoreStringNode *getVersion() {
+   static QoreStringNode* getVersion() {
       Env env;
       jint v = env.getVersion();
       QoreStringNode *str = new QoreStringNode();
@@ -54,14 +54,19 @@ public:
       return str;
    }
 
-   static Class *loadClass(const QoreStringNode *name) {
+   // 'name' must be in UTF-8 encoding
+   static Class* loadClass(const char* name) {
       Env env;
-      ModifiedUtf8String nameUtf8(name);
-      printd(LogLevel, "loadClass %s\n", nameUtf8.c_str());
-      return new Class(env.findClass(nameUtf8.c_str()));
+      printd(LogLevel, "loadClass '%s'\n", name);
+      return new Class(env.findClass(name));
    }
 
-   static Object *implementInterface(const ObjectBase *classLoader, const InvocationHandler *invocationHandler, const Class *clazz) {
+   static Class* loadClass(const QoreString& name) {
+      ModifiedUtf8String nameUtf8(name);
+      return loadClass(nameUtf8.c_str());
+   }
+
+   static Object* implementInterface(const ObjectBase *classLoader, const InvocationHandler *invocationHandler, const Class *clazz) {
       Env env;
 
       LocalReference<jobject> cl;

@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -105,7 +105,7 @@ static jstring JNICALL qore_exception_wrapper_get_message(JNIEnv *, jclass, jlon
 
    const AbstractQoreNode *desc = xsink->getExceptionDesc();
    if (desc != nullptr && desc->getType() == NT_STRING) {
-      ModifiedUtf8String str(static_cast<const QoreStringNode *>(desc));
+      ModifiedUtf8String str(*static_cast<const QoreStringNode*>(desc));
       return env.newString(str.c_str()).release();
    }
    return env.newString("No message").release();

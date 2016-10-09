@@ -23,8 +23,38 @@
 
 #include <qore/Qore.h>
 
+#include "defs.h"
 #include "Jvm.h"
 #include "QoreJniClassMap.h"
+#include "Class.h"
+#include "Functions.h"
+
+using namespace jni;
+
+extern QoreJniClassMap qjcm;
+
+static QoreNamespace* qjni_find_create_namespace(QoreNamespace& jns, const char* name, const char*& sn) {
+   printd(LogLevel, "qjni_find_create_namespace() jns: %p '%s'\n", &jns, name);
+
+   sn = rindex(name, '.');
+
+   QoreNamespace* ns;
+   // find parent namespace
+   if (!sn) {
+      ns = &jns;
+      sn = name;
+      printd(LogLevel, "qjni_find_create_namespace() same namespace\n");
+   }
+   else {
+      QoreString nsp(name);
+      nsp.replaceAll(".", "::");
+      ++sn;
+      ns = jns.findCreateNamespacePath(nsp.getBuffer(), true);
+      printd(LogLevel, "qjni_find_create_namespace() jns target: %p '%s' nsp: '%s' ns: %p '%s' new: '%s'\n", &jns, jns.getName(), nsp.c_str(), ns, ns->getName(), sn);
+   }
+
+   return ns;
+}
 
 void QoreJniClassMap::init() {
    QoreNamespace* qorejni = new QoreNamespace("QoreJni");
@@ -43,10 +73,6 @@ void QoreJniClassMap::init() {
    // add to "QoreJni" namespace
    default_jns.addInitialNamespace(qorejni);
 
-   //java::lang::ClassLoader *loader = java::lang::ClassLoader::getSystemClassLoader();
-
-   //printd(5, "QoreJniClassMap::init() loader: %p\n", loader);
-
    // create java.lang namespace with automatic class loader handler
    QoreNamespace* javans = new QoreNamespace("java");
    QoreNamespace* langns = new QoreNamespace("lang");
@@ -57,61 +83,46 @@ void QoreJniClassMap::init() {
    default_jns.addInitialNamespace(javans);
 
    // add "Object" class
-   //qjcm.loadClass(default_jns, loader, "java.lang.Object");
-
-   // add "Qore" class to Jni namespace
-   //addQoreClass();
+   loadClass(default_jns, "java.lang.Object");
 }
 
-/*
-void QoreJniClassMap::addSuperClass(QoreClass &qc, java::lang::Class *jsc) {
-#ifdef DEBUG_0
-   QoreString sn;
-   getQoreString(jsc->getName(), sn);
-   printd(0, "QoreJniClassMap::addSuperClass() %s has super class %p %s\n", qc.getName(), jsc, sn.getBuffer());
-#endif
+QoreClass* QoreJniClassMap::loadClass(QoreNamespace& jns, const char* cstr, ExceptionSink* xsink) {
+   assert(cstr && cstr[0]);
 
-   qc.addBuiltinVirtualBaseClass(findCreate(jsc));
-}
+   QoreString jstr(cstr);
+   jstr.replaceAll(".", "/");
 
-static QoreNamespace *findCreateNamespace(QoreNamespace &gns, const char *name, const char *&sn) {
-   sn = rindex(name, '.');
+   //printd(LogLevel, "QoreJniClassMap::loadClass() cstr: '%s'\n", jstr.c_str());
 
-   QoreNamespace *ns;
-   // find parent namespace
-   if (!sn) {
-      ns = &gns;
-      sn = name;
+   jni::Class* jcls;
+   try {
+      jcls = jni::Functions::loadClass(jstr);
    }
-   else {
-      QoreString nsn(name, sn - name);
-      nsn.replaceAll(".", "::");
-      ++sn;
-      ns = gns.findCreateNamespacePath(nsn.getBuffer());
-      //printd(0, "findCreateNamespace() gns: %p %s nsn: %s ns: %p (%s)\n", &gns, gns.getName(), nsn.getBuffer(), ns, ns->getName());
+   catch (jni::Exception &e) {
+      if (xsink)
+         e.convert(xsink);
+      return 0;
    }
 
-   return ns;
+   return createQoreClass(jns, cstr, jcls, xsink);
 }
 
 // creates a QoreClass and adds it in the appropriate namespace
-QoreClass *QoreJniClassMap::createQoreClass(QoreNamespace &gns, const char *name, java::lang::Class *jc, ExceptionSink *xsink) {
-   QoreClass *qc = find(jc);
+QoreClass* QoreJniClassMap::createQoreClass(QoreNamespace& jns, const char* name, jni::Class* jc, ExceptionSink* xsink) {
+   QoreClass* qc = find(jc);
    if (qc) {
-      if (&gns == &default_gns)
+      if (&jns == &default_jns)
 	 return qc;
    }
-   else
-      JvInitClass(jc);
 
-   const char *sn;
+   const char* sn;
 
    // find/create parent namespace
-   QoreNamespace *ns = findCreateNamespace(gns, name, sn);
+   QoreNamespace* ns = qjni_find_create_namespace(jns, name, sn);
 
    if (qc) {
       // see if class already exists in this namespace
-      QoreClass *nqc = ns->findLocalClass(qc->getName());
+      QoreClass* nqc = ns->findLocalClass(qc->getName());
 
       if (!nqc) {
 	 nqc = new QoreClass(*qc);
@@ -127,11 +138,12 @@ QoreClass *QoreJniClassMap::createQoreClass(QoreNamespace &gns, const char *name
    // save class in namespace
    ns->addSystemClass(qc);
 
-   //printd(5, "QoreJniClassMap::createQoreClass() qc: %p %s::%s\n", qc, ns->getName(), sn);
+   printd(LogLevel, "QoreJniClassMap::createQoreClass() qc: %p ns: %p '%s::%s'\n", qc, ns, ns->getName(), sn);
 
    // add to class maps
    add_intern(name, jc, qc);
 
+   /*
    // get and process superclass
    java::lang::Class *jsc = jc->getSuperclass();
 
@@ -145,10 +157,22 @@ QoreClass *QoreJniClassMap::createQoreClass(QoreNamespace &gns, const char *name
       for (int i = 0; i < ifc->length; ++i)
 	 addSuperClass(*qc, elements(ifc)[i]);
    }
+   */
 
-   populateQoreClass(*qc, jc, xsink);
+   //populateQoreClass(*qc, jc, xsink);
 
    return qc;
+}
+
+/*
+void QoreJniClassMap::addSuperClass(QoreClass &qc, java::lang::Class *jsc) {
+#ifdef DEBUG_0
+   QoreString sn;
+   getQoreString(jsc->getName(), sn);
+   printd(0, "QoreJniClassMap::addSuperClass() %s has super class %p %s\n", qc.getName(), jsc, sn.getBuffer());
+#endif
+
+   qc.addBuiltinVirtualBaseClass(findCreate(jsc));
 }
 
 int QoreJniClassMap::getArgTypes(type_vec_t &argTypeInfo, JArray<jclass>* params) {
@@ -399,41 +423,7 @@ void QoreJniClassMap::addQoreClass() {
    QoreClass *qc = new QoreClass("Qore");
    qc->addStaticMethodExtended("toQore", f_toQore, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, joc->getTypeInfo(), QORE_PARAM_NO_ARG);
 
-   default_gns.addSystemClass(qc);
-}
-
-QoreClass *QoreJniClassMap::loadClass(QoreNamespace &gns, java::lang::ClassLoader *loader, const char *cstr, java::lang::String *jstr, ExceptionSink *xsink) {
-   assert(cstr || jstr);
-
-   if (!loader)
-      loader = java::lang::ClassLoader::getSystemClassLoader();
-
-   QoreString qstr;
-   if (!cstr) {
-      getQoreString(jstr, qstr);
-      cstr = qstr.getBuffer();
-   }
-   else if (!jstr)
-      jstr = JvNewStringLatin1(cstr);
-
-   jclass jc;
-   try {
-      jc = loader->loadClass(jstr);
-   }
-   catch (java::lang::ClassNotFoundException *e) {
-      //printd(0, "ERROR: cannot map %s: ClassNotFoundException\n", cstr);
-      if (xsink)
-	 getQoreException(e, *xsink);
-      return 0;
-   }
-   catch (java::lang::Throwable *t) {
-      //printd(0, "ERROR: cannot map %s: other exception\n", cstr);
-      if (xsink)
-	 getQoreException(t, *xsink);
-      return 0;
-   }
-
-   return createQoreClass(gns, cstr, jc, xsink);
+   default_jns.addSystemClass(qc);
 }
 
 const QoreTypeInfo *QoreJniClassMap::toTypeInfo(java::lang::Class *jc) {

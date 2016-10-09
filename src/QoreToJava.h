@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -88,7 +88,7 @@ public:
       }
       jobject javaObjectRef;
       if (value.getType() == NT_STRING) {
-         ModifiedUtf8String str(value.get<QoreStringNode>());
+         ModifiedUtf8String str(*value.get<QoreStringNode>());
          Env env;
          javaObjectRef = env.newString(str.c_str()).release();
       } else if (value.getType() == NT_OBJECT) {

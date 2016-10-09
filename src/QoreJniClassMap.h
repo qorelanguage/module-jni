@@ -39,30 +39,35 @@ DLLLOCAL QoreClass* initInvocationHandlerClass(QoreNamespace& ns);
 
 DLLLOCAL QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname);
 
+namespace jni {
+   // forward reference
+   class Class;
+}
+
 class QoreJniClassMap {
 protected:
    // map of java class names to QoreClass objects
    typedef std::map<std::string, QoreClass*> jcmap_t;
    // map of java class objects to QoreClass objects
-   //typedef std::map<jclass, QoreClass*> jcpmap_t;
+   typedef std::map<jni::Class*, QoreClass*> jcpmap_t;
 
    // parent namespace for jni module functionality
    QoreNamespace default_jns;
    jcmap_t jcmap;
-   //jcpmap_t jcpmap;
+   jcpmap_t jcpmap;
    bool init_done;
 
-   /*
-   DLLLOCAL void add_intern(const char* name, java::lang::Class* jc, QoreClass* qc) {
-      //printd(0, "QoreJniClassMap::add_intern() name=%s jc=%p qc=%p (%s)\n", name, jc, qc, qc->getName());
+   DLLLOCAL void add_intern(const char* name, jni::Class* jc, QoreClass* qc) {
+      //printd(0, "QoreJniClassMap::add_intern() name: %s jc: %p qc: %p (%s)\n", name, jc, qc, qc->getName());
 
       assert(jcmap.find(name) == jcmap.end());
       jcmap[name] = qc;
 
-      //assert(jcpmap.find(jc) == jcpmap.end());
-      //jcpmap[jc] = qc;
+      assert(jcpmap.find(jc) == jcpmap.end());
+      jcpmap[jc] = qc;
    }
 
+   /*
    DLLLOCAL int getArgTypes(type_vec_t& argTypeInfo, JArray<jclass> *params);
 
    DLLLOCAL void doConstructors(QoreClass& qc, java::lang::Class *jc, ExceptionSink *xsink = 0);
@@ -83,14 +88,14 @@ public:
 
    DLLLOCAL void init();
 
-   /*
-   DLLLOCAL QoreClass* createQoreClass(QoreNamespace &jns, const char *name, java::lang::Class *jc, ExceptionSink *xsink = 0);
+   DLLLOCAL QoreClass* createQoreClass(QoreNamespace& jns, const char* name, jni::Class* jc, ExceptionSink* xsink = 0);
 
-   DLLLOCAL QoreClass* find(java::lang::Class *jc) const {
+   DLLLOCAL QoreClass* find(jni::Class* jc) const {
       jcpmap_t::const_iterator i = jcpmap.find(jc);
       return i == jcpmap.end() ? 0 : i->second;
    }
 
+   /*
    DLLLOCAL QoreClass* findCreate(java::lang::Class *jc) {
       QoreClass *qc = find(jc);
       if (qc)
@@ -116,8 +121,9 @@ public:
    DLLLOCAL java::lang::Object *toJava(java::lang::Class *jc, const AbstractQoreNode *n, ExceptionSink *xsink);
    DLLLOCAL const QoreTypeInfo *toTypeInfo(java::lang::Class *jc);
    DLLLOCAL AbstractQoreNode *toQore(java::lang::Object *jobj, ExceptionSink *xsink);
-   DLLLOCAL QoreClass *loadClass(QoreNamespace &jns, java::lang::ClassLoader *loader, const char *cstr, java::lang::String *jstr = 0, ExceptionSink *xsink = 0);
    */
+
+   DLLLOCAL QoreClass* loadClass(QoreNamespace& jns, const char* cstr, ExceptionSink* xsink = 0);
 };
 
 #endif
