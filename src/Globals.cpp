@@ -51,6 +51,7 @@ jmethodID Globals::methodClassGetComponentType;
 jmethodID Globals::methodClassGetClassLoader;
 jmethodID Globals::methodClassGetName;
 jmethodID Globals::methodClassGetFields;
+jmethodID Globals::methodClassGetSuperClass;
 
 GlobalReference<jclass> Globals::classThrowable;
 jmethodID Globals::methodThrowableGetMessage;
@@ -164,6 +165,7 @@ void Globals::init() {
    methodClassGetClassLoader = env.getMethod(classClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
    methodClassGetName = env.getMethod(classClass, "getName", "()Ljava/lang/String;");
    methodClassGetFields = env.getMethod(classClass, "getFields", "()[Ljava/lang/reflect/Field;");
+   methodClassGetSuperClass = env.getMethod(classClass, "getSuperclass", "()Ljava/lang/Class;");
 
    classThrowable = env.findClass("java/lang/Throwable").makeGlobal();
    methodThrowableGetMessage = env.getMethod(classThrowable, "getMessage", "()Ljava/lang/String;");
@@ -218,33 +220,33 @@ void Globals::cleanup() {
    classProxy = nullptr;
 }
 
-Type Globals::getType(jclass clazz) {
+Type Globals::getType(jclass cls) {
    Env env;
-   if (env.isSameObject(clazz, classInt)) {
+   if (env.isSameObject(cls, classInt)) {
       return Type::Int;
    }
-   if (env.isSameObject(clazz, classVoid)) {
+   if (env.isSameObject(cls, classVoid)) {
       return Type::Void;
    }
-   if (env.isSameObject(clazz, classBoolean)) {
+   if (env.isSameObject(cls, classBoolean)) {
       return Type::Boolean;
    }
-   if (env.isSameObject(clazz, classByte)) {
+   if (env.isSameObject(cls, classByte)) {
       return Type::Byte;
    }
-   if (env.isSameObject(clazz, classChar)) {
+   if (env.isSameObject(cls, classChar)) {
       return Type::Char;
    }
-   if (env.isSameObject(clazz, classShort)) {
+   if (env.isSameObject(cls, classShort)) {
       return Type::Short;
    }
-   if (env.isSameObject(clazz, classLong)) {
+   if (env.isSameObject(cls, classLong)) {
       return Type::Long;
    }
-   if (env.isSameObject(clazz, classFloat)) {
+   if (env.isSameObject(cls, classFloat)) {
       return Type::Float;
    }
-   if (env.isSameObject(clazz, classDouble)) {
+   if (env.isSameObject(cls, classDouble)) {
       return Type::Double;
    }
    return Type::Reference;

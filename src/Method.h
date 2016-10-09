@@ -50,16 +50,16 @@ class Method : public ObjectBase {
 public:
    /**
     * \brief Constructor.
-    * \param clazz the class associated with the method id
+    * \param cls the class associated with the method id
     * \param id the method id
     * \param isStatic true if the method is static
     */
-   Method(Class *clazz, jmethodID id, bool isStatic) : clazz(clazz), id(id) {
-      printd(LogLevel, "Method::Method(), this: %p, clazz: %p, id: %p\n", this, clazz, id);
+   Method(Class *cls, jmethodID id, bool isStatic) : cls(cls), id(id) {
+      printd(LogLevel, "Method::Method(), this: %p, cls: %p, id: %p\n", this, cls, id);
       Env env;
-      method = env.toReflectedMethod(clazz->getJavaObject(), id, isStatic).makeGlobal();
+      method = env.toReflectedMethod(cls->getJavaObject(), id, isStatic).makeGlobal();
       init(env);
-      clazz->ref();
+      cls->ref();
    }
 
    /**
@@ -68,15 +68,15 @@ public:
     */
    Method(jobject method) {
       Env env;
-      clazz = new Class(env.callObjectMethod(method, Globals::methodMethodGetDeclaringClass, nullptr).as<jclass>());
+      cls = new Class(env.callObjectMethod(method, Globals::methodMethodGetDeclaringClass, nullptr).as<jclass>());
       id = env.fromReflectedMethod(method);
       this->method = GlobalReference<jobject>::fromLocal(method);
-      printd(LogLevel, "Method::Method(), this: %p, clazz: %p, id: %p\n", this, *clazz, id);
+      printd(LogLevel, "Method::Method(), this: %p, cls: %p, id: %p\n", this, *cls, id);
       init(env);
    }
 
    ~Method() {
-      printd(LogLevel, "Method::~Method(), this: %p, clazz: %p, id: %p\n", this, *clazz, id);
+      printd(LogLevel, "Method::~Method(), this: %p, cls: %p, id: %p\n", this, *cls, id);
    }
 
    /**
@@ -133,7 +133,7 @@ private:
    }
 
 private:
-   SimpleRefHolder<Class> clazz;
+   SimpleRefHolder<Class> cls;
    jmethodID id;
    GlobalReference<jobject> method;             // the instance of java.lang.reflect.Method
    Type retValType;

@@ -83,14 +83,14 @@ public:
 
    /**
     * \brief Finds a field in a class.
-    * \param clazz the class
+    * \param cls the class
     * \param name the name of the field
     * \param descriptor the field descriptor
     * \return field id
     * \throws JavaException if the field cannot be found
     */
-   jfieldID getField(jclass clazz, const char *name, const char *descriptor) {
-      jfieldID id = env->GetFieldID(clazz, name, descriptor);
+   jfieldID getField(jclass cls, const char *name, const char *descriptor) {
+      jfieldID id = env->GetFieldID(cls, name, descriptor);
       if (id == nullptr) {
          throw JavaException();
       }
@@ -99,14 +99,14 @@ public:
 
    /**
     * \brief Finds a static field in a class.
-    * \param clazz the class
+    * \param cls the class
     * \param name the name of the field
     * \param descriptor the field descriptor
     * \return field id
     * \throws JavaException if the field cannot be found
     */
-   jfieldID getStaticField(jclass clazz, const char *name, const char *descriptor) {
-      jfieldID id = env->GetStaticFieldID(clazz, name, descriptor);
+   jfieldID getStaticField(jclass cls, const char *name, const char *descriptor) {
+      jfieldID id = env->GetStaticFieldID(cls, name, descriptor);
       if (id == nullptr) {
          throw JavaException();
       }
@@ -115,14 +115,14 @@ public:
 
    /**
     * \brief Finds a method in a class.
-    * \param clazz the class
+    * \param cls the class
     * \param name the name of the method
     * \param descriptor the method signature
     * \return method id
     * \throws JavaException if the method cannot be found
     */
-   jmethodID getMethod(jclass clazz, const char *name, const char *descriptor) {
-      jmethodID id = env->GetMethodID(clazz, name, descriptor);
+   jmethodID getMethod(jclass cls, const char *name, const char *descriptor) {
+      jmethodID id = env->GetMethodID(cls, name, descriptor);
       if (id == nullptr) {
          throw JavaException();
       }
@@ -131,14 +131,14 @@ public:
 
    /**
     * \brief Finds a static method in a class.
-    * \param clazz the class
+    * \param cls the class
     * \param name the name of the method
     * \param descriptor the method signature
     * \return method id
     * \throws JavaException if the method cannot be found
     */
-   jmethodID getStaticMethod(jclass clazz, const char *name, const char *descriptor) {
-      jmethodID id = env->GetStaticMethodID(clazz, name, descriptor);
+   jmethodID getStaticMethod(jclass cls, const char *name, const char *descriptor) {
+      jmethodID id = env->GetStaticMethodID(cls, name, descriptor);
       if (id == nullptr) {
          throw JavaException();
       }
@@ -237,92 +237,92 @@ public:
 
    /**
     * \brief Gets the value of a static boolean field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \return the field value
     */
-   jboolean getStaticBooleanField(jclass clazz, jfieldID id) {
-      return env->GetStaticBooleanField(clazz, id);
+   jboolean getStaticBooleanField(jclass cls, jfieldID id) {
+      return env->GetStaticBooleanField(cls, id);
    }
 
    /**
     * \brief Gets the value of a static byte field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \return the field value
     */
-   jbyte getStaticByteField(jclass clazz, jfieldID id) {
-      return env->GetStaticByteField(clazz, id);
+   jbyte getStaticByteField(jclass cls, jfieldID id) {
+      return env->GetStaticByteField(cls, id);
    }
 
    /**
     * \brief Gets the value of a static char field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \return the field value
     */
-   jchar getStaticCharField(jclass clazz, jfieldID id) {
-      return env->GetStaticCharField(clazz, id);
+   jchar getStaticCharField(jclass cls, jfieldID id) {
+      return env->GetStaticCharField(cls, id);
    }
 
    /**
     * \brief Gets the value of a static double field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \return the field value
     */
-   jdouble getStaticDoubleField(jclass clazz, jfieldID id) {
-      return env->GetStaticDoubleField(clazz, id);
+   jdouble getStaticDoubleField(jclass cls, jfieldID id) {
+      return env->GetStaticDoubleField(cls, id);
    }
 
    /**
     * \brief Gets the value of a static float field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \return the field value
     */
-   jfloat getStaticFloatField(jclass clazz, jfieldID id) {
-      return env->GetStaticFloatField(clazz, id);
+   jfloat getStaticFloatField(jclass cls, jfieldID id) {
+      return env->GetStaticFloatField(cls, id);
    }
 
    /**
     * \brief Gets the value of a static int field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \return the field value
     */
-   jint getStaticIntField(jclass clazz, jfieldID id) {
-      return env->GetStaticIntField(clazz, id);
+   jint getStaticIntField(jclass cls, jfieldID id) {
+      return env->GetStaticIntField(cls, id);
    }
 
    /**
     * \brief Gets the value of a static long field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \return the field value
     */
-   jlong getStaticLongField(jclass clazz, jfieldID id) {
-      return env->GetStaticLongField(clazz, id);
+   jlong getStaticLongField(jclass cls, jfieldID id) {
+      return env->GetStaticLongField(cls, id);
    }
 
    /**
     * \brief Gets the value of a static Object field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \return the field value
     */
-   LocalReference<jobject> getStaticObjectField(jclass clazz, jfieldID id) {
-      return env->GetStaticObjectField(clazz, id);
+   LocalReference<jobject> getStaticObjectField(jclass cls, jfieldID id) {
+      return env->GetStaticObjectField(cls, id);
    }
 
    /**
     * \brief Gets the value of a static short field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \return the field value
     */
-   jshort getStaticShortField(jclass clazz, jfieldID id) {
-      return env->GetStaticShortField(clazz, id);
+   jshort getStaticShortField(jclass cls, jfieldID id) {
+      return env->GetStaticShortField(cls, id);
    }
 
    /**
@@ -417,92 +417,92 @@ public:
 
    /**
     * \brief Sets the value of a static boolean field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \param value the field value
     */
-   void setStaticBooleanField(jclass clazz, jfieldID id, jboolean value) {
-      env->SetStaticBooleanField(clazz, id, value);
+   void setStaticBooleanField(jclass cls, jfieldID id, jboolean value) {
+      env->SetStaticBooleanField(cls, id, value);
    }
 
    /**
     * \brief Sets the value of a static byte field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \param value the field value
     */
-   void setStaticByteField(jclass clazz, jfieldID id, jbyte value) {
-      env->SetStaticByteField(clazz, id, value);
+   void setStaticByteField(jclass cls, jfieldID id, jbyte value) {
+      env->SetStaticByteField(cls, id, value);
    }
 
    /**
     * \brief Sets the value of a static char field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \param value the field value
     */
-   void setStaticCharField(jclass clazz, jfieldID id, jchar value) {
-      env->SetStaticCharField(clazz, id, value);
+   void setStaticCharField(jclass cls, jfieldID id, jchar value) {
+      env->SetStaticCharField(cls, id, value);
    }
 
    /**
     * \brief Sets the value of a static double field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \param value the field value
     */
-   void setStaticDoubleField(jclass clazz, jfieldID id, jdouble value) {
-      env->SetStaticDoubleField(clazz, id, value);
+   void setStaticDoubleField(jclass cls, jfieldID id, jdouble value) {
+      env->SetStaticDoubleField(cls, id, value);
    }
 
    /**
     * \brief Sets the value of a static float field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \param value the field value
     */
-   void setStaticFloatField(jclass clazz, jfieldID id, jfloat value) {
-      env->SetStaticFloatField(clazz, id, value);
+   void setStaticFloatField(jclass cls, jfieldID id, jfloat value) {
+      env->SetStaticFloatField(cls, id, value);
    }
 
    /**
     * \brief Sets the value of a static int field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \param value the field value
     */
-   void setStaticIntField(jclass clazz, jfieldID id, jint value) {
-      env->SetStaticIntField(clazz, id, value);
+   void setStaticIntField(jclass cls, jfieldID id, jint value) {
+      env->SetStaticIntField(cls, id, value);
    }
 
    /**
     * \brief Sets the value of a static long field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \param value the field value
     */
-   void setStaticLongField(jclass clazz, jfieldID id, jlong value) {
-      env->SetStaticLongField(clazz, id, value);
+   void setStaticLongField(jclass cls, jfieldID id, jlong value) {
+      env->SetStaticLongField(cls, id, value);
    }
 
    /**
     * \brief Sets the value of a static Object field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \param value the field value
     */
-   void setStaticObjectField(jclass clazz, jfieldID id, jobject value) {
-      env->SetStaticObjectField(clazz, id, value);
+   void setStaticObjectField(jclass cls, jfieldID id, jobject value) {
+      env->SetStaticObjectField(cls, id, value);
    }
 
    /**
     * \brief Sets the value of a static short field.
-    * \param clazz the class of the field
+    * \param cls the class of the field
     * \param id the field id
     * \param value the field value
     */
-   void setStaticShortField(jclass clazz, jfieldID id, jshort value) {
-      env->SetStaticShortField(clazz, id, value);
+   void setStaticShortField(jclass cls, jfieldID id, jshort value) {
+      env->SetStaticShortField(cls, id, value);
    }
 
    /**
@@ -666,14 +666,14 @@ public:
    /**
     * \brief Invokes an instance method non-virtually.
     * \param object the instance
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jboolean callNonvirtualBooleanMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
-      jboolean ret = env->CallNonvirtualBooleanMethodA(object, clazz, id, args);
+   jboolean callNonvirtualBooleanMethod(jobject object, jclass cls, jmethodID id, const jvalue *args) {
+      jboolean ret = env->CallNonvirtualBooleanMethodA(object, cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -683,14 +683,14 @@ public:
    /**
     * \brief Invokes an instance method non-virtually.
     * \param object the instance
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jbyte callNonvirtualByteMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
-      jbyte ret = env->CallNonvirtualByteMethodA(object, clazz, id, args);
+   jbyte callNonvirtualByteMethod(jobject object, jclass cls, jmethodID id, const jvalue *args) {
+      jbyte ret = env->CallNonvirtualByteMethodA(object, cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -700,14 +700,14 @@ public:
    /**
     * \brief Invokes an instance method non-virtually.
     * \param object the instance
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jchar callNonvirtualCharMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
-      jchar ret = env->CallNonvirtualCharMethodA(object, clazz, id, args);
+   jchar callNonvirtualCharMethod(jobject object, jclass cls, jmethodID id, const jvalue *args) {
+      jchar ret = env->CallNonvirtualCharMethodA(object, cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -717,14 +717,14 @@ public:
    /**
     * \brief Invokes an instance method non-virtually.
     * \param object the instance
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jdouble callNonvirtualDoubleMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
-      jdouble ret = env->CallNonvirtualDoubleMethodA(object, clazz, id, args);
+   jdouble callNonvirtualDoubleMethod(jobject object, jclass cls, jmethodID id, const jvalue *args) {
+      jdouble ret = env->CallNonvirtualDoubleMethodA(object, cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -734,14 +734,14 @@ public:
    /**
     * \brief Invokes an instance method non-virtually.
     * \param object the instance
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jfloat callNonvirtualFloatMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
-      jfloat ret = env->CallNonvirtualFloatMethodA(object, clazz, id, args);
+   jfloat callNonvirtualFloatMethod(jobject object, jclass cls, jmethodID id, const jvalue *args) {
+      jfloat ret = env->CallNonvirtualFloatMethodA(object, cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -751,14 +751,14 @@ public:
    /**
     * \brief Invokes an instance method non-virtually.
     * \param object the instance
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jint callNonvirtualIntMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
-      jint ret = env->CallNonvirtualIntMethodA(object, clazz, id, args);
+   jint callNonvirtualIntMethod(jobject object, jclass cls, jmethodID id, const jvalue *args) {
+      jint ret = env->CallNonvirtualIntMethodA(object, cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -768,14 +768,14 @@ public:
    /**
     * \brief Invokes an instance method non-virtually.
     * \param object the instance
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jlong callNonvirtualLongMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
-      jlong ret = env->CallNonvirtualLongMethodA(object, clazz, id, args);
+   jlong callNonvirtualLongMethod(jobject object, jclass cls, jmethodID id, const jvalue *args) {
+      jlong ret = env->CallNonvirtualLongMethodA(object, cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -785,14 +785,14 @@ public:
    /**
     * \brief Invokes an instance method non-virtually.
     * \param object the instance
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   LocalReference<jobject> callNonvirtualObjectMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
-      LocalReference<jobject> ret = env->CallNonvirtualObjectMethodA(object, clazz, id, args);
+   LocalReference<jobject> callNonvirtualObjectMethod(jobject object, jclass cls, jmethodID id, const jvalue *args) {
+      LocalReference<jobject> ret = env->CallNonvirtualObjectMethodA(object, cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -802,14 +802,14 @@ public:
    /**
     * \brief Invokes an instance method non-virtually.
     * \param object the instance
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jshort callNonvirtualShortMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
-      jshort ret = env->CallNonvirtualShortMethodA(object, clazz, id, args);
+   jshort callNonvirtualShortMethod(jobject object, jclass cls, jmethodID id, const jvalue *args) {
+      jshort ret = env->CallNonvirtualShortMethodA(object, cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -819,13 +819,13 @@ public:
    /**
     * \brief Invokes an instance method non-virtually.
     * \param object the instance
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \throws JavaException if the method throws an exception
     */
-   void callNonvirtualVoidMethod(jobject object, jclass clazz, jmethodID id, const jvalue *args) {
-      env->CallNonvirtualVoidMethodA(object, clazz, id, args);
+   void callNonvirtualVoidMethod(jobject object, jclass cls, jmethodID id, const jvalue *args) {
+      env->CallNonvirtualVoidMethodA(object, cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -833,14 +833,14 @@ public:
 
    /**
     * \brief Invokes a static method.
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jboolean callStaticBooleanMethod(jclass clazz, jmethodID id, const jvalue *args) {
-      jboolean ret = env->CallStaticBooleanMethodA(clazz, id, args);
+   jboolean callStaticBooleanMethod(jclass cls, jmethodID id, const jvalue *args) {
+      jboolean ret = env->CallStaticBooleanMethodA(cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -849,14 +849,14 @@ public:
 
    /**
     * \brief Invokes a static method.
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jbyte callStaticByteMethod(jclass clazz, jmethodID id, const jvalue *args) {
-      jbyte ret = env->CallStaticByteMethodA(clazz, id, args);
+   jbyte callStaticByteMethod(jclass cls, jmethodID id, const jvalue *args) {
+      jbyte ret = env->CallStaticByteMethodA(cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -865,14 +865,14 @@ public:
 
    /**
     * \brief Invokes a static method.
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jchar callStaticCharMethod(jclass clazz, jmethodID id, const jvalue *args) {
-      jchar ret = env->CallStaticCharMethodA(clazz, id, args);
+   jchar callStaticCharMethod(jclass cls, jmethodID id, const jvalue *args) {
+      jchar ret = env->CallStaticCharMethodA(cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -881,14 +881,14 @@ public:
 
    /**
     * \brief Invokes a static method.
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jdouble callStaticDoubleMethod(jclass clazz, jmethodID id, const jvalue *args) {
-      jdouble ret = env->CallStaticDoubleMethodA(clazz, id, args);
+   jdouble callStaticDoubleMethod(jclass cls, jmethodID id, const jvalue *args) {
+      jdouble ret = env->CallStaticDoubleMethodA(cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -897,14 +897,14 @@ public:
 
    /**
     * \brief Invokes a static method.
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jfloat callStaticFloatMethod(jclass clazz, jmethodID id, const jvalue *args) {
-      jfloat ret = env->CallStaticFloatMethodA(clazz, id, args);
+   jfloat callStaticFloatMethod(jclass cls, jmethodID id, const jvalue *args) {
+      jfloat ret = env->CallStaticFloatMethodA(cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -913,14 +913,14 @@ public:
 
    /**
     * \brief Invokes a static method.
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jint callStaticIntMethod(jclass clazz, jmethodID id, const jvalue *args) {
-      jint ret = env->CallStaticIntMethodA(clazz, id, args);
+   jint callStaticIntMethod(jclass cls, jmethodID id, const jvalue *args) {
+      jint ret = env->CallStaticIntMethodA(cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -929,14 +929,14 @@ public:
 
    /**
     * \brief Invokes a static method.
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jlong callStaticLongMethod(jclass clazz, jmethodID id, const jvalue *args) {
-      jlong ret = env->CallStaticLongMethodA(clazz, id, args);
+   jlong callStaticLongMethod(jclass cls, jmethodID id, const jvalue *args) {
+      jlong ret = env->CallStaticLongMethodA(cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -945,14 +945,14 @@ public:
 
    /**
     * \brief Invokes a static method.
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   LocalReference<jobject> callStaticObjectMethod(jclass clazz, jmethodID id, const jvalue *args) {
-      LocalReference<jobject> ret = env->CallStaticObjectMethodA(clazz, id, args);
+   LocalReference<jobject> callStaticObjectMethod(jclass cls, jmethodID id, const jvalue *args) {
+      LocalReference<jobject> ret = env->CallStaticObjectMethodA(cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -961,14 +961,14 @@ public:
 
    /**
     * \brief Invokes a static method.
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \return the return value
     * \throws JavaException if the method throws an exception
     */
-   jshort callStaticShortMethod(jclass clazz, jmethodID id, const jvalue *args) {
-      jshort ret = env->CallStaticShortMethodA(clazz, id, args);
+   jshort callStaticShortMethod(jclass cls, jmethodID id, const jvalue *args) {
+      jshort ret = env->CallStaticShortMethodA(cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -977,13 +977,13 @@ public:
 
    /**
     * \brief Invokes a static method.
-    * \param clazz the class of the method
+    * \param cls the class of the method
     * \param id the method id
     * \param args the arguments
     * \throws JavaException if the method throws an exception
     */
-   void callStaticVoidMethod(jclass clazz, jmethodID id, const jvalue *args) {
-      env->CallStaticVoidMethodA(clazz, id, args);
+   void callStaticVoidMethod(jclass cls, jmethodID id, const jvalue *args) {
+      env->CallStaticVoidMethodA(cls, id, args);
       if (env->ExceptionCheck()) {
          throw JavaException();
       }
@@ -992,23 +992,23 @@ public:
    /**
     * \brief Tests whether an object is an instance of a class.
     * \param obj the object
-    * \param clazz the class
-    * \return true if obj can be cast to clazz
+    * \param cls the class
+    * \return true if obj can be cast to cls
     */
-   bool isInstanceOf(jobject obj, jclass clazz) {
-      return env->IsInstanceOf(obj, clazz) == JNI_TRUE;
+   bool isInstanceOf(jobject obj, jclass cls) {
+      return env->IsInstanceOf(obj, cls) == JNI_TRUE;
    }
 
    /**
     * \brief Creates a new Java object.
-    * \param clazz the class of the object
+    * \param cls the class of the object
     * \param id the id of the constructor
     * \param args the arguments for the constructor
     * \return a reference to the new object
     * \throws JavaException if the construction fails
     */
-   LocalReference<jobject> newObject(jclass clazz, jmethodID id, const jvalue *args) {
-      jobject ret = env->NewObjectA(clazz, id, args);
+   LocalReference<jobject> newObject(jclass cls, jmethodID id, const jvalue *args) {
+      jobject ret = env->NewObjectA(cls, id, args);
       if (ret == nullptr) {
          throw JavaException();
       }
@@ -1023,8 +1023,8 @@ public:
       return s;
    }
 
-   void registerNatives(jclass clazz, const JNINativeMethod *methods, jint count) {
-      if (env->RegisterNatives(clazz, methods, count) != 0) {
+   void registerNatives(jclass cls, const JNINativeMethod *methods, jint count) {
+      if (env->RegisterNatives(cls, methods, count) != 0) {
          throw JavaException();
       }
    }
@@ -1093,8 +1093,8 @@ public:
       return array;
    }
 
-   LocalReference<jobjectArray> newObjectArray(jsize len, jclass clazz) {
-      jobjectArray array = env->NewObjectArray(len, clazz, nullptr);
+   LocalReference<jobjectArray> newObjectArray(jsize len, jclass cls) {
+      jobjectArray array = env->NewObjectArray(len, cls, nullptr);
       if (array == nullptr) {
          throw JavaException();
       }
@@ -1248,16 +1248,16 @@ public:
       }
    }
 
-   LocalReference<jobject> toReflectedField(jclass clazz, jfieldID id, jboolean isStatic) {
-      jobject o = env->ToReflectedField(clazz, id, isStatic);
+   LocalReference<jobject> toReflectedField(jclass cls, jfieldID id, jboolean isStatic) {
+      jobject o = env->ToReflectedField(cls, id, isStatic);
       if (o == nullptr) {
          throw JavaException();
       }
       return o;
    }
 
-   LocalReference<jobject> toReflectedMethod(jclass clazz, jmethodID id, jboolean isStatic) {
-      jobject o = env->ToReflectedMethod(clazz, id, isStatic);
+   LocalReference<jobject> toReflectedMethod(jclass cls, jmethodID id, jboolean isStatic) {
+      jobject o = env->ToReflectedMethod(cls, id, isStatic);
       if (o == nullptr) {
          throw JavaException();
       }
@@ -1293,8 +1293,8 @@ public:
       env->Throw(throwable);
    }
 
-   void throwNew(jclass clazz, const char *msg) {
-      env->ThrowNew(clazz, msg);
+   void throwNew(jclass cls, const char *msg) {
+      env->ThrowNew(cls, msg);
    }
 
    LocalReference<jclass> defineClass(const char *name, jobject loader, const unsigned char *buf, jsize bufLen) {

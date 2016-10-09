@@ -48,34 +48,35 @@ class Method;
  * \brief Represents a Java class.
  */
 class Class : public ObjectBase {
-
 public:
    /**
     * \brief Constructor.
-    * \param clazz a local reference to a Java class
+    * \param cls a local reference to a Java class
     * \throws JavaException if a global reference cannot be created
     */
-   Class(const LocalReference<jclass> &clazz) : clazz(clazz.makeGlobal()) {
-      printd(LogLevel, "Class::Class(), this: %p, clazz: %p\n", this, static_cast<jclass>(this->clazz));
+   Class(const LocalReference<jclass>& cls) : cls(cls.makeGlobal()) {
+      printd(LogLevel, "Class::Class(), this: %p, cls: %p\n", this, static_cast<jclass>(this->cls));
    }
 
    ~Class() {
-      printd(LogLevel, "Class::~Class(), this: %p, clazz: %p\n", this, static_cast<jclass>(this->clazz));
+      printd(LogLevel, "Class::~Class(), this: %p, cls: %p\n", this, static_cast<jclass>(this->cls));
    }
 
    jclass getJavaObject() const override {
-      return clazz;
+      return cls;
    }
 
-   Field *getField(const QoreStringNode *name, const QoreStringNode *descriptor);
-   Field *getStaticField(const QoreStringNode *name, const QoreStringNode *descriptor);
-   Method *getMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
-   Method *getStaticMethod(const QoreStringNode *name, const QoreStringNode *descriptor);
-   Method *getConstructor(const QoreStringNode *descriptor);
-   bool isInstance(const ObjectBase *obj);
+   Field* getField(const QoreStringNode* name, const QoreStringNode* descriptor);
+   Field* getStaticField(const QoreStringNode* name, const QoreStringNode* descriptor);
+   Method* getMethod(const QoreStringNode* name, const QoreStringNode* descriptor);
+   Method* getStaticMethod(const QoreStringNode* name, const QoreStringNode* descriptor);
+   Method* getConstructor(const QoreStringNode* descriptor);
+   bool isInstance(const ObjectBase* obj);
+   // returns the parent class or nullptr if there is none
+   Class* getSuperClass();
 
 private:
-   GlobalReference<jclass> clazz;
+   GlobalReference<jclass> cls;
 };
 
 } // namespace jni

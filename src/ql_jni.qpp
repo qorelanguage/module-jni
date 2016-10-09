@@ -72,7 +72,7 @@ Qore::Jni::Class load_class(string name) {
 //! Creates a Java object that implements given interface using an invocation handler.
 /**
     @param invocationHandler the invocation handler
-    @param clazz the interface to implement
+    @param cls the interface to implement
     @return a Java object that implement the interface by calling the invocation handler
 
     @par Example:
@@ -83,11 +83,11 @@ Qore::Jni::Class load_class(string name) {
     # runnableInstance now has a Java method void run() that calls Qore function doRun()
     @endcode
  */
-Qore::Jni::Object implement_interface(Qore::Jni::InvocationHandler[jni::InvocationHandler] invocationHandler, Qore::Jni::Class[jni::Class] clazz) {
+Qore::Jni::Object implement_interface(Qore::Jni::InvocationHandler[jni::InvocationHandler] invocationHandler, Qore::Jni::Class[jni::Class] cls) {
    SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
-   SimpleRefHolder<jni::Class> classHolder(clazz);
+   SimpleRefHolder<jni::Class> classHolder(cls);
    try {
-      return new QoreObject(QC_OBJECT, getProgram(), jni::Functions::implementInterface(nullptr, invocationHandler, clazz));
+      return new QoreObject(QC_OBJECT, getProgram(), jni::Functions::implementInterface(nullptr, invocationHandler, cls));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
@@ -98,7 +98,7 @@ Qore::Jni::Object implement_interface(Qore::Jni::InvocationHandler[jni::Invocati
 /**
     @param classLoader the class loader that loaded the interface
     @param invocationHandler the invocation handler
-    @param clazz the interface to implement
+    @param cls the interface to implement
     @return a Java object that implement the interface by calling the invocation handler
 
     @par Example:
@@ -110,12 +110,12 @@ Qore::Jni::Object implement_interface(Qore::Jni::InvocationHandler[jni::Invocati
     # runnableInstance now has a Java method void run() that calls Qore function doRun()
     @endcode
  */
-Qore::Jni::Object implement_interface(Qore::Jni::Object[jni::ObjectBase] classLoader, Qore::Jni::InvocationHandler[jni::InvocationHandler] invocationHandler, Qore::Jni::Class[jni::Class] clazz) {
+Qore::Jni::Object implement_interface(Qore::Jni::Object[jni::ObjectBase] classLoader, Qore::Jni::InvocationHandler[jni::InvocationHandler] invocationHandler, Qore::Jni::Class[jni::Class] cls) {
    SimpleRefHolder<jni::ObjectBase> classLoaderHolder(classLoader);
    SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
-   SimpleRefHolder<jni::Class> classHolder(clazz);
+   SimpleRefHolder<jni::Class> classHolder(cls);
    try {
-      return new QoreObject(QC_OBJECT, getProgram(), jni::Functions::implementInterface(classLoader, invocationHandler, clazz));
+      return new QoreObject(QC_OBJECT, getProgram(), jni::Functions::implementInterface(classLoader, invocationHandler, cls));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
@@ -237,13 +237,13 @@ Qore::Jni::Array new_double_array(int size) {
 //! Allocates a new Java array of object references.
 /**
     @param size the size of the array to allocate
-    @param clazz the type of the array elements
+    @param cls the type of the array elements
     @return the allocated array
  */
-Qore::Jni::Array new_object_array(int size, Qore::Jni::Class[jni::Class] clazz) {
-   SimpleRefHolder<jni::Class> classHolder(clazz);
+Qore::Jni::Array new_object_array(int size, Qore::Jni::Class[jni::Class] cls) {
+   SimpleRefHolder<jni::Class> classHolder(cls);
    try {
-      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newObjectArray(size, clazz));
+      return new QoreObject(QC_ARRAY, getProgram(), jni::Functions::newObjectArray(size, cls));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();

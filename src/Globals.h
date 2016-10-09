@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -58,6 +58,7 @@ public:
    static jmethodID methodClassGetClassLoader;                          // ClassLoader Class.getClassLoader();
    static jmethodID methodClassGetName;                                 // String Class.getName();
    static jmethodID methodClassGetFields;                               // Field[] Class.getFields();
+   static jmethodID methodClassGetSuperClass;                           // Class<? super T> Class.getSuperClass()
 
    static GlobalReference<jclass> classThrowable;                       // java.lang.Throwable
    static jmethodID methodThrowableGetMessage;                          // String Throwable.getMessage();
@@ -91,7 +92,7 @@ public:
 public:
    static void init();
    static void cleanup();
-   static Type getType(jclass clazz);
+   static Type getType(jclass cls);
 };
 
 } // namespace jni

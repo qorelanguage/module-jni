@@ -82,7 +82,7 @@ public:
       return static_cast<jshort>(value.getAsBigInt());
    }
 
-   static jobject toObject(const QoreValue &value, jclass clazz) {
+   static jobject toObject(const QoreValue &value, jclass cls) {
       if (value.getType() == NT_NOTHING) {
          return nullptr;
       }
@@ -107,9 +107,9 @@ public:
          throw BasicException("A Java object argument expected");
       }
 
-      if (clazz) {
+      if (cls) {
          Env env;
-         if (!env.isInstanceOf(javaObjectRef, clazz)) {
+         if (!env.isInstanceOf(javaObjectRef, cls)) {
             throw BasicException("Passed object is not an instance of expected class");
          }
       }

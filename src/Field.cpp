@@ -33,7 +33,7 @@ namespace jni {
 
 QoreValue Field::get(jobject object) {
    Env env;
-   if (!env.isInstanceOf(object, clazz->getJavaObject())) {
+   if (!env.isInstanceOf(object, cls->getJavaObject())) {
       throw BasicException("Passed instance does not match the field's class");
    }
    switch (type) {
@@ -62,7 +62,7 @@ QoreValue Field::get(jobject object) {
 
 void Field::set(jobject object, const QoreValue &value) {
    Env env;
-   if (!env.isInstanceOf(object, clazz->getJavaObject())) {
+   if (!env.isInstanceOf(object, cls->getJavaObject())) {
       throw BasicException("Passed instance does not match the field's class");
    }
    switch (type) {
@@ -102,25 +102,25 @@ QoreValue Field::getStatic() {
    Env env;
    switch (type) {
       case Type::Boolean:
-         return JavaToQore::convert(env.getStaticBooleanField(clazz->getJavaObject(), id));
+         return JavaToQore::convert(env.getStaticBooleanField(cls->getJavaObject(), id));
       case Type::Byte:
-         return JavaToQore::convert(env.getStaticByteField(clazz->getJavaObject(), id));
+         return JavaToQore::convert(env.getStaticByteField(cls->getJavaObject(), id));
       case Type::Char:
-         return JavaToQore::convert(env.getStaticCharField(clazz->getJavaObject(), id));
+         return JavaToQore::convert(env.getStaticCharField(cls->getJavaObject(), id));
       case Type::Short:
-         return JavaToQore::convert(env.getStaticShortField(clazz->getJavaObject(), id));
+         return JavaToQore::convert(env.getStaticShortField(cls->getJavaObject(), id));
       case Type::Int:
-         return JavaToQore::convert(env.getStaticIntField(clazz->getJavaObject(), id));
+         return JavaToQore::convert(env.getStaticIntField(cls->getJavaObject(), id));
       case Type::Long:
-         return JavaToQore::convert(env.getStaticLongField(clazz->getJavaObject(), id));
+         return JavaToQore::convert(env.getStaticLongField(cls->getJavaObject(), id));
       case Type::Float:
-         return JavaToQore::convert(env.getStaticFloatField(clazz->getJavaObject(), id));
+         return JavaToQore::convert(env.getStaticFloatField(cls->getJavaObject(), id));
       case Type::Double:
-         return JavaToQore::convert(env.getStaticDoubleField(clazz->getJavaObject(), id));
+         return JavaToQore::convert(env.getStaticDoubleField(cls->getJavaObject(), id));
       case Type::Reference:
       default:
          assert(type == Type::Reference);
-         return JavaToQore::convert(env.getStaticObjectField(clazz->getJavaObject(), id));
+         return JavaToQore::convert(env.getStaticObjectField(cls->getJavaObject(), id));
    }
 }
 
@@ -128,33 +128,33 @@ void Field::setStatic(const QoreValue &value) {
    Env env;
    switch (type) {
       case Type::Boolean:
-         env.setStaticBooleanField(clazz->getJavaObject(), id, QoreToJava::toBoolean(value));
+         env.setStaticBooleanField(cls->getJavaObject(), id, QoreToJava::toBoolean(value));
          break;
       case Type::Byte:
-         env.setStaticByteField(clazz->getJavaObject(), id, QoreToJava::toByte(value));
+         env.setStaticByteField(cls->getJavaObject(), id, QoreToJava::toByte(value));
          break;
       case Type::Char:
-         env.setStaticCharField(clazz->getJavaObject(), id, QoreToJava::toChar(value));
+         env.setStaticCharField(cls->getJavaObject(), id, QoreToJava::toChar(value));
          break;
       case Type::Short:
-         env.setStaticShortField(clazz->getJavaObject(), id, QoreToJava::toShort(value));
+         env.setStaticShortField(cls->getJavaObject(), id, QoreToJava::toShort(value));
          break;
       case Type::Int:
-         env.setStaticIntField(clazz->getJavaObject(), id, QoreToJava::toInt(value));
+         env.setStaticIntField(cls->getJavaObject(), id, QoreToJava::toInt(value));
          break;
       case Type::Long:
-         env.setStaticLongField(clazz->getJavaObject(), id, QoreToJava::toLong(value));
+         env.setStaticLongField(cls->getJavaObject(), id, QoreToJava::toLong(value));
          break;
       case Type::Float:
-         env.setStaticFloatField(clazz->getJavaObject(), id, QoreToJava::toFloat(value));
+         env.setStaticFloatField(cls->getJavaObject(), id, QoreToJava::toFloat(value));
          break;
       case Type::Double:
-         env.setStaticDoubleField(clazz->getJavaObject(), id, QoreToJava::toDouble(value));
+         env.setStaticDoubleField(cls->getJavaObject(), id, QoreToJava::toDouble(value));
          break;
       case Type::Reference:
       default:
          assert(type == Type::Reference);
-         env.setStaticObjectField(clazz->getJavaObject(), id, QoreToJava::toObject(value, typeClass));
+         env.setStaticObjectField(cls->getJavaObject(), id, QoreToJava::toObject(value, typeClass));
          break;
    }
 }

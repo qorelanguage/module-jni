@@ -66,16 +66,16 @@ public:
       return loadClass(nameUtf8.c_str());
    }
 
-   static Object* implementInterface(const ObjectBase *classLoader, const InvocationHandler *invocationHandler, const Class *clazz) {
+   static Object* implementInterface(const ObjectBase *classLoader, const InvocationHandler *invocationHandler, const Class *cls) {
       Env env;
 
       LocalReference<jobject> cl;
       LocalReference<jobjectArray> interfaces = env.newObjectArray(1, Globals::classClass);
-      env.setObjectArrayElement(interfaces, 0, clazz->getJavaObject());
+      env.setObjectArrayElement(interfaces, 0, cls->getJavaObject());
 
       jvalue args[3];
       if (classLoader == nullptr) {
-         cl = env.callObjectMethod(clazz->getJavaObject(), Globals::methodClassGetClassLoader, nullptr);
+         cl = env.callObjectMethod(cls->getJavaObject(), Globals::methodClassGetClassLoader, nullptr);
          args[0].l = cl;
       } else {
          args[0].l = classLoader->getJavaObject();
@@ -127,9 +127,9 @@ public:
       return new Array(env.newDoubleArray(size));
    }
 
-   static Array *newObjectArray(int64 size, const Class *clazz) {
+   static Array *newObjectArray(int64 size, const Class *cls) {
       Env env;
-      return new Array(env.newObjectArray(size, clazz->getJavaObject()));
+      return new Array(env.newObjectArray(size, cls->getJavaObject()));
    }
 
 private:

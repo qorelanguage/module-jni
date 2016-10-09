@@ -142,86 +142,95 @@ static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
    // process import statement
    printd(LogLevel, "jni_module_parse_cmd() pgm: %p arg: %s c: %c\n", pgm, arg.getBuffer(), arg[-1]);
 
-   // see if there is a wildcard at the end
-   bool wc = false;
-   if (arg[-1] == '*') {
-      if (arg[-2] != '.' || arg.strlen() < 3) {
-	 xsink->raiseException("JNI-IMPORT-ERROR", "invalid import argument: '%s'", arg.getBuffer());
+   try {
+      // see if there is a wildcard at the end
+      bool wc = false;
+      if (arg[-1] == '*') {
+	 if (arg[-2] != '.' || arg.strlen() < 3) {
+	    xsink->raiseException("JNI-IMPORT-ERROR", "invalid import argument: '%s'", arg.getBuffer());
+	    return;
+	 }
+
+	 arg.terminate(arg.strlen() - 2);
+
+	 arg.replaceAll(".", "::");
+
+	 QoreNamespace* jns;
+
+	 // create jni namespace in root namespace if necessary
+	 if (!has_feature)
+	    jns = &qjcm.getRootNS();
+	 else {
+	    QoreNamespace* rns = pgm->getRootNS();
+	    jns = rns->findCreateNamespacePath("Jni", true);
+	 }
+
+	 QoreNamespace* ns = jns->findCreateNamespacePath(arg.c_str(), true);
+	 printd(LogLevel, "jni_module_parse_cmd() nsp: '%s' ns: '%s'\n", arg.c_str(), ns->getName());
+	 ns->setClassHandler(jni_class_handler);
+	 wc = true;
+      }
+      else {
+	 // unblock signals and attach to java thread if necessary
+	 //qjtr.check_thread();
+
+	 printd(LogLevel, "jni_module_parse_cmd() non wc lcc arg: '%s'\n", arg.c_str());
+	 {
+	    // parsing can occur in parallel in different QoreProgram objects
+	    // so we need to protect the load with a lock
+	    AutoLocker al(qjcm.m);
+	    qjcm.loadCreateClass(qjcm.getRootNS(), arg.c_str());
+	 }
+      }
+
+      // now try to add to current program
+      printd(LogLevel, "jni_module_parse_cmd() pgm: %p arg: '%s'\n", pgm, arg.c_str());
+      if (!pgm)
+	 return;
+
+      QoreNamespace* ns = pgm->getRootNS();
+
+      printd(LogLevel, "jni_module_parse_cmd() feature '%s': %s (default_jns: %p)\n", QORE_JNI_MODULE_NAME, pgm->checkFeature(QORE_JNI_MODULE_NAME) ? "true" : "false", &qjcm.getRootNS());
+
+      if (!pgm->checkFeature(QORE_JNI_MODULE_NAME)) {
+	 QoreNamespace* jns = qjcm.getRootNS().copy();
+	 printd(LogLevel, "jns: %p '%s' ns: %p\n", jns, jns->getName(), ns);
+
+	 assert(jns->findLocalNamespace("java"));
+
+	 ns->addNamespace(jns);
+	 pgm->addFeature(QORE_JNI_MODULE_NAME);
+
+#ifdef DEBUG
+	 QoreNamespaceIterator i(ns);
+	 while (i.next()) {
+	    const QoreNamespace* p = i.get()->getParent();
+	    printd(LogLevel, "ns: %p '%s': parent '%s'\n", i.get(), i.get()->getName(), p ? p->getName() : "n/a");
+	    if (!strcmp(i.get()->getName(), "util")) {
+	       QoreClass* qc = i.get()->findLocalClass("HashMap");
+	       printd(LogLevel, "util::HashMap: %p '%s'\n", qc, qc ? qc->getName() : "n/a");
+	    }
+	 }
+	 ns = ns->findLocalNamespace("Jni");
+	 assert(ns);
+	 ns = ns->findLocalNamespace("java");
+	 assert(ns);
+#endif
+
 	 return;
       }
 
-      arg.terminate(arg.strlen() - 2);
-
-      arg.replaceAll(".", "::");
-
-      QoreNamespace* jns;
-
-      // create jni namespace in root namespace if necessary
-      if (!has_feature)
-	 jns = &qjcm.getRootNS();
-      else {
-	 QoreNamespace* rns = pgm->getRootNS();
-	 jns = rns->findCreateNamespacePath("Jni", true);
-      }
-
-      QoreNamespace* ns = jns->findCreateNamespacePath(arg.c_str(), true);
-      printd(LogLevel, "jni_module_parse_cmd() nsp: '%s' ns: '%s'\n", arg.c_str(), ns->getName());
-      ns->setClassHandler(jni_class_handler);
-      wc = true;
-   }
-   else {
-      // unblock signals and attach to java thread if necessary
-      //qjtr.check_thread();
-
-      {
+      if (!wc) {
+	 ns = ns->findLocalNamespace("Jni");
+	 assert(ns);
 	 // parsing can occur in parallel in different QoreProgram objects
 	 // so we need to protect the load with a lock
 	 AutoLocker al(qjcm.m);
-	 qjcm.loadClass(qjcm.getRootNS(), arg.getBuffer(), xsink);
+	 qjcm.findCreateClass(*ns, arg.getBuffer());
       }
    }
-
-   // now try to add to current program
-   printd(LogLevel, "jni_module_parse_cmd() pgm: %p arg: '%s'\n", pgm, arg.getBuffer());
-   if (!pgm)
-      return;
-
-   QoreNamespace* ns = pgm->getRootNS();
-
-   printd(LogLevel, "jni_module_parse_cmd() feature '%s': %s (default_jns: %p)\n", QORE_JNI_MODULE_NAME, pgm->checkFeature(QORE_JNI_MODULE_NAME) ? "true" : "false", &qjcm.getRootNS());
-
-   if (!pgm->checkFeature(QORE_JNI_MODULE_NAME)) {
-      QoreNamespace* jns = qjcm.getRootNS().copy();
-      printd(LogLevel, "jns: %p '%s' ns: %p\n", jns, jns->getName(), ns);
-
-      assert(jns->findLocalNamespace("java"));
-
-      ns->addNamespace(jns);
-      pgm->addFeature(QORE_JNI_MODULE_NAME);
-
-#ifdef DEBUG
-      QoreNamespaceIterator i(ns);
-      while (i.next()) {
-	 const QoreNamespace* p = i.get()->getParent();
-	 printd(LogLevel, "ns: %p '%s': parent '%s'\n", i.get(), i.get()->getName(), p ? p->getName() : "n/a");
-	 if (!strcmp(i.get()->getName(), "util")) {
-	    QoreClass* qc = i.get()->findLocalClass("HashMap");
-	    printd(LogLevel, "util::HashMap: %p '%s'\n", qc, qc ? qc->getName() : "n/a");
-	 }
-      }
-      ns = ns->findLocalNamespace("Jni");
-      assert(ns);
-      ns = ns->findLocalNamespace("java");
-      assert(ns);
-#endif
-
-      return;
-   }
-
-   if (!wc) {
-      ns = ns->findLocalNamespace("Jni");
-      assert(ns);
-      qjcm.loadClass(*ns, arg.getBuffer(), xsink);
+   catch (jni::Exception &e) {
+      e.convert(xsink);
    }
 }
 
@@ -250,7 +259,7 @@ QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
    // class loading can occur in parallel in different QoreProgram objects
    // so we need to protect the load with a lock
    AutoLocker al(qjcm.m);
-   QoreClass *qc = qjcm.loadClass(*const_cast<QoreNamespace *>(jns), cp.getBuffer());
+   QoreClass *qc = qjcm.loadCreateClass(*const_cast<QoreNamespace *>(jns), cp.getBuffer());
 
    printd(LogLevel, "jni_class_handler() cp: %s returning qc: %p\n", cp.getBuffer(), qc);
    return qc;

@@ -36,7 +36,7 @@
 //! Represents a Java class.
 /**
  */
-qclass Class [arg=jni::Class* clazz; ns=Qore::Jni; flags=final; vparent=Object];
+qclass Class [arg=jni::Class* cls; ns=Qore::Jni; flags=final; vparent=Object];
 
 //! Defined private to prevent Qore code from creating instances.
 /**
@@ -53,7 +53,7 @@ private Class::constructor() {
  */
 Field Class::getField(string name, string descriptor) {
    try {
-      return new QoreObject(QC_FIELD, getProgram(), clazz->getField(name, descriptor));
+      return new QoreObject(QC_FIELD, getProgram(), cls->getField(name, descriptor));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
@@ -69,7 +69,7 @@ Field Class::getField(string name, string descriptor) {
  */
 StaticField Class::getStaticField(string name, string descriptor) {
    try {
-      return new QoreObject(QC_STATICFIELD, getProgram(), clazz->getStaticField(name, descriptor));
+      return new QoreObject(QC_STATICFIELD, getProgram(), cls->getStaticField(name, descriptor));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
@@ -85,7 +85,7 @@ StaticField Class::getStaticField(string name, string descriptor) {
  */
 Method Class::getMethod(string name, string descriptor) {
    try {
-      return new QoreObject(QC_METHOD, getProgram(), clazz->getMethod(name, descriptor));
+      return new QoreObject(QC_METHOD, getProgram(), cls->getMethod(name, descriptor));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
@@ -101,7 +101,7 @@ Method Class::getMethod(string name, string descriptor) {
  */
 StaticMethod Class::getStaticMethod(string name, string descriptor) {
    try {
-      return new QoreObject(QC_STATICMETHOD, getProgram(), clazz->getStaticMethod(name, descriptor));
+      return new QoreObject(QC_STATICMETHOD, getProgram(), cls->getStaticMethod(name, descriptor));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
@@ -116,7 +116,7 @@ StaticMethod Class::getStaticMethod(string name, string descriptor) {
  */
 Constructor Class::getConstructor(string descriptor) {
    try {
-      return new QoreObject(QC_CONSTRUCTOR, getProgram(), clazz->getConstructor(descriptor));
+      return new QoreObject(QC_CONSTRUCTOR, getProgram(), cls->getConstructor(descriptor));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
@@ -131,7 +131,7 @@ Constructor Class::getConstructor(string descriptor) {
 bool Class::isInstance(Jni::Qore::Object[jni::ObjectBase] obj) {
    SimpleRefHolder<jni::ObjectBase> objHolder(obj);
    try {
-      return clazz->isInstance(obj);
+      return cls->isInstance(obj);
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();

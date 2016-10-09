@@ -49,15 +49,15 @@ class Field : public ObjectBase {
 public:
    /**
     * \brief Constructor.
-    * \param clazz the class associated with the field id
+    * \param cls the class associated with the field id
     * \param id the field id
     * \param isStatic true if the field is static
     */
-   Field(Class *clazz, jfieldID id, bool isStatic) : clazz(clazz), id(id) {
-      printd(LogLevel, "Field::Field(), this: %p, clazz: %p, id: %p\n", this, clazz, id);
-      clazz->ref();
+   Field(Class *cls, jfieldID id, bool isStatic) : cls(cls), id(id) {
+      printd(LogLevel, "Field::Field(), this: %p, cls: %p, id: %p\n", this, cls, id);
+      cls->ref();
       Env env;
-      field = env.toReflectedField(clazz->getJavaObject(), id, isStatic).makeGlobal();
+      field = env.toReflectedField(cls->getJavaObject(), id, isStatic).makeGlobal();
       init(env);
    }
 
@@ -67,15 +67,15 @@ public:
     */
    Field(jobject field) {
       Env env;
-      clazz = new Class(env.callObjectMethod(field, Globals::methodFieldGetDeclaringClass, nullptr).as<jclass>());
+      cls = new Class(env.callObjectMethod(field, Globals::methodFieldGetDeclaringClass, nullptr).as<jclass>());
       id = env.fromReflectedField(field);
       this->field = GlobalReference<jobject>::fromLocal(field);
-      printd(LogLevel, "Field::Field(), this: %p, clazz: %p, id: %p\n", this, *clazz, id);
+      printd(LogLevel, "Field::Field(), this: %p, cls: %p, id: %p\n", this, *cls, id);
       init(env);
    }
 
    ~Field() {
-      printd(LogLevel, "Field::~Field(), this: %p, clazz: %p, id: %p\n", this, *clazz, id);
+      printd(LogLevel, "Field::~Field(), this: %p, cls: %p, id: %p\n", this, *cls, id);
    }
 
    /**
@@ -119,7 +119,7 @@ private:
    }
 
 private:
-   SimpleRefHolder<Class> clazz;
+   SimpleRefHolder<Class> cls;
    jfieldID id;
    GlobalReference<jobject> field;              // the instance of java.lang.reflect.Field
    GlobalReference<jclass> typeClass;           // the type of the field
