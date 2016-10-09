@@ -32,6 +32,7 @@ set(QPP_SRC
 
 set(CPP_SRC
     src/jni-module.cpp
+    src/QoreJniClassMap.cpp
     src/defs.cpp
     src/Jvm.cpp
     src/Array.cpp
