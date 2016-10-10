@@ -46,16 +46,12 @@ namespace jni {
 
 class QoreJniClassMap {
 protected:
-   // map of java class names to QoreClass objects
+   // map of java class names (ex 'java/lang/object') to QoreClass ptrs
    typedef std::map<std::string, QoreClass*> jcmap_t;
-
-   // map of java class objects to QoreClass objects
-   //typedef std::map<jni::Class*, QoreClass*> jcpmap_t;
 
    // parent namespace for jni module functionality
    QoreNamespace default_jns;
    jcmap_t jcmap;
-   //jcpmap_t jcpmap;
    bool init_done;
 
    DLLLOCAL void addIntern(const char* name, jni::Class* jc, QoreClass* qc) {
@@ -66,11 +62,6 @@ protected:
 
       assert(jcmap.find(name) == jcmap.end());
       jcmap[name] = qc;
-
-      /*
-      assert(jcpmap.find(jc) == jcpmap.end());
-      jcpmap[jc] = qc;
-      */
    }
 
    /*
@@ -83,7 +74,8 @@ protected:
    DLLLOCAL void populateQoreClass(QoreClass& qc, java::lang::Class *jc, ExceptionSink *xsink = 0);
    DLLLOCAL void addQoreClass();
    */
-   DLLLOCAL void addSuperClass(QoreNamespace& jns, QoreClass& qc, jni::Class* parent);
+
+   DLLLOCAL void addSuperClass(QoreClass& qc, jni::Class* parent);
 
 public:
    mutable QoreThreadLock m;
@@ -93,19 +85,12 @@ public:
 
    DLLLOCAL void init();
 
-   DLLLOCAL QoreClass* createQoreClass(QoreNamespace& jns, const char* name, const char* jpath, jni::Class* jc);
+   DLLLOCAL QoreClass* createClass(QoreNamespace& jns, const char* name, const char* jpath, jni::Class* jc);
 
    DLLLOCAL QoreClass* find(const char* jpath) const {
       jcmap_t::const_iterator i = jcmap.find(jpath);
       return i == jcmap.end() ? 0 : i->second;
    }
-
-   /*
-   DLLLOCAL QoreClass* find(jni::Class* jc) const {
-      jcpmap_t::const_iterator i = jcpmap.find(jc);
-      return i == jcpmap.end() ? 0 : i->second;
-   }
-   */
 
    DLLLOCAL QoreClass* findCreateClass(QoreNamespace& jns, const char* name);
 

@@ -47,33 +47,44 @@ class Method;
 /**
  * \brief Represents a Java class.
  */
-class Class : public ObjectBase {
+class Class : public ObjectBase, public AbstractQoreClassUserData {
+private:
+   DLLLOCAL ~Class() {
+      printd(LogLevel, "Class::~Class(), this: %p, cls: %p\n", this, static_cast<jclass>(this->cls));
+   }
+
 public:
    /**
     * \brief Constructor.
     * \param cls a local reference to a Java class
     * \throws JavaException if a global reference cannot be created
     */
-   Class(const LocalReference<jclass>& cls) : cls(cls.makeGlobal()) {
+   DLLLOCAL Class(const LocalReference<jclass>& cls) : cls(cls.makeGlobal()) {
       printd(LogLevel, "Class::Class(), this: %p, cls: %p\n", this, static_cast<jclass>(this->cls));
+      assert(static_cast<jclass>(this->cls));
    }
 
-   ~Class() {
-      printd(LogLevel, "Class::~Class(), this: %p, cls: %p\n", this, static_cast<jclass>(this->cls));
-   }
-
-   jclass getJavaObject() const override {
+   DLLLOCAL jclass getJavaObject() const override {
       return cls;
    }
 
-   Field* getField(const QoreStringNode* name, const QoreStringNode* descriptor);
-   Field* getStaticField(const QoreStringNode* name, const QoreStringNode* descriptor);
-   Method* getMethod(const QoreStringNode* name, const QoreStringNode* descriptor);
-   Method* getStaticMethod(const QoreStringNode* name, const QoreStringNode* descriptor);
-   Method* getConstructor(const QoreStringNode* descriptor);
-   bool isInstance(const ObjectBase* obj);
+   DLLLOCAL virtual Class* copy() const override {
+      const_cast<Class*>(this)->ref();
+      return const_cast<Class*>(this);
+   }
+
+   DLLLOCAL virtual void doDeref() override {
+      deref();
+   }
+
+   DLLLOCAL Field* getField(const QoreStringNode* name, const QoreStringNode* descriptor);
+   DLLLOCAL Field* getStaticField(const QoreStringNode* name, const QoreStringNode* descriptor);
+   DLLLOCAL Method* getMethod(const QoreStringNode* name, const QoreStringNode* descriptor);
+   DLLLOCAL Method* getStaticMethod(const QoreStringNode* name, const QoreStringNode* descriptor);
+   DLLLOCAL Method* getConstructor(const QoreStringNode* descriptor);
+   DLLLOCAL bool isInstance(const ObjectBase* obj);
    // returns the parent class or nullptr if there is none
-   Class* getSuperClass();
+   DLLLOCAL Class* getSuperClass();
 
 private:
    GlobalReference<jclass> cls;

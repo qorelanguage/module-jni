@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,13 @@
 namespace jni {
 
 thread_local QoreThreadAttacher qoreThreadAttacher;
+
+void JavaException::ignore() {
+   JNIEnv *env = Jvm::getEnv();         //not using the Env wrapper because we don't want any C++ exceptions here
+   LocalReference<jthrowable> throwable = env->ExceptionOccurred();
+   assert(throwable != nullptr);
+   env->ExceptionClear();
+}
 
 void JavaException::convert(ExceptionSink *xsink) {
    JNIEnv *env = Jvm::getEnv();         //not using the Env wrapper because we don't want any C++ exceptions here

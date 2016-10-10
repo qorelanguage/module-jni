@@ -59,6 +59,11 @@ public:
     */
    virtual void convert(ExceptionSink *xsink) = 0;
 
+   /**
+    * \brief ignore the exception
+    */
+   virtual void ignore() = 0;
+
    Exception(Exception &&) = default;
    Exception &operator=(Exception &&) = default;
 
@@ -74,9 +79,17 @@ private:
 };
 
 /**
+ * \brief An exception that can be safely ignored with no action
+ */
+class IgnorableException : public Exception {
+   void ignore() override {
+   }
+};
+
+/**
  * \brief An exception thrown when the current thread cannot be attached to the JVM.
  */
-class UnableToAttachException : public Exception {
+class UnableToAttachException : public IgnorableException {
 
 public:
    /**
@@ -98,7 +111,7 @@ private:
 /**
  * \brief An exception thrown when the current thread cannot be registered with Qore.
  */
-class UnableToRegisterException : public Exception {
+class UnableToRegisterException : public IgnorableException {
 
 public:
    /**
@@ -126,12 +139,14 @@ public:
    }
 
    void convert(ExceptionSink *xsink) override;
+
+   void ignore() override;
 };
 
 /**
  * \brief Basic exception with a simple string messsage.
  */
-class BasicException : public Exception {
+class BasicException : public IgnorableException {
 
 public:
    /**
@@ -165,6 +180,10 @@ public:
 
    void convert(ExceptionSink *xsink) override {
       xsink->assimilate(*sink);
+   }
+
+   DLLLOCAL virtual void ignore() override {
+      sink->clear();
    }
 
 private:

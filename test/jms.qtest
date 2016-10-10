@@ -277,7 +277,7 @@ public class Main inherits QUnit::Test {
         string jar;
     }
 
-    constructor() : Test("jni test", "1.0", \ARGV) {
+    constructor() : Test("JMS test", "1.0", \ARGV) {
         addTestCase("base test", \testJms());
 
         # ex: file:///home/user/glassfish4/glassfish/lib/gf-client.jar
