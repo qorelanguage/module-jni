@@ -81,6 +81,11 @@ Class* Class::getSuperClass() {
    return new Class(parentClass);
 }
 
+LocalReference<jobjectArray> Class::getInterfaces() {
+   Env env;
+   return env.callObjectMethod(cls, Globals::methodClassGetInterfaces, nullptr).as<jobjectArray>();
+}
+
 bool Class::isInstance(const ObjectBase* obj) {
    Env env;
    return env.isInstanceOf(obj->getJavaObject(), cls) == JNI_TRUE;

@@ -59,6 +59,7 @@ public:
    static jmethodID methodClassGetName;                                 // String Class.getName();
    static jmethodID methodClassGetFields;                               // Field[] Class.getFields();
    static jmethodID methodClassGetSuperClass;                           // Class<? super T> Class.getSuperClass()
+   static jmethodID methodClassGetInterfaces;                           // Class<?>[] Class.getInterfacess()
 
    static GlobalReference<jclass> classThrowable;                       // java.lang.Throwable
    static jmethodID methodThrowableGetMessage;                          // String Throwable.getMessage();

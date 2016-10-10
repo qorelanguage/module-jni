@@ -268,7 +268,6 @@ class JmsContext {
 
     Destination getDestination(string name) {
         return new Destination(lookup.invoke(namingContext, name));
-
     }
 }
 

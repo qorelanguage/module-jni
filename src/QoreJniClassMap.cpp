@@ -146,6 +146,15 @@ QoreClass* QoreJniClassMap::createClass(QoreNamespace& jns, const char* name, co
    if (parent)
       addSuperClass(*qc, parent);
 
+   // get and process interfaces
+   Env env;
+   LocalReference<jobjectArray> interfaceArray = jc->getInterfaces();
+   for (jsize i = 0, e = env.getArrayLength(interfaceArray); i < e; ++i) {
+      addSuperClass(*qc, new Class(env.getObjectArrayElement(interfaceArray, i).as<jclass>()));
+   }
+
+   //populateQoreClass(*qc, jc);
+
    // add to target namespace if not default
    if (&jns != &default_jns) {
       ns = qjni_find_create_namespace(jns, name, sn);
@@ -158,24 +167,6 @@ QoreClass* QoreJniClassMap::createClass(QoreNamespace& jns, const char* name, co
       // save class in namespace
       ns->addSystemClass(qc);
    }
-
-   /*
-   // get and process superclass
-   java::lang::Class *jsc = jc->getSuperclass();
-
-   // add superclass
-   if (jsc)
-      addSuperClass(*qc, jsc);
-
-   // add interface classes as superclasses
-   JArray<jclass>* ifc = jc->getInterfaces();
-   if (ifc && ifc->length) {
-      for (int i = 0; i < ifc->length; ++i)
-	 addSuperClass(*qc, elements(ifc)[i]);
-   }
-   */
-
-   //populateQoreClass(*qc, jc);
 
    printd(LogLevel, "QoreJniClassMap::createClass() returning qc: %p ns: %p '%s::%s'\n", qc, ns, ns->getName(), sn);
 

@@ -52,6 +52,7 @@ jmethodID Globals::methodClassGetClassLoader;
 jmethodID Globals::methodClassGetName;
 jmethodID Globals::methodClassGetFields;
 jmethodID Globals::methodClassGetSuperClass;
+jmethodID Globals::methodClassGetInterfaces;
 
 GlobalReference<jclass> Globals::classThrowable;
 jmethodID Globals::methodThrowableGetMessage;
@@ -166,6 +167,7 @@ void Globals::init() {
    methodClassGetName = env.getMethod(classClass, "getName", "()Ljava/lang/String;");
    methodClassGetFields = env.getMethod(classClass, "getFields", "()[Ljava/lang/reflect/Field;");
    methodClassGetSuperClass = env.getMethod(classClass, "getSuperclass", "()Ljava/lang/Class;");
+   methodClassGetInterfaces = env.getMethod(classClass, "getInterfaces", "()[Ljava/lang/Class;");
 
    classThrowable = env.findClass("java/lang/Throwable").makeGlobal();
    methodThrowableGetMessage = env.getMethod(classThrowable, "getMessage", "()Ljava/lang/String;");

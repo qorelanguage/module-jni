@@ -83,8 +83,12 @@ public:
    DLLLOCAL Method* getStaticMethod(const QoreStringNode* name, const QoreStringNode* descriptor);
    DLLLOCAL Method* getConstructor(const QoreStringNode* descriptor);
    DLLLOCAL bool isInstance(const ObjectBase* obj);
+
    // returns the parent class or nullptr if there is none
    DLLLOCAL Class* getSuperClass();
+
+   // returs an array of interface classes
+   DLLLOCAL LocalReference<jobjectArray> getInterfaces();
 
 private:
    GlobalReference<jclass> cls;

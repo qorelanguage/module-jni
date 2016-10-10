@@ -143,7 +143,7 @@ static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
    bool has_feature = pgm ? pgm->checkFeature(QORE_JNI_MODULE_NAME) : false;
 
    // process import statement
-   printd(LogLevel, "jni_module_parse_cmd() pgm: %p arg: %s c: %c\n", pgm, arg.getBuffer(), arg[-1]);
+   printd(LogLevel, "jni_module_parse_cmd() pgm: %p arg: %s c: %c has_feature: %d\n", pgm, arg.getBuffer(), arg[-1], has_feature);
 
    try {
       // see if there is a wildcard at the end
@@ -166,11 +166,11 @@ static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
             jns = &qjcm.getRootNS();
          else {
             QoreNamespace* rns = pgm->getRootNS();
-            jns = rns->findCreateNamespacePath("Jni");
+            jns = rns->findCreateNamespacePath("Jni::x");
          }
 
          QoreNamespace* ns = jns->findCreateNamespacePath(arg.c_str());
-         printd(LogLevel, "jni_module_parse_cmd() nsp: '%s' ns: '%s'\n", arg.c_str(), ns->getName());
+         printd(LogLevel, "jni_module_parse_cmd() nsp: '%s' ns: %p '%s'\n", arg.c_str(), ns, ns->getName());
          ns->setClassHandler(jni_class_handler);
          wc = true;
       }
