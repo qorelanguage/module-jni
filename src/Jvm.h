@@ -31,6 +31,8 @@
 #ifndef QORE_JNI_JVM_H_
 #define QORE_JNI_JVM_H_
 
+#include <qore/Qore.h>
+
 #include <cassert>
 #include <jni.h>
 
@@ -70,9 +72,9 @@ public:
 
    /**
     * \brief Creates the JVM.
-    * \return true if successful
+    * \return 0 if successful
     */
-   static bool createVM();
+   static QoreStringNode* createVM();
 
    /**
     * \brief Destroys the JVM.

@@ -141,6 +141,8 @@ public:
    void convert(ExceptionSink *xsink) override;
 
    void ignore() override;
+
+   DLLLOCAL QoreStringNode* toString() const;
 };
 
 /**

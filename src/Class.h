@@ -87,8 +87,14 @@ public:
    // returns the parent class or nullptr if there is none
    DLLLOCAL Class* getSuperClass();
 
-   // returs an array of interface classes
+   // returns an array of interface classes
    DLLLOCAL LocalReference<jobjectArray> getInterfaces();
+
+   // returns an array of constructors
+   DLLLOCAL LocalReference<jobjectArray> getDeclaredConstructors();
+
+   // returns class modifiers as an integer
+   DLLLOCAL int getModifiers();
 
 private:
    GlobalReference<jclass> cls;

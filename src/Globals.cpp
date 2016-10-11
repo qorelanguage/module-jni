@@ -53,6 +53,8 @@ jmethodID Globals::methodClassGetName;
 jmethodID Globals::methodClassGetFields;
 jmethodID Globals::methodClassGetSuperClass;
 jmethodID Globals::methodClassGetInterfaces;
+jmethodID Globals::methodClassGetDeclaredConstructors;
+jmethodID Globals::methodClassGetModifiers;
 
 GlobalReference<jclass> Globals::classThrowable;
 jmethodID Globals::methodThrowableGetMessage;
@@ -71,6 +73,9 @@ jmethodID Globals::methodMethodGetDeclaringClass;
 jmethodID Globals::methodMethodGetModifiers;
 
 GlobalReference<jclass> Globals::classConstructor;
+jmethodID Globals::methodConstructorGetParameterTypes;
+jmethodID Globals::methodConstructorToString;
+jmethodID Globals::methodConstructorGetModifiers;
 
 GlobalReference<jclass> Globals::classInvocationHandlerImpl;
 jmethodID Globals::ctorInvocationHandlerImpl;
@@ -150,6 +155,16 @@ static GlobalReference<jclass> getPrimitiveClass(Env &env, const char *wrapperNa
 
 void Globals::init() {
    Env env;
+
+   // get exception info first
+   classThrowable = env.findClass("java/lang/Throwable").makeGlobal();
+   methodThrowableGetMessage = env.getMethod(classThrowable, "getMessage", "()Ljava/lang/String;");
+
+   classQoreExceptionWrapper = env.defineClass("org/qore/jni/QoreExceptionWrapper", nullptr, java_org_qore_jni_QoreExceptionWrapper_class, java_org_qore_jni_QoreExceptionWrapper_class_len).makeGlobal();
+   env.registerNatives(classQoreExceptionWrapper, qoreExceptionWrapperNativeMethods, 2);
+   ctorQoreExceptionWrapper = env.getMethod(classQoreExceptionWrapper, "<init>", "(J)V");
+   methodQoreExceptionWrapperGet = env.getMethod(classQoreExceptionWrapper, "get", "()J");
+
    classVoid = getPrimitiveClass(env, "java/lang/Void");
    classBoolean = getPrimitiveClass(env, "java/lang/Boolean");
    classByte = getPrimitiveClass(env, "java/lang/Byte");
@@ -168,9 +183,8 @@ void Globals::init() {
    methodClassGetFields = env.getMethod(classClass, "getFields", "()[Ljava/lang/reflect/Field;");
    methodClassGetSuperClass = env.getMethod(classClass, "getSuperclass", "()Ljava/lang/Class;");
    methodClassGetInterfaces = env.getMethod(classClass, "getInterfaces", "()[Ljava/lang/Class;");
-
-   classThrowable = env.findClass("java/lang/Throwable").makeGlobal();
-   methodThrowableGetMessage = env.getMethod(classThrowable, "getMessage", "()Ljava/lang/String;");
+   methodClassGetDeclaredConstructors = env.getMethod(classClass, "getDeclaredConstructors", "()[Ljava/lang/reflect/Constructor;");
+   methodClassGetModifiers = env.getMethod(classClass, "getModifiers", "()I");
 
    classString = env.findClass("java/lang/String").makeGlobal();
 
@@ -186,16 +200,14 @@ void Globals::init() {
    methodMethodGetModifiers = env.getMethod(classMethod, "getModifiers", "()I");
 
    classConstructor = env.findClass("java/lang/reflect/Constructor").makeGlobal();
+   methodConstructorGetParameterTypes = env.getMethod(classConstructor, "getParameterTypes", "()[Ljava/lang/Class;");
+   methodConstructorToString = env.getMethod(classConstructor, "toString", "()Ljava/lang/String;");
+   methodConstructorGetModifiers = env.getMethod(classConstructor, "getModifiers", "()I");
 
    classInvocationHandlerImpl = env.defineClass("org/qore/jni/InvocationHandlerImpl", nullptr, java_org_qore_jni_InvocationHandlerImpl_class, java_org_qore_jni_InvocationHandlerImpl_class_len).makeGlobal();
    env.registerNatives(classInvocationHandlerImpl, invocationHandlerNativeMethods, 2);
    ctorInvocationHandlerImpl = env.getMethod(classInvocationHandlerImpl, "<init>", "(J)V");
    methodInvocationHandlerImplDestroy = env.getMethod(classInvocationHandlerImpl, "destroy", "()V");
-
-   classQoreExceptionWrapper = env.defineClass("org/qore/jni/QoreExceptionWrapper", nullptr, java_org_qore_jni_QoreExceptionWrapper_class, java_org_qore_jni_QoreExceptionWrapper_class_len).makeGlobal();
-   env.registerNatives(classQoreExceptionWrapper, qoreExceptionWrapperNativeMethods, 2);
-   ctorQoreExceptionWrapper = env.getMethod(classQoreExceptionWrapper, "<init>", "(J)V");
-   methodQoreExceptionWrapperGet = env.getMethod(classQoreExceptionWrapper, "get", "()J");
 
    classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
    methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance", "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");

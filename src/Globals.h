@@ -60,6 +60,8 @@ public:
    static jmethodID methodClassGetFields;                               // Field[] Class.getFields();
    static jmethodID methodClassGetSuperClass;                           // Class<? super T> Class.getSuperClass()
    static jmethodID methodClassGetInterfaces;                           // Class<?>[] Class.getInterfacess()
+   static jmethodID methodClassGetDeclaredConstructors;                 // Constructor<?>[] Class.getDeclaredConstructors()
+   static jmethodID methodClassGetModifiers;                            // int Class.getModifiers()
 
    static GlobalReference<jclass> classThrowable;                       // java.lang.Throwable
    static jmethodID methodThrowableGetMessage;                          // String Throwable.getMessage();
@@ -78,6 +80,9 @@ public:
    static jmethodID methodMethodGetModifiers;                           // int Method.getModifiers();
 
    static GlobalReference<jclass> classConstructor;                     // java.lang.reflect.Constructor
+   static jmethodID methodConstructorGetParameterTypes;                 // Class<?>[] Constructor.getParameterTypes()
+   static jmethodID methodConstructorToString;                          // String Constructor.toString()
+   static jmethodID methodConstructorGetModifiers;                      // int Constructor.getModifiers()
 
    static GlobalReference<jclass> classInvocationHandlerImpl;           // qore.org.jni.InvocationHandlerImpl
    static jmethodID ctorInvocationHandlerImpl;                          // InvocationHandlerImpl(long)

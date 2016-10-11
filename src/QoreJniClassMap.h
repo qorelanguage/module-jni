@@ -25,6 +25,8 @@
 
 #define _QORE_JNI_QOREJAVACLASSMAP_H
 
+#include "LocalReference.h"
+
 DLLLOCAL void init_jni_functions(QoreNamespace& ns);
 DLLLOCAL QoreClass* initObjectClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initArrayClass(QoreNamespace& ns);
@@ -65,15 +67,18 @@ protected:
    }
 
    /*
-   DLLLOCAL int getArgTypes(type_vec_t& argTypeInfo, JArray<jclass> *params);
 
-   DLLLOCAL void doConstructors(QoreClass& qc, java::lang::Class *jc, ExceptionSink *xsink = 0);
    DLLLOCAL void doMethods(QoreClass& qc, java::lang::Class *jc, ExceptionSink *xsink = 0);
    DLLLOCAL void doFields(QoreClass& qc, java::lang::Class *jc, ExceptionSink *xsink = 0);
 
-   DLLLOCAL void populateQoreClass(QoreClass& qc, java::lang::Class *jc, ExceptionSink *xsink = 0);
    DLLLOCAL void addQoreClass();
    */
+
+   DLLLOCAL int getArgTypes(type_vec_t& argTypeInfo, jni::LocalReference<jobjectArray>& params);
+
+   DLLLOCAL void doConstructors(QoreClass& qc, jni::Class* jc);
+
+   DLLLOCAL void populateQoreClass(QoreClass& qc, jni::Class* jc);
 
    DLLLOCAL void addSuperClass(QoreClass& qc, jni::Class* parent);
 

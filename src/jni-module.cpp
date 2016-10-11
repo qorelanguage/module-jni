@@ -98,8 +98,11 @@ static QoreStringNode* jni_module_init() {
    }
 #endif
 
-   if (!jni::Jvm::createVM())
-      return new QoreStringNode("unable to create Java VM");
+   QoreStringNode* err = jni::Jvm::createVM();
+   if (err) {
+      err->prepend("Could not create the Java Virtual Machine: ");
+      return err;
+   }
 
    tclist.push(jni_thread_cleanup, nullptr);
 

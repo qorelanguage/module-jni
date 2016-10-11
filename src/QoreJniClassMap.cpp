@@ -29,6 +29,8 @@
 #include "Class.h"
 #include "Functions.h"
 
+#include <classfile_constants.h>
+
 using namespace jni;
 
 extern QoreJniClassMap qjcm;
@@ -136,6 +138,8 @@ QoreClass* QoreJniClassMap::createClass(QoreNamespace& jns, const char* name, co
 
    printd(LogLevel, "QoreJniClassMap::createClass() qc: %p ns: %p '%s::%s'\n", qc, ns, ns->getName(), sn);
 
+   populateQoreClass(*qc, jc);
+
    // add to class maps
    addIntern(jpath, jc, qc);
 
@@ -152,8 +156,6 @@ QoreClass* QoreJniClassMap::createClass(QoreNamespace& jns, const char* name, co
    for (jsize i = 0, e = env.getArrayLength(interfaceArray); i < e; ++i) {
       addSuperClass(*qc, new Class(env.getObjectArrayElement(interfaceArray, i).as<jclass>()));
    }
-
-   //populateQoreClass(*qc, jc);
 
    // add to target namespace if not default
    if (&jns != &default_jns) {
@@ -184,14 +186,94 @@ void QoreJniClassMap::addSuperClass(QoreClass& qc, jni::Class* parent) {
    QoreClass* pc = find(jpath.c_str());
    if (pc)
       parent->deref();
-   else
-      pc = loadCreateClass(default_jns, jpath.c_str());
+   else {
+      pc = createClass(default_jns, chars.c_str(), jpath.c_str(), jni::Functions::loadClass(jpath));
+   }
 
    qc.addBuiltinVirtualBaseClass(pc);
 }
 
-/*
-int QoreJniClassMap::getArgTypes(type_vec_t &argTypeInfo, JArray<jclass>* params) {
+void QoreJniClassMap::populateQoreClass(QoreClass& qc, jni::Class* jc) {
+   // do constructors
+   doConstructors(qc, jc);
+
+   /*
+   // do methods
+   doMethods(qc, jc);
+
+   // do fields
+   doFields(qc, jc);
+   */
+}
+
+void QoreJniClassMap::doConstructors(QoreClass& qc, jni::Class* jc) {
+   Env env;
+
+   // get constructor methods
+   LocalReference<jobjectArray> conArray = jc->getDeclaredConstructors();
+
+   for (jsize i = 0, e = env.getArrayLength(conArray); i < e; ++i) {
+      LocalReference<jclass> cc = env.getObjectArrayElement(conArray, i).as<jclass>();
+
+      // get parameters
+      LocalReference<jobjectArray> paramArray = env.callObjectMethod(cc, Globals::methodConstructorGetParameterTypes, nullptr).as<jobjectArray>();
+
+#ifdef DEBUG
+      LocalReference<jstring> conStr = env.callObjectMethod(cc, Globals::methodConstructorToString, nullptr).as<jstring>();
+      Env::GetStringUtfChars chars(env, conStr);
+      QoreString mstr(chars.c_str());
+#endif
+
+      // get method's parameter types
+      type_vec_t argTypeInfo;
+      if (getArgTypes(argTypeInfo, paramArray)) {
+         printd(LogLevel, "  + skipping %s.constructor() (%s); unsupported parameter type for variant %d\n", qc.getName(), mstr.c_str(), i + 1);
+         continue;
+      }
+
+      int mods = env.callIntMethod(cc, Globals::methodConstructorGetModifiers, nullptr);
+
+      printd(LogLevel, "QoreJniClassMap::doConstructors() adding %s: %s mod: %d\n", qc.getName(), mstr.c_str(), mods);
+
+      ClassAccess access = Public;
+
+      int64 flags = QC_NO_FLAGS;
+      if (mods & JVM_ACC_PRIVATE)
+         access = Internal;
+      else if (mods & JVM_ACC_PROTECTED)
+         access = Private;
+
+      /*
+      bool priv = m->getModifiers() & java::lang::reflect::Modifier::PRIVATE;
+      if (m->isVarArgs())
+         flags |= QC_USES_EXTRA_ARGS;
+
+      const QoreMethod *qm = qc.getConstructor();
+      if (qm && qm->existsVariant(argTypeInfo)) {
+         //printd(0, "QoreJniClassMap::doConstructors() skipping already-created variant %s::constructor()\n", qc.getName());
+         continue;
+      }
+
+      qc.setConstructorExtendedList3((void*)i, (q_constructor3_t)exec_java_constructor, priv, flags, QDOM_DEFAULT, argTypeInfo);
+      */
+   }
+}
+
+int QoreJniClassMap::getArgTypes(type_vec_t& argTypeInfo, LocalReference<jobjectArray>& params) {
+   Env env;
+
+   int len = env.getArrayLength(params);
+   if (!len)
+      return 0;
+
+   argTypeInfo.reserve(len);
+
+   for (jsize i = 0, e = env.getArrayLength(params); i < e; ++i) {
+      return -1;
+   }
+
+   return -1;
+   /*
    argTypeInfo.reserve(params->length);
 
    for (int i = 0; i < params->length; ++i) {
@@ -207,53 +289,10 @@ int QoreJniClassMap::getArgTypes(type_vec_t &argTypeInfo, JArray<jclass>* params
       argTypeInfo.push_back(typeInfo);
    }
    return 0;
+   */
 }
 
-void QoreJniClassMap::doConstructors(QoreClass &qc, java::lang::Class *jc, ExceptionSink *xsink) {
-   try {
-      // get constructor methods
-      JArray<java::lang::reflect::Constructor*>* methods = jc->getDeclaredConstructors(false);
-
-      for (size_t i = 0; i < (size_t)methods->length; ++i) {
-	 java::lang::reflect::Constructor *m = elements(methods)[i];
-
-#ifdef DEBUG
-	 QoreString mstr;
-	 getQoreString(m->toString(), mstr);
-	 //if (!strcmp(qc.getName(), "URL"))
-	 //printd(0, "  + adding %s.constructor() (%s) m: %p\n", qc.getName(), mstr.getBuffer(), m);
-#endif
-
-	 // get parameter type array
-	 JArray<jclass>* params = m->getParameterTypes();
-
-	 // get method's parameter types
-	 type_vec_t argTypeInfo;
-	 if (getArgTypes(argTypeInfo, params)) {
-	    printd(0, "  + skipping %s.constructor() (%s); unsupported parameter type for arg %d\n", qc.getName(), mstr.getBuffer(), i + 1);
-	    continue;
-	 }
-
-	 bool priv = m->getModifiers() & java::lang::reflect::Modifier::PRIVATE;
-	 int64 flags = QC_NO_FLAGS;
-	 if (m->isVarArgs())
-	    flags |= QC_USES_EXTRA_ARGS;
-
-	 const QoreMethod *qm = qc.getConstructor();
-	 if (qm && qm->existsVariant(argTypeInfo)) {
-	    //printd(0, "QoreJniClassMap::doConstructors() skipping already-created variant %s::constructor()\n", qc.getName());
-	    continue;
-	 }
-
-	 qc.setConstructorExtendedList3((void*)i, (q_constructor3_t)exec_java_constructor, priv, flags, QDOM_DEFAULT, argTypeInfo);
-      }
-   }
-   catch (java::lang::Throwable *t) {
-      if (xsink)
-	 getQoreException(t, *xsink);
-   }
-}
-
+/*
 void QoreJniClassMap::doMethods(QoreClass &qc, java::lang::Class *jc, ExceptionSink *xsink) {
    //printd(0, "QoreJniClassMap::doMethods() %s qc: %p jc: %p\n", name, qc, jc);
 
@@ -374,17 +413,6 @@ void QoreJniClassMap::doFields(QoreClass &qc, java::lang::Class *jc, ExceptionSi
       if (xsink)
 	 getQoreException(t, *xsink);
    }
-}
-
-void QoreJniClassMap::populateQoreClass(QoreClass &qc, java::lang::Class *jc, ExceptionSink *xsink) {
-   // do constructors
-   doConstructors(qc, jc, xsink);
-
-   // do methods
-   doMethods(qc, jc, xsink);
-
-   // do fields
-   doFields(qc, jc, xsink);
 }
 
 const QoreTypeInfo *QoreJniClassMap::getQoreType(java::lang::Class *jc, bool &err) {

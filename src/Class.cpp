@@ -86,6 +86,16 @@ LocalReference<jobjectArray> Class::getInterfaces() {
    return env.callObjectMethod(cls, Globals::methodClassGetInterfaces, nullptr).as<jobjectArray>();
 }
 
+LocalReference<jobjectArray> Class::getDeclaredConstructors() {
+   Env env;
+   return env.callObjectMethod(cls, Globals::methodClassGetDeclaredConstructors, nullptr).as<jobjectArray>();
+}
+
+int Class::getModifiers() {
+   Env env;
+   return env.callIntMethod(cls, Globals::methodClassGetModifiers, nullptr);
+}
+
 bool Class::isInstance(const ObjectBase* obj) {
    Env env;
    return env.isInstanceOf(obj->getJavaObject(), cls) == JNI_TRUE;
