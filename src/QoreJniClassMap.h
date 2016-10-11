@@ -51,6 +51,10 @@ protected:
    // map of java class names (ex 'java/lang/object') to QoreClass ptrs
    typedef std::map<std::string, QoreClass*> jcmap_t;
 
+   // map of java class names to const QoreTypeInfo ptrs
+   typedef std::map<const char*, const QoreTypeInfo*, ltstr> jtmap_t;
+   static jtmap_t jtmap;
+
    // parent namespace for jni module functionality
    QoreNamespace default_jns;
    jcmap_t jcmap;
@@ -99,9 +103,7 @@ public:
 
    DLLLOCAL QoreClass* findCreateClass(QoreNamespace& jns, const char* name);
 
-   /*
-   DLLLOCAL const QoreTypeInfo* getQoreType(java::lang::Class* jc, bool& err);
-   */
+   DLLLOCAL const QoreTypeInfo* getQoreType(jni::LocalReference<jclass>& cls);
 
    DLLLOCAL void initDone() {
       assert(!init_done);

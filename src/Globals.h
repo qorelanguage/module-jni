@@ -62,6 +62,7 @@ public:
    static jmethodID methodClassGetInterfaces;                           // Class<?>[] Class.getInterfacess()
    static jmethodID methodClassGetDeclaredConstructors;                 // Constructor<?>[] Class.getDeclaredConstructors()
    static jmethodID methodClassGetModifiers;                            // int Class.getModifiers()
+   static jmethodID methodClassIsPrimitive;                             // boolean Class.isPrimitive();
 
    static GlobalReference<jclass> classThrowable;                       // java.lang.Throwable
    static jmethodID methodThrowableGetMessage;                          // String Throwable.getMessage();
@@ -83,6 +84,7 @@ public:
    static jmethodID methodConstructorGetParameterTypes;                 // Class<?>[] Constructor.getParameterTypes()
    static jmethodID methodConstructorToString;                          // String Constructor.toString()
    static jmethodID methodConstructorGetModifiers;                      // int Constructor.getModifiers()
+   static jmethodID methodConstructorIsVarArgs;                         // boolean Constructor.isVarArgs()
 
    static GlobalReference<jclass> classInvocationHandlerImpl;           // qore.org.jni.InvocationHandlerImpl
    static jmethodID ctorInvocationHandlerImpl;                          // InvocationHandlerImpl(long)

@@ -35,6 +35,19 @@ using namespace jni;
 
 extern QoreJniClassMap qjcm;
 
+QoreJniClassMap::jtmap_t QoreJniClassMap::jtmap = {
+   {"java/lang/String", stringTypeInfo},
+   {"java/lang/Float", floatTypeInfo},
+   {"java/lang/Double", floatTypeInfo},
+   {"java/lang/Boolean", boolTypeInfo},
+   {"java/lang/Float", floatTypeInfo},
+   {"java/lang/Double", floatTypeInfo},
+   {"java/lang/Byte", bigIntTypeInfo},
+   {"java/lang/Short", bigIntTypeInfo},
+   {"java/lang/Integer", bigIntTypeInfo},
+   {"java/lang/Long", bigIntTypeInfo},
+};
+
 static QoreNamespace* qjni_find_create_namespace(QoreNamespace& jns, const char* name, const char*& sn) {
    printd(LogLevel, "qjni_find_create_namespace() jns: %p '%s'\n", &jns, name);
 
@@ -186,9 +199,8 @@ void QoreJniClassMap::addSuperClass(QoreClass& qc, jni::Class* parent) {
    QoreClass* pc = find(jpath.c_str());
    if (pc)
       parent->deref();
-   else {
+   else
       pc = createClass(default_jns, chars.c_str(), jpath.c_str(), jni::Functions::loadClass(jpath));
-   }
 
    qc.addBuiltinVirtualBaseClass(pc);
 }
@@ -243,17 +255,16 @@ void QoreJniClassMap::doConstructors(QoreClass& qc, jni::Class* jc) {
       else if (mods & JVM_ACC_PROTECTED)
          access = Private;
 
-      /*
-      bool priv = m->getModifiers() & java::lang::reflect::Modifier::PRIVATE;
-      if (m->isVarArgs())
+      if (env.callBooleanMethod(cc, Globals::methodConstructorIsVarArgs, nullptr))
          flags |= QC_USES_EXTRA_ARGS;
 
       const QoreMethod *qm = qc.getConstructor();
       if (qm && qm->existsVariant(argTypeInfo)) {
-         //printd(0, "QoreJniClassMap::doConstructors() skipping already-created variant %s::constructor()\n", qc.getName());
+         printd(LogLevel, "QoreJniClassMap::doConstructors() skipping already-created variant %s::constructor()\n", qc.getName());
          continue;
       }
 
+      /*
       qc.setConstructorExtendedList3((void*)i, (q_constructor3_t)exec_java_constructor, priv, flags, QDOM_DEFAULT, argTypeInfo);
       */
    }
@@ -269,27 +280,48 @@ int QoreJniClassMap::getArgTypes(type_vec_t& argTypeInfo, LocalReference<jobject
    argTypeInfo.reserve(len);
 
    for (jsize i = 0, e = env.getArrayLength(params); i < e; ++i) {
-      return -1;
+      LocalReference<jclass> ac = env.getObjectArrayElement(params, i).as<jclass>();
+      argTypeInfo.push_back(getQoreType(ac));
    }
 
-   return -1;
-   /*
-   argTypeInfo.reserve(params->length);
-
-   for (int i = 0; i < params->length; ++i) {
-      java::lang::Class *jc = elements(params)[i];
-
-      bool err;
-      const QoreTypeInfo *typeInfo = getQoreType(jc, err);
-      if (err)
-	 return -1;
-
-      //printd(0, "QoreJniClassMap::getArgTypes() jc: %p (%s), qore: %s\n", );
-
-      argTypeInfo.push_back(typeInfo);
-   }
    return 0;
-   */
+}
+
+const QoreTypeInfo* QoreJniClassMap::getQoreType(LocalReference<jclass>& cls) {
+   Env env;
+   if (env.callBooleanMethod(cls, Globals::methodClassIsArray, nullptr))
+      return listTypeInfo;
+
+   LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetName, nullptr).as<jstring>();
+   Env::GetStringUtfChars cname(env, clsName);
+   printd(LogLevel, "QoreJniClassMap::getQoreType() class: '%s'\n", cname.c_str());
+
+      // do primitive types
+   if (env.callBooleanMethod(cls, Globals::methodClassIsPrimitive, nullptr)) {
+      if (!strcmp(cname.c_str(), "boolean"))
+         return boolTypeInfo;
+      if (!strcmp(cname.c_str(), "float") || !strcmp(cname.c_str(), "double"))
+         return floatTypeInfo;
+
+      // byte, char, short, int, long
+      return bigIntTypeInfo;
+   }
+
+   // find static mapping
+   jtmap_t::const_iterator i = jtmap.find(cname.c_str());
+   if (i == jtmap.end())
+      return i->second;
+
+   // find or create a class for the type
+   QoreClass* qc = find(cname.c_str());
+   if (!qc) {
+      QoreString qname(cname.c_str());
+      qname.replaceAll("/", ".");
+      printd(LogLevel, "QoreJniClassMap::findCreateClass() qname: '%s' jstr: '%s'\n", qname.c_str(), cname.c_str());
+      qc = createClass(default_jns, qname.c_str(), cname.c_str(), jni::Functions::loadClass(cname.c_str()));
+   }
+
+   return qc->getTypeInfo();
 }
 
 /*
@@ -413,48 +445,6 @@ void QoreJniClassMap::doFields(QoreClass &qc, java::lang::Class *jc, ExceptionSi
       if (xsink)
 	 getQoreException(t, *xsink);
    }
-}
-
-const QoreTypeInfo *QoreJniClassMap::getQoreType(java::lang::Class *jc, bool &err) {
-   err = false;
-   if (jc->isArray())
-      return listTypeInfo;
-
-   if (jc == JvPrimClass(void)
-       || jc == &java::lang::Void::class$)
-      return nothingTypeInfo;
-
-   if (jc == JvPrimClass(char)
-       || jc == &java::lang::String::class$)
-      return stringTypeInfo;
-
-   if (jc == JvPrimClass(byte)
-       || jc == JvPrimClass(short)
-       || jc == JvPrimClass(int)
-       || jc == JvPrimClass(long)
-       || jc == &java::lang::Byte::class$
-       || jc == &java::lang::Short::class$
-       || jc == &java::lang::Integer::class$
-       || jc == &java::lang::Long::class$
-      )
-      return bigIntTypeInfo;
-
-   if (jc == JvPrimClass(float)
-       || jc == JvPrimClass(double)
-       || jc == &java::lang::Float::class$
-       || jc == &java::lang::Double::class$
-       || jc == &java::lang::Number::class$
-      )
-      return floatTypeInfo;
-
-   if (jc == JvPrimClass(boolean)
-       || jc == &java::lang::Boolean::class$)
-      return boolTypeInfo;
-
-   if (jc == &java::lang::Object::class$)
-      return 0;
-
-   return findCreate(jc)->getTypeInfo();
 }
 
 void QoreJniClassMap::addQoreClass() {

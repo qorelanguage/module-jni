@@ -55,6 +55,7 @@ jmethodID Globals::methodClassGetSuperClass;
 jmethodID Globals::methodClassGetInterfaces;
 jmethodID Globals::methodClassGetDeclaredConstructors;
 jmethodID Globals::methodClassGetModifiers;
+jmethodID Globals::methodClassIsPrimitive;
 
 GlobalReference<jclass> Globals::classThrowable;
 jmethodID Globals::methodThrowableGetMessage;
@@ -76,6 +77,7 @@ GlobalReference<jclass> Globals::classConstructor;
 jmethodID Globals::methodConstructorGetParameterTypes;
 jmethodID Globals::methodConstructorToString;
 jmethodID Globals::methodConstructorGetModifiers;
+jmethodID Globals::methodConstructorIsVarArgs;
 
 GlobalReference<jclass> Globals::classInvocationHandlerImpl;
 jmethodID Globals::ctorInvocationHandlerImpl;
@@ -185,6 +187,7 @@ void Globals::init() {
    methodClassGetInterfaces = env.getMethod(classClass, "getInterfaces", "()[Ljava/lang/Class;");
    methodClassGetDeclaredConstructors = env.getMethod(classClass, "getDeclaredConstructors", "()[Ljava/lang/reflect/Constructor;");
    methodClassGetModifiers = env.getMethod(classClass, "getModifiers", "()I");
+   methodClassIsPrimitive = env.getMethod(classClass, "isPrimitive", "()Z");
 
    classString = env.findClass("java/lang/String").makeGlobal();
 
@@ -203,6 +206,7 @@ void Globals::init() {
    methodConstructorGetParameterTypes = env.getMethod(classConstructor, "getParameterTypes", "()[Ljava/lang/Class;");
    methodConstructorToString = env.getMethod(classConstructor, "toString", "()Ljava/lang/String;");
    methodConstructorGetModifiers = env.getMethod(classConstructor, "getModifiers", "()I");
+   methodConstructorIsVarArgs = env.getMethod(classConstructor, "isVarArgs", "()Z");
 
    classInvocationHandlerImpl = env.defineClass("org/qore/jni/InvocationHandlerImpl", nullptr, java_org_qore_jni_InvocationHandlerImpl_class, java_org_qore_jni_InvocationHandlerImpl_class_len).makeGlobal();
    env.registerNatives(classInvocationHandlerImpl, invocationHandlerNativeMethods, 2);

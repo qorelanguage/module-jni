@@ -255,7 +255,7 @@ QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
       cp.prepend(jns->getName());
    }
 
-   printd(LogLevel, "jni_class_handler() ns: %p cname: %s cp: %s\n", ns, cname, cp.getBuffer());
+   printd(0, "jni_class_handler() ns: %p cname: %s cp: %s\n", ns, cname, cp.getBuffer());
 
    try {
       // class loading can occur in parallel in different QoreProgram objects
