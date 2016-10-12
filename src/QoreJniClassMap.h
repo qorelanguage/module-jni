@@ -55,6 +55,15 @@ protected:
    typedef std::map<const char*, const QoreTypeInfo*, ltstr> jtmap_t;
    static jtmap_t jtmap;
 
+   // struct of type info and primitive type descriptor strings
+   struct qore_java_primitive_info_t {
+      const QoreTypeInfo* typeInfo;
+      const char* descriptor;
+   };
+   // map of java primitive type names to type and descriptor info
+   typedef std::map<const char*, struct qore_java_primitive_info_t, ltstr> jpmap_t;
+   static jpmap_t jpmap;
+
    // parent namespace for jni module functionality
    QoreNamespace default_jns;
    jcmap_t jcmap;
@@ -78,7 +87,7 @@ protected:
    DLLLOCAL void addQoreClass();
    */
 
-   DLLLOCAL int getArgTypes(type_vec_t& argTypeInfo, jni::LocalReference<jobjectArray>& params);
+   DLLLOCAL int getParamTypes(type_vec_t& argTypeInfo, jni::LocalReference<jobjectArray>& params, QoreString& desc);
 
    DLLLOCAL void doConstructors(QoreClass& qc, jni::Class* jc);
 
@@ -103,7 +112,7 @@ public:
 
    DLLLOCAL QoreClass* findCreateClass(QoreNamespace& jns, const char* name);
 
-   DLLLOCAL const QoreTypeInfo* getQoreType(jni::LocalReference<jclass>& cls);
+   DLLLOCAL const QoreTypeInfo* getQoreType(jni::LocalReference<jclass>& cls, QoreString& desc);
 
    DLLLOCAL void initDone() {
       assert(!init_done);
@@ -121,6 +130,19 @@ public:
    */
 
    DLLLOCAL QoreClass* loadCreateClass(QoreNamespace& jns, const char* cstr);
+};
+
+class QoreJniPrivateData : public AbstractPrivateData {
+private:
+   jni::GlobalReference<jobject> jobj;
+
+public:
+   DLLLOCAL QoreJniPrivateData(jni::LocalReference<jobject> n_jobj) : jobj(n_jobj.makeGlobal()) {
+   }
+
+   DLLLOCAL jobject getObject() const {
+      return jobj;
+   }
 };
 
 #endif

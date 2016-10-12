@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -45,8 +45,7 @@ namespace jni {
 /**
  * \brief Represents a Java method.
  */
-class Method : public ObjectBase {
-
+class BaseMethod : public ObjectBase {
 public:
    /**
     * \brief Constructor.
@@ -54,29 +53,16 @@ public:
     * \param id the method id
     * \param isStatic true if the method is static
     */
-   Method(Class *cls, jmethodID id, bool isStatic) : cls(cls), id(id) {
-      printd(LogLevel, "Method::Method(), this: %p, cls: %p, id: %p\n", this, cls, id);
+   BaseMethod(Class *cls, jmethodID id, bool isStatic) : cls(cls), id(id) {
+      printd(LogLevel, "BaseMethod::BaseMethod(), this: %p, cls: %p, id: %p\n", this, cls, id);
       Env env;
       method = env.toReflectedMethod(cls->getJavaObject(), id, isStatic).makeGlobal();
       init(env);
       cls->ref();
    }
 
-   /**
-    * \brief Constructor.
-    * \param method an instance of java.lang.reflect.Method
-    */
-   Method(jobject method) {
-      Env env;
-      cls = new Class(env.callObjectMethod(method, Globals::methodMethodGetDeclaringClass, nullptr).as<jclass>());
-      id = env.fromReflectedMethod(method);
-      this->method = GlobalReference<jobject>::fromLocal(method);
-      printd(LogLevel, "Method::Method(), this: %p, cls: %p, id: %p\n", this, *cls, id);
-      init(env);
-   }
-
-   ~Method() {
-      printd(LogLevel, "Method::~Method(), this: %p, cls: %p, id: %p\n", this, *cls, id);
+   ~BaseMethod() {
+      printd(LogLevel, "BaseMethod::~BaseMethod(), this: %p, cls: %p, id: %p\n", this, cls, id);
    }
 
    /**
@@ -113,11 +99,22 @@ public:
     */
    QoreValue newInstance(const QoreValueList* args);
 
+   /**
+    * \brief Creates a new Qore object by invoking a constructor.
+    * \param args the arguments
+    * \return the return value
+    * \throws Exception if the arguments do not match the descriptor or if the method throws
+    */
+   LocalReference<jobject> newQoreInstance(const QoreValueList* args);
+
    jobject getJavaObject() const override {
       return method;
    }
 
-private:
+protected:
+   DLLLOCAL BaseMethod() {
+   }
+
    std::vector<jvalue> convertArgs(const QoreValueList* args, size_t base = 0);
 
    void init(Env &env) {
@@ -132,12 +129,43 @@ private:
       }
    }
 
-private:
-   SimpleRefHolder<Class> cls;
+protected:
+   Class* cls;
    jmethodID id;
    GlobalReference<jobject> method;             // the instance of java.lang.reflect.Method
    Type retValType;
    std::vector<std::pair<Type, GlobalReference<jclass>>> paramTypes;
+};
+
+class Method : public BaseMethod {
+public:
+   /**
+    * \brief Constructor.
+    * \param cls the class associated with the method id
+    * \param id the method id
+    * \param isStatic true if the method is static
+    */
+   DLLLOCAL Method(Class *cls, jmethodID id, bool isStatic) : BaseMethod(cls, id, isStatic), cls_holder(cls) {
+      cls->ref();
+      cls_holder = cls;
+   }
+
+   /**
+    * \brief Constructor.
+    * \param method an instance of java.lang.reflect.Method
+    */
+   DLLLOCAL Method(jobject method) {
+      Env env;
+      cls = new Class(env.callObjectMethod(method, Globals::methodMethodGetDeclaringClass, nullptr).as<jclass>());
+      cls_holder = cls;
+      id = env.fromReflectedMethod(method);
+      this->method = GlobalReference<jobject>::fromLocal(method);
+      printd(LogLevel, "Method::Method(), this: %p, cls: %p, id: %p\n", this, cls, id);
+      init(env);
+   }
+
+private:
+   SimpleRefHolder<Class> cls_holder;
 };
 
 } // namespace jni

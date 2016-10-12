@@ -268,7 +268,9 @@ QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
    }
    catch (jni::Exception& e) {
       // ignore class not found exceptions here
-      e.ignore();
+      //e.ignore();
+      ExceptionSink xsink;
+      e.convert(&xsink);
    }
    return 0;
 }

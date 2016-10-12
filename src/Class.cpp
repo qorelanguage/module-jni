@@ -31,6 +31,15 @@
 #include "Method.h"
 
 namespace jni {
+Class::~Class() {
+   printd(LogLevel, "Class::~Class(), this: %p, cls: %p\n", this, static_cast<jclass>(this->cls));
+   for (auto& i : mlist)
+      delete i;
+}
+
+void Class::trackMethod(BaseMethod* m) {
+   mlist.push_back(m);
+}
 
 Field* Class::getField(const QoreStringNode* name, const QoreStringNode* descriptor) {
    Env env;

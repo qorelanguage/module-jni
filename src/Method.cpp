@@ -30,7 +30,7 @@
 
 namespace jni {
 
-std::vector<jvalue> Method::convertArgs(const QoreValueList* args, size_t base) {
+std::vector<jvalue> BaseMethod::convertArgs(const QoreValueList* args, size_t base) {
    assert(base == 0 || (args != nullptr && args->size() >= base));
 
    size_t paramCount = paramTypes.size();
@@ -83,7 +83,7 @@ std::vector<jvalue> Method::convertArgs(const QoreValueList* args, size_t base) 
    return std::move(jargs);
 }
 
-QoreValue Method::invoke(jobject object, const QoreValueList* args) {
+QoreValue BaseMethod::invoke(jobject object, const QoreValueList* args) {
    std::vector<jvalue> jargs = convertArgs(args, 1);
 
    Env env;
@@ -117,7 +117,7 @@ QoreValue Method::invoke(jobject object, const QoreValueList* args) {
    }
 }
 
-QoreValue Method::invokeNonvirtual(jobject object, const QoreValueList* args) {
+QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreValueList* args) {
    std::vector<jvalue> jargs = convertArgs(args, 1);
 
    Env env;
@@ -151,7 +151,7 @@ QoreValue Method::invokeNonvirtual(jobject object, const QoreValueList* args) {
    }
 }
 
-QoreValue Method::invokeStatic(const QoreValueList* args) {
+QoreValue BaseMethod::invokeStatic(const QoreValueList* args) {
    std::vector<jvalue> jargs = convertArgs(args);
 
    Env env;
@@ -182,10 +182,16 @@ QoreValue Method::invokeStatic(const QoreValueList* args) {
    }
 }
 
-QoreValue Method::newInstance(const QoreValueList* args) {
+QoreValue BaseMethod::newInstance(const QoreValueList* args) {
    std::vector<jvalue> jargs = convertArgs(args);
    Env env;
    return JavaToQore::convert(env.newObject(cls->getJavaObject(), id, &jargs[0]));
+}
+
+LocalReference<jobject> BaseMethod::newQoreInstance(const QoreValueList* args) {
+   std::vector<jvalue> jargs = convertArgs(args);
+   Env env;
+   return env.newObject(cls->getJavaObject(), id, &jargs[0]);
 }
 
 } // namespace jni

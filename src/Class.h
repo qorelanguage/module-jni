@@ -33,6 +33,8 @@
 
 #include <qore/Qore.h>
 
+#include <vector>
+
 #include "LocalReference.h"
 #include "Object.h"
 
@@ -43,15 +45,14 @@ namespace jni {
 
 class Field;
 class Method;
+class BaseMethod;
 
 /**
  * \brief Represents a Java class.
  */
 class Class : public ObjectBase, public AbstractQoreClassUserData {
 private:
-   DLLLOCAL ~Class() {
-      printd(LogLevel, "Class::~Class(), this: %p, cls: %p\n", this, static_cast<jclass>(this->cls));
-   }
+   DLLLOCAL ~Class();
 
 public:
    /**
@@ -96,8 +97,13 @@ public:
    // returns class modifiers as an integer
    DLLLOCAL int getModifiers();
 
+   DLLLOCAL void trackMethod(BaseMethod* m);
+
 private:
    GlobalReference<jclass> cls;
+   // for tracking Method objects associated with this Class
+   typedef std::vector<BaseMethod*> mlist_t;
+   mlist_t mlist;
 };
 
 } // namespace jni

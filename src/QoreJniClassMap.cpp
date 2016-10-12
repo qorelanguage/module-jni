@@ -27,6 +27,7 @@
 #include "Jvm.h"
 #include "QoreJniClassMap.h"
 #include "Class.h"
+#include "Method.h"
 #include "Functions.h"
 
 #include <classfile_constants.h>
@@ -35,17 +36,32 @@ using namespace jni;
 
 extern QoreJniClassMap qjcm;
 
+static void exec_java_constructor(const QoreClass& thisclass, const void* ptr, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
+
 QoreJniClassMap::jtmap_t QoreJniClassMap::jtmap = {
-   {"java/lang/String", stringTypeInfo},
-   {"java/lang/Float", floatTypeInfo},
-   {"java/lang/Double", floatTypeInfo},
-   {"java/lang/Boolean", boolTypeInfo},
-   {"java/lang/Float", floatTypeInfo},
-   {"java/lang/Double", floatTypeInfo},
-   {"java/lang/Byte", bigIntTypeInfo},
-   {"java/lang/Short", bigIntTypeInfo},
-   {"java/lang/Integer", bigIntTypeInfo},
-   {"java/lang/Long", bigIntTypeInfo},
+   {"java.lang.String", stringTypeInfo},
+   {"java.lang.Float", floatTypeInfo},
+   {"java.lang.Double", floatTypeInfo},
+   {"java.lang.Boolean", boolTypeInfo},
+   {"java.lang.Float", floatTypeInfo},
+   {"java.lang.Double", floatTypeInfo},
+   {"java.lang.Byte", bigIntTypeInfo},
+   {"java.lang.Short", bigIntTypeInfo},
+   {"java.lang.Integer", bigIntTypeInfo},
+   {"java.lang.Long", bigIntTypeInfo},
+   {"java.lang.Void", nothingTypeInfo},
+};
+
+QoreJniClassMap::jpmap_t QoreJniClassMap::jpmap = {
+   {"byte", {bigIntTypeInfo, "B"}},
+   {"char", {bigIntTypeInfo, "C"}},
+   {"int", {bigIntTypeInfo, "I"}},
+   {"long", {bigIntTypeInfo, "J"}},
+   {"short", {bigIntTypeInfo, "S"}},
+   {"double", {floatTypeInfo, "D"}},
+   {"float", {floatTypeInfo, "F"}},
+   {"void", {nothingTypeInfo, "V"}},
+   {"boolean", {boolTypeInfo, "Z"}},
 };
 
 static QoreNamespace* qjni_find_create_namespace(QoreNamespace& jns, const char* name, const char*& sn) {
@@ -183,7 +199,7 @@ QoreClass* QoreJniClassMap::createClass(QoreNamespace& jns, const char* name, co
       ns->addSystemClass(qc);
    }
 
-   printd(LogLevel, "QoreJniClassMap::createClass() returning qc: %p ns: %p '%s::%s'\n", qc, ns, ns->getName(), sn);
+   printd(LogLevel, "QoreJniClassMap::createClass() returning qc: %p ns: %p '%s' -> '%s::%s'\n", qc, ns, jpath, ns->getName(), sn);
 
    return qc;
 }
@@ -236,12 +252,14 @@ void QoreJniClassMap::doConstructors(QoreClass& qc, jni::Class* jc) {
       QoreString mstr(chars.c_str());
 #endif
 
-      // get method's parameter types
+      // get method's parameter types and descriptor
       type_vec_t argTypeInfo;
-      if (getArgTypes(argTypeInfo, paramArray)) {
+      QoreString cdesc;
+      if (getParamTypes(argTypeInfo, paramArray, cdesc)) {
          printd(LogLevel, "  + skipping %s.constructor() (%s); unsupported parameter type for variant %d\n", qc.getName(), mstr.c_str(), i + 1);
          continue;
       }
+      cdesc.concat('V');
 
       int mods = env.callIntMethod(cc, Globals::methodConstructorGetModifiers, nullptr);
 
@@ -258,70 +276,92 @@ void QoreJniClassMap::doConstructors(QoreClass& qc, jni::Class* jc) {
       if (env.callBooleanMethod(cc, Globals::methodConstructorIsVarArgs, nullptr))
          flags |= QC_USES_EXTRA_ARGS;
 
-      const QoreMethod *qm = qc.getConstructor();
+      // check for duplicate signature
+      const QoreMethod* qm = qc.getConstructor();
       if (qm && qm->existsVariant(argTypeInfo)) {
          printd(LogLevel, "QoreJniClassMap::doConstructors() skipping already-created variant %s::constructor()\n", qc.getName());
          continue;
       }
 
-      /*
-      qc.setConstructorExtendedList3((void*)i, (q_constructor3_t)exec_java_constructor, priv, flags, QDOM_DEFAULT, argTypeInfo);
-      */
+      BaseMethod* m = new BaseMethod(jc, env.getMethod(jc->getJavaObject(), "<init>", cdesc.c_str()), false);
+      jc->trackMethod(m);
+
+      qc.addConstructor((void*)m, (q_external_constructor_t)exec_java_constructor, access, flags, QDOM_DEFAULT, argTypeInfo);
    }
 }
 
-int QoreJniClassMap::getArgTypes(type_vec_t& argTypeInfo, LocalReference<jobjectArray>& params) {
+int QoreJniClassMap::getParamTypes(type_vec_t& argTypeInfo, LocalReference<jobjectArray>& params, QoreString& desc) {
    Env env;
 
    int len = env.getArrayLength(params);
-   if (!len)
-      return 0;
+   if (len)
+      argTypeInfo.reserve(len);
 
-   argTypeInfo.reserve(len);
-
+   desc.concat('(');
    for (jsize i = 0, e = env.getArrayLength(params); i < e; ++i) {
       LocalReference<jclass> ac = env.getObjectArrayElement(params, i).as<jclass>();
-      argTypeInfo.push_back(getQoreType(ac));
+      argTypeInfo.push_back(getQoreType(ac, desc));
    }
+   desc.concat(')');
 
    return 0;
 }
 
-const QoreTypeInfo* QoreJniClassMap::getQoreType(LocalReference<jclass>& cls) {
+const QoreTypeInfo* QoreJniClassMap::getQoreType(LocalReference<jclass>& cls, QoreString& desc) {
    Env env;
-   if (env.callBooleanMethod(cls, Globals::methodClassIsArray, nullptr))
-      return listTypeInfo;
 
    LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetName, nullptr).as<jstring>();
    Env::GetStringUtfChars cname(env, clsName);
-   printd(LogLevel, "QoreJniClassMap::getQoreType() class: '%s'\n", cname.c_str());
 
-      // do primitive types
-   if (env.callBooleanMethod(cls, Globals::methodClassIsPrimitive, nullptr)) {
-      if (!strcmp(cname.c_str(), "boolean"))
-         return boolTypeInfo;
-      if (!strcmp(cname.c_str(), "float") || !strcmp(cname.c_str(), "double"))
-         return floatTypeInfo;
+   QoreString jname(cname.c_str());
+   jname.replaceAll(".", "/");
 
-      // byte, char, short, int, long
-      return bigIntTypeInfo;
+   printd(LogLevel, "QoreJniClassMap::getQoreType() class: '%s' jname: '%s'\n", cname.c_str(), jname.c_str());
+
+   if (env.callBooleanMethod(cls, Globals::methodClassIsArray, nullptr)) {
+      desc.concat(jname.c_str());
+      return listTypeInfo;
    }
+
+   // do primitive types
+   if (env.callBooleanMethod(cls, Globals::methodClassIsPrimitive, nullptr)) {
+      jpmap_t::const_iterator i = jpmap.find(cname.c_str());
+      assert(i != jpmap.end());
+      desc.concat(i->second.descriptor);
+      return i->second.typeInfo;
+   }
+
+   // add class name
+   desc.concat('L');
+   desc.concat(jname.c_str());
+   desc.concat(';');
 
    // find static mapping
    jtmap_t::const_iterator i = jtmap.find(cname.c_str());
-   if (i == jtmap.end())
+   if (i != jtmap.end())
       return i->second;
 
    // find or create a class for the type
-   QoreClass* qc = find(cname.c_str());
+   QoreClass* qc = find(jname.c_str());
    if (!qc) {
-      QoreString qname(cname.c_str());
-      qname.replaceAll("/", ".");
-      printd(LogLevel, "QoreJniClassMap::findCreateClass() qname: '%s' jstr: '%s'\n", qname.c_str(), cname.c_str());
-      qc = createClass(default_jns, qname.c_str(), cname.c_str(), jni::Functions::loadClass(cname.c_str()));
+      printd(LogLevel, "QoreJniClassMap::getQoreType() cname: '%s' jname: '%s'\n", cname.c_str(), jname.c_str());
+      qc = createClass(default_jns, cname.c_str(), jname.c_str(), jni::Functions::loadClass(jname.c_str()));
    }
 
    return qc->getTypeInfo();
+}
+
+static void exec_java_constructor(const QoreClass& qc, const void* ptr, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
+   Env env;
+
+   try {
+      // get BaseMethod object
+      BaseMethod* m = (BaseMethod*)ptr;
+      self->setPrivate(qc.getID(), new QoreJniPrivateData(m->newQoreInstance(args)));
+   }
+   catch (jni::Exception& e) {
+      e.convert(xsink);
+   }
 }
 
 /*
