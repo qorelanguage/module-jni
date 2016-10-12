@@ -100,6 +100,11 @@ LocalReference<jobjectArray> Class::getDeclaredConstructors() {
    return env.callObjectMethod(cls, Globals::methodClassGetDeclaredConstructors, nullptr).as<jobjectArray>();
 }
 
+LocalReference<jobjectArray> Class::getDeclaredMethods() {
+   Env env;
+   return env.callObjectMethod(cls, Globals::methodClassGetDeclaredMethods, nullptr).as<jobjectArray>();
+}
+
 int Class::getModifiers() {
    Env env;
    return env.callIntMethod(cls, Globals::methodClassGetModifiers, nullptr);

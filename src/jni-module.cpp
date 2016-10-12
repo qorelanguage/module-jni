@@ -233,7 +233,7 @@ static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
          qjcm.findCreateClass(*ns, arg.getBuffer());
       }
    }
-   catch (jni::Exception &e) {
+   catch (jni::Exception& e) {
       e.convert(xsink);
    }
 }
@@ -255,7 +255,7 @@ QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
       cp.prepend(jns->getName());
    }
 
-   printd(0, "jni_class_handler() ns: %p cname: %s cp: %s\n", ns, cname, cp.getBuffer());
+   printd(LogLevel, "jni_class_handler() ns: %p cname: %s cp: %s\n", ns, cname, cp.getBuffer());
 
    try {
       // class loading can occur in parallel in different QoreProgram objects
@@ -266,11 +266,17 @@ QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
       printd(LogLevel, "jni_class_handler() cp: %s returning qc: %p\n", cp.getBuffer(), qc);
       return qc;
    }
-   catch (jni::Exception& e) {
+   catch (jni::JavaException& e) {
       // ignore class not found exceptions here
-      //e.ignore();
-      ExceptionSink xsink;
-      e.convert(&xsink);
+      e.ignoreOrRethrow("java.lang.NoClassDefFoundError");
+   }
+   catch (jni::Exception& e) {
+      // display exception info on the console as an unhandled exception
+      {
+         ExceptionSink xsink;
+         e.convert(&xsink);
+      }
+      assert(false);
    }
    return 0;
 }

@@ -94,6 +94,9 @@ public:
    // returns an array of constructors
    DLLLOCAL LocalReference<jobjectArray> getDeclaredConstructors();
 
+   // returns an array of methods
+   DLLLOCAL LocalReference<jobjectArray> getDeclaredMethods();
+
    // returns class modifiers as an integer
    DLLLOCAL int getModifiers();
 

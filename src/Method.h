@@ -36,9 +36,13 @@
 #include "Globals.h"
 #include "Env.h"
 
+#include <classfile_constants.h>
+
 extern QoreClass* QC_METHOD;
 extern QoreClass* QC_STATICMETHOD;
 extern QoreClass* QC_CONSTRUCTOR;
+
+class QoreJniClassMap;
 
 namespace jni {
 
@@ -59,6 +63,18 @@ public:
       method = env.toReflectedMethod(cls->getJavaObject(), id, isStatic).makeGlobal();
       init(env);
       cls->ref();
+   }
+
+   /**
+    * \brief Constructor.
+    * \param method an instance of java.lang.reflect.Method
+    */
+   DLLLOCAL BaseMethod(jobject method, Class* cls) : cls(cls) {
+      Env env;
+      id = env.fromReflectedMethod(method);
+      this->method = GlobalReference<jobject>::fromLocal(method);
+      printd(LogLevel, "Method::Method(), this: %p, cls: %p, id: %p\n", this, cls, id);
+      init(env);
    }
 
    ~BaseMethod() {
@@ -107,9 +123,42 @@ public:
     */
    LocalReference<jobject> newQoreInstance(const QoreValueList* args);
 
+   void getName(QoreString& str);
+
+   int isStatic() const {
+      return mods & JVM_ACC_STATIC;
+   }
+
    jobject getJavaObject() const override {
       return method;
    }
+
+   ClassAccess getAccess() const {
+      ClassAccess access = Public;
+
+      if (mods & JVM_ACC_PRIVATE)
+         access = Internal;
+      else if (mods & JVM_ACC_PROTECTED)
+         access = Private;
+
+      return access;
+   }
+
+   bool isAbstract() const {
+      return mods & JVM_ACC_ABSTRACT;
+   }
+
+   int64 getFlags() const {
+      Env env;
+      int64 flags = QC_NO_FLAGS;
+      if (env.callBooleanMethod(method, Globals::methodMethodIsVarArgs, nullptr))
+         flags |= QC_USES_EXTRA_ARGS;
+      return flags;
+   }
+
+   DLLLOCAL int getParamTypes(type_vec_t& paramTypeInfo, QoreJniClassMap& clsmap);
+
+   DLLLOCAL const QoreTypeInfo* getReturnTypeInfo(QoreJniClassMap& clsmap);
 
 protected:
    DLLLOCAL BaseMethod() {
@@ -118,7 +167,8 @@ protected:
    std::vector<jvalue> convertArgs(const QoreValueList* args, size_t base = 0);
 
    void init(Env &env) {
-      retValType = Globals::getType(env.callObjectMethod(method, Globals::methodMethodGetReturnType, nullptr).as<jclass>());
+      retValClass = env.callObjectMethod(method, Globals::methodMethodGetReturnType, nullptr).as<jclass>().makeGlobal();
+      retValType = Globals::getType(retValClass);
 
       LocalReference<jobjectArray> paramTypesArray = env.callObjectMethod(method, Globals::methodMethodGetParameterTypes, nullptr).as<jobjectArray>();
       jsize paramCount = env.getArrayLength(paramTypesArray);
@@ -127,14 +177,19 @@ protected:
          LocalReference<jclass> paramType = env.getObjectArrayElement(paramTypesArray, p).as<jclass>();
          paramTypes.emplace_back(Globals::getType(paramType), paramType.makeGlobal());
       }
+
+      mods = env.callIntMethod(method, Globals::methodMethodGetModifiers, nullptr);
    }
 
 protected:
    Class* cls;
    jmethodID id;
    GlobalReference<jobject> method;             // the instance of java.lang.reflect.Method
+   GlobalReference<jclass> retValClass;
    Type retValType;
    std::vector<std::pair<Type, GlobalReference<jclass>>> paramTypes;
+   // method modifiers
+   int mods;
 };
 
 class Method : public BaseMethod {

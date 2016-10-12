@@ -46,7 +46,6 @@ constexpr int LogLevel = 10;
  * \brief Base class for exceptions.
  */
 class Exception {
-
 public:
    /**
     * \brief Default virtual destructor.
@@ -90,7 +89,6 @@ class IgnorableException : public Exception {
  * \brief An exception thrown when the current thread cannot be attached to the JVM.
  */
 class UnableToAttachException : public IgnorableException {
-
 public:
    /**
     * \brief Constructor.
@@ -112,7 +110,6 @@ private:
  * \brief An exception thrown when the current thread cannot be registered with Qore.
  */
 class UnableToRegisterException : public IgnorableException {
-
 public:
    /**
     * \brief Constructor.
@@ -130,7 +127,6 @@ public:
  * \brief A C++ exception representing a Java exception.
  */
 class JavaException : public Exception {
-
 public:
    /**
     * \brief Constructor.
@@ -142,6 +138,8 @@ public:
 
    void ignore() override;
 
+   void ignoreOrRethrow(const char* cls);
+
    DLLLOCAL QoreStringNode* toString() const;
 };
 
@@ -149,7 +147,6 @@ public:
  * \brief Basic exception with a simple string messsage.
  */
 class BasicException : public IgnorableException {
-
 public:
    /**
     * \brief Constructor.
@@ -170,7 +167,6 @@ private:
  * \brief A C++ wrapper for an exception raised in the ExceptionSink.
  */
 class XsinkException : public Exception {
-
 public:
    /**
     * \brief Constructor.
@@ -193,7 +189,6 @@ private:
 };
 
 class QoreThreadAttacher {
-
 public:
    QoreThreadAttacher() : attached(false) {
    }

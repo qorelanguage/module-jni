@@ -50,6 +50,7 @@ class QoreJniClassMap {
 protected:
    // map of java class names (ex 'java/lang/object') to QoreClass ptrs
    typedef std::map<std::string, QoreClass*> jcmap_t;
+   jcmap_t jcmap;
 
    // map of java class names to const QoreTypeInfo ptrs
    typedef std::map<const char*, const QoreTypeInfo*, ltstr> jtmap_t;
@@ -66,24 +67,24 @@ protected:
 
    // parent namespace for jni module functionality
    QoreNamespace default_jns;
-   jcmap_t jcmap;
    bool init_done;
 
    DLLLOCAL void addIntern(const char* name, jni::Class* jc, QoreClass* qc) {
       //printd(0, "QoreJniClassMap::addIntern() name: %s jc: %p qc: %p (%s)\n", name, jc, qc, qc->getName());
 
+#ifdef DEBUG
       if (jcmap.find(name) != jcmap.end())
          printd(0, "QoreJniClassMap::addIntern() name: %s jc: %p qc: %p (%s)\n", name, jc, qc, qc->getName());
+#endif
 
       assert(jcmap.find(name) == jcmap.end());
       jcmap[name] = qc;
    }
 
+   DLLLOCAL void doMethods(QoreClass& qc, jni::Class* jc);
+
    /*
-
-   DLLLOCAL void doMethods(QoreClass& qc, java::lang::Class *jc, ExceptionSink *xsink = 0);
-   DLLLOCAL void doFields(QoreClass& qc, java::lang::Class *jc, ExceptionSink *xsink = 0);
-
+   DLLLOCAL void doFields(QoreClass& qc, java::lang::Class *jc);
    DLLLOCAL void addQoreClass();
    */
 
@@ -112,7 +113,7 @@ public:
 
    DLLLOCAL QoreClass* findCreateClass(QoreNamespace& jns, const char* name);
 
-   DLLLOCAL const QoreTypeInfo* getQoreType(jni::LocalReference<jclass>& cls, QoreString& desc);
+   DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls);
 
    DLLLOCAL void initDone() {
       assert(!init_done);

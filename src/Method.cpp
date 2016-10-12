@@ -27,6 +27,7 @@
 #include "Env.h"
 #include "JavaToQore.h"
 #include "QoreToJava.h"
+#include "QoreJniClassMap.h"
 
 namespace jni {
 
@@ -192,6 +193,29 @@ LocalReference<jobject> BaseMethod::newQoreInstance(const QoreValueList* args) {
    std::vector<jvalue> jargs = convertArgs(args);
    Env env;
    return env.newObject(cls->getJavaObject(), id, &jargs[0]);
+}
+
+void BaseMethod::getName(QoreString& str) {
+   Env env;
+   // get Method name
+   LocalReference<jstring> jmName = env.callObjectMethod(method, Globals::methodMethodGetName, nullptr).as<jstring>();
+   Env::GetStringUtfChars mName(env, jmName);
+   str.concat(mName.c_str());
+}
+
+int BaseMethod::getParamTypes(type_vec_t& paramTypeInfo, QoreJniClassMap& clsmap) {
+   unsigned len = paramTypes.size();
+   if (len)
+      paramTypeInfo.reserve(len);
+
+   for (auto& i : paramTypes)
+      paramTypeInfo.push_back(clsmap.getQoreType(i.second));
+
+   return 0;
+}
+
+const QoreTypeInfo* BaseMethod::getReturnTypeInfo(QoreJniClassMap& clsmap) {
+   return clsmap.getQoreType(retValClass);
 }
 
 } // namespace jni

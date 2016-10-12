@@ -56,6 +56,7 @@ jmethodID Globals::methodClassGetInterfaces;
 jmethodID Globals::methodClassGetDeclaredConstructors;
 jmethodID Globals::methodClassGetModifiers;
 jmethodID Globals::methodClassIsPrimitive;
+jmethodID Globals::methodClassGetDeclaredMethods;
 
 GlobalReference<jclass> Globals::classThrowable;
 jmethodID Globals::methodThrowableGetMessage;
@@ -72,6 +73,8 @@ jmethodID Globals::methodMethodGetReturnType;
 jmethodID Globals::methodMethodGetParameterTypes;
 jmethodID Globals::methodMethodGetDeclaringClass;
 jmethodID Globals::methodMethodGetModifiers;
+jmethodID Globals::methodMethodIsVarArgs;
+jmethodID Globals::methodMethodGetName;
 
 GlobalReference<jclass> Globals::classConstructor;
 jmethodID Globals::methodConstructorGetParameterTypes;
@@ -188,6 +191,7 @@ void Globals::init() {
    methodClassGetDeclaredConstructors = env.getMethod(classClass, "getDeclaredConstructors", "()[Ljava/lang/reflect/Constructor;");
    methodClassGetModifiers = env.getMethod(classClass, "getModifiers", "()I");
    methodClassIsPrimitive = env.getMethod(classClass, "isPrimitive", "()Z");
+   methodClassGetDeclaredMethods = env.getMethod(classClass, "getDeclaredMethods", "()[Ljava/lang/reflect/Method;");
 
    classString = env.findClass("java/lang/String").makeGlobal();
 
@@ -201,6 +205,8 @@ void Globals::init() {
    methodMethodGetParameterTypes = env.getMethod(classMethod, "getParameterTypes", "()[Ljava/lang/Class;");
    methodMethodGetDeclaringClass = env.getMethod(classMethod, "getDeclaringClass", "()Ljava/lang/Class;");
    methodMethodGetModifiers = env.getMethod(classMethod, "getModifiers", "()I");
+   methodMethodIsVarArgs = env.getMethod(classMethod, "isVarArgs", "()Z");
+   methodMethodGetName = env.getMethod(classMethod, "getName", "()Ljava/lang/String;");
 
    classConstructor = env.findClass("java/lang/reflect/Constructor").makeGlobal();
    methodConstructorGetParameterTypes = env.getMethod(classConstructor, "getParameterTypes", "()[Ljava/lang/Class;");
