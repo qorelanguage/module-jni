@@ -32,6 +32,7 @@
 
 #include <qore/Qore.h>
 #include <jni.h>
+
 #include "LocalReference.h"
 #include "Object.h"
 #include "Array.h"
@@ -84,6 +85,8 @@ public:
    static QoreValue convert(jshort v) {
       return QoreValue(v);
    }
+
+   static QoreValue convertToQore(LocalReference<jobject> v);
 
    static QoreValue convert(LocalReference<jobject> v) {
       if (v == nullptr) {

@@ -40,7 +40,7 @@ namespace jni {
 /**
  * \brief Logging level used by the JNI module in calls to printd().
  */
-constexpr int LogLevel = 10;
+constexpr int LogLevel = 0;
 
 /**
  * \brief Base class for exceptions.

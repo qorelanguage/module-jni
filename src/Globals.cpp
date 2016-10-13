@@ -50,7 +50,7 @@ jmethodID Globals::methodClassIsArray;
 jmethodID Globals::methodClassGetComponentType;
 jmethodID Globals::methodClassGetClassLoader;
 jmethodID Globals::methodClassGetName;
-jmethodID Globals::methodClassGetFields;
+jmethodID Globals::methodClassGetDeclaredFields;
 jmethodID Globals::methodClassGetSuperClass;
 jmethodID Globals::methodClassGetInterfaces;
 jmethodID Globals::methodClassGetDeclaredConstructors;
@@ -67,6 +67,8 @@ GlobalReference<jclass> Globals::classField;
 jmethodID Globals::methodFieldGetDeclaringClass;
 jmethodID Globals::methodFieldGetType;
 jmethodID Globals::methodFieldGetModifiers;
+jmethodID Globals::methodFieldGetName;
+jmethodID Globals::methodFieldGet;
 
 GlobalReference<jclass> Globals::classMethod;
 jmethodID Globals::methodMethodGetReturnType;
@@ -185,7 +187,7 @@ void Globals::init() {
    methodClassGetComponentType = env.getMethod(classClass, "getComponentType", "()Ljava/lang/Class;");
    methodClassGetClassLoader = env.getMethod(classClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
    methodClassGetName = env.getMethod(classClass, "getName", "()Ljava/lang/String;");
-   methodClassGetFields = env.getMethod(classClass, "getFields", "()[Ljava/lang/reflect/Field;");
+   methodClassGetDeclaredFields = env.getMethod(classClass, "getDeclaredFields", "()[Ljava/lang/reflect/Field;");
    methodClassGetSuperClass = env.getMethod(classClass, "getSuperclass", "()Ljava/lang/Class;");
    methodClassGetInterfaces = env.getMethod(classClass, "getInterfaces", "()[Ljava/lang/Class;");
    methodClassGetDeclaredConstructors = env.getMethod(classClass, "getDeclaredConstructors", "()[Ljava/lang/reflect/Constructor;");
@@ -199,6 +201,8 @@ void Globals::init() {
    methodFieldGetType = env.getMethod(classField, "getType", "()Ljava/lang/Class;");
    methodFieldGetDeclaringClass = env.getMethod(classField, "getDeclaringClass", "()Ljava/lang/Class;");
    methodFieldGetModifiers = env.getMethod(classField, "getModifiers", "()I");
+   methodFieldGetName = env.getMethod(classField, "getName", "()Ljava/lang/String;");
+   methodFieldGet = env.getMethod(classField, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
 
    classMethod = env.findClass("java/lang/reflect/Method").makeGlobal();
    methodMethodGetReturnType = env.getMethod(classMethod, "getReturnType", "()Ljava/lang/Class;");

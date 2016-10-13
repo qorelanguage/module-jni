@@ -26,6 +26,7 @@
 #define _QORE_JNI_QOREJAVACLASSMAP_H
 
 #include "LocalReference.h"
+#include "QoreJniThreads.h"
 
 DLLLOCAL void init_jni_functions(QoreNamespace& ns);
 
@@ -49,6 +50,8 @@ namespace jni {
 
 class QoreJniClassMap {
 protected:
+   // the QoreClass for java::lang::Object
+   QoreClass* QC_OBJECT;
    // the Qore class ID for java::lang::Object
    qore_classid_t CID_OBJECT;
 
@@ -87,10 +90,7 @@ protected:
 
    DLLLOCAL void doMethods(QoreClass& qc, jni::Class* jc);
 
-   /*
-   DLLLOCAL void doFields(QoreClass& qc, java::lang::Class *jc);
-   DLLLOCAL void addQoreClass();
-   */
+   DLLLOCAL void doFields(QoreClass& qc, jni::Class* jc);
 
    DLLLOCAL int getParamTypes(type_vec_t& argTypeInfo, jni::LocalReference<jobjectArray>& params, QoreString& desc);
 
@@ -100,20 +100,25 @@ protected:
 
    DLLLOCAL void addSuperClass(QoreClass& qc, jni::Class* parent);
 
+   DLLLOCAL QoreClass* find(const char* jpath) const {
+      jcmap_t::const_iterator i = jcmap.find(jpath);
+      return i == jcmap.end() ? 0 : i->second;
+   }
+
+   DLLLOCAL QoreClass* createClass(QoreNamespace& jns, const char* name, const char* jpath, jni::Class* jc);
+   DLLLOCAL QoreClass* createClassIntern(QoreNamespace* ns, QoreNamespace& jns, const char* name, const char* jpath, jni::Class* jc, QoreClass* qc);
+
 public:
-   mutable QoreThreadLock m;
+   mutable QoreJniThreadLock m;
 
    DLLLOCAL QoreJniClassMap() : default_jns("Jni"), init_done(false) {
    }
 
    DLLLOCAL void init();
 
-   DLLLOCAL QoreClass* createClass(QoreNamespace& jns, const char* name, const char* jpath, jni::Class* jc);
+   DLLLOCAL QoreObject* getObject(const jni::LocalReference<jobject>& jobj);
 
-   DLLLOCAL QoreClass* find(const char* jpath) const {
-      jcmap_t::const_iterator i = jcmap.find(jpath);
-      return i == jcmap.end() ? 0 : i->second;
-   }
+   DLLLOCAL QoreClass* findCreateClass(const jni::LocalReference<jclass>& jc);
 
    DLLLOCAL QoreClass* findCreateClass(QoreNamespace& jns, const char* name);
 
@@ -128,12 +133,6 @@ public:
       return default_jns;
    }
 
-   /*
-   DLLLOCAL java::lang::Object *toJava(java::lang::Class *jc, const AbstractQoreNode *n, ExceptionSink *xsink);
-   DLLLOCAL const QoreTypeInfo *toTypeInfo(java::lang::Class *jc);
-   DLLLOCAL AbstractQoreNode *toQore(java::lang::Object *jobj, ExceptionSink *xsink);
-   */
-
    DLLLOCAL QoreClass* loadCreateClass(QoreNamespace& jns, const char* cstr);
 
    DLLLOCAL jobject getJavaObject(const QoreObject* o);
@@ -144,7 +143,7 @@ private:
    jni::GlobalReference<jobject> jobj;
 
 public:
-   DLLLOCAL QoreJniPrivateData(jni::LocalReference<jobject> n_jobj) : jobj(n_jobj.makeGlobal()) {
+   DLLLOCAL QoreJniPrivateData(const jni::LocalReference<jobject>& n_jobj) : jobj(n_jobj.makeGlobal()) {
    }
 
    DLLLOCAL jobject getObject() const {

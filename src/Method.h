@@ -89,7 +89,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invoke(jobject object, const QoreValueList* args, int base = 1);
+   QoreValue invoke(jobject object, const QoreValueList* args, bool to_qore = false);
 
    /**
     * \brief Invokes an instance method non-virtually.
@@ -99,7 +99,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invokeNonvirtual(jobject object, const QoreValueList* args, int base = 1);
+   QoreValue invokeNonvirtual(jobject object, const QoreValueList* args, bool to_qore = false);
 
    /**
     * \brief Invokes a static method.
@@ -107,7 +107,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invokeStatic(const QoreValueList* args);
+   QoreValue invokeStatic(const QoreValueList* args, bool to_qore = false);
 
    /**
     * \brief Creates a new object by invoking a constructor.

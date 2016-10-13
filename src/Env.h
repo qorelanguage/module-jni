@@ -74,7 +74,9 @@ public:
     * \throws JavaException if the class cannot be found
     */
    LocalReference<jclass> findClass(const char *name) {
+      printd(0, "BFC '%s'\n", name);
       jclass c = env->FindClass(name);
+      printd(0, "AFC '%s' %p\n", name, c);
       if (c == nullptr) {
          throw JavaException();
       }

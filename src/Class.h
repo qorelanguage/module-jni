@@ -97,6 +97,9 @@ public:
    // returns an array of methods
    DLLLOCAL LocalReference<jobjectArray> getDeclaredMethods();
 
+   // returns an arry of fields
+   DLLLOCAL LocalReference<jobjectArray> getDeclaredFields();
+
    // returns class modifiers as an integer
    DLLLOCAL int getModifiers();
 

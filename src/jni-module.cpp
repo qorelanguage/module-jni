@@ -182,7 +182,7 @@ static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
          {
             // parsing can occur in parallel in different QoreProgram objects
             // so we need to protect the load with a lock
-            AutoLocker al(qjcm.m);
+            QoreJniAutoLocker al(qjcm.m);
             qjcm.loadCreateClass(qjcm.getRootNS(), arg.c_str());
          }
       }
@@ -227,9 +227,6 @@ static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
       if (!wc) {
          ns = ns->findLocalNamespace("Jni");
          assert(ns);
-         // parsing can occur in parallel in different QoreProgram objects
-         // so we need to protect the load with a lock
-         AutoLocker al(qjcm.m);
          qjcm.findCreateClass(*ns, arg.getBuffer());
       }
    }
@@ -258,9 +255,6 @@ QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
    printd(LogLevel, "jni_class_handler() ns: %p cname: %s cp: %s\n", ns, cname, cp.getBuffer());
 
    try {
-      // class loading can occur in parallel in different QoreProgram objects
-      // so we need to protect the load with a lock
-      AutoLocker al(qjcm.m);
       QoreClass* qc = qjcm.findCreateClass(*const_cast<QoreNamespace*>(jns), cp.getBuffer());
 
       printd(LogLevel, "jni_class_handler() cp: %s returning qc: %p\n", cp.getBuffer(), qc);

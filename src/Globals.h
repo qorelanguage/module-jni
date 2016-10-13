@@ -57,7 +57,7 @@ public:
    static jmethodID methodClassGetComponentType;                        // Class<?> Class.getComponentType()
    static jmethodID methodClassGetClassLoader;                          // ClassLoader Class.getClassLoader()
    static jmethodID methodClassGetName;                                 // String Class.getName()
-   static jmethodID methodClassGetFields;                               // Field[] Class.getFields()
+   static jmethodID methodClassGetDeclaredFields;                       // Field[] Class.getDeclaredFields()
    static jmethodID methodClassGetSuperClass;                           // Class<? super T> Class.getSuperClass()
    static jmethodID methodClassGetInterfaces;                           // Class<?>[] Class.getInterfacess()
    static jmethodID methodClassGetDeclaredConstructors;                 // Constructor<?>[] Class.getDeclaredConstructors()
@@ -74,6 +74,8 @@ public:
    static jmethodID methodFieldGetType;                                 // Class<?> Field.getType()
    static jmethodID methodFieldGetDeclaringClass;                       // Class<?> Field.getDeclaringClass()
    static jmethodID methodFieldGetModifiers;                            // int Field.getModifiers()
+   static jmethodID methodFieldGetName;                                 // String Field.getName()
+   static jmethodID methodFieldGet;                                     // Object Field.get(Object)
 
    static GlobalReference<jclass> classMethod;                          // java.lang.reflect.Method
    static jmethodID methodMethodGetReturnType;                          // Class<?> Method.getReturnType()

@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -23,15 +23,24 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 //------------------------------------------------------------------------------
-#include "Field.h"
+
 #include <memory>
+
+#include "Field.h"
 #include "Env.h"
 #include "JavaToQore.h"
 #include "QoreToJava.h"
 
 namespace jni {
 
-QoreValue Field::get(jobject object) {
+void BaseField::getName(QoreString& str) {
+   Env env;
+   LocalReference<jstring> fieldName = env.callObjectMethod(field, Globals::methodFieldGetName, nullptr).as<jstring>();
+   Env::GetStringUtfChars fname(env, fieldName);
+   str.concat(fname.c_str());
+}
+
+QoreValue BaseField::get(jobject object) {
    Env env;
    if (!env.isInstanceOf(object, cls->getJavaObject())) {
       throw BasicException("Passed instance does not match the field's class");
@@ -60,7 +69,7 @@ QoreValue Field::get(jobject object) {
    }
 }
 
-void Field::set(jobject object, const QoreValue &value) {
+void BaseField::set(jobject object, const QoreValue &value) {
    Env env;
    if (!env.isInstanceOf(object, cls->getJavaObject())) {
       throw BasicException("Passed instance does not match the field's class");
@@ -98,7 +107,7 @@ void Field::set(jobject object, const QoreValue &value) {
    }
 }
 
-QoreValue Field::getStatic() {
+QoreValue BaseField::getStatic(bool to_qore) {
    Env env;
    switch (type) {
       case Type::Boolean:
@@ -120,11 +129,13 @@ QoreValue Field::getStatic() {
       case Type::Reference:
       default:
          assert(type == Type::Reference);
-         return JavaToQore::convert(env.getStaticObjectField(cls->getJavaObject(), id));
+         return to_qore
+            ? JavaToQore::convertToQore(env.getStaticObjectField(cls->getJavaObject(), id))
+            : JavaToQore::convert(env.getStaticObjectField(cls->getJavaObject(), id));
    }
 }
 
-void Field::setStatic(const QoreValue &value) {
+void BaseField::setStatic(const QoreValue &value) {
    Env env;
    switch (type) {
       case Type::Boolean:
