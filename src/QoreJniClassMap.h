@@ -28,16 +28,17 @@
 #include "LocalReference.h"
 
 DLLLOCAL void init_jni_functions(QoreNamespace& ns);
-DLLLOCAL QoreClass* initObjectClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initArrayClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initThrowableClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initClassClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initFieldClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initStaticFieldClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initMethodClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initStaticMethodClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initConstructorClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initInvocationHandlerClass(QoreNamespace& ns);
+
+DLLLOCAL QoreClass* initJavaObjectClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initJavaArrayClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initJavaThrowableClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initJavaClassClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initJavaFieldClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initJavaStaticFieldClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initJavaMethodClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initJavaStaticMethodClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initJavaConstructorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initJavaInvocationHandlerClass(QoreNamespace& ns);
 
 DLLLOCAL QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname);
 
@@ -48,6 +49,9 @@ namespace jni {
 
 class QoreJniClassMap {
 protected:
+   // the Qore class ID for java::lang::Object
+   qore_classid_t CID_OBJECT;
+
    // map of java class names (ex 'java/lang/object') to QoreClass ptrs
    typedef std::map<std::string, QoreClass*> jcmap_t;
    jcmap_t jcmap;
@@ -131,6 +135,8 @@ public:
    */
 
    DLLLOCAL QoreClass* loadCreateClass(QoreNamespace& jns, const char* cstr);
+
+   DLLLOCAL jobject getJavaObject(const QoreObject* o);
 };
 
 class QoreJniPrivateData : public AbstractPrivateData {

@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -63,8 +63,8 @@ jobject QoreCodeDispatcher::dispatch(Env &env, jobject proxy, jobject method, jo
    {
       ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
       int mods = env.callIntMethod(method, Globals::methodMethodGetModifiers, nullptr);
-      args->push(new QoreObject(mods & 8 ? QC_STATICMETHOD : QC_METHOD, getProgram(), new Method(method)));
-      args->push(jargs == nullptr ? nullptr : new QoreObject(QC_ARRAY, getProgram(), new Array(jargs)));
+      args->push(new QoreObject(mods & 8 ? QC_JAVASTATICMETHOD : QC_JAVAMETHOD, getProgram(), new Method(method)));
+      args->push(jargs == nullptr ? nullptr : new QoreObject(QC_JAVAARRAY, getProgram(), new Array(jargs)));
       QoreValue qv = callback->execValue(*args, &xsink);
       if (xsink) {
          QoreToJava::wrapException(xsink);

@@ -147,7 +147,7 @@ void JavaException::convert(ExceptionSink *xsink) {
          env->ReleaseStringUTFChars(msg, chars);
       }
    }
-   xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(QC_THROWABLE, getProgram(), new Throwable(throwable)), desc.release());
+   xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(QC_JAVATHROWABLE, getProgram(), new Throwable(throwable)), desc.release());
 }
 
 void JavaException::ignoreOrRethrow(const char* cls) {
@@ -203,7 +203,7 @@ void JavaException::ignoreOrRethrow(const char* cls) {
          env->ReleaseStringUTFChars(msg, chars);
       }
    }
-   xsink.raiseExceptionArg("JNI-ERROR", new QoreObject(QC_THROWABLE, getProgram(), new Throwable(throwable)), desc.release());
+   xsink.raiseExceptionArg("JNI-ERROR", new QoreObject(QC_JAVATHROWABLE, getProgram(), new Throwable(throwable)), desc.release());
 }
 
 } // namespace jni

@@ -13,57 +13,57 @@
 
 class ClassLoader {
     private:internal {
-        QoreJni::Object this;
-        QoreJni::Method loadClassMethod;
+        QoreJni::JavaObject this;
+        QoreJni::JavaMethod loadClassMethod;
     }
 
     constructor(softlist urls) {
-        QoreJni::Class urlClass = QoreJni::load_class("java/net/URL");
-        QoreJni::Constructor urlCtor = urlClass.getConstructor("(Ljava/lang/String;)V");
+        QoreJni::JavaClass urlClass = QoreJni::load_class("java/net/URL");
+        QoreJni::JavaConstructor urlCtor = urlClass.getConstructor("(Ljava/lang/String;)V");
 
-        QoreJni::Array urlArray = QoreJni::new_object_array(urls.size(), urlClass);
+        QoreJni::JavaArray urlArray = QoreJni::new_object_array(urls.size(), urlClass);
         foreach string url in (urls) {
             urlArray.set($#, urlCtor.newInstance(url));
         }
 
-        QoreJni::Class classLoaderClass = QoreJni::load_class("java/net/URLClassLoader");
+        QoreJni::JavaClass classLoaderClass = QoreJni::load_class("java/net/URLClassLoader");
 
         loadClassMethod = classLoaderClass.getMethod("loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
         this = classLoaderClass.getConstructor("([Ljava/net/URL;)V").newInstance(urlArray);
     }
 
-    QoreJni::Class loadClass(string name) {
+    QoreJni::JavaClass loadClass(string name) {
         name =~ tr/\//\./;   #/;#needed due to broken emacs qore-mode
         return loadClassMethod.invoke(this, name);
     }
 
-    QoreJni::Object get() {
+    QoreJni::JavaObject get() {
         return this;
     }
 }
 
 class Message {
     private {
-        QoreJni::Object this;
+        QoreJni::JavaObject this;
     }
 
-    constructor(QoreJni::Object this) {
+    constructor(QoreJni::JavaObject this) {
         self.this = this;
     }
 
-    QoreJni::Object get() {
+    QoreJni::JavaObject get() {
         return this;
     }
 }
 
 class TextMessage inherits Message {
     private:internal {
-        QoreJni::Method setTextMethod;
-        QoreJni::Method getTextMethod;
+        QoreJni::JavaMethod setTextMethod;
+        QoreJni::JavaMethod getTextMethod;
     }
 
-    constructor(QoreJni::Object this) : Message(this) {
-        QoreJni::Class clazz = this.getClass();
+    constructor(QoreJni::JavaObject this) : Message(this) {
+        QoreJni::JavaClass clazz = this.getClass();
         setTextMethod = clazz.getMethod("setText", "(Ljava/lang/String;)V");
         getTextMethod = clazz.getMethod("getText", "()Ljava/lang/String;");
     }
@@ -80,13 +80,13 @@ class TextMessage inherits Message {
 class MessageProducer {
 
     private:internal {
-        QoreJni::Object this;
-        QoreJni::Method sendMethod;
+        QoreJni::JavaObject this;
+        QoreJni::JavaMethod sendMethod;
     }
 
-    constructor(QoreJni::Object this) {
+    constructor(QoreJni::JavaObject this) {
         self.this = this;
-        QoreJni::Class clazz = this.getClass();
+        QoreJni::JavaClass clazz = this.getClass();
         sendMethod = clazz.getMethod("send", "(Ljavax/jms/Message;)V");
     }
 
@@ -96,9 +96,9 @@ class MessageProducer {
 }
 
 # workaround for issue 1303 - this should be directly in MessageConsumer::setMessageListener
-code sub wrapListener(code listener, QoreJni::Class textMessageClass) {
-    return sub(QoreJni::Method method, *QoreJni::Array args) {
-        QoreJni::Object o = args.get(0);
+code sub wrapListener(code listener, QoreJni::JavaClass textMessageClass) {
+    return sub(QoreJni::JavaMethod method, *QoreJni::JavaArray args) {
+        QoreJni::JavaObject o = args.get(0);
         Message m;
         if (textMessageClass.isInstance(o)) {
             m = new TextMessage(o);
@@ -113,16 +113,16 @@ class MessageConsumer {
 
     private:internal {
         ClassLoader classLoader;
-        QoreJni::Object this;
-        QoreJni::Method setMessageListenerMethod;
-        QoreJni::Class textMessageClass;
-        QoreJni::Class messageListenerClass;
+        QoreJni::JavaObject this;
+        QoreJni::JavaMethod setMessageListenerMethod;
+        QoreJni::JavaClass textMessageClass;
+        QoreJni::JavaClass messageListenerClass;
     }
 
-    constructor(ClassLoader classLoader, QoreJni::Object this) {
+    constructor(ClassLoader classLoader, QoreJni::JavaObject this) {
         self.classLoader = classLoader;
         self.this = this;
-        QoreJni::Class clazz = this.getClass();
+        QoreJni::JavaClass clazz = this.getClass();
         setMessageListenerMethod = clazz.getMethod("setMessageListener", "(Ljavax/jms/MessageListener;)V");
         textMessageClass = classLoader.loadClass("javax/jms/TextMessage");
         messageListenerClass = classLoader.loadClass("javax/jms/MessageListener");
@@ -130,20 +130,20 @@ class MessageConsumer {
 
     setMessageListener(code listener) {
         code w = wrapListener(listener, textMessageClass);
-        setMessageListenerMethod.invoke(this, QoreJni::implement_interface(classLoader.get(), new QoreJni::InvocationHandler(w), messageListenerClass));
+        setMessageListenerMethod.invoke(this, QoreJni::implement_interface(classLoader.get(), new QoreJni::JavaInvocationHandler(w), messageListenerClass));
     }
 }
 
 class Destination {
     private:internal {
-        QoreJni::Object this;
+        QoreJni::JavaObject this;
     }
 
-    constructor(QoreJni::Object this) {
+    constructor(QoreJni::JavaObject this) {
         self.this = this;
     }
 
-    QoreJni::Object get() {
+    QoreJni::JavaObject get() {
         return this;
     }
 }
@@ -158,16 +158,16 @@ class Session {
 
     private:internal {
         ClassLoader classLoader;
-        QoreJni::Object this;
-        QoreJni::Method createProducerMethod;
-        QoreJni::Method createConsumerMethod;
-        QoreJni::Method createTextMessageMethod;
+        QoreJni::JavaObject this;
+        QoreJni::JavaMethod createProducerMethod;
+        QoreJni::JavaMethod createConsumerMethod;
+        QoreJni::JavaMethod createTextMessageMethod;
     }
 
-    constructor(ClassLoader classLoader, QoreJni::Object this) {
+    constructor(ClassLoader classLoader, QoreJni::JavaObject this) {
         self.classLoader = classLoader;
         self.this = this;
-        QoreJni::Class clazz = this.getClass();
+        QoreJni::JavaClass clazz = this.getClass();
         createProducerMethod = clazz.getMethod("createProducer", "(Ljavax/jms/Destination;)Ljavax/jms/MessageProducer;");
         createConsumerMethod = clazz.getMethod("createConsumer", "(Ljavax/jms/Destination;)Ljavax/jms/MessageConsumer;");
         createTextMessageMethod = clazz.getMethod("createTextMessage", "()Ljavax/jms/TextMessage;");
@@ -189,16 +189,16 @@ class Session {
 class Connection {
     private:internal {
         ClassLoader classLoader;
-        QoreJni::Object this;
-        QoreJni::Method closeMethod;
-        QoreJni::Method startMethod;
-        QoreJni::Method createSessionMethod;
+        QoreJni::JavaObject this;
+        QoreJni::JavaMethod closeMethod;
+        QoreJni::JavaMethod startMethod;
+        QoreJni::JavaMethod createSessionMethod;
     }
 
-    constructor(ClassLoader classLoader, QoreJni::Object this) {
+    constructor(ClassLoader classLoader, QoreJni::JavaObject this) {
         self.classLoader = classLoader;
         self.this = this;
-        QoreJni::Class clazz = this.getClass();
+        QoreJni::JavaClass clazz = this.getClass();
         closeMethod = clazz.getMethod("close", "()V");
         startMethod = clazz.getMethod("start", "()V");
         createSessionMethod = clazz.getMethod("createSession", "(I)Ljavax/jms/Session;");
@@ -227,11 +227,11 @@ class Connection {
 class ConnectionFactory {
     private:internal {
         ClassLoader classLoader;
-        QoreJni::Object this;
-        QoreJni::Method createConnectionMethod;
+        QoreJni::JavaObject this;
+        QoreJni::JavaMethod createConnectionMethod;
     }
 
-    constructor(ClassLoader classLoader, QoreJni::Object this) {
+    constructor(ClassLoader classLoader, QoreJni::JavaObject this) {
         self.classLoader = classLoader;
         self.this = this;
         createConnectionMethod = this.getClass().getMethod("createConnection", "()Ljavax/jms/Connection;");
@@ -245,9 +245,9 @@ class ConnectionFactory {
 class JmsContext {
     private:internal {
         ClassLoader classLoader;
-        QoreJni::Class ctxClass;
-        QoreJni::Method lookup;
-        QoreJni::Object namingContext;
+        QoreJni::JavaClass ctxClass;
+        QoreJni::JavaMethod lookup;
+        QoreJni::JavaObject namingContext;
     }
 
     constructor(softlist classpath) {
@@ -255,8 +255,8 @@ class JmsContext {
         ctxClass = QoreJni::load_class("javax/naming/InitialContext");
         lookup = ctxClass.getMethod("lookup", "(Ljava/lang/String;)Ljava/lang/Object;");
 
-        QoreJni::Class threadClass = QoreJni::load_class("java/lang/Thread");
-        QoreJni::Object thread = threadClass.getStaticMethod("currentThread", "()Ljava/lang/Thread;").invoke();
+        QoreJni::JavaClass threadClass = QoreJni::load_class("java/lang/Thread");
+        QoreJni::JavaObject thread = threadClass.getStaticMethod("currentThread", "()Ljava/lang/Thread;").invoke();
         threadClass.getMethod("setContextClassLoader", "(Ljava/lang/ClassLoader;)V").invoke(thread, classLoader.get());
 
         namingContext = ctxClass.getConstructor("()V").newInstance();

@@ -1,9 +1,9 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Object.qpp Object class definition */
+/** @file QC_JavaField.qpp JavaField class definition */
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,31 +29,45 @@
 */
 
 #include <qore/Qore.h>
-#include "Object.h"
-#include "Class.h"
-#include "Env.h"
+#include "Field.h"
 
-//! Represents a Java object.
+//! Represents a non-static field of a Java class.
 /**
  */
-qclass Object [arg=jni::ObjectBase* object; ns=Qore::Jni];
+qclass JavaField [arg=jni::Field* field; ns=Qore::Jni; flags=final; vparent=JavaObject];
 
 //! Defined private to prevent Qore code from creating instances.
 /**
  */
-private:internal Object::constructor() {
+private JavaField::constructor() {
 }
 
-//! Returns the class of the object.
+//! Gets the value of the field.
 /**
-    @return the class of the object
+    @param obj the instance whose field should be returned
+    @return the value of the field
  */
-Class Object::getClass() {
+any JavaField::get(Jni::QoreJni::JavaObject[jni::ObjectBase] obj) {
+   SimpleRefHolder<jni::ObjectBase> objHolder(obj);
    try {
-      jni::Env env;
-      return new QoreObject(QC_CLASS, getProgram(), new jni::Class(env.getObjectClass(object->getJavaObject())));
+      return field->get(obj->getJavaObject());
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
+   }
+}
+
+//! Sets the value of the field.
+/**
+    @param obj the instance whose field should be returned
+    @param value the value of the field
+    @throws JNI-ERROR if the value cannot be converted
+ */
+any JavaField::set(Jni::QoreJni::JavaObject[jni::ObjectBase] obj, any value) {
+   SimpleRefHolder<jni::ObjectBase> objHolder(obj);
+   try {
+      field->set(obj->getJavaObject(), value);
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
    }
 }

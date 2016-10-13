@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -35,8 +35,8 @@
 #include "Object.h"
 #include "Dispatcher.h"
 
-extern QoreClass* QC_INVOCATIONHANDLER;
-extern qore_classid_t CID_INVOCATIONHANDLER;
+extern QoreClass* QC_JAVAINVOCATIONHANDLER;
+extern qore_classid_t CID_JAVAINVOCATIONHANDLER;
 
 namespace jni {
 

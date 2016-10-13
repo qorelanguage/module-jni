@@ -55,7 +55,7 @@ static void jni_module_ns_init(QoreNamespace* rns, QoreNamespace* qns);
 static void jni_module_delete();
 static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink);
 
-DLLLOCAL void preinitClassClass();
+DLLLOCAL void preinitJavaClassClass();
 
 DLLEXPORT char qore_module_name[] = QORE_JNI_MODULE_NAME;
 DLLEXPORT char qore_module_version[] = PACKAGE_VERSION;
@@ -106,7 +106,7 @@ static QoreStringNode* jni_module_init() {
 
    tclist.push(jni_thread_cleanup, nullptr);
 
-   preinitClassClass();
+   preinitJavaClassClass();
 
    qjcm.init();
    return nullptr;

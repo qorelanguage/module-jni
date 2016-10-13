@@ -84,8 +84,8 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreValueList* args, size_t ba
    return std::move(jargs);
 }
 
-QoreValue BaseMethod::invoke(jobject object, const QoreValueList* args) {
-   std::vector<jvalue> jargs = convertArgs(args, 1);
+QoreValue BaseMethod::invoke(jobject object, const QoreValueList* args, int base) {
+   std::vector<jvalue> jargs = convertArgs(args, base);
 
    Env env;
    if (!env.isInstanceOf(object, cls->getJavaObject())) {
@@ -118,8 +118,8 @@ QoreValue BaseMethod::invoke(jobject object, const QoreValueList* args) {
    }
 }
 
-QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreValueList* args) {
-   std::vector<jvalue> jargs = convertArgs(args, 1);
+QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreValueList* args, int base) {
+   std::vector<jvalue> jargs = convertArgs(args, base);
 
    Env env;
    if (!env.isInstanceOf(object, cls->getJavaObject())) {

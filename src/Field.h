@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -36,8 +36,8 @@
 #include "Globals.h"
 #include "Env.h"
 
-extern QoreClass* QC_FIELD;
-extern QoreClass* QC_STATICFIELD;
+extern QoreClass* QC_JAVAFIELD;
+extern QoreClass* QC_JAVASTATICFIELD;
 
 namespace jni {
 

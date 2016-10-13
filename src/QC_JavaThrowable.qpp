@@ -1,9 +1,9 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Constructor.qpp Constructor class definition */
+/** @file QC_JavaThrowable.qpp JavaThrowable class definition */
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,30 +29,15 @@
 */
 
 #include <qore/Qore.h>
-#include "Method.h"
+#include "Throwable.h"
 
-//! Represents a constructor of a Java class.
+//! Represents instances of java.lang.Throwable and its subclasses.
 /**
  */
-qclass Constructor [arg=jni::Method* method; ns=Qore::Jni; flags=final; vparent=Object];
+qclass JavaThrowable [arg=jni::JavaThrowable* throwable; ns=Qore::Jni; flags=final; vparent=JavaObject];
 
 //! Defined private to prevent Qore code from creating instances.
 /**
  */
-private Constructor::constructor() {
-}
-
-//! Creates a new instance by allocating memory and invoking the constructor represented by this class.
-/**
-    @param arguments to the constructor
-    @return the newly constructed Java object
-    @throws JNI-ERROR if the arguments cannot be converted or if the constructor throws an exception
- */
-Object Constructor::newInstance(...) {
-   try {
-      return method->newInstance(args);
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
+private:internal JavaThrowable::constructor() {
 }

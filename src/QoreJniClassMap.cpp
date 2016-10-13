@@ -89,19 +89,19 @@ static QoreNamespace* qjni_find_create_namespace(QoreNamespace& jns, const char*
 
 void QoreJniClassMap::init() {
    QoreNamespace* qorejni = new QoreNamespace("QoreJni");
-   qorejni->addSystemClass(initObjectClass(*qorejni));
-   qorejni->addSystemClass(initInvocationHandlerClass(*qorejni));
-   qorejni->addSystemClass(initArrayClass(*qorejni));
-   qorejni->addSystemClass(initThrowableClass(*qorejni));
-   qorejni->addSystemClass(initFieldClass(*qorejni));
-   qorejni->addSystemClass(initStaticFieldClass(*qorejni));
-   qorejni->addSystemClass(initMethodClass(*qorejni));
-   qorejni->addSystemClass(initStaticMethodClass(*qorejni));
-   qorejni->addSystemClass(initConstructorClass(*qorejni));
-   qorejni->addSystemClass(initClassClass(*qorejni));
+   qorejni->addSystemClass(initJavaObjectClass(*qorejni));
+   qorejni->addSystemClass(initJavaInvocationHandlerClass(*qorejni));
+   qorejni->addSystemClass(initJavaArrayClass(*qorejni));
+   qorejni->addSystemClass(initJavaThrowableClass(*qorejni));
+   qorejni->addSystemClass(initJavaFieldClass(*qorejni));
+   qorejni->addSystemClass(initJavaStaticFieldClass(*qorejni));
+   qorejni->addSystemClass(initJavaMethodClass(*qorejni));
+   qorejni->addSystemClass(initJavaStaticMethodClass(*qorejni));
+   qorejni->addSystemClass(initJavaConstructorClass(*qorejni));
+   qorejni->addSystemClass(initJavaClassClass(*qorejni));
    init_jni_functions(*qorejni);
 
-   // add to "QoreJni" namespace
+   // add "QoreJni" to "Jni" namespace
    default_jns.addInitialNamespace(qorejni);
 
    // create java.lang namespace with automatic class loader handler
@@ -110,11 +110,11 @@ void QoreJniClassMap::init() {
    langns->setClassHandler(jni_class_handler);
    javans->addInitialNamespace(langns);
 
-   // add to "Jni" namespace
+   // add "java" to "Jni" namespace
    default_jns.addInitialNamespace(javans);
 
    // add "Object" class
-   loadCreateClass(default_jns, "java.lang.Object");
+   CID_OBJECT = loadCreateClass(default_jns, "java.lang.Object")->getID();
 }
 
 QoreClass* QoreJniClassMap::findCreateClass(QoreNamespace& jns, const char* name) {
@@ -162,6 +162,10 @@ QoreClass* QoreJniClassMap::createClass(QoreNamespace& jns, const char* name, co
    //std::unique_ptr<QoreClass> qc_holder(qc);
    // save pointer to java class info in QoreClass
    qc->setManagedUserData(jc);
+
+   int mods = jc->getModifiers();
+   if (mods & JVM_ACC_FINAL)
+      qc->setFinal();
 
    // save class in namespace
    ns->addSystemClass(qc);
@@ -364,6 +368,12 @@ void QoreJniClassMap::doMethods(QoreClass& qc, jni::Class* jc) {
    }
 }
 
+jobject QoreJniClassMap::getJavaObject(const QoreObject* o) {
+   ExceptionSink xsink;
+   PrivateDataRefHolder<QoreJniPrivateData> jo(o, CID_OBJECT, &xsink);
+   return jo ? jo->getObject() : 0;
+}
+
 static void exec_java_constructor(const QoreClass& qc, BaseMethod* m, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
    try {
       self->setPrivate(qc.getID(), new QoreJniPrivateData(m->newQoreInstance(args)));
@@ -375,8 +385,7 @@ static void exec_java_constructor(const QoreClass& qc, BaseMethod* m, QoreObject
 
 static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
    try {
-      xsink->raiseException("ERR", "SM");
-      return QoreValue();
+      return m->invokeStatic(args);
    }
    catch (jni::Exception& e) {
       e.convert(xsink);
@@ -386,8 +395,7 @@ static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, 
 
 static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObject* self, QoreJniPrivateData* jd, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
    try {
-      xsink->raiseException("ERR", "M");
-      return QoreValue();
+      return m->invokeNonvirtual(jd->getObject(), args, 0);
    }
    catch (jni::Exception& e) {
       e.convert(xsink);
@@ -450,19 +458,6 @@ void QoreJniClassMap::doFields(QoreClass &qc, java::lang::Class *jc, ExceptionSi
    }
 }
 
-void QoreJniClassMap::addQoreClass() {
-   // get class for java::lang::Object
-   QoreClass *joc = find(&java::lang::Object::class$);
-   assert(joc);
-
-   CID_OBJECT = joc->getID();
-
-   QoreClass *qc = new QoreClass("Qore");
-   qc->addStaticMethodExtended("toQore", f_toQore, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, joc->getTypeInfo(), QORE_PARAM_NO_ARG);
-
-   default_jns.addSystemClass(qc);
-}
-
 const QoreTypeInfo *QoreJniClassMap::toTypeInfo(java::lang::Class *jc) {
    if (jc == &java::lang::String::class$
        || jc == &java::lang::Character::class$)
@@ -485,187 +480,4 @@ const QoreTypeInfo *QoreJniClassMap::toTypeInfo(java::lang::Class *jc) {
    return qc ? qc->getTypeInfo() : 0;
 }
 
-AbstractQoreNode *QoreJniClassMap::toQore(java::lang::Object *jobj, ExceptionSink *xsink) {
-   if (!jobj)
-      return 0;
-
-   jclass jc = jobj->getClass();
-
-   if (jc->isArray()) {
-      ReferenceHolder<QoreListNode> rv(new QoreListNode, xsink);
-
-      jint len = java::lang::reflect::Array::getLength(jobj);
-      for (jint i = 0; i < len; ++i) {
-         java::lang::Object* elem = java::lang::reflect::Array::get(jobj, i);
-         AbstractQoreNode* qe = toQore(elem, xsink);
-         if (*xsink) {
-            assert(!qe);
-            return 0;
-         }
-         rv->push(qe);
-      }
-
-      return rv.release();
-   }
-
-   if (jc == &java::util::Vector::class$) {
-      java::util::Vector* vec = reinterpret_cast<java::util::Vector*>(jobj);
-      ReferenceHolder<QoreListNode> rv(new QoreListNode, xsink);
-
-      jint len = vec->size();
-      for (jint i = 0; i < len; ++i) {
-         java::lang::Object* elem = vec->elementAt(i);
-         AbstractQoreNode* qe = toQore(elem, xsink);
-         if (*xsink) {
-            assert(!qe);
-            return 0;
-         }
-         rv->push(qe);
-      }
-
-      return rv.release();
-   }
-
-   if (jc == &java::lang::String::class$)
-      return javaToQore((jstring)jobj);
-
-   if (jc == &java::lang::Long::class$)
-      return javaToQore(((java::lang::Long *)jobj)->longValue());
-
-   if (jc == &java::lang::Integer::class$)
-      return javaToQore(((java::lang::Integer *)jobj)->longValue());
-
-   if (jc == &java::lang::Short::class$)
-      return javaToQore(((java::lang::Short *)jobj)->longValue());
-
-   if (jc == &java::lang::Byte::class$)
-      return javaToQore(((java::lang::Byte *)jobj)->longValue());
-
-   if (jc == &java::lang::Boolean::class$)
-      return javaToQore(((java::lang::Boolean *)jobj)->booleanValue());
-
-   if (jc == &java::lang::Double::class$)
-      return javaToQore(((java::lang::Double *)jobj)->doubleValue());
-
-   if (jc == &java::lang::Float::class$)
-      return javaToQore(((java::lang::Float *)jobj)->doubleValue());
-
-   if (jc == &java::lang::Character::class$)
-      return javaToQore(((java::lang::Character *)jobj)->charValue());
-
-   QoreClass *qc = find(jc);
-   if (qc) // set Program to NULL as java objects should not depend on code in the current Program object
-      return new QoreObject(qc, 0, new QoreJniPrivateData(jobj));
-
-   if (!xsink)
-      return 0;
-
-   QoreString cname;
-   getQoreString(jobj->getClass()->getName(), cname);
-
-   xsink->raiseException("JAVA-UNSUPPORTED-TYPE", "cannot convert from Java class '%s' to a Qore value", cname.getBuffer());
-   return 0;
-}
-
-java::lang::Object *QoreJniClassMap::toJava(java::lang::Class *jc, const AbstractQoreNode *n, ExceptionSink *xsink) {
-#ifdef DEBUG
-   QoreString pname;
-   getQoreString(jc->getName(), pname);
-   printd(5, "QoreJniClassMap::toJava() jc: %p %s n: %p %s\n", jc, pname.getBuffer(), n, get_type_name(n));
-#endif
-
-   // handle NULL pointers first
-   if (!n || jc == JvPrimClass(void))
-      return 0;
-
-   if (jc->isArray()) {
-      jclass cc = jc->getComponentType();
-      if (n && n->getType() == NT_LIST) {
-         const QoreListNode *l = reinterpret_cast<const QoreListNode *>(n);
-         jobjectArray array = JvNewObjectArray(l->size(), cc, NULL);
-         ConstListIterator li(l);
-         while (li.next()) {
-            elements(array)[li.index()] = toJava(cc, li.getValue(), xsink);
-            if (*xsink)
-               return 0;
-         }
-         //printd(5, "QoreJniClassMap::toJava() returning array of size %lld\n", l->size());
-         return array;
-      }
-      else {
-         jobjectArray array = JvNewObjectArray(is_nothing(n) ? 0 : 1, cc, NULL);
-         if (!is_nothing(n)) {
-            elements(array)[0] = toJava(cc, n, xsink);
-            if (*xsink)
-               return 0;
-         }
-         return array;
-      }
-   }
-
-   if (jc == &java::lang::String::class$) {
-      QoreStringValueHelper str(n, QCS_UTF8, xsink);
-      if (*xsink)
-         return 0;
-
-      return JvNewStringUTF(str->getBuffer());
-   }
-
-   if (jc == &java::lang::Long::class$ || jc == JvPrimClass(long))
-      return ::toJava((jlong)n->getAsBigInt());
-
-   if (jc == &java::lang::Integer::class$ || jc == JvPrimClass(int))
-      return new java::lang::Integer((jint)n->getAsInt());
-
-   if (jc == &java::lang::Short::class$ || jc == JvPrimClass(short))
-      return new java::lang::Short((jshort)n->getAsInt());
-
-   if (jc == &java::lang::Byte::class$ || jc == JvPrimClass(byte))
-      return new java::lang::Byte((jbyte)n->getAsInt());
-
-   if (jc == &java::lang::Boolean::class$ || jc == JvPrimClass(boolean))
-      return ::toJava((jboolean)n->getAsBool());
-
-   if (jc == &java::lang::Double::class$ || jc == JvPrimClass(double))
-      return ::toJava((jdouble)n->getAsFloat());
-
-   if (jc == &java::lang::Float::class$ || jc == JvPrimClass(float))
-      return ::toJava((jfloat)n->getAsFloat());
-
-   if (jc == &java::lang::Character::class$ || jc == JvPrimClass(char)) {
-      QoreStringValueHelper str(n, QCS_UTF8, xsink);
-      if (*xsink)
-         return 0;
-
-      return new java::lang::Character((jchar)str->getUnicodePointFromUTF8(0));
-   }
-
-   if (jc == &java::lang::Object::class$)
-      return ::toJava(n, xsink);
-
-   // find corresponding QoreClass
-   QoreClass *qc = find(jc);
-   if (qc && n && n->getType() == NT_OBJECT) {
-      const QoreObject *o = reinterpret_cast<const QoreObject *>(n);
-      PrivateDataRefHolder<QoreJniPrivateData> jpd(o, qc->getID(), xsink);
-      if (!jpd) {
-         if (!*xsink) {
-            QoreString cname;
-            getQoreString(jc->getName(), cname);
-            xsink->raiseException("JAVA-TYPE-ERROR", "java class '%s' expected, but Qore class '%s' supplied", cname.getBuffer(), o->getClassName());
-         }
-         return 0;
-      }
-      return jpd->getObject();
-   }
-
-   QoreString cname;
-   getQoreString(jc->getName(), cname);
-
-   if (n && n->getType() == NT_OBJECT)
-      xsink->raiseException("JAVA-UNSUPPORTED-TYPE", "cannot convert from Qore class '%s' to Java '%s'", reinterpret_cast<const QoreObject *>(n)->getClassName(), cname.getBuffer());
-   else
-      xsink->raiseException("JAVA-UNSUPPORTED-TYPE", "cannot convert from Qore '%s' to Java '%s'", get_type_name(n), cname.getBuffer());
-   return 0;
-}
 */

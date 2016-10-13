@@ -38,6 +38,9 @@
 #include "Throwable.h"
 #include "defs.h"
 #include "ModifiedUtf8String.h"
+#include "QoreJniClassMap.h"
+
+extern QoreJniClassMap qjcm;
 
 namespace jni {
 
@@ -92,17 +95,21 @@ public:
          Env env;
          javaObjectRef = env.newString(str.c_str()).release();
       } else if (value.getType() == NT_OBJECT) {
-         const QoreObject *o = value.get<QoreObject>();
-         if (o->getClass(CID_OBJECT) == nullptr) {
-            throw BasicException("A Java object argument expected");
-         }
+         const QoreObject* o = value.get<QoreObject>();
 
-         ExceptionSink xsink;
-         SimpleRefHolder<ObjectBase> obj(static_cast<ObjectBase *>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
-         if (xsink) {
-            throw XsinkException(xsink);
-         }
-         javaObjectRef = obj->getJavaObject();
+	 javaObjectRef = qjcm.getJavaObject(o);
+	 if (!javaObjectRef) {
+	    if (o->getClass(CID_JAVAOBJECT) == nullptr) {
+	       throw BasicException("A Java object argument expected");
+	    }
+
+	    ExceptionSink xsink;
+	    SimpleRefHolder<ObjectBase> obj(static_cast<ObjectBase *>(o->getReferencedPrivateData(CID_JAVAOBJECT, &xsink)));
+	    if (xsink) {
+	       throw XsinkException(xsink);
+	    }
+	    javaObjectRef = obj->getJavaObject();
+	 }
       } else {
          throw BasicException("A Java object argument expected");
       }
@@ -118,13 +125,13 @@ public:
 
    static void wrapException(ExceptionSink &src) {
       Env env;
-      const AbstractQoreNode *n = src.getExceptionArg();
+      const AbstractQoreNode* n = src.getExceptionArg();
       if (n && n->getType() == NT_OBJECT) {
-         const QoreObject *o = static_cast<const QoreObject *>(n);
-         if (o->getClass(CID_THROWABLE) != nullptr) {
+         const QoreObject* o = static_cast<const QoreObject *>(n);
+         if (o->getClass(CID_JAVATHROWABLE) != nullptr) {
 
             ExceptionSink tempSink;
-            SimpleRefHolder<Throwable> obj(static_cast<Throwable *>(o->getReferencedPrivateData(CID_THROWABLE, &tempSink)));
+            SimpleRefHolder<Throwable> obj(static_cast<Throwable *>(o->getReferencedPrivateData(CID_JAVATHROWABLE, &tempSink)));
             if (!tempSink) {
                env.throwException(obj->getJavaObject());
                src.clear();

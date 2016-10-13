@@ -1,9 +1,9 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Array.qpp Array class definition */
+/** @file QC_JavaArray.qpp JavaArray class definition */
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,15 +29,58 @@
 */
 
 #include <qore/Qore.h>
-#include "Throwable.h"
+#include "Array.h"
 
-//! Represents instances of java.lang.Throwable and its subclasses.
+//! Instances of this class represent Java arrays.
 /**
  */
-qclass Throwable [arg=jni::Throwable* throwable; ns=Qore::Jni; flags=final; vparent=Object];
+qclass JavaArray [arg=jni::Array* array; ns=Qore::Jni; flags=final; vparent=JavaObject];
 
 //! Defined private to prevent Qore code from creating instances.
 /**
  */
-private Throwable::constructor() {
+private JavaArray::constructor() {
+}
+
+//! Returns the length of the array.
+/**
+    @return the length of the array
+ */
+int JavaArray::length() {
+   try {
+      return array->length();
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return 0;
+   }
+}
+
+//! Retrieves an element.
+/**
+    @param index the 0-based index of the element
+    @return the value of the element
+    @throws JNI-ERROR if the index is out of bounds
+ */
+any JavaArray::get(int index) {
+   try {
+      return array->get(index);
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Sets the value of a an element.
+/**
+    @param index the 0-based index of the element
+    @param value the value of the element
+    @throws JNI-ERROR if the index is out of bounds or if the value type is incompatible with the array type
+ */
+nothing JavaArray::set(int index, any value) {
+   try {
+      array->set(index, value);
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+   }
+   return QoreValue();
 }

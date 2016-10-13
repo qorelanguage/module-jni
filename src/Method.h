@@ -38,9 +38,9 @@
 
 #include <classfile_constants.h>
 
-extern QoreClass* QC_METHOD;
-extern QoreClass* QC_STATICMETHOD;
-extern QoreClass* QC_CONSTRUCTOR;
+extern QoreClass* QC_JAVAMETHOD;
+extern QoreClass* QC_JAVASTATICMETHOD;
+extern QoreClass* QC_JAVACONSTRUCTOR;
 
 class QoreJniClassMap;
 
@@ -85,19 +85,21 @@ public:
     * \brief Invokes an instance method.
     * \param object the instance
     * \param args the arguments
+    * \param base the offset in args for the arguments
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invoke(jobject object, const QoreValueList* args);
+   QoreValue invoke(jobject object, const QoreValueList* args, int base = 1);
 
    /**
     * \brief Invokes an instance method non-virtually.
     * \param object the instance
     * \param args the arguments
+    * \param base the offset in args for the arguments
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invokeNonvirtual(jobject object, const QoreValueList* args);
+   QoreValue invokeNonvirtual(jobject object, const QoreValueList* args, int base = 1);
 
    /**
     * \brief Invokes a static method.

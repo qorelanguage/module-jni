@@ -41,32 +41,32 @@ public class Main inherits QUnit::Test {
     }
 
     testJni() {
-        QoreJni::Class mathClass = QoreJni::load_class("java/lang/Math");
-        QoreJni::StaticMethod acosMethod = mathClass.getStaticMethod("acos", "(D)D");
-        QoreJni::Class systemClass = QoreJni::load_class("java/lang/System");
-        QoreJni::StaticField outField = systemClass.getStaticField("out", "Ljava/io/PrintStream;");
-        QoreJni::Class printStreamClass = QoreJni::load_class("java/io/PrintStream");
-        QoreJni::Method printlnMethod = printStreamClass.getMethod("println", "(D)V");
+        QoreJni::JavaClass mathClass = QoreJni::load_class("java/lang/Math");
+        QoreJni::JavaStaticMethod acosMethod = mathClass.getStaticMethod("acos", "(D)D");
+        QoreJni::JavaClass systemClass = QoreJni::load_class("java/lang/System");
+        QoreJni::JavaStaticField outField = systemClass.getStaticField("out", "Ljava/io/PrintStream;");
+        QoreJni::JavaClass printStreamClass = QoreJni::load_class("java/io/PrintStream");
+        QoreJni::JavaMethod printlnMethod = printStreamClass.getMethod("println", "(D)V");
         printlnMethod.invoke(outField.get(), acosMethod.invoke(-1));
     }
 
     testStaticMethods() {
-        QoreJni::Class clazz = QoreJni::load_class("org/qore/jni/test/StaticMethods");
+        QoreJni::JavaClass clazz = QoreJni::load_class("org/qore/jni/test/StaticMethods");
 
         # the purpose is to test all possible argument and return value types
-        QoreJni::StaticMethod set = clazz.getStaticMethod("set", "(I)V");
-        QoreJni::StaticMethod get = clazz.getStaticMethod("get", "()I");          # overloaded
-        QoreJni::StaticMethod cmp = clazz.getStaticMethod("cmp", "(SJ)Z");
-        QoreJni::StaticMethod add = clazz.getStaticMethod("add", "(BC)C");
-        QoreJni::StaticMethod get2 = clazz.getStaticMethod("get", "(Z)J");        # overloaded
-        QoreJni::StaticMethod avg = clazz.getStaticMethod("avg", "(BBB)B");       # overloaded
-        QoreJni::StaticMethod max = clazz.getStaticMethod("max", "(JJ)S");
-        QoreJni::StaticMethod avg2 = clazz.getStaticMethod("avg", "(FF)F");       # overloaded
-        QoreJni::StaticMethod avg3 = clazz.getStaticMethod("avg", "(DD)D");       # overloaded
-        QoreJni::StaticMethod wrap = clazz.getStaticMethod("wrap", "(I)Ljava/lang/Integer;");
-        QoreJni::StaticMethod unwrap = clazz.getStaticMethod("unwrap", "(Ljava/lang/Integer;)I");
-        QoreJni::StaticMethod getLongArray = clazz.getStaticMethod("getLongArray", "()[Ljava/lang/Long;");
-        QoreJni::StaticMethod useArray = clazz.getStaticMethod("useArray", "([Ljava/lang/Object;)V");
+        QoreJni::JavaStaticMethod set = clazz.getStaticMethod("set", "(I)V");
+        QoreJni::JavaStaticMethod get = clazz.getStaticMethod("get", "()I");          # overloaded
+        QoreJni::JavaStaticMethod cmp = clazz.getStaticMethod("cmp", "(SJ)Z");
+        QoreJni::JavaStaticMethod add = clazz.getStaticMethod("add", "(BC)C");
+        QoreJni::JavaStaticMethod get2 = clazz.getStaticMethod("get", "(Z)J");        # overloaded
+        QoreJni::JavaStaticMethod avg = clazz.getStaticMethod("avg", "(BBB)B");       # overloaded
+        QoreJni::JavaStaticMethod max = clazz.getStaticMethod("max", "(JJ)S");
+        QoreJni::JavaStaticMethod avg2 = clazz.getStaticMethod("avg", "(FF)F");       # overloaded
+        QoreJni::JavaStaticMethod avg3 = clazz.getStaticMethod("avg", "(DD)D");       # overloaded
+        QoreJni::JavaStaticMethod wrap = clazz.getStaticMethod("wrap", "(I)Ljava/lang/Integer;");
+        QoreJni::JavaStaticMethod unwrap = clazz.getStaticMethod("unwrap", "(Ljava/lang/Integer;)I");
+        QoreJni::JavaStaticMethod getLongArray = clazz.getStaticMethod("getLongArray", "()[Ljava/lang/Long;");
+        QoreJni::JavaStaticMethod useArray = clazz.getStaticMethod("useArray", "([Ljava/lang/Object;)V");
 
         # set() expects one argument
         assertThrows("JNI-ERROR", "Too few arguments", sub() { set.invoke(); });
@@ -116,33 +116,33 @@ public class Main inherits QUnit::Test {
         assertFloatEq(2.92, avg3.invoke(3.14, 2.7), 0.00000000000000001);
 
         # wrap() & unwrap()
-        QoreJni::Object o = wrap.invoke(42);
+        QoreJni::JavaObject o = wrap.invoke(42);
         assertEq(42, unwrap.invoke(o));
         assertEq(-123, unwrap.invoke(NOTHING));
         assertThrows("JNI-ERROR", sub() { unwrap.invoke(True); });
         assertThrows("JNI-ERROR", sub() { unwrap.invoke(self); });
-        QoreJni::Object o2 = o;
+        QoreJni::JavaObject o2 = o;
         delete o2;
         assertThrows("OBJECT-ALREADY-DELETED", sub() { unwrap.invoke(o); });
 
         # arrays
-        QoreJni::Array longArray = getLongArray.invoke();
+        QoreJni::JavaArray longArray = getLongArray.invoke();
         useArray.invoke(longArray);
     }
 
     testInstanceMethods() {
-        QoreJni::Class clsMethods = QoreJni::load_class("org/qore/jni/test/Methods");
-        QoreJni::Class clsA = QoreJni::load_class("org/qore/jni/test/A");
-        QoreJni::Class clsB = QoreJni::load_class("org/qore/jni/test/B");
-        QoreJni::Class clsC = QoreJni::load_class("org/qore/jni/test/C");
+        QoreJni::JavaClass clsMethods = QoreJni::load_class("org/qore/jni/test/Methods");
+        QoreJni::JavaClass clsA = QoreJni::load_class("org/qore/jni/test/A");
+        QoreJni::JavaClass clsB = QoreJni::load_class("org/qore/jni/test/B");
+        QoreJni::JavaClass clsC = QoreJni::load_class("org/qore/jni/test/C");
 
-        QoreJni::Object c = clsMethods.getStaticField("c", "Lorg/qore/jni/test/C;").get();
-        QoreJni::Object b = clsMethods.getStaticField("b", "Lorg/qore/jni/test/B;").get();
+        QoreJni::JavaObject c = clsMethods.getStaticField("c", "Lorg/qore/jni/test/C;").get();
+        QoreJni::JavaObject b = clsMethods.getStaticField("b", "Lorg/qore/jni/test/B;").get();
 
-        QoreJni::Method fInA = clsA.getMethod("f", "()I");
-        QoreJni::Method fInB = clsB.getMethod("f", "()I");
-        QoreJni::Method fInC = clsC.getMethod("f", "()I");
-        QoreJni::Method mInC = clsC.getMethod("m", "()I");
+        QoreJni::JavaMethod fInA = clsA.getMethod("f", "()I");
+        QoreJni::JavaMethod fInB = clsB.getMethod("f", "()I");
+        QoreJni::JavaMethod fInC = clsC.getMethod("f", "()I");
+        QoreJni::JavaMethod mInC = clsC.getMethod("m", "()I");
 
         # virtual dispatch
         assertEq(3, fInA.invoke(c));
@@ -160,7 +160,7 @@ public class Main inherits QUnit::Test {
     }
 
     testFloatConversions() {
-        QoreJni::Class clazz = QoreJni::load_class("org/qore/jni/test/FloatConversions");
+        QoreJni::JavaClass clazz = QoreJni::load_class("org/qore/jni/test/FloatConversions");
 
         assertTrue(clazz.getStaticMethod("isNaNFloat", "(F)Z").invoke(@NaN@));
         assertTrue(clazz.getStaticMethod("isNInfFloat", "(F)Z").invoke(-@Inf@));
@@ -178,22 +178,22 @@ public class Main inherits QUnit::Test {
     }
 
     testStaticFields() {
-        QoreJni::Class clazz = QoreJni::load_class("org/qore/jni/test/StaticFields");
+        QoreJni::JavaClass clazz = QoreJni::load_class("org/qore/jni/test/StaticFields");
 
-        QoreJni::StaticField z = clazz.getStaticField("z", "Z");
-        QoreJni::StaticField b = clazz.getStaticField("b", "B");
-        QoreJni::StaticField c = clazz.getStaticField("c", "C");
-        QoreJni::StaticField s = clazz.getStaticField("s", "S");
-        QoreJni::StaticField i = clazz.getStaticField("i", "I");
-        QoreJni::StaticField j = clazz.getStaticField("j", "J");
-        QoreJni::StaticField f = clazz.getStaticField("f", "F");
-        QoreJni::StaticField d = clazz.getStaticField("d", "D");
-        QoreJni::StaticField n = clazz.getStaticField("n", "Ljava/lang/Number;");
-        QoreJni::StaticField l = clazz.getStaticField("l", "Ljava/lang/Long;");
-        QoreJni::StaticField ba = clazz.getStaticField("ba", "[B");
-        QoreJni::StaticField o = clazz.getStaticField("o", "Ljava/lang/Object;");
-        QoreJni::StaticField oa = clazz.getStaticField("oa", "[Ljava/lang/Object;");
-        QoreJni::StaticField ia = clazz.getStaticField("ia", "[Ljava/lang/Integer;");
+        QoreJni::JavaStaticField z = clazz.getStaticField("z", "Z");
+        QoreJni::JavaStaticField b = clazz.getStaticField("b", "B");
+        QoreJni::JavaStaticField c = clazz.getStaticField("c", "C");
+        QoreJni::JavaStaticField s = clazz.getStaticField("s", "S");
+        QoreJni::JavaStaticField i = clazz.getStaticField("i", "I");
+        QoreJni::JavaStaticField j = clazz.getStaticField("j", "J");
+        QoreJni::JavaStaticField f = clazz.getStaticField("f", "F");
+        QoreJni::JavaStaticField d = clazz.getStaticField("d", "D");
+        QoreJni::JavaStaticField n = clazz.getStaticField("n", "Ljava/lang/Number;");
+        QoreJni::JavaStaticField l = clazz.getStaticField("l", "Ljava/lang/Long;");
+        QoreJni::JavaStaticField ba = clazz.getStaticField("ba", "[B");
+        QoreJni::JavaStaticField o = clazz.getStaticField("o", "Ljava/lang/Object;");
+        QoreJni::JavaStaticField oa = clazz.getStaticField("oa", "[Ljava/lang/Object;");
+        QoreJni::JavaStaticField ia = clazz.getStaticField("ia", "[Ljava/lang/Integer;");
 
         z.set(True);
         assertTrue(z.get());
@@ -223,16 +223,16 @@ public class Main inherits QUnit::Test {
         d.set(@Inf@);
         assertTrue(d.get().infp());
 
-        QoreJni::Object intObj = clazz.getStaticMethod("wrap", "(I)Ljava/lang/Integer;").invoke(42);
+        QoreJni::JavaObject intObj = clazz.getStaticMethod("wrap", "(I)Ljava/lang/Integer;").invoke(42);
         n.set(intObj);
         assertEq(42, clazz.getStaticMethod("unwrapN", "()I").invoke());
 
         assertThrows("JNI-ERROR", sub(){ l.set(intObj); });
         assertEq(NOTHING, l.get());
 
-        QoreJni::Array byteArray = ba.get();
-        QoreJni::Array objectArray = oa.get();
-        QoreJni::Array intArray = ia.get();
+        QoreJni::JavaArray byteArray = ba.get();
+        QoreJni::JavaArray objectArray = oa.get();
+        QoreJni::JavaArray intArray = ia.get();
 
         o.set(byteArray);                                               # arrays in Java are Objects
         assertThrows("JNI-ERROR", sub() { oa.set(byteArray); });        # byte[] is not a subtype of Object[]
@@ -245,22 +245,22 @@ public class Main inherits QUnit::Test {
     }
 
     testInstanceFields() {
-        QoreJni::Class clazz = QoreJni::load_class("org/qore/jni/test/Fields");
+        QoreJni::JavaClass clazz = QoreJni::load_class("org/qore/jni/test/Fields");
 
-        QoreJni::Object instance = clazz.getStaticField("instance", "Lorg/qore/jni/test/Fields;").get();
+        QoreJni::JavaObject instance = clazz.getStaticField("instance", "Lorg/qore/jni/test/Fields;").get();
 
-        QoreJni::Field z = clazz.getField("z", "Z");
-        QoreJni::Field b = clazz.getField("b", "B");
-        QoreJni::Field c = clazz.getField("c", "C");
-        QoreJni::Field s = clazz.getField("s", "S");
-        QoreJni::Field i = clazz.getField("i", "I");
-        QoreJni::Field j = clazz.getField("j", "J");
-        QoreJni::Field f = clazz.getField("f", "F");
-        QoreJni::Field d = clazz.getField("d", "D");
-        QoreJni::Field ba = clazz.getField("ba", "[B");
-        QoreJni::Field o = clazz.getField("o", "Ljava/lang/Object;");
-        QoreJni::Field oa = clazz.getField("oa", "[Ljava/lang/Object;");
-        QoreJni::Field ia = clazz.getField("ia", "[Ljava/lang/Integer;");
+        QoreJni::JavaField z = clazz.getField("z", "Z");
+        QoreJni::JavaField b = clazz.getField("b", "B");
+        QoreJni::JavaField c = clazz.getField("c", "C");
+        QoreJni::JavaField s = clazz.getField("s", "S");
+        QoreJni::JavaField i = clazz.getField("i", "I");
+        QoreJni::JavaField j = clazz.getField("j", "J");
+        QoreJni::JavaField f = clazz.getField("f", "F");
+        QoreJni::JavaField d = clazz.getField("d", "D");
+        QoreJni::JavaField ba = clazz.getField("ba", "[B");
+        QoreJni::JavaField o = clazz.getField("o", "Ljava/lang/Object;");
+        QoreJni::JavaField oa = clazz.getField("oa", "[Ljava/lang/Object;");
+        QoreJni::JavaField ia = clazz.getField("ia", "[Ljava/lang/Integer;");
 
         z.set(instance, True);
         assertTrue(z.get(instance));
@@ -290,9 +290,9 @@ public class Main inherits QUnit::Test {
         d.set(instance, @Inf@);
         assertTrue(d.get(instance).infp());
 
-        QoreJni::Array byteArray = ba.get(instance);
-        QoreJni::Array objectArray = oa.get(instance);
-        QoreJni::Array intArray = ia.get(instance);
+        QoreJni::JavaArray byteArray = ba.get(instance);
+        QoreJni::JavaArray objectArray = oa.get(instance);
+        QoreJni::JavaArray intArray = ia.get(instance);
 
         o.set(instance, byteArray);                                             # arrays in Java are Objects
         assertThrows("JNI-ERROR", sub() { oa.set(instance, byteArray); });      # byte[] is not a subtype of Object[]
@@ -306,14 +306,14 @@ public class Main inherits QUnit::Test {
 
     testCallback() {
         int i = 1;
-        QoreJni::InvocationHandler h = new QoreJni::InvocationHandler(sub(QoreJni::Method m, *QoreJni::Array args) { if (++i == 4) throw "CALLBACK-ERROR";});
+        QoreJni::JavaInvocationHandler h = new QoreJni::JavaInvocationHandler(sub(QoreJni::JavaMethod m, *QoreJni::JavaArray args) { if (++i == 4) throw "CALLBACK-ERROR";});
 
-        QoreJni::Object o = QoreJni::implement_interface(h, QoreJni::load_class("java/lang/Runnable"));
-        QoreJni::Class clazz = QoreJni::load_class("org/qore/jni/test/Callbacks");
-        QoreJni::StaticMethod callNow = clazz.getStaticMethod("callNow", "(Ljava/lang/Runnable;)V");
-        QoreJni::StaticMethod callInThread = clazz.getStaticMethod("callInThread", "(Ljava/lang/Runnable;)V");
-        QoreJni::StaticMethod trueIfThrows = clazz.getStaticMethod("trueIfThrows", "(Ljava/lang/Runnable;)Z");
-        QoreJni::StaticMethod doThrow = clazz.getStaticMethod("doThrow", "()V");
+        QoreJni::JavaObject o = QoreJni::implement_interface(h, QoreJni::load_class("java/lang/Runnable"));
+        QoreJni::JavaClass clazz = QoreJni::load_class("org/qore/jni/test/Callbacks");
+        QoreJni::JavaStaticMethod callNow = clazz.getStaticMethod("callNow", "(Ljava/lang/Runnable;)V");
+        QoreJni::JavaStaticMethod callInThread = clazz.getStaticMethod("callInThread", "(Ljava/lang/Runnable;)V");
+        QoreJni::JavaStaticMethod trueIfThrows = clazz.getStaticMethod("trueIfThrows", "(Ljava/lang/Runnable;)Z");
+        QoreJni::JavaStaticMethod doThrow = clazz.getStaticMethod("doThrow", "()V");
         callNow.invoke(o);
         assertEq(2, i);
         callInThread.invoke(o);
@@ -322,21 +322,21 @@ public class Main inherits QUnit::Test {
         assertThrows("CALLBACK-ERROR", sub() { callNow.invoke(o); });
         h.destroy();
 
-        h = new QoreJni::InvocationHandler(sub(QoreJni::Method m, *QoreJni::Array args) { doThrow.invoke(); });
+        h = new QoreJni::JavaInvocationHandler(sub(QoreJni::JavaMethod m, *QoreJni::JavaArray args) { doThrow.invoke(); });
         assertTrue(trueIfThrows.invoke(QoreJni::implement_interface(h, QoreJni::load_class("java/lang/Runnable"))));
         h.destroy();
     }
 
     testConstructor() {
-        QoreJni::Class cls = QoreJni::load_class("java/lang/Integer");
-        QoreJni::Constructor ctor = cls.getConstructor("(I)V");
-        QoreJni::Object obj = ctor.newInstance(42);
+        QoreJni::JavaClass cls = QoreJni::load_class("java/lang/Integer");
+        QoreJni::JavaConstructor ctor = cls.getConstructor("(I)V");
+        QoreJni::JavaObject obj = ctor.newInstance(42);
         assertEq(42, cls.getMethod("intValue", "()I").invoke(obj));
     }
 
     testString() {
-        QoreJni::Class cls = QoreJni::load_class("java/lang/Integer");
-        QoreJni::Object obj = cls.getStaticMethod("valueOf", "(Ljava/lang/String;)Ljava/lang/Integer;").invoke("42");
+        QoreJni::JavaClass cls = QoreJni::load_class("java/lang/Integer");
+        QoreJni::JavaObject obj = cls.getStaticMethod("valueOf", "(Ljava/lang/String;)Ljava/lang/Integer;").invoke("42");
         assertEq(42, cls.getMethod("intValue", "()I").invoke(obj));
 
         obj = cls.getConstructor("(I)V").newInstance(123);
@@ -344,7 +344,7 @@ public class Main inherits QUnit::Test {
     }
 
     testArray() {
-        QoreJni::Array a = QoreJni::new_boolean_array(3);
+        QoreJni::JavaArray a = QoreJni::new_boolean_array(3);
         a.set(0, True);
         assertThrows("JNI-ERROR", sub() { a.set(3, True); });
         assertEq(3, a.length());
@@ -436,48 +436,48 @@ public class Main inherits QUnit::Test {
     }
 
     testDispatchDtorThrows() {
-        QoreJni::InvocationHandler h;
+        QoreJni::JavaInvocationHandler h;
         {
             DtorThrows instance();
-            h = new QoreJni::InvocationHandler(sub(QoreJni::Method m, *QoreJni::Array args) { instance.dummy(); });
+            h = new QoreJni::JavaInvocationHandler(sub(QoreJni::JavaMethod m, *QoreJni::JavaArray args) { instance.dummy(); });
         }
         assertThrows("DTOR-ERROR", sub() { h.destroy(); });
     }
 
     testCallbackRetVal() {
-        QoreJni::InvocationHandler h = new QoreJni::InvocationHandler(any sub(QoreJni::Method m, *QoreJni::Array args) { return "STR"; });
-        QoreJni::Object f = QoreJni::implement_interface(h, QoreJni::load_class("org/qore/jni/test/StringFactory"));
-        QoreJni::Class clazz = QoreJni::load_class("org/qore/jni/test/Callbacks");
-        QoreJni::StaticMethod createString = clazz.getStaticMethod("createString", "(Lorg/qore/jni/test/StringFactory;)Ljava/lang/String;");
+        QoreJni::JavaInvocationHandler h = new QoreJni::JavaInvocationHandler(any sub(QoreJni::JavaMethod m, *QoreJni::JavaArray args) { return "STR"; });
+        QoreJni::JavaObject f = QoreJni::implement_interface(h, QoreJni::load_class("org/qore/jni/test/StringFactory"));
+        QoreJni::JavaClass clazz = QoreJni::load_class("org/qore/jni/test/Callbacks");
+        QoreJni::JavaStaticMethod createString = clazz.getStaticMethod("createString", "(Lorg/qore/jni/test/StringFactory;)Ljava/lang/String;");
         assertEq("*STR*", createString.invoke(f));
     }
 
     testSpecialConversions() {
-        QoreJni::StaticMethod m = QoreJni::load_class("org/qore/jni/test/StaticMethods").getStaticMethod("conversions", "(Ljava/lang/String;)Ljava/lang/Object;");
+        QoreJni::JavaStaticMethod m = QoreJni::load_class("org/qore/jni/test/StaticMethods").getStaticMethod("conversions", "(Ljava/lang/String;)Ljava/lang/Object;");
         assertEq(NOTHING, m.invoke(""));
 
         any o = m.invoke("method");
-        assertTrue(o instanceof QoreJni::Method);
+        assertTrue(o instanceof QoreJni::JavaMethod);
         assertEq("42", o.invoke(QoreJni::load_class("java/lang/Integer").getConstructor("(I)V").newInstance(42)));
 
         o = m.invoke("static method");
-        assertTrue(o instanceof QoreJni::StaticMethod);
+        assertTrue(o instanceof QoreJni::JavaStaticMethod);
         assertEq("42", QoreJni::load_class("java/lang/Integer").getMethod("toString", "()Ljava/lang/String;").invoke(o.invoke(42)));
 
         o = m.invoke("constructor");
-        assertTrue(o instanceof QoreJni::Constructor);
+        assertTrue(o instanceof QoreJni::JavaConstructor);
         assertEq("42", QoreJni::load_class("java/lang/Integer").getMethod("toString", "()Ljava/lang/String;").invoke(o.newInstance(42)));
 
-        QoreJni::Class fieldsClass = QoreJni::load_class("org/qore/jni/test/Fields");
-        QoreJni::Object fieldsInstance = fieldsClass.getStaticField("instance", "Lorg/qore/jni/test/Fields;").get();
+        QoreJni::JavaClass fieldsClass = QoreJni::load_class("org/qore/jni/test/Fields");
+        QoreJni::JavaObject fieldsInstance = fieldsClass.getStaticField("instance", "Lorg/qore/jni/test/Fields;").get();
 
         o = m.invoke("field");
-        assertTrue(o instanceof QoreJni::Field);
+        assertTrue(o instanceof QoreJni::JavaField);
         o.set(fieldsInstance, 123);
         assertEq(123, fieldsClass.getField("i", "I").get(fieldsInstance));
 
         o = m.invoke("static field");
-        assertTrue(o instanceof QoreJni::StaticField);
+        assertTrue(o instanceof QoreJni::JavaStaticField);
         o.set(456);
         assertEq(456, QoreJni::load_class("org/qore/jni/test/StaticFields").getStaticField("i", "I").get());
     }

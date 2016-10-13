@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Class.qpp Class class definition */
+/** @file QC_JavaClass.qpp JavaClass class definition */
 /*
   Qore Programming Language
 
@@ -36,12 +36,12 @@
 //! Represents a Java class.
 /**
  */
-qclass Class [arg=jni::Class* cls; ns=Qore::Jni; flags=final; vparent=Object];
+qclass JavaClass [arg=jni::Class* cls; ns=Qore::Jni; flags=final; vparent=JavaObject];
 
 //! Defined private to prevent Qore code from creating instances.
 /**
  */
-private Class::constructor() {
+private JavaClass::constructor() {
 }
 
 //! Looks up a non-static field in the class.
@@ -51,9 +51,9 @@ private Class::constructor() {
     @return an object representing the resolved field
     @throws JNI-ERROR if the field cannot be resolved
  */
-Field Class::getField(string name, string descriptor) {
+JavaField JavaClass::getField(string name, string descriptor) {
    try {
-      return new QoreObject(QC_FIELD, getProgram(), cls->getField(name, descriptor));
+      return new QoreObject(QC_JAVAFIELD, getProgram(), cls->getField(name, descriptor));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
@@ -67,9 +67,9 @@ Field Class::getField(string name, string descriptor) {
     @return an object representing the resolved static field
     @throws JNI-ERROR if the field cannot be resolved
  */
-StaticField Class::getStaticField(string name, string descriptor) {
+JavaStaticField JavaClass::getStaticField(string name, string descriptor) {
    try {
-      return new QoreObject(QC_STATICFIELD, getProgram(), cls->getStaticField(name, descriptor));
+      return new QoreObject(QC_JAVASTATICFIELD, getProgram(), cls->getStaticField(name, descriptor));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
@@ -83,9 +83,9 @@ StaticField Class::getStaticField(string name, string descriptor) {
     @return an object representing the resolved method
     @throws JNI-ERROR if the method cannot be resolved
  */
-Method Class::getMethod(string name, string descriptor) {
+JavaMethod JavaClass::getMethod(string name, string descriptor) {
    try {
-      return new QoreObject(QC_METHOD, getProgram(), cls->getMethod(name, descriptor));
+      return new QoreObject(QC_JAVAMETHOD, getProgram(), cls->getMethod(name, descriptor));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
@@ -99,9 +99,9 @@ Method Class::getMethod(string name, string descriptor) {
     @return an object representing the resolved static method
     @throws JNI-ERROR if the method cannot be resolved
  */
-StaticMethod Class::getStaticMethod(string name, string descriptor) {
+JavaStaticMethod JavaClass::getStaticMethod(string name, string descriptor) {
    try {
-      return new QoreObject(QC_STATICMETHOD, getProgram(), cls->getStaticMethod(name, descriptor));
+      return new QoreObject(QC_JAVASTATICMETHOD, getProgram(), cls->getStaticMethod(name, descriptor));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
@@ -114,9 +114,9 @@ StaticMethod Class::getStaticMethod(string name, string descriptor) {
     @return an object representing the resolved constructor
     @throws JNI-ERROR if the constructor cannot be resolved
  */
-Constructor Class::getConstructor(string descriptor) {
+JavaConstructor JavaClass::getConstructor(string descriptor) {
    try {
-      return new QoreObject(QC_CONSTRUCTOR, getProgram(), cls->getConstructor(descriptor));
+      return new QoreObject(QC_JAVACONSTRUCTOR, getProgram(), cls->getConstructor(descriptor));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
@@ -128,7 +128,7 @@ Constructor Class::getConstructor(string descriptor) {
     @param obj the Java object to test
     @return True if obj is an instance of this class
  */
-bool Class::isInstance(Jni::Qore::Object[jni::ObjectBase] obj) {
+bool JavaClass::isInstance(Jni::QoreJni::JavaObject[jni::ObjectBase] obj) {
    SimpleRefHolder<jni::ObjectBase> objHolder(obj);
    try {
       return cls->isInstance(obj);

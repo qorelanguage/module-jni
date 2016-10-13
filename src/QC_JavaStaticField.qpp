@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Field.qpp Field class definition */
+/** @file QC_JavaStaticField.qpp JavaStaticField class definition */
 /*
   Qore Programming Language
 
@@ -31,42 +31,38 @@
 #include <qore/Qore.h>
 #include "Field.h"
 
-//! Represents a non-static field of a Java class.
+//! Represents a static field of a Java class.
 /**
  */
-qclass Field [arg=jni::Field* field; ns=Qore::Jni; flags=final; vparent=Object];
+qclass JavaStaticField [arg=jni::Field* field; ns=Qore::Jni; flags=final; vparent=JavaObject];
 
 //! Defined private to prevent Qore code from creating instances.
 /**
  */
-private Field::constructor() {
+private:internal JavaStaticField::constructor() {
 }
 
-//! Gets the value of the field.
+//! Gets the value of the static field.
 /**
-    @param obj the instance whose field should be returned
     @return the value of the field
  */
-any Field::get(Qore::Jni::Object[jni::ObjectBase] obj) {
-   SimpleRefHolder<jni::ObjectBase> objHolder(obj);
+any JavaStaticField::get() {
    try {
-      return field->get(obj->getJavaObject());
+      return field->getStatic();
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
    }
 }
 
-//! Sets the value of the field.
+//! Sets the value of the static field.
 /**
-    @param obj the instance whose field should be returned
     @param value the value of the field
     @throws JNI-ERROR if the value cannot be converted
  */
-any Field::set(Qore::Jni::Object[jni::ObjectBase] obj, any value) {
-   SimpleRefHolder<jni::ObjectBase> objHolder(obj);
+any JavaStaticField::set(any value) {
    try {
-      field->set(obj->getJavaObject(), value);
+      field->setStatic(value);
    } catch (jni::Exception &e) {
       e.convert(xsink);
    }
