@@ -115,7 +115,6 @@ code sub wrapListener(code listener, QoreJni::JavaClass textMessageClass) {
 }
 
 class MessageConsumer {
-
     private:internal {
         ClassLoader classLoader;
         QoreJni::JavaObject this;
@@ -309,18 +308,16 @@ public class Main inherits QUnit::Test {
         Connection connection = cast<ConnectionFactoryAdapter>(ctx.lookup("jms/__defaultConnectionFactory")).createConnection();
         Session session = connection.createSession(Session::AUTO_ACKNOWLEDGE);
 
-        delete session;
-        /*
-
         #### NOTE: create the JMS queue in advance - ex:
         # prompt% ./bin/asadmin
         # asadmin> create-jms-resource --restype javax.jms.Queue --property Name=PhysicalQueue abc
         ####
-        Destination queue = ctx.getDestination("abc");
+        Destination queue = cast<Destination>(ctx.lookup("abc"));
 
         MessageProducer producer = session.createProducer(queue);
         MessageConsumer consumer = session.createConsumer(queue);
 
+        /*
         consumer.setMessageListener(sub(object msg) {
             printf("IN CALLBACK\n");
             printf("Received: %s\n", msg.getText());
