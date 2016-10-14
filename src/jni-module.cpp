@@ -108,7 +108,17 @@ static QoreStringNode* jni_module_init() {
 
    preinitJavaClassClass();
 
-   qjcm.init();
+   try {
+      qjcm.init();
+   }
+   catch (jni::Exception& e) {
+      // display exception info on the console as an unhandled exception
+      {
+         ExceptionSink xsink;
+         e.convert(&xsink);
+      }
+      return new QoreStringNode("ERR");
+   }
    return nullptr;
 }
 
@@ -117,10 +127,13 @@ static void jni_module_ns_init(QoreNamespace* rns, QoreNamespace* qns) {
 }
 
 static void jni_module_delete() {
+   // clear all objects from stored classes before destroying the JVM (releases all global references)
+   {
+      ExceptionSink xsink;
+      qjcm.destroy(xsink);
+   }
    tclist.pop(false);
-   // we cannot destroy the JVM here because global references to classes exist in many programs
-   // which will be destroyed after this call
-   //jni::Jvm::destroyVM();
+   jni::Jvm::destroyVM();
 }
 
 static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {

@@ -73,7 +73,7 @@ protected:
    static jpmap_t jpmap;
 
    // parent namespace for jni module functionality
-   QoreNamespace default_jns;
+   QoreNamespace* default_jns;
    bool init_done;
 
    DLLLOCAL void addIntern(const char* name, jni::Class* jc, QoreClass* qc) {
@@ -111,10 +111,12 @@ protected:
 public:
    mutable QoreJniThreadLock m;
 
-   DLLLOCAL QoreJniClassMap() : default_jns("Jni"), init_done(false) {
+   DLLLOCAL QoreJniClassMap() : default_jns(new QoreNamespace("Jni")), init_done(false) {
    }
 
    DLLLOCAL void init();
+
+   DLLLOCAL void destroy(ExceptionSink& xsink);
 
    DLLLOCAL QoreObject* getObject(const jni::LocalReference<jobject>& jobj);
 
@@ -130,7 +132,7 @@ public:
    }
 
    DLLLOCAL QoreNamespace& getRootNS() {
-      return default_jns;
+      return *default_jns;
    }
 
    DLLLOCAL QoreClass* loadCreateClass(QoreNamespace& jns, const char* cstr);

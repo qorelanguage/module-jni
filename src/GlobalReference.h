@@ -53,11 +53,9 @@ public:
     */
    GlobalReference(T ref = nullptr) : ref(ref) {
       assert(ref == nullptr || Jvm::getEnv()->GetObjectRefType(ref) == JNIGlobalRefType);
-      /*
       if (ref != nullptr) {
-         printd(LogLevel, "GlobalReference created: %p\n", ref);
+         printd(LogLevel + 1, "GlobalReference created: %p\n", ref);
       }
-      */
    }
 
    /**
@@ -120,7 +118,7 @@ private:
    void del() {
       if (ref != nullptr) {
          try {
-            //printd(LogLevel, "GlobalReference deleted: %p\n", ref);
+            printd(LogLevel + 1, "GlobalReference deleted: %p\n", ref);
             Jvm::attachAndGetEnv()->DeleteGlobalRef(ref);
          } catch (Exception &) {
             printd(LogLevel, "Unable to delete GlobalReference");

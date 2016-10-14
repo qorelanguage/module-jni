@@ -53,11 +53,9 @@ public:
     */
    LocalReference(T ref = nullptr) : ref(ref) {
       assert(ref == nullptr || Jvm::getEnv()->GetObjectRefType(ref) == JNILocalRefType);
-      /*
       if (ref != nullptr) {
-         printd(LogLevel, "LocalReference created: %p\n", ref);
+         printd(LogLevel + 1, "LocalReference created: %p\n", ref);
       }
-      */
    }
 
    /**
@@ -134,7 +132,7 @@ private:
 
    void del() {
       if (ref != nullptr) {
-         //printd(LogLevel, "LocalReference deleted: %p\n", ref);
+         printd(LogLevel + 1, "LocalReference deleted: %p\n", ref);
          Jvm::getEnv()->DeleteLocalRef(ref);
          ref = nullptr;
       }
