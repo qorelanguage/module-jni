@@ -48,10 +48,9 @@ public class Main inherits QUnit::Test {
         MessageProducer producer = session.createProducer(queue);
         MessageConsumer consumer = session.createConsumer(queue);
 
-        code w = get_callback();
-
+        # in order to implement the MessageListener interface for the callback, we have to use implement_interface() as follows:
         ClassLoader loader = connection.getClass().getClassLoader();
-        consumer.setMessageListener(cast<MessageListener>(QoreJni::implement_interface(loader, new QoreJni::JavaInvocationHandler(w), Class::forName("javax.jms.MessageListener", True, loader))));
+        consumer.setMessageListener(cast<MessageListener>(QoreJni::implement_interface(loader, new QoreJni::JavaInvocationHandler(\messageCallback()), Class::forName("javax.jms.MessageListener", True, loader))));
 
         connection.start();
 
@@ -60,14 +59,10 @@ public class Main inherits QUnit::Test {
 
         producer.send(message);
     }
-}
 
-# workaround for issue #1303
-code sub get_callback() {
-    return sub(QoreJni::JavaMethod method, *QoreJni::JavaArray args) {
+    # JMS message callback for the MessageListener interface
+    static messageCallback(QoreJni::JavaMethod method, *QoreJni::JavaArray args) {
         TextMessage msg = cast<TextMessage>(args.getJava(0));
-        printf("IN CALLBACK\n");
-        printf("Received: %y\n", msg.getText());
-        printf("END CALLBACK\n");
-    };
+        printf("*** JMS message received: %s\n", msg.getText());
+    }
 }
