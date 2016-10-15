@@ -401,7 +401,7 @@ const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls) {
       qc = createClass(*default_jns, cname.c_str(), jname.c_str(), jni::Functions::loadClass(jname.c_str()));
    }
 
-   return qc->getTypeInfo();
+   return qc->getOrNothingTypeInfo();
 }
 
 void QoreJniClassMap::doMethods(QoreClass& qc, jni::Class* jc) {

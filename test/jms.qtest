@@ -28,7 +28,7 @@
 
 public class Main inherits QUnit::Test {
     private {
-        string jar;
+        Counter c(1);
     }
 
     constructor() : Test("JMS test", "1.0", \ARGV) {
@@ -58,11 +58,16 @@ public class Main inherits QUnit::Test {
         message.setText("Hello, world!");
 
         producer.send(message);
+        # wait for message to be received
+        c.waitForZero();
+        # unset the listener and exit
+        consumer.setMessageListener(NOTHING);
     }
 
     # JMS message callback for the MessageListener interface
-    static messageCallback(QoreJni::JavaMethod method, *QoreJni::JavaArray args) {
+    messageCallback(QoreJni::JavaMethod method, *QoreJni::JavaArray args) {
         TextMessage msg = cast<TextMessage>(args.getJava(0));
         printf("*** JMS message received: %s\n", msg.getText());
+        c.dec();
     }
 }
