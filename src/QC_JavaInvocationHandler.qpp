@@ -1,9 +1,9 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_StaticField.qpp StaticField class definition */
+/** @file QC_JavaInvocationHandler.qpp JavaInvocationHandler class definition */
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,40 +29,38 @@
 */
 
 #include <qore/Qore.h>
-#include "Field.h"
+#include "InvocationHandler.h"
 
-//! Represents a static field of a Java class.
+//! Represents an invocation handler used to implement callback from Java to Qore.
 /**
  */
-qclass StaticField [arg=jni::Field* field; ns=Qore::Jni; flags=final; vparent=Object];
+qclass JavaInvocationHandler [arg=jni::InvocationHandler* handler; ns=Qore::Jni; flags=final; vparent=JavaObject];
 
-//! Defined private to prevent Qore code from creating instances.
+//! Creates a new invocation handler.
 /**
- */
-private StaticField::constructor() {
-}
+    @param dispatcher a function that implements the dispatching, see example
 
-//! Gets the value of the static field.
-/**
-    @return the value of the field
+    @par Example:
+    @code{.py}
+    new JavaInvocationHandler(any sub(Jni::Method m, *Jni::Array args) {
+        # handle invocation of method m with arguments args
+    });
+    @endcode
  */
-any StaticField::get() {
+JavaInvocationHandler::constructor(code dispatcher) {
    try {
-      return field->getStatic();
+      self->setPrivate(CID_JAVAINVOCATIONHANDLER, new jni::InvocationHandler(dispatcher));
    } catch (jni::Exception &e) {
       e.convert(xsink);
-      return QoreValue();
    }
 }
 
-//! Sets the value of the static field.
+//! Explicitly destroys the invocation handler even if it is still reachable from Java.
 /**
-    @param value the value of the field
-    @throws JNI-ERROR if the value cannot be converted
  */
-any StaticField::set(any value) {
+nothing JavaInvocationHandler::destroy() {
    try {
-      field->setStatic(value);
+      handler->destroy();
    } catch (jni::Exception &e) {
       e.convert(xsink);
    }

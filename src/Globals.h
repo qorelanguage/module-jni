@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -53,29 +53,43 @@ public:
    static GlobalReference<jclass> classDouble;                          // class for the primitive type double
 
    static GlobalReference<jclass> classClass;                           // java.lang.Class
-   static jmethodID methodClassIsArray;                                 // boolean Class.isArray();
-   static jmethodID methodClassGetComponentType;                        // Class<?> Class.getComponentType();
-   static jmethodID methodClassGetClassLoader;                          // ClassLoader Class.getClassLoader();
-   static jmethodID methodClassGetName;                                 // String Class.getName();
-   static jmethodID methodClassGetFields;                               // Field[] Class.getFields();
+   static jmethodID methodClassIsArray;                                 // boolean Class.isArray()
+   static jmethodID methodClassGetComponentType;                        // Class<?> Class.getComponentType()
+   static jmethodID methodClassGetClassLoader;                          // ClassLoader Class.getClassLoader()
+   static jmethodID methodClassGetName;                                 // String Class.getName()
+   static jmethodID methodClassGetDeclaredFields;                       // Field[] Class.getDeclaredFields()
+   static jmethodID methodClassGetSuperClass;                           // Class<? super T> Class.getSuperClass()
+   static jmethodID methodClassGetInterfaces;                           // Class<?>[] Class.getInterfacess()
+   static jmethodID methodClassGetDeclaredConstructors;                 // Constructor<?>[] Class.getDeclaredConstructors()
+   static jmethodID methodClassGetModifiers;                            // int Class.getModifiers()
+   static jmethodID methodClassIsPrimitive;                             // boolean Class.isPrimitive()
+   static jmethodID methodClassGetDeclaredMethods;                      // Method[] Class.getDeclaredMethods()
 
    static GlobalReference<jclass> classThrowable;                       // java.lang.Throwable
-   static jmethodID methodThrowableGetMessage;                          // String Throwable.getMessage();
+   static jmethodID methodThrowableGetMessage;                          // String Throwable.getMessage()
 
    static GlobalReference<jclass> classString;                          // java.lang.String
 
    static GlobalReference<jclass> classField;                           // java.lang.reflect.Field
-   static jmethodID methodFieldGetType;                                 // Class<?> Field.getType();
-   static jmethodID methodFieldGetDeclaringClass;                       // Class<?> Field.getDeclaringClass();
-   static jmethodID methodFieldGetModifiers;                            // int Field.getModifiers();
+   static jmethodID methodFieldGetType;                                 // Class<?> Field.getType()
+   static jmethodID methodFieldGetDeclaringClass;                       // Class<?> Field.getDeclaringClass()
+   static jmethodID methodFieldGetModifiers;                            // int Field.getModifiers()
+   static jmethodID methodFieldGetName;                                 // String Field.getName()
+   static jmethodID methodFieldGet;                                     // Object Field.get(Object)
 
    static GlobalReference<jclass> classMethod;                          // java.lang.reflect.Method
-   static jmethodID methodMethodGetReturnType;                          // Class<?> Method.getReturnType();
-   static jmethodID methodMethodGetParameterTypes;                      // Class<?>[] Method.getParameterTypes();
-   static jmethodID methodMethodGetDeclaringClass;                      // Class<?> Method.getDeclaringClass();
-   static jmethodID methodMethodGetModifiers;                           // int Method.getModifiers();
+   static jmethodID methodMethodGetReturnType;                          // Class<?> Method.getReturnType()
+   static jmethodID methodMethodGetParameterTypes;                      // Class<?>[] Method.getParameterTypes()
+   static jmethodID methodMethodGetDeclaringClass;                      // Class<?> Method.getDeclaringClass()
+   static jmethodID methodMethodGetModifiers;                           // int Method.getModifiers()
+   static jmethodID methodMethodIsVarArgs;                              // bool Method.isVarArgs()
+   static jmethodID methodMethodGetName;                                // String Method.getName()
 
    static GlobalReference<jclass> classConstructor;                     // java.lang.reflect.Constructor
+   static jmethodID methodConstructorGetParameterTypes;                 // Class<?>[] Constructor.getParameterTypes()
+   static jmethodID methodConstructorToString;                          // String Constructor.toString()
+   static jmethodID methodConstructorGetModifiers;                      // int Constructor.getModifiers()
+   static jmethodID methodConstructorIsVarArgs;                         // boolean Constructor.isVarArgs()
 
    static GlobalReference<jclass> classInvocationHandlerImpl;           // qore.org.jni.InvocationHandlerImpl
    static jmethodID ctorInvocationHandlerImpl;                          // InvocationHandlerImpl(long)
@@ -91,7 +105,7 @@ public:
 public:
    static void init();
    static void cleanup();
-   static Type getType(jclass clazz);
+   static Type getType(jclass cls);
 };
 
 } // namespace jni

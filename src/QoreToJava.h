@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,9 @@
 #include "Throwable.h"
 #include "defs.h"
 #include "ModifiedUtf8String.h"
+#include "QoreJniClassMap.h"
+
+extern QoreJniClassMap qjcm;
 
 namespace jni {
 
@@ -82,34 +85,40 @@ public:
       return static_cast<jshort>(value.getAsBigInt());
    }
 
-   static jobject toObject(const QoreValue &value, jclass clazz) {
+   static jobject toObject(const QoreValue &value, jclass cls) {
       if (value.getType() == NT_NOTHING) {
          return nullptr;
       }
       jobject javaObjectRef;
       if (value.getType() == NT_STRING) {
-         ModifiedUtf8String str(value.get<QoreStringNode>());
+         ModifiedUtf8String str(*value.get<QoreStringNode>());
          Env env;
          javaObjectRef = env.newString(str.c_str()).release();
       } else if (value.getType() == NT_OBJECT) {
-         const QoreObject *o = value.get<QoreObject>();
-         if (o->getClass(CID_OBJECT) == nullptr) {
-            throw BasicException("A Java object argument expected");
-         }
+         const QoreObject* o = value.get<QoreObject>();
 
-         ExceptionSink xsink;
-         SimpleRefHolder<ObjectBase> obj(static_cast<ObjectBase *>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
-         if (xsink) {
-            throw XsinkException(xsink);
-         }
-         javaObjectRef = obj->getJavaObject();
+	 javaObjectRef = qjcm.getJavaObject(o);
+	 if (!javaObjectRef) {
+	    if (o->getClass(CID_JAVAOBJECT) == nullptr) {
+	       QoreStringMaker desc("A Java object argument expected; got object of class '%s' instead", o->getClassName());
+	       throw BasicException(desc.c_str());
+	    }
+
+	    ExceptionSink xsink;
+	    SimpleRefHolder<ObjectBase> obj(static_cast<ObjectBase *>(o->getReferencedPrivateData(CID_JAVAOBJECT, &xsink)));
+	    if (xsink) {
+	       throw XsinkException(xsink);
+	    }
+	    javaObjectRef = obj->getJavaObject();
+	 }
       } else {
-         throw BasicException("A Java object argument expected");
+	 QoreStringMaker desc("A Java object argument expected; got type '%s' instead", value.getTypeName());
+	 throw BasicException(desc.c_str());
       }
 
-      if (clazz) {
+      if (cls) {
          Env env;
-         if (!env.isInstanceOf(javaObjectRef, clazz)) {
+         if (!env.isInstanceOf(javaObjectRef, cls)) {
             throw BasicException("Passed object is not an instance of expected class");
          }
       }
@@ -118,13 +127,13 @@ public:
 
    static void wrapException(ExceptionSink &src) {
       Env env;
-      const AbstractQoreNode *n = src.getExceptionArg();
+      const AbstractQoreNode* n = src.getExceptionArg();
       if (n && n->getType() == NT_OBJECT) {
-         const QoreObject *o = static_cast<const QoreObject *>(n);
-         if (o->getClass(CID_THROWABLE) != nullptr) {
+         const QoreObject* o = static_cast<const QoreObject *>(n);
+         if (o->getClass(CID_JAVATHROWABLE) != nullptr) {
 
             ExceptionSink tempSink;
-            SimpleRefHolder<Throwable> obj(static_cast<Throwable *>(o->getReferencedPrivateData(CID_THROWABLE, &tempSink)));
+            SimpleRefHolder<Throwable> obj(static_cast<Throwable *>(o->getReferencedPrivateData(CID_JAVATHROWABLE, &tempSink)));
             if (!tempSink) {
                env.throwException(obj->getJavaObject());
                src.clear();

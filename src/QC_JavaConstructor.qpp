@@ -1,9 +1,9 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Method.qpp Method class definition */
+/** @file QC_JavaConstructor.qpp JavaConstructor class definition */
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,26 +31,26 @@
 #include <qore/Qore.h>
 #include "Method.h"
 
-//! Represents a static method in a Java class.
+//! Represents a constructor of a Java class.
 /**
  */
-qclass StaticMethod [arg=jni::Method* method; ns=Qore::Jni; flags=final; vparent=Object];
+qclass JavaConstructor [arg=jni::Method* method; ns=Qore::Jni; flags=final; vparent=JavaObject];
 
 //! Defined private to prevent Qore code from creating instances.
 /**
  */
-private StaticMethod::constructor() {
+private:internal JavaConstructor::constructor() {
 }
 
-//! Invokes the method.
+//! Creates a new instance by allocating memory and invoking the constructor represented by this class.
 /**
-    @param ... arguments of the method
-    @return the return value
-    @throws JNI-ERROR if the arguments cannot be converted or if the method throws an exception
+    @param arguments to the constructor
+    @return the newly constructed Java object
+    @throws JNI-ERROR if the arguments cannot be converted or if the constructor throws an exception
  */
-any StaticMethod::invoke(...) {
+JavaObject JavaConstructor::newInstance(...) {
    try {
-      return method->invokeStatic(args);
+      return method->newInstance(args);
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();

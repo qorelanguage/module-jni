@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -32,50 +32,52 @@
 #define QORE_JNI_FIELD_H_
 
 #include <qore/Qore.h>
+
+#include <classfile_constants.h>
+
 #include "Class.h"
 #include "Globals.h"
 #include "Env.h"
+#include "QoreJniClassMap.h"
 
-extern QoreClass* QC_FIELD;
-extern QoreClass* QC_STATICFIELD;
+extern QoreClass* QC_JAVAFIELD;
+extern QoreClass* QC_JAVASTATICFIELD;
 
 namespace jni {
 
 /**
  * \brief Represents a Java field.
  */
-class Field : public ObjectBase {
-
+class BaseField : public ObjectBase {
 public:
    /**
     * \brief Constructor.
-    * \param clazz the class associated with the field id
+    * \param cls the class associated with the field id
     * \param id the field id
     * \param isStatic true if the field is static
     */
-   Field(Class *clazz, jfieldID id, bool isStatic) : clazz(clazz), id(id) {
-      printd(LogLevel, "Field::Field(), this: %p, clazz: %p, id: %p\n", this, clazz, id);
-      clazz->ref();
+   BaseField(Class *cls, jfieldID id, bool isStatic) : cls(cls), id(id) {
+      printd(LogLevel, "BaseField::BaseField(), this: %p, cls: %p, id: %p\n", this, cls, id);
       Env env;
-      field = env.toReflectedField(clazz->getJavaObject(), id, isStatic).makeGlobal();
+      field = env.toReflectedField(cls->getJavaObject(), id, isStatic).makeGlobal();
       init(env);
    }
 
    /**
     * \brief Constructor.
     * \param field an instance of java.lang.reflect.Field
+    * \param cls the owning class
     */
-   Field(jobject field) {
+   BaseField(jobject field, Class* cls) : cls(cls) {
       Env env;
-      clazz = new Class(env.callObjectMethod(field, Globals::methodFieldGetDeclaringClass, nullptr).as<jclass>());
       id = env.fromReflectedField(field);
       this->field = GlobalReference<jobject>::fromLocal(field);
-      printd(LogLevel, "Field::Field(), this: %p, clazz: %p, id: %p\n", this, *clazz, id);
+      printd(LogLevel, "BaseField::BaseField(), this: %p, cls: %p, id: %p\n", this, cls, id);
       init(env);
    }
 
-   ~Field() {
-      printd(LogLevel, "Field::~Field(), this: %p, clazz: %p, id: %p\n", this, *clazz, id);
+   ~BaseField() {
+      printd(LogLevel, "BaseField::~BaseField(), this: %p, cls: %p, id: %p\n", this, cls, id);
    }
 
    /**
@@ -99,7 +101,7 @@ public:
     * \return the value of the static field
     * \throws Exception if the value cannot be retrieved
     */
-   QoreValue getStatic();
+   QoreValue getStatic(bool to_qore = false);
 
    /**
     * \brief Sets the value of a static field.
@@ -112,18 +114,78 @@ public:
       return field;
    }
 
-private:
-   void init(Env &env) {
-      typeClass = env.callObjectMethod(field, Globals::methodFieldGetType, nullptr).as<jclass>().makeGlobal();
-      type = Globals::getType(typeClass);
+   DLLLOCAL void getName(QoreString& str);
+
+   DLLLOCAL const QoreTypeInfo* getQoreTypeInfo(QoreJniClassMap& clsmap) {
+      return clsmap.getQoreType(typeClass);
    }
 
-private:
-   SimpleRefHolder<Class> clazz;
+   DLLLOCAL int isStatic() const {
+      return mods & JVM_ACC_STATIC;
+   }
+
+   DLLLOCAL int isFinal() const {
+      return mods & JVM_ACC_FINAL;
+   }
+
+   ClassAccess getAccess() const {
+      ClassAccess access = Public;
+
+      if (mods & JVM_ACC_PRIVATE)
+         access = Internal;
+      else if (mods & JVM_ACC_PROTECTED)
+         access = Private;
+
+      return access;
+   }
+
+protected:
+   DLLLOCAL BaseField() {
+   }
+
+   DLLLOCAL void init(Env &env) {
+      typeClass = env.callObjectMethod(field, Globals::methodFieldGetType, nullptr).as<jclass>().makeGlobal();
+      type = Globals::getType(typeClass);
+      mods = env.callIntMethod(field, Globals::methodFieldGetModifiers, nullptr);
+   }
+
+protected:
+   Class* cls;
    jfieldID id;
    GlobalReference<jobject> field;              // the instance of java.lang.reflect.Field
    GlobalReference<jclass> typeClass;           // the type of the field
    Type type;
+   int mods;
+};
+
+class Field : public BaseField {
+public:
+   /**
+    * \brief Constructor.
+    * \param cls the class associated with the field id
+    * \param id the field id
+    * \param isStatic true if the field is static
+    */
+   Field(Class *cls, jfieldID id, bool isStatic) : BaseField(cls, id, isStatic) {
+      cls->ref();
+      cls_holder = cls;
+   }
+
+   /**
+    * \brief Constructor.
+    * \param field an instance of java.lang.reflect.Field
+    */
+   Field(jobject field) {
+      Env env;
+      cls_holder = cls = new Class(env.callObjectMethod(field, Globals::methodFieldGetDeclaringClass, nullptr).as<jclass>());
+      id = env.fromReflectedField(field);
+      this->field = GlobalReference<jobject>::fromLocal(field);
+      printd(LogLevel, "Field::Field(), this: %p, cls: %p, id: %p\n", this, cls, id);
+      init(env);
+   }
+
+private:
+   SimpleRefHolder<Class> cls_holder;
 };
 
 } // namespace jni

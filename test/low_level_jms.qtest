@@ -1,0 +1,328 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+
+%requires jni
+%requires QUnit
+
+%exec-class Main
+
+class ClassLoader {
+    private:internal {
+        QoreJni::JavaObject this;
+        QoreJni::JavaMethod loadClassMethod;
+    }
+
+    constructor(softlist urls) {
+        QoreJni::JavaClass urlClass = QoreJni::load_class("java/net/URL");
+        QoreJni::JavaConstructor urlCtor = urlClass.getConstructor("(Ljava/lang/String;)V");
+
+        QoreJni::JavaArray urlArray = QoreJni::new_object_array(urls.size(), urlClass);
+        foreach string url in (urls) {
+            urlArray.set($#, urlCtor.newInstance(url));
+        }
+
+        QoreJni::JavaClass classLoaderClass = QoreJni::load_class("java/net/URLClassLoader");
+
+        loadClassMethod = classLoaderClass.getMethod("loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
+        this = classLoaderClass.getConstructor("([Ljava/net/URL;)V").newInstance(urlArray);
+    }
+
+    QoreJni::JavaClass loadClass(string name) {
+        name =~ tr/\//\./;   #/;#needed due to broken emacs qore-mode
+        return loadClassMethod.invoke(this, name);
+    }
+
+    QoreJni::JavaObject get() {
+        return this;
+    }
+}
+
+class Message {
+    private {
+        QoreJni::JavaObject this;
+    }
+
+    constructor(QoreJni::JavaObject this) {
+        self.this = this;
+    }
+
+    QoreJni::JavaObject get() {
+        return this;
+    }
+}
+
+class TextMessage inherits Message {
+    private:internal {
+        QoreJni::JavaMethod setTextMethod;
+        QoreJni::JavaMethod getTextMethod;
+    }
+
+    constructor(QoreJni::JavaObject this) : Message(this) {
+        QoreJni::JavaClass clazz = this.getClass();
+        setTextMethod = clazz.getMethod("setText", "(Ljava/lang/String;)V");
+        getTextMethod = clazz.getMethod("getText", "()Ljava/lang/String;");
+    }
+
+    setText(string text) {
+        setTextMethod.invoke(this, text);
+    }
+
+    string getText() {
+        return getTextMethod.invoke(this);
+    }
+}
+
+class MessageProducer {
+
+    private:internal {
+        QoreJni::JavaObject this;
+        QoreJni::JavaMethod sendMethod;
+    }
+
+    constructor(QoreJni::JavaObject this) {
+        self.this = this;
+        QoreJni::JavaClass clazz = this.getClass();
+        sendMethod = clazz.getMethod("send", "(Ljavax/jms/Message;)V");
+    }
+
+    send(Message msg) {
+        sendMethod.invoke(this, msg.get());
+    }
+}
+
+# workaround for issue 1303 - this should be directly in MessageConsumer::setMessageListener
+code sub wrapListener(code listener, QoreJni::JavaClass textMessageClass) {
+    return sub(QoreJni::JavaMethod method, *QoreJni::JavaArray args) {
+        QoreJni::JavaObject o = args.get(0);
+        Message m;
+        if (textMessageClass.isInstance(o)) {
+            m = new TextMessage(o);
+        } else {
+            m = new Message(o);
+        }
+        listener(m);
+    };
+}
+
+class MessageConsumer {
+
+    private:internal {
+        ClassLoader classLoader;
+        QoreJni::JavaObject this;
+        QoreJni::JavaMethod setMessageListenerMethod;
+        QoreJni::JavaClass textMessageClass;
+        QoreJni::JavaClass messageListenerClass;
+    }
+
+    constructor(ClassLoader classLoader, QoreJni::JavaObject this) {
+        self.classLoader = classLoader;
+        self.this = this;
+        QoreJni::JavaClass clazz = this.getClass();
+        setMessageListenerMethod = clazz.getMethod("setMessageListener", "(Ljavax/jms/MessageListener;)V");
+        textMessageClass = classLoader.loadClass("javax/jms/TextMessage");
+        messageListenerClass = classLoader.loadClass("javax/jms/MessageListener");
+    }
+
+    setMessageListener(code listener) {
+        code w = wrapListener(listener, textMessageClass);
+        setMessageListenerMethod.invoke(this, QoreJni::implement_interface(classLoader.get(), new QoreJni::JavaInvocationHandler(w), messageListenerClass));
+    }
+}
+
+class Destination {
+    private:internal {
+        QoreJni::JavaObject this;
+    }
+
+    constructor(QoreJni::JavaObject this) {
+        self.this = this;
+    }
+
+    QoreJni::JavaObject get() {
+        return this;
+    }
+}
+
+class Session {
+    public {
+        const AUTO_ACKNOWLEDGE = 1;
+        const CLIENT_ACKNOWLEDGE = 2;
+        const DUPS_OK_ACKNOWLEDGE = 3;
+        const SESSION_TRANSACTED = 0;
+    }
+
+    private:internal {
+        ClassLoader classLoader;
+        QoreJni::JavaObject this;
+        QoreJni::JavaMethod createProducerMethod;
+        QoreJni::JavaMethod createConsumerMethod;
+        QoreJni::JavaMethod createTextMessageMethod;
+    }
+
+    constructor(ClassLoader classLoader, QoreJni::JavaObject this) {
+        self.classLoader = classLoader;
+        self.this = this;
+        QoreJni::JavaClass clazz = this.getClass();
+        createProducerMethod = clazz.getMethod("createProducer", "(Ljavax/jms/Destination;)Ljavax/jms/MessageProducer;");
+        createConsumerMethod = clazz.getMethod("createConsumer", "(Ljavax/jms/Destination;)Ljavax/jms/MessageConsumer;");
+        createTextMessageMethod = clazz.getMethod("createTextMessage", "()Ljavax/jms/TextMessage;");
+    }
+
+    MessageProducer createProducer(Destination dest) {
+        return new MessageProducer(createProducerMethod.invoke(this, dest.get()));
+    }
+
+    MessageConsumer createConsumer(Destination dest) {
+        return new MessageConsumer(classLoader, createConsumerMethod.invoke(this, dest.get()));
+    }
+
+    TextMessage createTextMessage() {
+        return new TextMessage(createTextMessageMethod.invoke(this));
+    }
+}
+
+class Connection {
+    private:internal {
+        ClassLoader classLoader;
+        QoreJni::JavaObject this;
+        QoreJni::JavaMethod closeMethod;
+        QoreJni::JavaMethod startMethod;
+        QoreJni::JavaMethod createSessionMethod;
+    }
+
+    constructor(ClassLoader classLoader, QoreJni::JavaObject this) {
+        self.classLoader = classLoader;
+        self.this = this;
+        QoreJni::JavaClass clazz = this.getClass();
+        closeMethod = clazz.getMethod("close", "()V");
+        startMethod = clazz.getMethod("start", "()V");
+        createSessionMethod = clazz.getMethod("createSession", "(I)Ljavax/jms/Session;");
+    }
+
+    destructor() {
+        close();
+    }
+
+    close() {
+        if (this) {
+            closeMethod.invoke(this);
+            delete this;
+        }
+    }
+
+    Session createSession(int sessionMode) {
+        return new Session(classLoader, createSessionMethod.invoke(this, sessionMode));
+    }
+
+    start() {
+        startMethod.invoke(this);
+    }
+}
+
+class ConnectionFactory {
+    private:internal {
+        ClassLoader classLoader;
+        QoreJni::JavaObject this;
+        QoreJni::JavaMethod createConnectionMethod;
+    }
+
+    constructor(ClassLoader classLoader, QoreJni::JavaObject this) {
+        self.classLoader = classLoader;
+        self.this = this;
+        createConnectionMethod = this.getClass().getMethod("createConnection", "()Ljavax/jms/Connection;");
+    }
+
+    Connection createConnection() {
+        return new Connection(classLoader, createConnectionMethod.invoke(this));
+    }
+}
+
+class JmsContext {
+    private:internal {
+        ClassLoader classLoader;
+        QoreJni::JavaClass ctxClass;
+        QoreJni::JavaMethod lookup;
+        QoreJni::JavaObject namingContext;
+    }
+
+    constructor(softlist classpath) {
+        classLoader = new ClassLoader(classpath);
+        ctxClass = QoreJni::load_class("javax/naming/InitialContext");
+        lookup = ctxClass.getMethod("lookup", "(Ljava/lang/String;)Ljava/lang/Object;");
+
+        QoreJni::JavaClass threadClass = QoreJni::load_class("java/lang/Thread");
+        QoreJni::JavaObject thread = threadClass.getStaticMethod("currentThread", "()Ljava/lang/Thread;").invoke();
+        threadClass.getMethod("setContextClassLoader", "(Ljava/lang/ClassLoader;)V").invoke(thread, classLoader.get());
+
+        namingContext = ctxClass.getConstructor("()V").newInstance();
+    }
+
+    ConnectionFactory getConnectionFactory(string name) {
+        return new ConnectionFactory(classLoader, lookup.invoke(namingContext, name));
+    }
+
+    Destination getDestination(string name) {
+        return new Destination(lookup.invoke(namingContext, name));
+    }
+}
+
+public class Main inherits QUnit::Test {
+    private {
+        string jar;
+    }
+
+    constructor() : Test("JMS test", "1.0", \ARGV) {
+        addTestCase("base test", \testJms());
+
+        # ex: file:///home/user/glassfish4/glassfish/lib/gf-client.jar
+        *string jr = ARGV[0] ?? ENV.GLASSFISH_JAR;
+        if (!jr) {
+            printf("missing glassfish JAR path; enter it on the command-line or use CLASSFISH_JAR\n");
+            exit(1);
+        }
+        jar = jr;
+        # add the scheme if missing
+        if (jar !~ /^\w+:/)
+            jar = "file://" + jar;
+        if (m_options.verbose > 1)
+            printf("using glassfish URL: %y\n", jar);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testJms() {
+        JmsContext ctx(jar);
+
+        ConnectionFactory connectionFactory = ctx.getConnectionFactory("jms/__defaultConnectionFactory");
+        Connection connection = connectionFactory.createConnection();
+        Session session = connection.createSession(Session::AUTO_ACKNOWLEDGE);
+
+        #### NOTE: create the JMS queue in advance - ex:
+        # prompt% ./bin/asadmin
+        # asadmin> create-jms-resource --restype javax.jms.Queue --property Name=PhysicalQueue abc
+        ####
+        Destination queue = ctx.getDestination("abc");
+
+        MessageProducer producer = session.createProducer(queue);
+        MessageConsumer consumer = session.createConsumer(queue);
+
+        consumer.setMessageListener(sub(object msg) {
+            printf("IN CALLBACK\n");
+            printf("Received: %s\n", msg.getText());
+            printf("END CALLBACK\n");
+        });
+
+        connection.start();
+
+        TextMessage message = session.createTextMessage();
+        message.setText("Hello, world!");
+
+        producer.send(message);
+    }
+}

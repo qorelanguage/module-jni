@@ -27,10 +27,11 @@
 #include "Env.h"
 #include "JavaToQore.h"
 #include "QoreToJava.h"
+#include "QoreJniClassMap.h"
 
 namespace jni {
 
-std::vector<jvalue> Method::convertArgs(const QoreValueList* args, size_t base) {
+std::vector<jvalue> BaseMethod::convertArgs(const QoreValueList* args, size_t base) {
    assert(base == 0 || (args != nullptr && args->size() >= base));
 
    size_t paramCount = paramTypes.size();
@@ -83,11 +84,11 @@ std::vector<jvalue> Method::convertArgs(const QoreValueList* args, size_t base) 
    return std::move(jargs);
 }
 
-QoreValue Method::invoke(jobject object, const QoreValueList* args) {
-   std::vector<jvalue> jargs = convertArgs(args, 1);
+QoreValue BaseMethod::invoke(jobject object, const QoreValueList* args, bool to_qore) {
+   std::vector<jvalue> jargs = convertArgs(args, to_qore ? 0 : 1);
 
    Env env;
-   if (!env.isInstanceOf(object, clazz->getJavaObject())) {
+   if (!env.isInstanceOf(object, cls->getJavaObject())) {
       throw BasicException("Passed instance does not match the method's class");
    }
    switch (retValType) {
@@ -108,7 +109,9 @@ QoreValue Method::invoke(jobject object, const QoreValueList* args) {
       case Type::Double:
          return JavaToQore::convert(env.callDoubleMethod(object, id, &jargs[0]));
       case Type::Reference:
-         return JavaToQore::convert(env.callObjectMethod(object, id, &jargs[0]));
+         return to_qore
+            ? JavaToQore::convertToQore(env.callObjectMethod(object, id, &jargs[0]))
+            : JavaToQore::convert(env.callObjectMethod(object, id, &jargs[0]));
       case Type::Void:
       default:
          assert(retValType == Type::Void);
@@ -117,75 +120,108 @@ QoreValue Method::invoke(jobject object, const QoreValueList* args) {
    }
 }
 
-QoreValue Method::invokeNonvirtual(jobject object, const QoreValueList* args) {
-   std::vector<jvalue> jargs = convertArgs(args, 1);
+QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreValueList* args, bool to_qore) {
+   std::vector<jvalue> jargs = convertArgs(args, to_qore ? 0 : 1);
 
    Env env;
-   if (!env.isInstanceOf(object, clazz->getJavaObject())) {
+   if (!env.isInstanceOf(object, cls->getJavaObject())) {
       throw BasicException("Passed instance does not match the method's class");
    }
    switch (retValType) {
       case Type::Boolean:
-         return JavaToQore::convert(env.callNonvirtualBooleanMethod(object, clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callNonvirtualBooleanMethod(object, cls->getJavaObject(), id, &jargs[0]));
       case Type::Byte:
-         return JavaToQore::convert(env.callNonvirtualByteMethod(object, clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callNonvirtualByteMethod(object, cls->getJavaObject(), id, &jargs[0]));
       case Type::Char:
-         return JavaToQore::convert(env.callNonvirtualCharMethod(object, clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callNonvirtualCharMethod(object, cls->getJavaObject(), id, &jargs[0]));
       case Type::Short:
-         return JavaToQore::convert(env.callNonvirtualShortMethod(object, clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callNonvirtualShortMethod(object, cls->getJavaObject(), id, &jargs[0]));
       case Type::Int:
-         return JavaToQore::convert(env.callNonvirtualIntMethod(object, clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callNonvirtualIntMethod(object, cls->getJavaObject(), id, &jargs[0]));
       case Type::Long:
-         return JavaToQore::convert(env.callNonvirtualLongMethod(object, clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callNonvirtualLongMethod(object, cls->getJavaObject(), id, &jargs[0]));
       case Type::Float:
-         return JavaToQore::convert(env.callNonvirtualFloatMethod(object, clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callNonvirtualFloatMethod(object, cls->getJavaObject(), id, &jargs[0]));
       case Type::Double:
-         return JavaToQore::convert(env.callNonvirtualDoubleMethod(object, clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callNonvirtualDoubleMethod(object, cls->getJavaObject(), id, &jargs[0]));
       case Type::Reference:
-         return JavaToQore::convert(env.callNonvirtualObjectMethod(object, clazz->getJavaObject(), id, &jargs[0]));
+         return to_qore
+            ? JavaToQore::convertToQore(env.callNonvirtualObjectMethod(object, cls->getJavaObject(), id, &jargs[0]))
+            : JavaToQore::convert(env.callNonvirtualObjectMethod(object, cls->getJavaObject(), id, &jargs[0]));
       case Type::Void:
       default:
          assert(retValType == Type::Void);
-         env.callNonvirtualVoidMethod(object, clazz->getJavaObject(), id, &jargs[0]);
+         env.callNonvirtualVoidMethod(object, cls->getJavaObject(), id, &jargs[0]);
          return QoreValue();
    }
 }
 
-QoreValue Method::invokeStatic(const QoreValueList* args) {
+QoreValue BaseMethod::invokeStatic(const QoreValueList* args, bool to_qore) {
    std::vector<jvalue> jargs = convertArgs(args);
 
    Env env;
    switch (retValType) {
       case Type::Boolean:
-         return JavaToQore::convert(env.callStaticBooleanMethod(clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticBooleanMethod(cls->getJavaObject(), id, &jargs[0]));
       case Type::Byte:
-         return JavaToQore::convert(env.callStaticByteMethod(clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticByteMethod(cls->getJavaObject(), id, &jargs[0]));
       case Type::Char:
-         return JavaToQore::convert(env.callStaticCharMethod(clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticCharMethod(cls->getJavaObject(), id, &jargs[0]));
       case Type::Short:
-         return JavaToQore::convert(env.callStaticShortMethod(clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticShortMethod(cls->getJavaObject(), id, &jargs[0]));
       case Type::Int:
-         return JavaToQore::convert(env.callStaticIntMethod(clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticIntMethod(cls->getJavaObject(), id, &jargs[0]));
       case Type::Long:
-         return JavaToQore::convert(env.callStaticLongMethod(clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticLongMethod(cls->getJavaObject(), id, &jargs[0]));
       case Type::Float:
-         return JavaToQore::convert(env.callStaticFloatMethod(clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticFloatMethod(cls->getJavaObject(), id, &jargs[0]));
       case Type::Double:
-         return JavaToQore::convert(env.callStaticDoubleMethod(clazz->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convert(env.callStaticDoubleMethod(cls->getJavaObject(), id, &jargs[0]));
       case Type::Reference:
-         return JavaToQore::convert(env.callStaticObjectMethod(clazz->getJavaObject(), id, &jargs[0]));
+         return to_qore
+            ? JavaToQore::convertToQore(env.callStaticObjectMethod(cls->getJavaObject(), id, &jargs[0]))
+            : JavaToQore::convert(env.callStaticObjectMethod(cls->getJavaObject(), id, &jargs[0]));
       case Type::Void:
       default:
          assert(retValType == Type::Void);
-         env.callStaticVoidMethod(clazz->getJavaObject(), id, &jargs[0]);
+         env.callStaticVoidMethod(cls->getJavaObject(), id, &jargs[0]);
          return QoreValue();
    }
 }
 
-QoreValue Method::newInstance(const QoreValueList* args) {
+QoreValue BaseMethod::newInstance(const QoreValueList* args) {
    std::vector<jvalue> jargs = convertArgs(args);
    Env env;
-   return JavaToQore::convert(env.newObject(clazz->getJavaObject(), id, &jargs[0]));
+   return JavaToQore::convert(env.newObject(cls->getJavaObject(), id, &jargs[0]));
+}
+
+LocalReference<jobject> BaseMethod::newQoreInstance(const QoreValueList* args) {
+   std::vector<jvalue> jargs = convertArgs(args);
+   Env env;
+   return env.newObject(cls->getJavaObject(), id, &jargs[0]);
+}
+
+void BaseMethod::getName(QoreString& str) {
+   Env env;
+   // get Method name
+   LocalReference<jstring> jmName = env.callObjectMethod(method, Globals::methodMethodGetName, nullptr).as<jstring>();
+   Env::GetStringUtfChars mName(env, jmName);
+   str.concat(mName.c_str());
+}
+
+int BaseMethod::getParamTypes(type_vec_t& paramTypeInfo, QoreJniClassMap& clsmap) {
+   unsigned len = paramTypes.size();
+   if (len)
+      paramTypeInfo.reserve(len);
+
+   for (auto& i : paramTypes)
+      paramTypeInfo.push_back(clsmap.getQoreType(i.second));
+
+   return 0;
+}
+
+const QoreTypeInfo* BaseMethod::getReturnTypeInfo(QoreJniClassMap& clsmap) {
+   return clsmap.getQoreType(retValClass);
 }
 
 } // namespace jni

@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -50,7 +50,13 @@ jmethodID Globals::methodClassIsArray;
 jmethodID Globals::methodClassGetComponentType;
 jmethodID Globals::methodClassGetClassLoader;
 jmethodID Globals::methodClassGetName;
-jmethodID Globals::methodClassGetFields;
+jmethodID Globals::methodClassGetDeclaredFields;
+jmethodID Globals::methodClassGetSuperClass;
+jmethodID Globals::methodClassGetInterfaces;
+jmethodID Globals::methodClassGetDeclaredConstructors;
+jmethodID Globals::methodClassGetModifiers;
+jmethodID Globals::methodClassIsPrimitive;
+jmethodID Globals::methodClassGetDeclaredMethods;
 
 GlobalReference<jclass> Globals::classThrowable;
 jmethodID Globals::methodThrowableGetMessage;
@@ -61,14 +67,22 @@ GlobalReference<jclass> Globals::classField;
 jmethodID Globals::methodFieldGetDeclaringClass;
 jmethodID Globals::methodFieldGetType;
 jmethodID Globals::methodFieldGetModifiers;
+jmethodID Globals::methodFieldGetName;
+jmethodID Globals::methodFieldGet;
 
 GlobalReference<jclass> Globals::classMethod;
 jmethodID Globals::methodMethodGetReturnType;
 jmethodID Globals::methodMethodGetParameterTypes;
 jmethodID Globals::methodMethodGetDeclaringClass;
 jmethodID Globals::methodMethodGetModifiers;
+jmethodID Globals::methodMethodIsVarArgs;
+jmethodID Globals::methodMethodGetName;
 
 GlobalReference<jclass> Globals::classConstructor;
+jmethodID Globals::methodConstructorGetParameterTypes;
+jmethodID Globals::methodConstructorToString;
+jmethodID Globals::methodConstructorGetModifiers;
+jmethodID Globals::methodConstructorIsVarArgs;
 
 GlobalReference<jclass> Globals::classInvocationHandlerImpl;
 jmethodID Globals::ctorInvocationHandlerImpl;
@@ -105,7 +119,7 @@ static jstring JNICALL qore_exception_wrapper_get_message(JNIEnv *, jclass, jlon
 
    const AbstractQoreNode *desc = xsink->getExceptionDesc();
    if (desc != nullptr && desc->getType() == NT_STRING) {
-      ModifiedUtf8String str(static_cast<const QoreStringNode *>(desc));
+      ModifiedUtf8String str(*static_cast<const QoreStringNode*>(desc));
       return env.newString(str.c_str()).release();
    }
    return env.newString("No message").release();
@@ -148,6 +162,16 @@ static GlobalReference<jclass> getPrimitiveClass(Env &env, const char *wrapperNa
 
 void Globals::init() {
    Env env;
+
+   // get exception info first
+   classThrowable = env.findClass("java/lang/Throwable").makeGlobal();
+   methodThrowableGetMessage = env.getMethod(classThrowable, "getMessage", "()Ljava/lang/String;");
+
+   classQoreExceptionWrapper = env.defineClass("org/qore/jni/QoreExceptionWrapper", nullptr, java_org_qore_jni_QoreExceptionWrapper_class, java_org_qore_jni_QoreExceptionWrapper_class_len).makeGlobal();
+   env.registerNatives(classQoreExceptionWrapper, qoreExceptionWrapperNativeMethods, 2);
+   ctorQoreExceptionWrapper = env.getMethod(classQoreExceptionWrapper, "<init>", "(J)V");
+   methodQoreExceptionWrapperGet = env.getMethod(classQoreExceptionWrapper, "get", "()J");
+
    classVoid = getPrimitiveClass(env, "java/lang/Void");
    classBoolean = getPrimitiveClass(env, "java/lang/Boolean");
    classByte = getPrimitiveClass(env, "java/lang/Byte");
@@ -163,10 +187,13 @@ void Globals::init() {
    methodClassGetComponentType = env.getMethod(classClass, "getComponentType", "()Ljava/lang/Class;");
    methodClassGetClassLoader = env.getMethod(classClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
    methodClassGetName = env.getMethod(classClass, "getName", "()Ljava/lang/String;");
-   methodClassGetFields = env.getMethod(classClass, "getFields", "()[Ljava/lang/reflect/Field;");
-
-   classThrowable = env.findClass("java/lang/Throwable").makeGlobal();
-   methodThrowableGetMessage = env.getMethod(classThrowable, "getMessage", "()Ljava/lang/String;");
+   methodClassGetDeclaredFields = env.getMethod(classClass, "getDeclaredFields", "()[Ljava/lang/reflect/Field;");
+   methodClassGetSuperClass = env.getMethod(classClass, "getSuperclass", "()Ljava/lang/Class;");
+   methodClassGetInterfaces = env.getMethod(classClass, "getInterfaces", "()[Ljava/lang/Class;");
+   methodClassGetDeclaredConstructors = env.getMethod(classClass, "getDeclaredConstructors", "()[Ljava/lang/reflect/Constructor;");
+   methodClassGetModifiers = env.getMethod(classClass, "getModifiers", "()I");
+   methodClassIsPrimitive = env.getMethod(classClass, "isPrimitive", "()Z");
+   methodClassGetDeclaredMethods = env.getMethod(classClass, "getDeclaredMethods", "()[Ljava/lang/reflect/Method;");
 
    classString = env.findClass("java/lang/String").makeGlobal();
 
@@ -174,24 +201,27 @@ void Globals::init() {
    methodFieldGetType = env.getMethod(classField, "getType", "()Ljava/lang/Class;");
    methodFieldGetDeclaringClass = env.getMethod(classField, "getDeclaringClass", "()Ljava/lang/Class;");
    methodFieldGetModifiers = env.getMethod(classField, "getModifiers", "()I");
+   methodFieldGetName = env.getMethod(classField, "getName", "()Ljava/lang/String;");
+   methodFieldGet = env.getMethod(classField, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
 
    classMethod = env.findClass("java/lang/reflect/Method").makeGlobal();
    methodMethodGetReturnType = env.getMethod(classMethod, "getReturnType", "()Ljava/lang/Class;");
    methodMethodGetParameterTypes = env.getMethod(classMethod, "getParameterTypes", "()[Ljava/lang/Class;");
    methodMethodGetDeclaringClass = env.getMethod(classMethod, "getDeclaringClass", "()Ljava/lang/Class;");
    methodMethodGetModifiers = env.getMethod(classMethod, "getModifiers", "()I");
+   methodMethodIsVarArgs = env.getMethod(classMethod, "isVarArgs", "()Z");
+   methodMethodGetName = env.getMethod(classMethod, "getName", "()Ljava/lang/String;");
 
    classConstructor = env.findClass("java/lang/reflect/Constructor").makeGlobal();
+   methodConstructorGetParameterTypes = env.getMethod(classConstructor, "getParameterTypes", "()[Ljava/lang/Class;");
+   methodConstructorToString = env.getMethod(classConstructor, "toString", "()Ljava/lang/String;");
+   methodConstructorGetModifiers = env.getMethod(classConstructor, "getModifiers", "()I");
+   methodConstructorIsVarArgs = env.getMethod(classConstructor, "isVarArgs", "()Z");
 
    classInvocationHandlerImpl = env.defineClass("org/qore/jni/InvocationHandlerImpl", nullptr, java_org_qore_jni_InvocationHandlerImpl_class, java_org_qore_jni_InvocationHandlerImpl_class_len).makeGlobal();
    env.registerNatives(classInvocationHandlerImpl, invocationHandlerNativeMethods, 2);
    ctorInvocationHandlerImpl = env.getMethod(classInvocationHandlerImpl, "<init>", "(J)V");
    methodInvocationHandlerImplDestroy = env.getMethod(classInvocationHandlerImpl, "destroy", "()V");
-
-   classQoreExceptionWrapper = env.defineClass("org/qore/jni/QoreExceptionWrapper", nullptr, java_org_qore_jni_QoreExceptionWrapper_class, java_org_qore_jni_QoreExceptionWrapper_class_len).makeGlobal();
-   env.registerNatives(classQoreExceptionWrapper, qoreExceptionWrapperNativeMethods, 2);
-   ctorQoreExceptionWrapper = env.getMethod(classQoreExceptionWrapper, "<init>", "(J)V");
-   methodQoreExceptionWrapperGet = env.getMethod(classQoreExceptionWrapper, "get", "()J");
 
    classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
    methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance", "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
@@ -218,33 +248,33 @@ void Globals::cleanup() {
    classProxy = nullptr;
 }
 
-Type Globals::getType(jclass clazz) {
+Type Globals::getType(jclass cls) {
    Env env;
-   if (env.isSameObject(clazz, classInt)) {
+   if (env.isSameObject(cls, classInt)) {
       return Type::Int;
    }
-   if (env.isSameObject(clazz, classVoid)) {
+   if (env.isSameObject(cls, classVoid)) {
       return Type::Void;
    }
-   if (env.isSameObject(clazz, classBoolean)) {
+   if (env.isSameObject(cls, classBoolean)) {
       return Type::Boolean;
    }
-   if (env.isSameObject(clazz, classByte)) {
+   if (env.isSameObject(cls, classByte)) {
       return Type::Byte;
    }
-   if (env.isSameObject(clazz, classChar)) {
+   if (env.isSameObject(cls, classChar)) {
       return Type::Char;
    }
-   if (env.isSameObject(clazz, classShort)) {
+   if (env.isSameObject(cls, classShort)) {
       return Type::Short;
    }
-   if (env.isSameObject(clazz, classLong)) {
+   if (env.isSameObject(cls, classLong)) {
       return Type::Long;
    }
-   if (env.isSameObject(clazz, classFloat)) {
+   if (env.isSameObject(cls, classFloat)) {
       return Type::Float;
    }
-   if (env.isSameObject(clazz, classDouble)) {
+   if (env.isSameObject(cls, classDouble)) {
       return Type::Double;
    }
    return Type::Reference;

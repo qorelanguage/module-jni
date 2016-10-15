@@ -1,9 +1,9 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Method.qpp Method class definition */
+/** @file QC_JavaStaticMethod.qpp JavaStaticMethod class definition */
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,46 +31,26 @@
 #include <qore/Qore.h>
 #include "Method.h"
 
-//! Represents a non-static method in a Java class.
+//! Represents a static method in a Java class.
 /**
  */
-qclass Method [arg=jni::Method* method; ns=Qore::Jni; flags=final; vparent=Object];
+qclass JavaStaticMethod [arg=jni::Method* method; ns=Qore::Jni; flags=final; vparent=JavaObject];
 
 //! Defined private to prevent Qore code from creating instances.
 /**
  */
-private Method::constructor() {
+private:internal JavaStaticMethod::constructor() {
 }
 
-//! Invokes the method with virtual dispatch.
+//! Invokes the method.
 /**
-    @param obj the instance to invoke the method on
     @param ... arguments of the method
     @return the return value
     @throws JNI-ERROR if the arguments cannot be converted or if the method throws an exception
  */
-any Method::invoke(Qore::Jni::Object[jni::ObjectBase] obj, ...) {
-   SimpleRefHolder<jni::ObjectBase> objHolder(obj);
+any JavaStaticMethod::invoke(...) {
    try {
-      return method->invoke(obj->getJavaObject(), args);
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! Invokes the method without virtual dispatch.
-/**
-    Can be used for invocation of methods in a superclass that are overridden in the subclass.
-    @param obj the instance to invoke the method on
-    @param ... arguments of the method
-    @return the return value
-    @throws JNI-ERROR if the arguments cannot be converted or if the method throws an exception
- */
-any Method::invokeNonvirtual(Qore::Jni::Object[jni::ObjectBase] obj, ...) {
-   SimpleRefHolder<jni::ObjectBase> objHolder(obj);
-   try {
-      return method->invokeNonvirtual(obj->getJavaObject(), args);
+      return method->invokeStatic(args);
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();

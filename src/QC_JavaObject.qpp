@@ -1,9 +1,9 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Array.qpp Array class definition */
+/** @file QC_JavaObject.qpp JavaObject class definition */
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,58 +29,31 @@
 */
 
 #include <qore/Qore.h>
-#include "Array.h"
+#include "Object.h"
+#include "Class.h"
+#include "Env.h"
 
-//! Instances of this class represent Java arrays.
+//! Represents a Java object.
 /**
  */
-qclass Array [arg=jni::Array* array; ns=Qore::Jni; flags=final; vparent=Object];
+qclass JavaObject [arg=jni::ObjectBase* object; ns=Qore::Jni];
 
 //! Defined private to prevent Qore code from creating instances.
 /**
  */
-private Array::constructor() {
+private:internal JavaObject::constructor() {
 }
 
-//! Returns the length of the array.
+//! Returns the class of the object.
 /**
-    @return the length of the array
+    @return the class of the object
  */
-int Array::length() {
+JavaClass JavaObject::getClass() {
    try {
-      return array->length();
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return 0;
-   }
-}
-
-//! Retrieves an element.
-/**
-    @param index the 0-based index of the element
-    @return the value of the element
-    @throws JNI-ERROR if the index is out of bounds
- */
-any Array::get(int index) {
-   try {
-      return array->get(index);
+      jni::Env env;
+      return new QoreObject(QC_JAVACLASS, getProgram(), new jni::Class(env.getObjectClass(object->getJavaObject())));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
    }
-}
-
-//! Sets the value of a an element.
-/**
-    @param index the 0-based index of the element
-    @param value the value of the element
-    @throws JNI-ERROR if the index is out of bounds or if the value type is incompatible with the array type
- */
-nothing Array::set(int index, any value) {
-   try {
-      array->set(index, value);
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-   }
-   return QoreValue();
 }

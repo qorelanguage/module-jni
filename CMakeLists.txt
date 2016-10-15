@@ -18,20 +18,21 @@ endif()
 
 set(QPP_SRC
     src/ql_jni.qpp
-    src/QC_Object.qpp
-    src/QC_Array.qpp
-    src/QC_Class.qpp
-    src/QC_Constructor.qpp
-    src/QC_Field.qpp
-    src/QC_InvocationHandler.qpp
-    src/QC_Method.qpp
-    src/QC_StaticField.qpp
-    src/QC_StaticMethod.qpp
-    src/QC_Throwable.qpp
+    src/QC_JavaObject.qpp
+    src/QC_JavaArray.qpp
+    src/QC_JavaClass.qpp
+    src/QC_JavaConstructor.qpp
+    src/QC_JavaField.qpp
+    src/QC_JavaInvocationHandler.qpp
+    src/QC_JavaMethod.qpp
+    src/QC_JavaStaticField.qpp
+    src/QC_JavaStaticMethod.qpp
+    src/QC_JavaThrowable.qpp
 )
 
 set(CPP_SRC
     src/jni-module.cpp
+    src/QoreJniClassMap.cpp
     src/defs.cpp
     src/Jvm.cpp
     src/Array.cpp
@@ -41,6 +42,7 @@ set(CPP_SRC
     src/Globals.cpp
     src/InvocationHandler.cpp
     src/Method.cpp
+    src/JavaToQore.cpp
 )
 
 qore_wrap_qpp_value(QPP_SOURCES ${QPP_SRC})

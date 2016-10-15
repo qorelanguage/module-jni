@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,7 @@ namespace jni {
 class Functions {
 
 public:
-   static QoreStringNode *getVersion() {
+   static QoreStringNode* getVersion() {
       Env env;
       jint v = env.getVersion();
       QoreStringNode *str = new QoreStringNode();
@@ -54,32 +54,35 @@ public:
       return str;
    }
 
-   static Class *loadClass(const QoreStringNode *name) {
+   // 'name' must be in UTF-8 encoding
+   static Class* loadClass(const char* name) {
       Env env;
-      ModifiedUtf8String nameUtf8(name);
-      printd(LogLevel, "loadClass %s\n", nameUtf8.c_str());
-      return new Class(env.findClass(nameUtf8.c_str()));
+      printd(LogLevel, "loadClass '%s'\n", name);
+      return new Class(env.findClass(name));
    }
 
-   static Object *implementInterface(const ObjectBase *classLoader, const InvocationHandler *invocationHandler, const Class *clazz) {
+   static Class* loadClass(const QoreString& name) {
+      ModifiedUtf8String nameUtf8(name);
+      return loadClass(nameUtf8.c_str());
+   }
+
+   static LocalReference<jobject> implementInterface(jobject classLoader, const InvocationHandler *invocationHandler, jclass cls) {
       Env env;
 
       LocalReference<jobject> cl;
       LocalReference<jobjectArray> interfaces = env.newObjectArray(1, Globals::classClass);
-      env.setObjectArrayElement(interfaces, 0, clazz->getJavaObject());
+      env.setObjectArrayElement(interfaces, 0, cls);
 
       jvalue args[3];
       if (classLoader == nullptr) {
-         cl = env.callObjectMethod(clazz->getJavaObject(), Globals::methodClassGetClassLoader, nullptr);
+         cl = env.callObjectMethod(cls, Globals::methodClassGetClassLoader, nullptr);
          args[0].l = cl;
       } else {
-         args[0].l = classLoader->getJavaObject();
+         args[0].l = classLoader;
       }
       args[1].l = interfaces;
       args[2].l = invocationHandler->getJavaObject();
-      LocalReference<jobject> obj = env.callStaticObjectMethod(Globals::classProxy, Globals::methodProxyNewProxyInstance, args);
-
-      return new Object(obj);
+      return env.callStaticObjectMethod(Globals::classProxy, Globals::methodProxyNewProxyInstance, args);
    }
 
    static Array *newBooleanArray(int64 size) {
@@ -122,9 +125,9 @@ public:
       return new Array(env.newDoubleArray(size));
    }
 
-   static Array *newObjectArray(int64 size, const Class *clazz) {
+   static Array *newObjectArray(int64 size, const Class *cls) {
       Env env;
-      return new Array(env.newObjectArray(size, clazz->getJavaObject()));
+      return new Array(env.newObjectArray(size, cls->getJavaObject()));
    }
 
 private:

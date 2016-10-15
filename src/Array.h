@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -36,8 +36,8 @@
 #include "Object.h"
 #include "Globals.h"
 
-extern QoreClass* QC_ARRAY;
-extern qore_classid_t CID_ARRAY;
+extern QoreClass* QC_JAVAARRAY;
+extern qore_classid_t CID_JAVAARRAY;
 
 namespace jni {
 
@@ -52,19 +52,19 @@ public:
     * \param array a local reference to a Java array instance
     * \throws JavaException if a global reference cannot be created
     */
-   Array(jarray array);
+   DLLLOCAL Array(jarray array);
 
-   ~Array() {
+   DLLLOCAL ~Array() {
       printd(LogLevel, "Array::~Array(), this: %p, object: %p\n", this, static_cast<jarray>(this->array));
    }
 
-   jarray getJavaObject() const override {
+   DLLLOCAL jarray getJavaObject() const override {
       return array;
    }
 
-   int64 length();
-   QoreValue get(int64 index);
-   void set(int64 index, const QoreValue &value);
+   DLLLOCAL int64 length();
+   DLLLOCAL QoreValue get(int64 index, bool to_qore = false);
+   DLLLOCAL void set(int64 index, const QoreValue &value);
 
 private:
    GlobalReference<jarray> array;

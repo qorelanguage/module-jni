@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -48,8 +48,16 @@ public:
     * \param src the source string to convert, must not be null
     * \throws StringException if the string cannot be converted
     */
-   explicit ModifiedUtf8String(const QoreString *src) {
-      assert(src != nullptr);
+   explicit ModifiedUtf8String(const QoreString& src) {
+      ExceptionSink xsink;
+      helper.set(&src, QCS_UTF8, &xsink);
+      //XXX check and convert special characters
+      if (xsink) {
+         throw XsinkException(xsink);
+      }
+   }
+
+   explicit ModifiedUtf8String(const QoreString* src) {
       ExceptionSink xsink;
       helper.set(src, QCS_UTF8, &xsink);
       //XXX check and convert special characters
@@ -64,7 +72,7 @@ public:
     * The returned pointer remains valid until this instance is destroyed.
     * \return the string converted to modified utf-8 encoding
     */
-   const char *c_str() {
+   const char* c_str() {
       return helper->getBuffer();
    }
 

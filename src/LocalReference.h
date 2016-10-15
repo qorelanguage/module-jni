@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -54,7 +54,7 @@ public:
    LocalReference(T ref = nullptr) : ref(ref) {
       assert(ref == nullptr || Jvm::getEnv()->GetObjectRefType(ref) == JNILocalRefType);
       if (ref != nullptr) {
-         printd(LogLevel, "LocalReference created: %p\n", ref);
+         printd(LogLevel + 1, "LocalReference created: %p\n", ref);
       }
    }
 
@@ -132,7 +132,7 @@ private:
 
    void del() {
       if (ref != nullptr) {
-         printd(LogLevel, "LocalReference deleted: %p\n", ref);
+         printd(LogLevel + 1, "LocalReference deleted: %p\n", ref);
          Jvm::getEnv()->DeleteLocalRef(ref);
          ref = nullptr;
       }

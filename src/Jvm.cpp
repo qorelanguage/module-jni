@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -33,35 +33,39 @@ namespace jni {
 JavaVM *Jvm::vm = nullptr;
 thread_local JNIEnv *Jvm::env;
 
-bool Jvm::createVM() {
+QoreStringNode* Jvm::createVM() {
    assert(vm == nullptr);
 
    JavaVMInitArgs vm_args;
    vm_args.version = JNI_VERSION_1_6;
    vm_args.ignoreUnrecognized = false;
 
-   JavaVMOption option;
+   JavaVMOption options[2];
+   // "reduced signals"
+   options[0].optionString = (char*)"-Xrs";
+   vm_args.nOptions = 1;
+
    std::string classpath;
-   const char *classpathEnv = getenv("QORE_JNI_CLASSPATH");
-   if (classpathEnv == nullptr) {
-      vm_args.nOptions = 0;
-      vm_args.options = nullptr;
-   } else {
+   const char* classpathEnv = getenv("QORE_JNI_CLASSPATH");
+   if (classpathEnv) {
       classpath = std::string("-Djava.class.path=") + classpathEnv;
-      option.optionString = &classpath[0];
-      vm_args.nOptions = 1;
-      vm_args.options = &option;
+      options[1].optionString = &classpath[0];
+      ++vm_args.nOptions;
    }
+   vm_args.options = options;
 
    if (JNI_CreateJavaVM(&vm, reinterpret_cast<void **>(&env), &vm_args) != JNI_OK) {
-      return false;
+      return new QoreStringNode("JNI_CreateJavaVM() failed");
    }
    try {
       Globals::init();
-   } catch (Exception &e) {
-      return false;
+   } catch (JavaException& e) {
+      return e.toString();
    }
-   return true;
+   catch (Exception &e) {
+      return new QoreStringNode("JVM initialization failed due to an unknown error");
+   }
+   return 0;
 }
 
 void Jvm::destroyVM() {

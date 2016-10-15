@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,6 @@ constexpr int LogLevel = 10;
  * \brief Base class for exceptions.
  */
 class Exception {
-
 public:
    /**
     * \brief Default virtual destructor.
@@ -58,6 +57,11 @@ public:
     * \param xsink the exception sink
     */
    virtual void convert(ExceptionSink *xsink) = 0;
+
+   /**
+    * \brief ignore the exception
+    */
+   virtual void ignore() = 0;
 
    Exception(Exception &&) = default;
    Exception &operator=(Exception &&) = default;
@@ -74,10 +78,17 @@ private:
 };
 
 /**
+ * \brief An exception that can be safely ignored with no action
+ */
+class IgnorableException : public Exception {
+   void ignore() override {
+   }
+};
+
+/**
  * \brief An exception thrown when the current thread cannot be attached to the JVM.
  */
-class UnableToAttachException : public Exception {
-
+class UnableToAttachException : public IgnorableException {
 public:
    /**
     * \brief Constructor.
@@ -98,8 +109,7 @@ private:
 /**
  * \brief An exception thrown when the current thread cannot be registered with Qore.
  */
-class UnableToRegisterException : public Exception {
-
+class UnableToRegisterException : public IgnorableException {
 public:
    /**
     * \brief Constructor.
@@ -117,7 +127,6 @@ public:
  * \brief A C++ exception representing a Java exception.
  */
 class JavaException : public Exception {
-
 public:
    /**
     * \brief Constructor.
@@ -126,13 +135,18 @@ public:
    }
 
    void convert(ExceptionSink *xsink) override;
+
+   void ignore() override;
+
+   void ignoreOrRethrow(const char* cls);
+
+   DLLLOCAL QoreStringNode* toString() const;
 };
 
 /**
  * \brief Basic exception with a simple string messsage.
  */
-class BasicException : public Exception {
-
+class BasicException : public IgnorableException {
 public:
    /**
     * \brief Constructor.
@@ -153,7 +167,6 @@ private:
  * \brief A C++ wrapper for an exception raised in the ExceptionSink.
  */
 class XsinkException : public Exception {
-
 public:
    /**
     * \brief Constructor.
@@ -167,12 +180,15 @@ public:
       xsink->assimilate(*sink);
    }
 
+   DLLLOCAL virtual void ignore() override {
+      sink->clear();
+   }
+
 private:
    std::unique_ptr<ExceptionSink> sink;
 };
 
 class QoreThreadAttacher {
-
 public:
    QoreThreadAttacher() : attached(false) {
    }

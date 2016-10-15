@@ -1,3 +1,4 @@
+/* -*- indent-tabs-mode: nil -*- */
 /*
   jni-module.cpp
 
@@ -5,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,76 +30,260 @@
   licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
   information.
 */
+
 #include <qore/Qore.h>
+
+#include "defs.h"
 #include "Jvm.h"
+#include "QoreJniClassMap.h"
 
-static QoreNamespace JniNamespace("Jni");
+using namespace jni;
 
-static QoreStringNode *jni_module_init();
-static void jni_module_ns_init(QoreNamespace *rns, QoreNamespace *qns);
+#define QORE_JNI_MODULE_NAME "jni"
+
+#define QORE_JVM_SIGNALS SIGTRAP, SIGUSR1, SIGSEGV
+
+#ifdef QORE_JVM_SIGNALS
+#include <signal.h>
+#include <pthread.h>
+static int qore_jvm_sigs[] = { QORE_JVM_SIGNALS };
+#define NUM_JVM_SIGS (sizeof(qore_jvm_sigs) / sizeof(int))
+#endif
+
+static QoreStringNode* jni_module_init();
+static void jni_module_ns_init(QoreNamespace* rns, QoreNamespace* qns);
 static void jni_module_delete();
+static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink);
 
-DLLLOCAL void init_jni_functions(QoreNamespace& ns);
-DLLLOCAL QoreClass* initObjectClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initArrayClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initThrowableClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initClassClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initFieldClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initStaticFieldClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initMethodClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initStaticMethodClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initConstructorClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initInvocationHandlerClass(QoreNamespace& ns);
-DLLLOCAL void preinitClassClass();
+DLLLOCAL void preinitJavaClassClass();
 
-DLLEXPORT char qore_module_name[] = "jni";
+DLLEXPORT char qore_module_name[] = QORE_JNI_MODULE_NAME;
 DLLEXPORT char qore_module_version[] = PACKAGE_VERSION;
 DLLEXPORT char qore_module_description[] = "JNI module";
-DLLEXPORT char qore_module_author[] = "Qore Technologies, sro";
+DLLEXPORT char qore_module_author[] = "Qore Technologies, s.r.o.";
 DLLEXPORT char qore_module_url[] = "http://qore.org";
 DLLEXPORT int qore_module_api_major = QORE_MODULE_API_MAJOR;
 DLLEXPORT int qore_module_api_minor = QORE_MODULE_API_MINOR;
 DLLEXPORT qore_module_init_t qore_module_init = jni_module_init;
 DLLEXPORT qore_module_ns_init_t qore_module_ns_init = jni_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = jni_module_delete;
-#ifdef _QORE_HAS_QL_MIT
+DLLEXPORT qore_module_parse_cmd_t qore_module_parse_cmd = jni_module_parse_cmd;
+
 DLLEXPORT qore_license_t qore_module_license = QL_MIT;
-#else
-DLLEXPORT qore_license_t qore_module_license = QL_LGPL;
-#endif
 DLLEXPORT char qore_module_license_str[] = "MIT";
 
-static void jni_thread_cleanup(void *) {
+QoreJniClassMap qjcm;
+
+static void jni_thread_cleanup(void*) {
    jni::Jvm::threadCleanup();
 }
 
-static QoreStringNode *jni_module_init() {
-   if (!jni::Jvm::createVM()) {
-      return new QoreStringNode("unable to create Java VM");
+static QoreStringNode* jni_module_init() {
+#ifdef QORE_JVM_SIGNALS
+   {
+      sigset_t mask;
+      // setup signal mask
+      sigemptyset(&mask);
+      for (unsigned i = 0; i < NUM_JVM_SIGS; ++i) {
+         int sig = qore_jvm_sigs[i];
+         //printd(LogLevel, "jni_module_init() unblocking signal %d\n", sig);
+         sigaddset(&mask, sig);
+         // reassign signals needed by the JVM
+         QoreStringNode *err = qore_reassign_signal(sig, QORE_JNI_MODULE_NAME);
+         if (err)
+            return err;
+      }
+      // unblock threads
+      pthread_sigmask(SIG_UNBLOCK, &mask, 0);
    }
+#endif
+
+   QoreStringNode* err = jni::Jvm::createVM();
+   if (err) {
+      err->prepend("Could not create the Java Virtual Machine: ");
+      return err;
+   }
+
    tclist.push(jni_thread_cleanup, nullptr);
 
-   preinitClassClass();
-   JniNamespace.addSystemClass(initObjectClass(JniNamespace));
-   JniNamespace.addSystemClass(initInvocationHandlerClass(JniNamespace));
-   JniNamespace.addSystemClass(initArrayClass(JniNamespace));
-   JniNamespace.addSystemClass(initThrowableClass(JniNamespace));
-   JniNamespace.addSystemClass(initFieldClass(JniNamespace));
-   JniNamespace.addSystemClass(initStaticFieldClass(JniNamespace));
-   JniNamespace.addSystemClass(initMethodClass(JniNamespace));
-   JniNamespace.addSystemClass(initStaticMethodClass(JniNamespace));
-   JniNamespace.addSystemClass(initConstructorClass(JniNamespace));
-   JniNamespace.addSystemClass(initClassClass(JniNamespace));
-   init_jni_functions(JniNamespace);
+   preinitJavaClassClass();
 
+   try {
+      qjcm.init();
+   }
+   catch (jni::Exception& e) {
+      // display exception info on the console as an unhandled exception
+      {
+         ExceptionSink xsink;
+         e.convert(&xsink);
+      }
+      return new QoreStringNode("ERR");
+   }
    return nullptr;
 }
 
-static void jni_module_ns_init(QoreNamespace *rns, QoreNamespace *qns) {
-   qns->addInitialNamespace(JniNamespace.copy());
+static void jni_module_ns_init(QoreNamespace* rns, QoreNamespace* qns) {
+   rns->addNamespace(qjcm.getRootNS().copy());
 }
 
 static void jni_module_delete() {
+   // clear all objects from stored classes before destroying the JVM (releases all global references)
+   {
+      ExceptionSink xsink;
+      qjcm.destroy(xsink);
+   }
    tclist.pop(false);
    jni::Jvm::destroyVM();
+}
+
+static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
+   const char* p = strchr(cmd.getBuffer(), ' ');
+
+   if (!p) {
+      xsink->raiseException("JNI-PARSE-COMMAND-ERROR", "missing command name in parse command: '%s'", cmd.getBuffer());
+      return;
+   }
+
+   QoreString str(&cmd, p - cmd.getBuffer());
+   if (strcmp(str.getBuffer(), "import")) {
+      xsink->raiseException("JNI-PARSE-COMMAND-ERROR", "unrecognized command '%s' in '%s' (valid command: 'import')", str.getBuffer(), cmd.getBuffer());
+      return;
+   }
+
+   QoreString arg(cmd);
+
+   arg.replace(0, p - cmd.getBuffer() + 1, (const char *)0);
+   arg.trim();
+
+   QoreProgram* pgm = getProgram();
+   bool has_feature = pgm ? pgm->checkFeature(QORE_JNI_MODULE_NAME) : false;
+
+   // process import statement
+   printd(LogLevel, "jni_module_parse_cmd() pgm: %p arg: %s c: %c has_feature: %d\n", pgm, arg.getBuffer(), arg[-1], has_feature);
+
+   try {
+      // see if there is a wildcard at the end
+      bool wc = false;
+      if (arg[-1] == '*') {
+         if (arg[-2] != '.' || arg.strlen() < 3) {
+            xsink->raiseException("JNI-IMPORT-ERROR", "invalid import argument: '%s'", arg.getBuffer());
+            return;
+         }
+
+         arg.terminate(arg.strlen() - 2);
+
+         arg.replaceAll(".", "::");
+         arg.concat("::x");
+
+         QoreNamespace* jns;
+
+         // create jni namespace in root namespace if necessary
+         if (!has_feature)
+            jns = &qjcm.getRootNS();
+         else {
+            QoreNamespace* rns = pgm->getRootNS();
+            jns = rns->findCreateNamespacePath("Jni::x");
+         }
+
+         QoreNamespace* ns = jns->findCreateNamespacePath(arg.c_str());
+         printd(LogLevel, "jni_module_parse_cmd() nsp: '%s' ns: %p '%s'\n", arg.c_str(), ns, ns->getName());
+         ns->setClassHandler(jni_class_handler);
+         wc = true;
+      }
+      else {
+         printd(LogLevel, "jni_module_parse_cmd() non wc lcc arg: '%s'\n", arg.c_str());
+         {
+            // parsing can occur in parallel in different QoreProgram objects
+            // so we need to protect the load with a lock
+            QoreJniAutoLocker al(qjcm.m);
+            qjcm.loadCreateClass(qjcm.getRootNS(), arg.c_str());
+         }
+      }
+
+      // now try to add to current program
+      printd(LogLevel, "jni_module_parse_cmd() pgm: %p arg: '%s'\n", pgm, arg.c_str());
+      if (!pgm)
+         return;
+
+      QoreNamespace* ns = pgm->getRootNS();
+
+      printd(LogLevel, "jni_module_parse_cmd() feature '%s': %s (default_jns: %p)\n", QORE_JNI_MODULE_NAME, pgm->checkFeature(QORE_JNI_MODULE_NAME) ? "true" : "false", &qjcm.getRootNS());
+
+      if (!pgm->checkFeature(QORE_JNI_MODULE_NAME)) {
+         QoreNamespace* jns = qjcm.getRootNS().copy();
+         printd(LogLevel, "jns: %p '%s' ns: %p\n", jns, jns->getName(), ns);
+
+         assert(jns->findLocalNamespace("java"));
+
+         ns->addNamespace(jns);
+         pgm->addFeature(QORE_JNI_MODULE_NAME);
+
+#ifdef DEBUG
+         QoreNamespaceIterator i(ns);
+         while (i.next()) {
+            const QoreNamespace* p = i.get()->getParent();
+            printd(LogLevel, "ns: %p '%s': parent '%s'\n", i.get(), i.get()->getName(), p ? p->getName() : "n/a");
+            if (!strcmp(i.get()->getName(), "util")) {
+               QoreClass* qc = i.get()->findLocalClass("HashMap");
+               printd(LogLevel, "util::HashMap: %p '%s'\n", qc, qc ? qc->getName() : "n/a");
+            }
+         }
+         ns = ns->findLocalNamespace("Jni");
+         assert(ns);
+         ns = ns->findLocalNamespace("java");
+         assert(ns);
+#endif
+
+         return;
+      }
+
+      if (!wc) {
+         ns = ns->findLocalNamespace("Jni");
+         assert(ns);
+         qjcm.findCreateClass(*ns, arg.getBuffer());
+      }
+   }
+   catch (jni::Exception& e) {
+      e.convert(xsink);
+   }
+}
+
+QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
+   // get full class path
+   QoreString cp(ns->getName());
+   cp.concat('.');
+   cp.concat(cname);
+
+   const QoreNamespace* jns = ns;
+   while (true) {
+      printd(LogLevel, "jni_class_handler() ns: %p (%s) jns: %p (%s) cname: %s\n", ns, ns->getName(), jns, jns->getName(), cname);
+      jns = jns->getParent();
+      assert(jns);
+      if (!strcmp(jns->getName(), "Jni"))
+         break;
+      cp.prepend(".");
+      cp.prepend(jns->getName());
+   }
+
+   printd(LogLevel, "jni_class_handler() ns: %p cname: %s cp: %s\n", ns, cname, cp.getBuffer());
+
+   try {
+      QoreClass* qc = qjcm.findCreateClass(*const_cast<QoreNamespace*>(jns), cp.getBuffer());
+
+      printd(LogLevel, "jni_class_handler() cp: %s returning qc: %p\n", cp.getBuffer(), qc);
+      return qc;
+   }
+   catch (jni::JavaException& e) {
+      // ignore class not found exceptions here
+      e.ignoreOrRethrow("java.lang.NoClassDefFoundError");
+   }
+   catch (jni::Exception& e) {
+      // display exception info on the console as an unhandled exception
+      {
+         ExceptionSink xsink;
+         e.convert(&xsink);
+      }
+      assert(false);
+   }
+   return 0;
 }

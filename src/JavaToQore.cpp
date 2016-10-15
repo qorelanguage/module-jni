@@ -23,50 +23,30 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 //------------------------------------------------------------------------------
-///
-/// \file
-/// \brief Defines the Throwable class.
-///
-//------------------------------------------------------------------------------
-#ifndef QORE_JNI_THROWABLE_H_
-#define QORE_JNI_THROWABLE_H_
 
 #include <qore/Qore.h>
-#include "LocalReference.h"
-#include "Object.h"
 
-extern QoreClass* QC_JAVATHROWABLE;
-extern qore_classid_t CID_JAVATHROWABLE;
+#include "QoreJniClassMap.h"
+#include "Globals.h"
+#include "JavaToQore.h"
+
+extern QoreJniClassMap qjcm;
 
 namespace jni {
 
-/**
- * \brief Represents a Java Throwable.
- */
-class Throwable : public ObjectBase {
+QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
+   if (!v)
+      return QoreValue();
 
-public:
-   /**
-    * \brief Constructor.
-    * \param throwable a local reference to a Java Throwable instance
-    * \throws JavaException if a global reference cannot be created
-    */
-   Throwable(jthrowable throwable) : throwable(GlobalReference<jthrowable>::fromLocal(throwable)) {
-      printd(LogLevel, "Throwable::Throwable(), this: %p, object: %p\n", this, static_cast<jthrowable>(this->throwable));
+   Env env;
+
+   // convert to Qore value if possible
+   if (env.isInstanceOf(v, Globals::classString)) {
+      Env::GetStringUtfChars chars(env, v.as<jstring>());
+      return QoreValue(new QoreStringNode(chars.c_str(), QCS_UTF8));
    }
 
-   ~Throwable() {
-      printd(LogLevel, "Throwable::~Throwable(), this: %p, object: %p\n", this, static_cast<jthrowable>(this->throwable));
-   }
-
-   jthrowable getJavaObject() const override {
-      return throwable;
-   }
-
-private:
-   GlobalReference<jthrowable> throwable;
-};
+   return qjcm.getObject(v);
+}
 
 } // namespace jni
-
-#endif // QORE_JNI_THROWABLE_H_

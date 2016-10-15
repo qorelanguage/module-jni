@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,7 @@
 
 #include <qore/Qore.h>
 #include <jni.h>
+
 #include "LocalReference.h"
 #include "Object.h"
 #include "Array.h"
@@ -85,16 +86,18 @@ public:
       return QoreValue(v);
    }
 
+   static QoreValue convertToQore(LocalReference<jobject> v);
+
    static QoreValue convert(LocalReference<jobject> v) {
       if (v == nullptr) {
          return QoreValue();
       }
       Env env;
       if (env.isInstanceOf(v, Globals::classClass)) {
-         return QoreValue(new QoreObject(QC_CLASS, getProgram(), new Class(v.as<jclass>())));
+         return QoreValue(new QoreObject(QC_JAVACLASS, getProgram(), new Class(v.as<jclass>())));
       }
       if (env.isInstanceOf(v, Globals::classThrowable)) {
-         return QoreValue(new QoreObject(QC_THROWABLE, getProgram(), new Throwable(v.as<jthrowable>())));
+         return QoreValue(new QoreObject(QC_JAVATHROWABLE, getProgram(), new Throwable(v.as<jthrowable>())));
       }
       if (env.isInstanceOf(v, Globals::classString)) {
          Env::GetStringUtfChars chars(env, v.as<jstring>());
@@ -102,19 +105,19 @@ public:
       }
       if (env.isInstanceOf(v, Globals::classMethod)) {
          int mods = env.callIntMethod(v, Globals::methodMethodGetModifiers, nullptr);
-         return QoreValue(new QoreObject(mods & 8 ? QC_STATICMETHOD : QC_METHOD, getProgram(), new Method(v)));
+         return QoreValue(new QoreObject(mods & 8 ? QC_JAVASTATICMETHOD : QC_JAVAMETHOD, getProgram(), new Method(v)));
       }
       if (env.isInstanceOf(v, Globals::classConstructor)) {
-         return QoreValue(new QoreObject(QC_CONSTRUCTOR, getProgram(), new Method(v)));
+         return QoreValue(new QoreObject(QC_JAVACONSTRUCTOR, getProgram(), new Method(v)));
       }
       if (env.isInstanceOf(v, Globals::classField)) {
          int mods = env.callIntMethod(v, Globals::methodFieldGetModifiers, nullptr);
-         return QoreValue(new QoreObject(mods & 8 ? QC_STATICFIELD : QC_FIELD, getProgram(), new Field(v)));
+         return QoreValue(new QoreObject(mods & 8 ? QC_JAVASTATICFIELD : QC_JAVAFIELD, getProgram(), new Field(v)));
       }
       if (env.callBooleanMethod(env.getObjectClass(v), Globals::methodClassIsArray, nullptr)) {
-         return QoreValue(new QoreObject(QC_ARRAY, getProgram(), new Array(v.as<jarray>())));
+         return QoreValue(new QoreObject(QC_JAVAARRAY, getProgram(), new Array(v.as<jarray>())));
       }
-      return QoreValue(new QoreObject(QC_OBJECT, getProgram(), new Object(v)));
+      return QoreValue(new QoreObject(QC_JAVAOBJECT, getProgram(), new Object(v)));
    }
 
 private:
