@@ -66,25 +66,23 @@ public:
       return loadClass(nameUtf8.c_str());
    }
 
-   static Object* implementInterface(const ObjectBase *classLoader, const InvocationHandler *invocationHandler, const Class *cls) {
+   static LocalReference<jobject> implementInterface(jobject classLoader, const InvocationHandler *invocationHandler, jclass cls) {
       Env env;
 
       LocalReference<jobject> cl;
       LocalReference<jobjectArray> interfaces = env.newObjectArray(1, Globals::classClass);
-      env.setObjectArrayElement(interfaces, 0, cls->getJavaObject());
+      env.setObjectArrayElement(interfaces, 0, cls);
 
       jvalue args[3];
       if (classLoader == nullptr) {
-         cl = env.callObjectMethod(cls->getJavaObject(), Globals::methodClassGetClassLoader, nullptr);
+         cl = env.callObjectMethod(cls, Globals::methodClassGetClassLoader, nullptr);
          args[0].l = cl;
       } else {
-         args[0].l = classLoader->getJavaObject();
+         args[0].l = classLoader;
       }
       args[1].l = interfaces;
       args[2].l = invocationHandler->getJavaObject();
-      LocalReference<jobject> obj = env.callStaticObjectMethod(Globals::classProxy, Globals::methodProxyNewProxyInstance, args);
-
-      return new Object(obj);
+      return env.callStaticObjectMethod(Globals::classProxy, Globals::methodProxyNewProxyInstance, args);
    }
 
    static Array *newBooleanArray(int64 size) {

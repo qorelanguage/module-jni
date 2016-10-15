@@ -35,7 +35,18 @@ extern QoreJniClassMap qjcm;
 namespace jni {
 
 QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
-   return v == nullptr ? QoreValue() : qjcm.getObject(v);
+   if (!v)
+      return QoreValue();
+
+   Env env;
+
+   // convert to Qore value if possible
+   if (env.isInstanceOf(v, Globals::classString)) {
+      Env::GetStringUtfChars chars(env, v.as<jstring>());
+      return QoreValue(new QoreStringNode(chars.c_str(), QCS_UTF8));
+   }
+
+   return qjcm.getObject(v);
 }
 
 } // namespace jni

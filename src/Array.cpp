@@ -43,7 +43,7 @@ int64 Array::length() {
    return env.getArrayLength(array);
 }
 
-QoreValue Array::get(int64 index) {
+QoreValue Array::get(int64 index, bool to_qore) {
    Env env;
    switch (elementType) {
       case Type::Boolean:
@@ -65,7 +65,9 @@ QoreValue Array::get(int64 index) {
       case Type::Reference:
       default:
          assert(elementType == Type::Reference);
-         return JavaToQore::convert(env.getObjectArrayElement(array.cast<jobjectArray>(), index));
+         return to_qore
+	    ? JavaToQore::convertToQore(env.getObjectArrayElement(array.cast<jobjectArray>(), index))
+	    : JavaToQore::convert(env.getObjectArrayElement(array.cast<jobjectArray>(), index));
    }
 }
 

@@ -100,7 +100,8 @@ public:
 	 javaObjectRef = qjcm.getJavaObject(o);
 	 if (!javaObjectRef) {
 	    if (o->getClass(CID_JAVAOBJECT) == nullptr) {
-	       throw BasicException("A Java object argument expected");
+	       QoreStringMaker desc("A Java object argument expected; got object of class '%s' instead", o->getClassName());
+	       throw BasicException(desc.c_str());
 	    }
 
 	    ExceptionSink xsink;
@@ -111,7 +112,8 @@ public:
 	    javaObjectRef = obj->getJavaObject();
 	 }
       } else {
-         throw BasicException("A Java object argument expected");
+	 QoreStringMaker desc("A Java object argument expected; got type '%s' instead", value.getTypeName());
+	 throw BasicException(desc.c_str());
       }
 
       if (cls) {

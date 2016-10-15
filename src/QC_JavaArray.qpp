@@ -29,6 +29,7 @@
 */
 
 #include <qore/Qore.h>
+
 #include "Array.h"
 
 //! Instances of this class represent Java arrays.
@@ -64,6 +65,21 @@ int JavaArray::length() {
 any JavaArray::get(int index) {
    try {
       return array->get(index);
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Retrieves an element.
+/**
+    @param index the 0-based index of the element
+    @return the value of the element
+    @throws JNI-ERROR if the index is out of bounds
+ */
+any JavaArray::getJava(int index) {
+   try {
+      return array->get(index, true);
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();

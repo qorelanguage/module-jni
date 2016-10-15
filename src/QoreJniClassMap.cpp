@@ -38,6 +38,19 @@ using namespace jni;
 
 extern QoreJniClassMap qjcm;
 
+// the QoreClass for java::lang::Object
+QoreClass* QC_OBJECT;
+// the Qore class ID for java::lang::Object
+qore_classid_t CID_OBJECT;
+// the QoreClass for java::lang::Class
+QoreClass* QC_CLASS;
+// the Qore class ID for java::lang::Class
+qore_classid_t CID_CLASS;
+// the QoreClass for java::lang::ClassLoader
+QoreClass* QC_CLASSLOADER;
+// the Qore class ID for java::lang::ClassLoader
+qore_classid_t CID_CLASSLOADER;
+
 static void exec_java_constructor(const QoreClass& qc, BaseMethod* m, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObject* self, QoreJniPrivateData* jd, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
@@ -103,10 +116,6 @@ void QoreJniClassMap::init() {
    qorejni->addSystemClass(initJavaStaticMethodClass(*qorejni));
    qorejni->addSystemClass(initJavaConstructorClass(*qorejni));
    qorejni->addSystemClass(initJavaClassClass(*qorejni));
-   init_jni_functions(*qorejni);
-
-   // add "QoreJni" to "Jni" namespace
-   default_jns->addInitialNamespace(qorejni);
 
    // create java.lang namespace with automatic class loader handler
    QoreNamespace* javans = new QoreNamespace("java");
@@ -125,6 +134,16 @@ void QoreJniClassMap::init() {
    QC_OBJECT = new QoreClass("Object");
    CID_OBJECT = QC_OBJECT->getID();
    createClassIntern(ns, *default_jns, "java.lang.Object", "java/lang/Object", jni::Functions::loadClass("java/lang/Object"), QC_OBJECT);
+
+   QC_CLASS = qjcm.find("java/lang/Class");
+   CID_CLASS = QC_CLASS->getID();
+   QC_CLASSLOADER = qjcm.find("java/lang/ClassLoader");
+   CID_CLASSLOADER = QC_CLASSLOADER->getID();
+
+   init_jni_functions(*qorejni);
+
+   // add "QoreJni" to "Jni" namespace
+   default_jns->addInitialNamespace(qorejni);
 }
 
 void QoreJniClassMap::destroy(ExceptionSink& xsink) {
@@ -138,7 +157,7 @@ QoreObject* QoreJniClassMap::getObject(const LocalReference<jobject>& obj) {
    return new QoreObject(qjcm.findCreateClass(env.getObjectClass(obj)), getProgram(), new QoreJniPrivateData(obj));
 }
 
-QoreClass* QoreJniClassMap::findCreateClass(const LocalReference<jclass>& jc) {
+QoreClass* QoreJniClassMap::findCreateClass(jclass jc) {
    QoreClass* qc;
 
    Env env;
@@ -162,7 +181,7 @@ QoreClass* QoreJniClassMap::findCreateClass(const LocalReference<jclass>& jc) {
             jc = jni::Functions::loadClass(jpath);
          }
          catch (jni::Exception& e) {
-#ifdef DEBUG
+#ifdef DEBUG_1
             // display exception info on the console as an unhandled exception
             {
                ExceptionSink xsink;
@@ -254,6 +273,8 @@ QoreClass* QoreJniClassMap::createClassIntern(QoreNamespace* ns, QoreNamespace& 
    // add superclass
    if (parent)
       addSuperClass(*qc, parent);
+   else if (qc != QC_OBJECT) // make interface classes at least inherit Object
+      qc->addBuiltinVirtualBaseClass(QC_OBJECT);
 
    // get and process interfaces
    Env env;

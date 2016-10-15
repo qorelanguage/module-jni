@@ -29,6 +29,7 @@
 */
 
 #include "Functions.h"
+#include "QoreJniClassMap.h"
 
 extern QoreClass* QC_JAVACLASS;
 
@@ -87,7 +88,7 @@ Jni::QoreJni::JavaObject implement_interface(Jni::QoreJni::JavaInvocationHandler
    SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
    SimpleRefHolder<jni::Class> classHolder(cls);
    try {
-      return new QoreObject(QC_JAVAOBJECT, getProgram(), jni::Functions::implementInterface(nullptr, invocationHandler, cls));
+      return new QoreObject(QC_JAVAOBJECT, getProgram(), new jni::Object(jni::Functions::implementInterface(nullptr, invocationHandler, cls->getJavaObject())));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
@@ -115,7 +116,80 @@ Jni::QoreJni::JavaObject implement_interface(Jni::QoreJni::JavaObject[jni::Objec
    SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
    SimpleRefHolder<jni::Class> classHolder(cls);
    try {
-      return new QoreObject(QC_JAVAOBJECT, getProgram(), jni::Functions::implementInterface(classLoader, invocationHandler, cls));
+      return new QoreObject(QC_JAVAOBJECT, getProgram(), new jni::Object(jni::Functions::implementInterface(classLoader->getJavaObject(), invocationHandler, cls->getJavaObject())));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Creates a Java object that implements given interface using an invocation handler.
+/**
+    @param invocationHandler the invocation handler
+    @param cls the interface to implement
+    @return a Java object that implement the interface by calling the invocation handler
+
+    @par Example:
+    @code{.py}
+    JavaClass runnableClass = Jni::load_class("java/lang/Runnable");
+    JavaInvocationHandler h(any sub(Method m, *Array args) { doRun(); });
+    JavaObject runnableInstance = Jni::implement_interface(h, runnableClass);
+    # runnableInstance now has a Java method void run() that calls Qore function doRun()
+    @endcode
+ */
+Jni::java::lang::Object implement_interface(Jni::QoreJni::JavaInvocationHandler[jni::InvocationHandler] invocationHandler, Jni::java::lang::Class[QoreJniPrivateData] cls) {
+   SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
+   SimpleRefHolder<QoreJniPrivateData> classHolder(cls);
+
+   // get Qore class for Class object
+   jni::Env env;
+   jni::LocalReference<jstring> clsName = env.callObjectMethod(cls->getObject(), jni::Globals::methodClassGetName, nullptr).as<jstring>();
+   jni::Env::GetStringUtfChars cname(env, clsName);
+   QoreString jcname(cname.c_str());
+   jcname.replaceAll(".", "/");
+   jclass jc = (jclass)cls->getObject();
+   QoreClass* qc = qjcm.findCreateClass(jc);
+
+   try {
+      return new QoreObject(qc, getProgram(), new QoreJniPrivateData(jni::Functions::implementInterface(nullptr, invocationHandler, jc)));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Creates a Java object that implements given interface using an invocation handler using an explicit class loader.
+/**
+    @param classLoader the class loader that loaded the interface
+    @param invocationHandler the invocation handler
+    @param cls the interface to implement
+    @return a Java object that implement the interface by calling the invocation handler
+
+    @par Example:
+    @code{.py}
+    JavaObject classLoader = ...;
+    JavaClass runnableClass = use classLoader to load class "java/lang/Runnable"
+    JavaInvocationHandler h(any sub(Method m, *Array args) { doRun(); });
+    JavaObject runnableInstance = Jni::implement_interface(classLoader, h, runnableClass);
+    # runnableInstance now has a Java method void run() that calls Qore function doRun()
+    @endcode
+ */
+Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJniPrivateData] classLoader, Jni::QoreJni::JavaInvocationHandler[jni::InvocationHandler] invocationHandler, Jni::java::lang::Class[QoreJniPrivateData] cls) {
+   SimpleRefHolder<QoreJniPrivateData> classLoaderHolder(classLoader);
+   SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
+   SimpleRefHolder<QoreJniPrivateData> classHolder(cls);
+
+   // get Qore class for Class object
+   jni::Env env;
+   jni::LocalReference<jstring> clsName = env.callObjectMethod(cls->getObject(), jni::Globals::methodClassGetName, nullptr).as<jstring>();
+   jni::Env::GetStringUtfChars cname(env, clsName);
+   QoreString jcname(cname.c_str());
+   jcname.replaceAll(".", "/");
+   jclass jc = (jclass)cls->getObject();
+   QoreClass* qc = qjcm.findCreateClass(jc);
+
+   try {
+      return new QoreObject(qc, getProgram(), new QoreJniPrivateData(jni::Functions::implementInterface(classLoader->getObject(), invocationHandler, jc)));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();

@@ -48,13 +48,21 @@ namespace jni {
    class Class;
 }
 
+// the QoreClass for java::lang::Object
+extern QoreClass* QC_OBJECT;
+// the Qore class ID for java::lang::Object
+extern qore_classid_t CID_OBJECT;
+// the QoreClass for java::lang::Class
+extern QoreClass* QC_CLASS;
+// the Qore class ID for java::lang::Class
+extern qore_classid_t CID_CLASS;
+// the QoreClass for java::lang::ClassLoader
+extern QoreClass* QC_CLASSLOADER;
+// the Qore class ID for java::lang::ClassLoader
+extern qore_classid_t CID_CLASSLOADER;
+
 class QoreJniClassMap {
 protected:
-   // the QoreClass for java::lang::Object
-   QoreClass* QC_OBJECT;
-   // the Qore class ID for java::lang::Object
-   qore_classid_t CID_OBJECT;
-
    // map of java class names (ex 'java/lang/object') to QoreClass ptrs
    typedef std::map<std::string, QoreClass*> jcmap_t;
    jcmap_t jcmap;
@@ -120,7 +128,7 @@ public:
 
    DLLLOCAL QoreObject* getObject(const jni::LocalReference<jobject>& jobj);
 
-   DLLLOCAL QoreClass* findCreateClass(const jni::LocalReference<jclass>& jc);
+   DLLLOCAL QoreClass* findCreateClass(jclass jc);
 
    DLLLOCAL QoreClass* findCreateClass(QoreNamespace& jns, const char* name);
 
@@ -152,5 +160,7 @@ public:
       return jobj;
    }
 };
+
+extern QoreJniClassMap qjcm;
 
 #endif
