@@ -274,6 +274,10 @@ class JmsContext {
 public class Main inherits QUnit::Test {
     private {
         string jar;
+        Counter c(1);
+        any data;
+
+        const TextMsg = "Hello, world!";
     }
 
     constructor() : Test("JMS test", "1.0", \ARGV) {
@@ -313,9 +317,10 @@ public class Main inherits QUnit::Test {
         MessageConsumer consumer = session.createConsumer(queue);
 
         consumer.setMessageListener(sub(object msg) {
-            printf("IN CALLBACK\n");
-            printf("Received: %s\n", msg.getText());
-            printf("END CALLBACK\n");
+            data = msg.getText();
+            if (m_options.verbose)
+                printf("*** JMS message received: %y\n", data);
+            c.dec();
         });
 
         connection.start();
@@ -324,5 +329,7 @@ public class Main inherits QUnit::Test {
         message.setText("Hello, world!");
 
         producer.send(message);
+        c.waitForZero();
+        assertEq(TextMsg, data);
     }
 }
