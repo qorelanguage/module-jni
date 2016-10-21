@@ -43,6 +43,25 @@ int64 Array::length() {
    return env.getArrayLength(array);
 }
 
+LocalReference<jarray> Array::getNew(Type elementType, jclass elementClass, jsize size) {
+   Env env;
+
+   switch (elementType) {
+      case Type::Boolean: return env.newBooleanArray(size).as<jarray>();
+      case Type::Byte: return env.newByteArray(size).as<jarray>();
+      case Type::Char: return env.newCharArray(size).as<jarray>();
+      case Type::Short: return env.newShortArray(size).as<jarray>();
+      case Type::Int: return env.newIntArray(size).as<jarray>();
+      case Type::Long: return env.newLongArray(size).as<jarray>();
+      case Type::Float: return env.newFloatArray(size).as<jarray>();
+      case Type::Double: return env.newDoubleArray(size).as<jarray>();
+      case Type::Reference:
+      default:
+         assert(elementType == Type::Reference);
+	 return env.newObjectArray(size, elementClass).as<jarray>();
+   }
+}
+
 QoreValue Array::get(int64 index, bool to_qore) {
    Env env;
    switch (elementType) {
@@ -72,36 +91,40 @@ QoreValue Array::get(int64 index, bool to_qore) {
 }
 
 void Array::set(int64 index, const QoreValue &value) {
+   set(array, elementType, elementClass, index, value);
+}
+
+void Array::set(jarray array, Type elementType, jclass elementClass, int64 index, const QoreValue &value) {
    Env env;
    switch (elementType) {
       case Type::Boolean:
-         env.setBooleanArrayElement(array.cast<jbooleanArray>(), index, QoreToJava::toBoolean(value));
+         env.setBooleanArrayElement((jbooleanArray)array, index, QoreToJava::toBoolean(value));
          break;
       case Type::Byte:
-         env.setByteArrayElement(array.cast<jbyteArray>(), index, QoreToJava::toByte(value));
+         env.setByteArrayElement((jbyteArray)array, index, QoreToJava::toByte(value));
          break;
       case Type::Char:
-         env.setCharArrayElement(array.cast<jcharArray>(), index, QoreToJava::toChar(value));
+         env.setCharArrayElement((jcharArray)array, index, QoreToJava::toChar(value));
          break;
       case Type::Short:
-         env.setShortArrayElement(array.cast<jshortArray>(), index, QoreToJava::toShort(value));
+         env.setShortArrayElement((jshortArray)array, index, QoreToJava::toShort(value));
          break;
       case Type::Int:
-         env.setIntArrayElement(array.cast<jintArray>(), index, QoreToJava::toInt(value));
+         env.setIntArrayElement((jintArray)array, index, QoreToJava::toInt(value));
          break;
       case Type::Long:
-         env.setLongArrayElement(array.cast<jlongArray>(), index, QoreToJava::toLong(value));
+         env.setLongArrayElement((jlongArray)array, index, QoreToJava::toLong(value));
          break;
       case Type::Float:
-         env.setFloatArrayElement(array.cast<jfloatArray>(), index, QoreToJava::toFloat(value));
+         env.setFloatArrayElement((jfloatArray)array, index, QoreToJava::toFloat(value));
          break;
       case Type::Double:
-         env.setDoubleArrayElement(array.cast<jdoubleArray>(), index, QoreToJava::toDouble(value));
+         env.setDoubleArrayElement((jdoubleArray)array, index, QoreToJava::toDouble(value));
          break;
       case Type::Reference:
       default:
          assert(elementType == Type::Reference);
-         env.setObjectArrayElement(array.cast<jobjectArray>(), index, QoreToJava::toObject(value, elementClass));
+         env.setObjectArrayElement((jobjectArray)array, index, QoreToJava::toObject(value, elementClass).release());
    }
 }
 

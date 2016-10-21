@@ -40,7 +40,7 @@ qclass JavaArray [arg=jni::Array* array; ns=Qore::Jni; flags=final; vparent=Java
 //! Defined private to prevent Qore code from creating instances.
 /**
  */
-private JavaArray::constructor() {
+private:internal JavaArray::constructor() {
 }
 
 //! Returns the length of the array.

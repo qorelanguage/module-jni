@@ -52,6 +52,9 @@ public:
    static GlobalReference<jclass> classFloat;                           // class for the primitive type float
    static GlobalReference<jclass> classDouble;                          // class for the primitive type double
 
+   static GlobalReference<jclass> classObject;                          // java.lang.Object
+   static jmethodID methodObjectGetClass;                               // Class<?> Object.getClass()
+
    static GlobalReference<jclass> classClass;                           // java.lang.Class
    static jmethodID methodClassIsArray;                                 // boolean Class.isArray()
    static jmethodID methodClassGetComponentType;                        // Class<?> Class.getComponentType()
@@ -64,6 +67,7 @@ public:
    static jmethodID methodClassGetModifiers;                            // int Class.getModifiers()
    static jmethodID methodClassIsPrimitive;                             // boolean Class.isPrimitive()
    static jmethodID methodClassGetDeclaredMethods;                      // Method[] Class.getDeclaredMethods()
+   static jmethodID methodClassGetCanonicalName;                        // String Class.getCanonicalName()
 
    static GlobalReference<jclass> classThrowable;                       // java.lang.Throwable
    static jmethodID methodThrowableGetMessage;                          // String Throwable.getMessage()

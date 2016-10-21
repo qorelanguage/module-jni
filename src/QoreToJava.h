@@ -27,11 +27,13 @@
 /// \file
 /// \brief Defines the QoreToJava class
 //------------------------------------------------------------------------------
+
 #ifndef QORE_JNI_QORETOJAVA_H_
 #define QORE_JNI_QORETOJAVA_H_
 
 #include <qore/Qore.h>
 #include <jni.h>
+
 #include "Array.h"
 #include "LocalReference.h"
 #include "Object.h"
@@ -39,6 +41,7 @@
 #include "defs.h"
 #include "ModifiedUtf8String.h"
 #include "QoreJniClassMap.h"
+#include "Env.h"
 
 extern QoreJniClassMap qjcm;
 
@@ -85,45 +88,7 @@ public:
       return static_cast<jshort>(value.getAsBigInt());
    }
 
-   static jobject toObject(const QoreValue &value, jclass cls) {
-      if (value.getType() == NT_NOTHING) {
-         return nullptr;
-      }
-      jobject javaObjectRef;
-      if (value.getType() == NT_STRING) {
-         ModifiedUtf8String str(*value.get<QoreStringNode>());
-         Env env;
-         javaObjectRef = env.newString(str.c_str()).release();
-      } else if (value.getType() == NT_OBJECT) {
-         const QoreObject* o = value.get<QoreObject>();
-
-	 javaObjectRef = qjcm.getJavaObject(o);
-	 if (!javaObjectRef) {
-	    if (o->getClass(CID_JAVAOBJECT) == nullptr) {
-	       QoreStringMaker desc("A Java object argument expected; got object of class '%s' instead", o->getClassName());
-	       throw BasicException(desc.c_str());
-	    }
-
-	    ExceptionSink xsink;
-	    SimpleRefHolder<ObjectBase> obj(static_cast<ObjectBase *>(o->getReferencedPrivateData(CID_JAVAOBJECT, &xsink)));
-	    if (xsink) {
-	       throw XsinkException(xsink);
-	    }
-	    javaObjectRef = obj->getJavaObject();
-	 }
-      } else {
-	 QoreStringMaker desc("A Java object argument expected; got type '%s' instead", value.getTypeName());
-	 throw BasicException(desc.c_str());
-      }
-
-      if (cls) {
-         Env env;
-         if (!env.isInstanceOf(javaObjectRef, cls)) {
-            throw BasicException("Passed object is not an instance of expected class");
-         }
-      }
-      return javaObjectRef;
-   }
+   static LocalReference<jobject> toObject(const QoreValue &value, jclass cls);
 
    static void wrapException(ExceptionSink &src) {
       Env env;

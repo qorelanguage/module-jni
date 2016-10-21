@@ -43,6 +43,7 @@ set(CPP_SRC
     src/InvocationHandler.cpp
     src/Method.cpp
     src/JavaToQore.cpp
+    src/QoreToJava.cpp
 )
 
 qore_wrap_qpp_value(QPP_SOURCES ${QPP_SRC})

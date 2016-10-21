@@ -102,7 +102,7 @@ void BaseField::set(jobject object, const QoreValue &value) {
       case Type::Reference:
       default:
          assert(type == Type::Reference);
-         env.setObjectField(object, id, QoreToJava::toObject(value, typeClass));
+         env.setObjectField(object, id, QoreToJava::toObject(value, typeClass).release());
          break;
    }
 }
@@ -165,7 +165,7 @@ void BaseField::setStatic(const QoreValue &value) {
       case Type::Reference:
       default:
          assert(type == Type::Reference);
-         env.setStaticObjectField(cls->getJavaObject(), id, QoreToJava::toObject(value, typeClass));
+         env.setStaticObjectField(cls->getJavaObject(), id, QoreToJava::toObject(value, typeClass).release());
          break;
    }
 }

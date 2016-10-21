@@ -66,6 +66,10 @@ public:
    DLLLOCAL QoreValue get(int64 index, bool to_qore = false);
    DLLLOCAL void set(int64 index, const QoreValue &value);
 
+   DLLLOCAL static void set(jarray array, Type elementType, jclass elementClass, int64 index, const QoreValue &value);
+
+   DLLLOCAL static LocalReference<jarray> getNew(Type elementType, jclass elementClass, jsize size);
+
 private:
    GlobalReference<jarray> array;
    GlobalReference<jclass> elementClass;

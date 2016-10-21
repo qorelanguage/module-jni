@@ -27,6 +27,7 @@
 
 #include "LocalReference.h"
 #include "QoreJniThreads.h"
+#include "Env.h"
 
 DLLLOCAL void init_jni_functions(QoreNamespace& ns);
 
@@ -146,6 +147,11 @@ public:
    DLLLOCAL QoreClass* loadCreateClass(QoreNamespace& jns, const char* cstr);
 
    DLLLOCAL jobject getJavaObject(const QoreObject* o);
+
+   DLLLOCAL jni::LocalReference<jarray> getJavaArray(const QoreListNode* l, jclass cls);
+
+private:
+   DLLLOCAL jni::LocalReference<jarray> getJavaArrayIntern(jni::Env& env, const QoreListNode* l, jclass cls);
 };
 
 class QoreJniPrivateData : public AbstractPrivateData {

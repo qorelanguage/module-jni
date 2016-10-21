@@ -76,7 +76,7 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreValueList* args, size_t ba
          case Type::Reference:
          default:
             assert(paramTypes[index].first == Type::Reference);
-            jargs[index].l = QoreToJava::toObject(qv, paramTypes[index].second);
+            jargs[index].l = QoreToJava::toObject(qv, paramTypes[index].second).release();
             break;
       }
    }

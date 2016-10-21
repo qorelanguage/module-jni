@@ -466,6 +466,38 @@ jobject QoreJniClassMap::getJavaObject(const QoreObject* o) {
    return jo ? jo->getObject() : 0;
 }
 
+LocalReference<jarray> QoreJniClassMap::getJavaArray(const QoreListNode* l, jclass cls) {
+   Env env;
+
+   if (!cls)
+      return getJavaArrayIntern(env, l, Globals::classObject);
+
+   // get component class for array
+   LocalReference<jclass> ccls = env.callObjectMethod(cls, Globals::methodClassGetComponentType, nullptr).as<jclass>();
+   if (!ccls) {
+      LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
+      Env::GetStringUtfChars cname(env, clsName);
+      QoreStringMaker str("cannot instantiate array from '%s'", cname.c_str());
+
+      throw BasicException(str.c_str());
+   }
+
+   return getJavaArrayIntern(env, l, ccls);
+}
+
+LocalReference<jarray> QoreJniClassMap::getJavaArrayIntern(Env& env, const QoreListNode* l, jclass cls) {
+   Type elementType = Globals::getType(cls);
+
+   LocalReference<jarray> array = Array::getNew(elementType, cls, l->size());
+
+   // now populate array
+   for (jsize i = 0; i < l->size(); ++i) {
+      Array::set(array, elementType, cls, i, l->retrieve_entry(i));
+   }
+
+   return array;
+}
+
 static void exec_java_constructor(const QoreClass& qc, BaseMethod* m, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
    try {
       self->setPrivate(qc.getID(), new QoreJniPrivateData(m->newQoreInstance(args)));

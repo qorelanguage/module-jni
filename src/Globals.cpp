@@ -45,6 +45,9 @@ GlobalReference<jclass> Globals::classLong;
 GlobalReference<jclass> Globals::classFloat;
 GlobalReference<jclass> Globals::classDouble;
 
+GlobalReference<jclass> Globals::classObject;
+jmethodID Globals::methodObjectGetClass;
+
 GlobalReference<jclass> Globals::classClass;
 jmethodID Globals::methodClassIsArray;
 jmethodID Globals::methodClassGetComponentType;
@@ -57,6 +60,7 @@ jmethodID Globals::methodClassGetDeclaredConstructors;
 jmethodID Globals::methodClassGetModifiers;
 jmethodID Globals::methodClassIsPrimitive;
 jmethodID Globals::methodClassGetDeclaredMethods;
+jmethodID Globals::methodClassGetCanonicalName;
 
 GlobalReference<jclass> Globals::classThrowable;
 jmethodID Globals::methodThrowableGetMessage;
@@ -182,6 +186,9 @@ void Globals::init() {
    classFloat = getPrimitiveClass(env, "java/lang/Float");
    classDouble = getPrimitiveClass(env, "java/lang/Double");
 
+   classObject = env.findClass("java/lang/Object").makeGlobal();
+   methodObjectGetClass = env.getMethod(classObject, "getClass", "()Ljava/lang/Class;");
+
    classClass = env.findClass("java/lang/Class").makeGlobal();
    methodClassIsArray = env.getMethod(classClass, "isArray", "()Z");
    methodClassGetComponentType = env.getMethod(classClass, "getComponentType", "()Ljava/lang/Class;");
@@ -194,6 +201,7 @@ void Globals::init() {
    methodClassGetModifiers = env.getMethod(classClass, "getModifiers", "()I");
    methodClassIsPrimitive = env.getMethod(classClass, "isPrimitive", "()Z");
    methodClassGetDeclaredMethods = env.getMethod(classClass, "getDeclaredMethods", "()[Ljava/lang/reflect/Method;");
+   methodClassGetCanonicalName = env.getMethod(classClass, "getCanonicalName", "()Ljava/lang/String;");
 
    classString = env.findClass("java/lang/String").makeGlobal();
 
@@ -237,6 +245,7 @@ void Globals::cleanup() {
    classLong = nullptr;
    classFloat = nullptr;
    classDouble = nullptr;
+   classObject = nullptr;
    classClass = nullptr;
    classThrowable = nullptr;
    classString = nullptr;
