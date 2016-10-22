@@ -146,7 +146,7 @@ public:
 
    DLLLOCAL QoreClass* loadCreateClass(QoreNamespace& jns, const char* cstr);
 
-   DLLLOCAL jobject getJavaObject(const QoreObject* o);
+   DLLLOCAL jni::LocalReference<jobject> getJavaObject(const QoreObject* o);
 
    DLLLOCAL jni::LocalReference<jarray> getJavaArray(const QoreListNode* l, jclass cls);
 
@@ -164,6 +164,10 @@ public:
 
    DLLLOCAL jobject getObject() const {
       return jobj;
+   }
+
+   DLLLOCAL jni::LocalReference<jobject> getLocalReference() const {
+      return jobj.toLocal();
    }
 };
 

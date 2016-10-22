@@ -49,17 +49,16 @@ LocalReference<jobject> QoreToJava::toObject(const QoreValue &value, jclass cls)
 
 	 javaObjectRef = qjcm.getJavaObject(o);
 	 if (!javaObjectRef) {
-	    if (o->getClass(CID_JAVAOBJECT) == nullptr) {
+	    ExceptionSink xsink;
+	    TryPrivateDataRefHolder<ObjectBase> jo(o, CID_JAVAOBJECT, &xsink);
+	    if (!jo) {
+	       if (xsink)
+		  throw XsinkException(xsink);
 	       QoreStringMaker desc("A Java object argument expected; got object of class '%s' instead", o->getClassName());
 	       throw BasicException(desc.c_str());
 	    }
 
-	    ExceptionSink xsink;
-	    SimpleRefHolder<ObjectBase> obj(static_cast<ObjectBase*>(o->getReferencedPrivateData(CID_JAVAOBJECT, &xsink)));
-	    if (xsink) {
-	       throw XsinkException(xsink);
-	    }
-	    javaObjectRef = obj->getJavaObject();
+	    javaObjectRef = jo->getLocalReference();
 	 }
 	 break;
       }

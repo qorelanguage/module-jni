@@ -460,10 +460,12 @@ void QoreJniClassMap::doMethods(QoreClass& qc, jni::Class* jc) {
    }
 }
 
-jobject QoreJniClassMap::getJavaObject(const QoreObject* o) {
+LocalReference<jobject> QoreJniClassMap::getJavaObject(const QoreObject* o) {
+   if (!o->isValid())
+      return nullptr;
    ExceptionSink xsink;
-   PrivateDataRefHolder<QoreJniPrivateData> jo(o, CID_OBJECT, &xsink);
-   return jo ? jo->getObject() : 0;
+   TryPrivateDataRefHolder<QoreJniPrivateData> jo(o, CID_OBJECT, &xsink);
+   return jo ? jo->getLocalReference() : nullptr;
 }
 
 LocalReference<jarray> QoreJniClassMap::getJavaArray(const QoreListNode* l, jclass cls) {

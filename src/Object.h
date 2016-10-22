@@ -57,6 +57,20 @@ public:
     * \return the reference to the JNI object
     */
    virtual jobject getJavaObject() const = 0;
+
+   /**
+    * \brief Returns a local reference to the JNI object.
+    * \return a local reference to the JNI object
+    */
+   DLLLOCAL jobject getLocalReference() const {
+      jobject ref = getJavaObject();
+      if (ref == nullptr)
+	 return nullptr;
+      jobject local = static_cast<jobject>(Jvm::getEnv()->NewLocalRef(ref));
+      if (local == nullptr)
+         throw JavaException();
+      return local;
+   }
 };
 
 /**

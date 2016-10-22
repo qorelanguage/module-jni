@@ -51,7 +51,7 @@ public:
     * \brief Creates an instance.
     * \param ref the local reference
     */
-   LocalReference(T ref = nullptr) : ref(ref) {
+   DLLLOCAL LocalReference(T ref = nullptr) : ref(ref) {
       assert(ref == nullptr || Jvm::getEnv()->GetObjectRefType(ref) == JNILocalRefType);
       if (ref != nullptr) {
          printd(LogLevel + 1, "LocalReference created: %p\n", ref);
@@ -61,7 +61,7 @@ public:
    /**
     * \brief Destroys the local reference represented by this instance.
     */
-   ~LocalReference() {
+   DLLLOCAL ~LocalReference() {
       del();
    }
 
@@ -69,7 +69,7 @@ public:
     * \brief Move constructor.
     * \param src the source local reference wrapper
     */
-   LocalReference(LocalReference &&src) : ref(src.ref) {
+   DLLLOCAL LocalReference(LocalReference &&src) : ref(src.ref) {
       src.ref = nullptr;
    }
 
@@ -78,7 +78,7 @@ public:
     * \param src the source local reference wrapper
     * \return *this
     */
-   LocalReference &operator=(LocalReference &&src) {
+   DLLLOCAL LocalReference &operator=(LocalReference &&src) {
       del();
       ref = src.ref;
       src.ref = nullptr;
@@ -88,7 +88,7 @@ public:
    /**
     * \brief Implicit conversion to the reference type.
     */
-   operator T() const {
+   DLLLOCAL operator T() const {
       return ref;
    }
 
@@ -97,7 +97,7 @@ public:
     * \return a global reference representing the same object
     * \throws JavaException if the global reference cannot be created
     */
-   GlobalReference<T> makeGlobal() const {
+   DLLLOCAL GlobalReference<T> makeGlobal() const {
       assert(ref != nullptr);
       T global = static_cast<T>(Jvm::getEnv()->NewGlobalRef(ref));
       if (global == nullptr) {
@@ -114,13 +114,13 @@ public:
     * \return a local reference of type T2
     */
    template<typename T2>
-   LocalReference<T2> as() {
+   DLLLOCAL LocalReference<T2> as() {
       T2 r = static_cast<T2>(ref);
       ref = nullptr;
       return r;
    }
 
-   T release() {
+   DLLLOCAL T release() {
       T r = ref;
       ref = nullptr;
       return r;
@@ -130,7 +130,7 @@ private:
    LocalReference(const LocalReference &) = delete;
    LocalReference &operator=(const LocalReference &) = delete;
 
-   void del() {
+   DLLLOCAL void del() {
       if (ref != nullptr) {
          printd(LogLevel + 1, "LocalReference deleted: %p\n", ref);
          Jvm::getEnv()->DeleteLocalRef(ref);

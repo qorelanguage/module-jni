@@ -37,6 +37,9 @@
 
 namespace jni {
 
+template<typename T>
+class LocalReference;
+
 /**
  * \brief A RAII wrapper for JNI's global references.
  *
@@ -110,6 +113,12 @@ public:
       }
       return global;
    }
+
+   /**
+    * \brief Returns a local reference from the global reference
+    * \return the local reference
+    */
+   DLLLOCAL LocalReference<T> toLocal() const;
 
 private:
    GlobalReference(const GlobalReference &) = delete;

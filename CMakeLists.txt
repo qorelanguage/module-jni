@@ -34,6 +34,7 @@ set(CPP_SRC
     src/jni-module.cpp
     src/QoreJniClassMap.cpp
     src/defs.cpp
+    src/GlobalReference.cpp
     src/Jvm.cpp
     src/Array.cpp
     src/Class.cpp
