@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(qore-jni-module VERSION 1.0.0)
-
-include(CheckCXXCompilerFlag)
+project(qore-jni-module)
+set(PROJECT_VERSION 1.0.0)
 
 find_package(Qore 0.8.13 REQUIRED)
 find_package(JNI REQUIRED)
