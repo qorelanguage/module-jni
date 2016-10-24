@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 2.8.3)
 
 project(qore-jni-module)
 set(PROJECT_VERSION 1.0.0)
