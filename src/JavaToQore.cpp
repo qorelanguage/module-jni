@@ -30,8 +30,6 @@
 #include "Globals.h"
 #include "JavaToQore.h"
 
-extern QoreJniClassMap qjcm;
-
 namespace jni {
 
 QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {

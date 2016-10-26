@@ -99,6 +99,11 @@ jmethodID Globals::methodQoreExceptionWrapperGet;
 GlobalReference<jclass> Globals::classProxy;
 jmethodID Globals::methodProxyNewProxyInstance;
 
+GlobalReference<jclass> Globals::classQoreURLClassLoader;
+jmethodID Globals::ctorQoreURLClassLoader;
+jmethodID Globals::methodQoreURLClassLoaderAddPath;
+jmethodID Globals::methodQoreURLClassLoaderLoadClass;
+
 static void JNICALL invocation_handler_finalize(JNIEnv *, jclass, jlong ptr) {
    delete reinterpret_cast<Dispatcher *>(ptr);
 }
@@ -163,6 +168,7 @@ static GlobalReference<jclass> getPrimitiveClass(Env &env, const char *wrapperNa
 
 #include "JavaClassInvocationHandlerImpl.inc"
 #include "JavaClassQoreExceptionWrapper.inc"
+#include "JavaClassQoreURLClassLoader.inc"
 
 void Globals::init() {
    Env env;
@@ -233,6 +239,11 @@ void Globals::init() {
 
    classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
    methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance", "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
+
+   classQoreURLClassLoader = env.defineClass("org/qore/jni/QoreURLClassLoader", nullptr, java_org_qore_jni_QoreURLClassLoader_class, java_org_qore_jni_QoreURLClassLoader_class_len).makeGlobal();
+   ctorQoreURLClassLoader = env.getMethod(classQoreURLClassLoader, "<init>", "()V");
+   methodQoreURLClassLoaderAddPath = env.getMethod(classQoreURLClassLoader, "addPath", "(Ljava/lang/String;)V");
+   methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
 }
 
 void Globals::cleanup() {
@@ -255,6 +266,7 @@ void Globals::cleanup() {
    classInvocationHandlerImpl = nullptr;
    classQoreExceptionWrapper = nullptr;
    classProxy = nullptr;
+   classQoreURLClassLoader = nullptr;
 }
 
 Type Globals::getType(jclass cls) {

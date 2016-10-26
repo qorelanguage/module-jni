@@ -9,7 +9,7 @@
 %requires jni
 %requires QUnit
 
-#%module-cmd(jni) add-relative-classpath java/bin
+%module-cmd(jni) add-relative-classpath java/bin
 
 %exec-class Main
 

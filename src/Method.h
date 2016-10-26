@@ -42,9 +42,9 @@ extern QoreClass* QC_JAVAMETHOD;
 extern QoreClass* QC_JAVASTATICMETHOD;
 extern QoreClass* QC_JAVACONSTRUCTOR;
 
-class QoreJniClassMap;
-
 namespace jni {
+
+class QoreJniClassMap;
 
 /**
  * \brief Represents a Java method.

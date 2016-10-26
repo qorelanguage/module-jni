@@ -43,8 +43,6 @@
 #include "QoreJniClassMap.h"
 #include "Env.h"
 
-extern QoreJniClassMap qjcm;
-
 namespace jni {
 
 /**

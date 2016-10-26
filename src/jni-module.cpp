@@ -33,9 +33,17 @@
 
 #include <qore/Qore.h>
 
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <map>
+#include <vector>
+
 #include "defs.h"
 #include "Jvm.h"
 #include "QoreJniClassMap.h"
+#include "Method.h"
+#include "QoreToJava.h"
 
 using namespace jni;
 
@@ -72,13 +80,26 @@ DLLEXPORT qore_module_parse_cmd_t qore_module_parse_cmd = jni_module_parse_cmd;
 DLLEXPORT qore_license_t qore_module_license = QL_MIT;
 DLLEXPORT char qore_module_license_str[] = "MIT";
 
-QoreJniClassMap qjcm;
+// module cmd type
+typedef void (qore_jni_module_cmd_t)(QoreString& arg);
+static void qore_jni_mc_import(QoreString& arg);
+static void qore_jni_mc_add_classpath(QoreString& arg);
+static void qore_jni_mc_add_relative_classpath(QoreString& arg);
+
+// module cmds
+typedef std::map<std::string, std::function<qore_jni_module_cmd_t>> mcmap_t;
+static mcmap_t mcmap = {
+   {"import", qore_jni_mc_import},
+   {"add-classpath", qore_jni_mc_add_classpath},
+   {"add-relative-classpath", qore_jni_mc_add_relative_classpath},
+};
 
 static void jni_thread_cleanup(void*) {
    jni::Jvm::threadCleanup();
 }
 
 static QoreStringNode* jni_module_init() {
+   printd(LogLevel, "jni_module_init()\n");
 #ifdef QORE_JVM_SIGNALS
    {
       sigset_t mask;
@@ -137,6 +158,8 @@ static void jni_module_delete() {
 }
 
 static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
+   printd(LogLevel, "jni_module_parse_cmd() cmd: '%s'\n", cmd.c_str());
+
    const char* p = strchr(cmd.getBuffer(), ' ');
 
    if (!p) {
@@ -145,107 +168,151 @@ static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
    }
 
    QoreString str(&cmd, p - cmd.getBuffer());
-   if (strcmp(str.getBuffer(), "import")) {
-      xsink->raiseException("JNI-PARSE-COMMAND-ERROR", "unrecognized command '%s' in '%s' (valid command: 'import')", str.getBuffer(), cmd.getBuffer());
-      return;
-   }
 
    QoreString arg(cmd);
 
-   arg.replace(0, p - cmd.getBuffer() + 1, (const char *)0);
+   arg.replace(0, p - cmd.getBuffer() + 1, (const char*)0);
    arg.trim();
 
-   QoreProgram* pgm = getProgram();
-   bool has_feature = pgm ? pgm->checkFeature(QORE_JNI_MODULE_NAME) : false;
-
-   // process import statement
-   printd(LogLevel, "jni_module_parse_cmd() pgm: %p arg: %s c: %c has_feature: %d\n", pgm, arg.getBuffer(), arg[-1], has_feature);
+   mcmap_t::const_iterator i = mcmap.find(str.c_str());
+   if (i == mcmap.end()) {
+      QoreStringNode* desc = new QoreStringNodeMaker("unrecognized command '%s' in '%s' (valid commands: ", str.c_str(), cmd.c_str());
+      for (mcmap_t::const_iterator i = mcmap.begin(), e = mcmap.end(); i != e; ++i) {
+         if (i != mcmap.begin())
+            desc->concat(", ");
+         desc->sprintf("'%s'", i->first.c_str());
+      }
+      desc->concat(')');
+      xsink->raiseException("JNI-PARSE-COMMAND-ERROR", desc);
+      return;
+   }
 
    try {
-      // see if there is a wildcard at the end
-      bool wc = false;
-      if (arg[-1] == '*') {
-         if (arg[-2] != '.' || arg.strlen() < 3) {
-            xsink->raiseException("JNI-IMPORT-ERROR", "invalid import argument: '%s'", arg.getBuffer());
-            return;
-         }
-
-         arg.terminate(arg.strlen() - 2);
-
-         arg.replaceAll(".", "::");
-         arg.concat("::x");
-
-         QoreNamespace* jns;
-
-         // create jni namespace in root namespace if necessary
-         if (!has_feature)
-            jns = &qjcm.getRootNS();
-         else {
-            QoreNamespace* rns = pgm->getRootNS();
-            jns = rns->findCreateNamespacePath("Jni::x");
-         }
-
-         QoreNamespace* ns = jns->findCreateNamespacePath(arg.c_str());
-         printd(LogLevel, "jni_module_parse_cmd() nsp: '%s' ns: %p '%s'\n", arg.c_str(), ns, ns->getName());
-         ns->setClassHandler(jni_class_handler);
-         wc = true;
-      }
-      else {
-         printd(LogLevel, "jni_module_parse_cmd() non wc lcc arg: '%s'\n", arg.c_str());
-         {
-            // parsing can occur in parallel in different QoreProgram objects
-            // so we need to protect the load with a lock
-            QoreJniAutoLocker al(qjcm.m);
-            qjcm.loadCreateClass(qjcm.getRootNS(), arg.c_str());
-         }
-      }
-
-      // now try to add to current program
-      printd(LogLevel, "jni_module_parse_cmd() pgm: %p arg: '%s'\n", pgm, arg.c_str());
-      if (!pgm)
-         return;
-
-      QoreNamespace* ns = pgm->getRootNS();
-
-      printd(LogLevel, "jni_module_parse_cmd() feature '%s': %s (default_jns: %p)\n", QORE_JNI_MODULE_NAME, pgm->checkFeature(QORE_JNI_MODULE_NAME) ? "true" : "false", &qjcm.getRootNS());
-
-      if (!pgm->checkFeature(QORE_JNI_MODULE_NAME)) {
-         QoreNamespace* jns = qjcm.getRootNS().copy();
-         printd(LogLevel, "jns: %p '%s' ns: %p\n", jns, jns->getName(), ns);
-
-         assert(jns->findLocalNamespace("java"));
-
-         ns->addNamespace(jns);
-         pgm->addFeature(QORE_JNI_MODULE_NAME);
-
-#ifdef DEBUG
-         QoreNamespaceIterator i(ns);
-         while (i.next()) {
-            const QoreNamespace* p = i.get()->getParent();
-            printd(LogLevel, "ns: %p '%s': parent '%s'\n", i.get(), i.get()->getName(), p ? p->getName() : "n/a");
-            if (!strcmp(i.get()->getName(), "util")) {
-               QoreClass* qc = i.get()->findLocalClass("HashMap");
-               printd(LogLevel, "util::HashMap: %p '%s'\n", qc, qc ? qc->getName() : "n/a");
-            }
-         }
-         ns = ns->findLocalNamespace("Jni");
-         assert(ns);
-         ns = ns->findLocalNamespace("java");
-         assert(ns);
-#endif
-
-         return;
-      }
-
-      if (!wc) {
-         ns = ns->findLocalNamespace("Jni");
-         assert(ns);
-         qjcm.findCreateClass(*ns, arg.getBuffer());
-      }
+      i->second(arg);
    }
    catch (jni::Exception& e) {
       e.convert(xsink);
    }
+}
+
+static void qore_jni_mc_import(QoreString& arg) {
+   QoreProgram* pgm = getProgram();
+   assert(pgm);
+   bool has_feature = pgm->checkFeature(QORE_JNI_MODULE_NAME);
+
+   // process import statement
+   printd(LogLevel, "jni_module_parse_cmd() pgm: %p arg: %s c: %c has_feature: %d\n", pgm, arg.getBuffer(), arg[-1], has_feature);
+
+   // see if there is a wildcard at the end
+   bool wc = false;
+   if (arg[-1] == '*') {
+      if (arg[-2] != '.' || arg.strlen() < 3) {
+         throw QoreJniException("JNI-IMPORT-ERROR", "invalid import argument: '%s'", arg.getBuffer());
+         return;
+      }
+
+      arg.terminate(arg.strlen() - 2);
+
+      arg.replaceAll(".", "::");
+      arg.concat("::x");
+
+      QoreNamespace* jns;
+
+      // create jni namespace in root namespace if necessary
+      if (!has_feature)
+         jns = &qjcm.getRootNS();
+      else {
+         QoreNamespace* rns = pgm->getRootNS();
+         jns = rns->findCreateNamespacePath("Jni::x");
+      }
+
+      QoreNamespace* ns = jns->findCreateNamespacePath(arg.c_str());
+      printd(LogLevel, "jni_module_parse_cmd() nsp: '%s' ns: %p '%s'\n", arg.c_str(), ns, ns->getName());
+      ns->setClassHandler(jni_class_handler);
+      wc = true;
+   }
+   else {
+      printd(LogLevel, "jni_module_parse_cmd() non wc lcc arg: '%s'\n", arg.c_str());
+      {
+         // parsing can occur in parallel in different QoreProgram objects
+         // so we need to protect the load with a lock
+         QoreJniAutoLocker al(qjcm.m);
+         qjcm.loadCreateClass(qjcm.getRootNS(), arg.c_str());
+      }
+   }
+
+   // now try to add to current program
+   printd(LogLevel, "jni_module_parse_cmd() pgm: %p arg: '%s'\n", pgm, arg.c_str());
+
+   QoreNamespace* ns = pgm->getRootNS();
+
+   printd(LogLevel, "jni_module_parse_cmd() feature '%s': %s (default_jns: %p)\n", QORE_JNI_MODULE_NAME, pgm->checkFeature(QORE_JNI_MODULE_NAME) ? "true" : "false", &qjcm.getRootNS());
+
+   if (!pgm->checkFeature(QORE_JNI_MODULE_NAME)) {
+      QoreNamespace* jns = qjcm.getRootNS().copy();
+      printd(LogLevel, "jns: %p '%s' ns: %p\n", jns, jns->getName(), ns);
+
+      assert(jns->findLocalNamespace("java"));
+
+      ns->addNamespace(jns);
+      pgm->addFeature(QORE_JNI_MODULE_NAME);
+
+#ifdef DEBUG
+      QoreNamespaceIterator i(ns);
+      while (i.next()) {
+         const QoreNamespace* p = i.get()->getParent();
+         printd(LogLevel, "ns: %p '%s': parent '%s'\n", i.get(), i.get()->getName(), p ? p->getName() : "n/a");
+         if (!strcmp(i.get()->getName(), "util")) {
+            QoreClass* qc = i.get()->findLocalClass("HashMap");
+            printd(LogLevel, "util::HashMap: %p '%s'\n", qc, qc ? qc->getName() : "n/a");
+         }
+      }
+      ns = ns->findLocalNamespace("Jni");
+      assert(ns);
+      ns = ns->findLocalNamespace("java");
+      assert(ns);
+#endif
+
+      return;
+   }
+
+   if (!wc) {
+      ns = ns->findLocalNamespace("Jni");
+      assert(ns);
+      qjcm.findCreateClass(*ns, arg.getBuffer());
+   }
+}
+
+static void qore_jni_mc_add_classpath(QoreString& arg) {
+   q_env_subst(arg);
+   printd(LogLevel, "qore_jni_mc_add_classpath() arg: '%s'\n", arg.c_str());
+   qjcm.addClasspath(arg.c_str());
+}
+
+static void qore_jni_mc_add_relative_classpath(QoreString& arg) {
+   SimpleRefHolder<QoreStringNode> cwd_str;
+
+   QoreProgram* pgm = getProgram();
+   assert(pgm);
+   cwd_str = pgm->getScriptDir();
+
+   if (!cwd_str) {
+      char* cwd = getcwd(0, 0);
+      if (!cwd)
+         throw QoreJniException("JNI-ADD-RELATIVE-CLASSPATH-ERROR", "cannot determine relative path; there is no information in the Program context and cannot get current working directory: %s", strerror(errno));
+      ON_BLOCK_EXIT(free, cwd);
+      cwd_str = new QoreStringNode(cwd);
+   }
+
+   cwd_str->concat(QORE_DIR_SEP);
+   cwd_str->concat(arg.c_str());
+   q_normalize_path(**cwd_str);
+
+   cwd_str->concat('/');
+
+   printd(LogLevel, "qore_jni_mc_add_relative_classpath() arg: '%s' cwd: '%s'\n", arg.c_str(), cwd_str->c_str());
+
+   qjcm.addClasspath(cwd_str->c_str());
 }
 
 QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
@@ -275,7 +342,7 @@ QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
    }
    catch (jni::JavaException& e) {
       // ignore class not found exceptions here
-      e.ignoreOrRethrow("java.lang.NoClassDefFoundError");
+      e.ignoreOrRethrowNoClass();
    }
    catch (jni::Exception& e) {
       // display exception info on the console as an unhandled exception

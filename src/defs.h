@@ -31,9 +31,11 @@
 #ifndef QORE_JNI_DEFS_H_
 #define QORE_JNI_DEFS_H_
 
-#include <memory>
 #include <qore/Qore.h>
 #include <jni.h>
+
+#include <stdarg.h>
+#include <memory>
 
 namespace jni {
 
@@ -138,7 +140,7 @@ public:
 
    void ignore() override;
 
-   void ignoreOrRethrow(const char* cls);
+   void ignoreOrRethrowNoClass();
 
    DLLLOCAL QoreStringNode* toString() const;
 };
@@ -161,6 +163,36 @@ public:
 
 private:
    std::string message;
+};
+
+/**
+ * \brief Basic exception with a simple string messsage.
+ */
+class QoreJniException : public IgnorableException {
+public:
+   /**
+    * \brief Constructor.
+    * \param message the exception message
+    */
+   QoreJniException(std::string err, const char* message, ...) : err(std::move(err)) {
+      va_list args;
+
+      while (true) {
+	 va_start(args, message);
+	 int rc = desc.vsprintf(message, args);
+	 va_end(args);
+	 if (!rc)
+	    break;
+      }
+   }
+
+   void convert(ExceptionSink *xsink) override {
+      xsink->raiseException(err.c_str(), desc.c_str());
+   }
+
+private:
+   std::string err;
+   QoreString desc;
 };
 
 /**

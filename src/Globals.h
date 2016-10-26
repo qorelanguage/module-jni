@@ -95,16 +95,21 @@ public:
    static jmethodID methodConstructorGetModifiers;                      // int Constructor.getModifiers()
    static jmethodID methodConstructorIsVarArgs;                         // boolean Constructor.isVarArgs()
 
-   static GlobalReference<jclass> classInvocationHandlerImpl;           // qore.org.jni.InvocationHandlerImpl
+   static GlobalReference<jclass> classInvocationHandlerImpl;           // org.qore.jni.InvocationHandlerImpl
    static jmethodID ctorInvocationHandlerImpl;                          // InvocationHandlerImpl(long)
    static jmethodID methodInvocationHandlerImplDestroy;                 // void InvocationHandlerImpl.destroy()
 
-   static GlobalReference<jclass> classQoreExceptionWrapper;            // qore.org.jni.QoreExceptionWrapper
+   static GlobalReference<jclass> classQoreExceptionWrapper;            // org.qore.jni.QoreExceptionWrapper
    static jmethodID ctorQoreExceptionWrapper;                           // QoreExceptionWrapper(long)
    static jmethodID methodQoreExceptionWrapperGet;                      // long QoreExceptionWrapper.get()
 
    static GlobalReference<jclass> classProxy;                           // java.lang.reflect.Proxy
    static jmethodID methodProxyNewProxyInstance;                        // Object Proxy.newProxyInstance(ClassLoader, Class[], InvocationHandler)
+
+   static GlobalReference<jclass> classQoreURLClassLoader;              // org.qore.jni.QoreURLClassLoader
+   static jmethodID ctorQoreURLClassLoader;                             // QoreURLClassLoader()
+   static jmethodID methodQoreURLClassLoaderAddPath;                    // void QoreURLClassLoader.addPath(String)
+   static jmethodID methodQoreURLClassLoaderLoadClass;                  // Class QoreURLClassLoader.loadClass(String)
 
 public:
    static void init();

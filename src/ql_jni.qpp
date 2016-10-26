@@ -31,6 +31,8 @@
 #include "Functions.h"
 #include "QoreJniClassMap.h"
 
+using namespace jni;
+
 extern QoreClass* QC_JAVACLASS;
 
 /** @defgroup JNI functions.
@@ -63,7 +65,7 @@ string get_version() {
  */
 Jni::QoreJni::JavaClass load_class(string name) {
    try {
-      return new QoreObject(QC_JAVACLASS, getProgram(), jni::Functions::loadClass(name));
+      return new QoreObject(QC_JAVACLASS, getProgram(), qjcm.loadClass(*name));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();
