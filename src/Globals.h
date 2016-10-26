@@ -99,7 +99,7 @@ public:
    static jmethodID ctorInvocationHandlerImpl;                          // InvocationHandlerImpl(long)
    static jmethodID methodInvocationHandlerImplDestroy;                 // void InvocationHandlerImpl.destroy()
 
-   static GlobalReference<jclass> classQoreExceptionWrapper;            // orglqore.jni.QoreExceptionWrapper
+   static GlobalReference<jclass> classQoreExceptionWrapper;            // org.qore.jni.QoreExceptionWrapper
    static jmethodID ctorQoreExceptionWrapper;                           // QoreExceptionWrapper(long)
    static jmethodID methodQoreExceptionWrapperGet;                      // long QoreExceptionWrapper.get()
 
