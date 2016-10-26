@@ -150,7 +150,7 @@ void JavaException::convert(ExceptionSink *xsink) {
    xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(QC_JAVATHROWABLE, getProgram(), new Throwable(throwable)), desc.release());
 }
 
-void JavaException::ignoreOrRethrow(const char* cls) {
+void JavaException::ignoreOrRethrowNoClass() {
    JNIEnv* env = Jvm::getEnv();         //not using the Env wrapper because we don't want any C++ exceptions here
    LocalReference<jthrowable> throwable = env->ExceptionOccurred();
    assert(throwable != nullptr);
@@ -184,7 +184,8 @@ void JavaException::ignoreOrRethrow(const char* cls) {
       return;
    }
    // return if this is the exception we should ignore
-   if (!strcmp(chars, cls))
+   if (!strcmp(chars, "java.lang.ClassNotFoundException")
+       || !strcmp(chars, "java.lang.NoClassDefFoundError"))
       return;
 
    SimpleRefHolder<QoreStringNode> desc(new QoreStringNode(chars, QCS_UTF8));

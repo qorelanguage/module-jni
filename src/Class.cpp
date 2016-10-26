@@ -69,7 +69,6 @@ Method* Class::getStaticMethod(const QoreStringNode* name, const QoreStringNode*
    Env env;
    ModifiedUtf8String nameUtf8(*name);
    ModifiedUtf8String descUtf8(*descriptor);
-   printd(LogLevel, "getStaticMethod %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
    return new Method(this, env.getStaticMethod(cls, nameUtf8.c_str(), descUtf8.c_str()), true);
 }
 
