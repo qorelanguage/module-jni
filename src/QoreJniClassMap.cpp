@@ -49,6 +49,10 @@ qore_classid_t CID_CLASS;
 QoreClass* QC_CLASSLOADER;
 // the Qore class ID for java::lang::ClassLoader
 qore_classid_t CID_CLASSLOADER;
+// the QoreClass for java::lang::Throwable
+QoreClass* QC_THROWABLE;
+// the Qore class ID for java::lang::Throwable
+qore_classid_t CID_THROWABLE;
 
 QoreJniClassMap qjcm;
 static void exec_java_constructor(const QoreClass& qc, BaseMethod* m, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
@@ -144,6 +148,10 @@ void QoreJniClassMap::init() {
    CID_CLASS = QC_CLASS->getID();
    QC_CLASSLOADER = qjcm.find("java/lang/ClassLoader");
    CID_CLASSLOADER = QC_CLASSLOADER->getID();
+   QC_THROWABLE = qjcm.find("java/lang/Throwable");
+   CID_THROWABLE = QC_THROWABLE->getID();
+
+   //printd(LogLevel, "QoreJniClassMap::init() CID_THROWABLE: %d QC_THROWABLE: %p\n", CID_THROWABLE, QC_THROWABLE);
 
    init_jni_functions(*qorejni);
 
@@ -190,9 +198,16 @@ Class* QoreJniClassMap::loadClass(const char* name) {
    }
 }
 
-QoreObject* QoreJniClassMap::getObject(const LocalReference<jobject>& obj) {
+AbstractQoreNode* QoreJniClassMap::getObject(LocalReference<jobject>& obj) {
    Env env;
-   return new QoreObject(qjcm.findCreateClass(env.getObjectClass(obj)), getProgram(), new QoreJniPrivateData(obj));
+
+   // see if object is an array
+   LocalReference<jclass> jc = env.getObjectClass(obj);
+
+   //if (env.callBooleanMethod(jc, Globals::methodClassIsArray, nullptr))
+   //   return Array::getList(env, obj.cast<jarray>(), jc);
+
+   return new QoreObject(qjcm.findCreateClass(jc), getProgram(), new QoreJniPrivateData(obj));
 }
 
 QoreClass* QoreJniClassMap::findCreateClass(jclass jc) {

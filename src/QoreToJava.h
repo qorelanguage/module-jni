@@ -92,8 +92,19 @@ public:
       Env env;
       const AbstractQoreNode* n = src.getExceptionArg();
       if (n && n->getType() == NT_OBJECT) {
-         const QoreObject* o = static_cast<const QoreObject *>(n);
-         if (o->getClass(CID_JAVATHROWABLE) != nullptr) {
+         const QoreObject* o = static_cast<const QoreObject*>(n);
+	 /*
+	 if (o->getClass(CID_THROWABLE) != nullptr) {
+            ExceptionSink tempSink;
+            SimpleRefHolder<QoreJniPrivateData> obj(static_cast<QoreJniPrivateData*>(o->getReferencedPrivateData(CID_THROWABLE, &tempSink)));
+            if (!tempSink) {
+               env.throwException(static_cast<jthrowable>(obj->getObject()));
+               src.clear();
+               return;
+            }
+         }
+	 */
+	 if (o->getClass(CID_JAVATHROWABLE) != nullptr) {
 
             ExceptionSink tempSink;
             SimpleRefHolder<Throwable> obj(static_cast<Throwable *>(o->getReferencedPrivateData(CID_JAVATHROWABLE, &tempSink)));

@@ -98,6 +98,7 @@ public:
       }
       if (env.isInstanceOf(v, Globals::classThrowable)) {
          return QoreValue(new QoreObject(QC_JAVATHROWABLE, getProgram(), new Throwable(v.as<jthrowable>())));
+         //return QoreValue(new QoreObject(QC_THROWABLE, getProgram(), new QoreJniPrivateData(v)));
       }
       if (env.isInstanceOf(v, Globals::classString)) {
          Env::GetStringUtfChars chars(env, v.as<jstring>());

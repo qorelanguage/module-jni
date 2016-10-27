@@ -120,6 +120,11 @@ public:
       return r;
    }
 
+   template<typename T2>
+   DLLLOCAL T2 cast() {
+      return static_cast<T2>(ref);
+   }
+
    DLLLOCAL T release() {
       T r = ref;
       ref = nullptr;

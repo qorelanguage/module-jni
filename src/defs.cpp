@@ -28,6 +28,7 @@
 #include "Jvm.h"
 #include "LocalReference.h"
 #include "Globals.h"
+#include "QoreJniClassMap.h"
 #include "Throwable.h"
 
 namespace jni {
@@ -115,7 +116,7 @@ void JavaException::convert(ExceptionSink *xsink) {
          return;
       }
       //if l is zero, it means that the xsink wrapped in QoreExceptionWrapper has already been consumed. This should
-      //not happen, but if it does, we simply report the QoreExceptionWrapper as if it was normal Java exception
+      //not happen, but if it does, we simply report the QoreExceptionWrapper as if it was a normal Java exception
    }
 
    LocalReference<jstring> excName = static_cast<jstring>(env->CallObjectMethod(env->GetObjectClass(throwable), Globals::methodClassGetName));
@@ -147,7 +148,9 @@ void JavaException::convert(ExceptionSink *xsink) {
          env->ReleaseStringUTFChars(msg, chars);
       }
    }
+
    xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(QC_JAVATHROWABLE, getProgram(), new Throwable(throwable)), desc.release());
+   //xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(QC_THROWABLE, getProgram(), new QoreJniPrivateData(throwable.as<jobject>())), desc.release());
 }
 
 void JavaException::ignoreOrRethrowNoClass() {
@@ -205,6 +208,6 @@ void JavaException::ignoreOrRethrowNoClass() {
       }
    }
    xsink.raiseExceptionArg("JNI-ERROR", new QoreObject(QC_JAVATHROWABLE, getProgram(), new Throwable(throwable)), desc.release());
+   //xsink.raiseExceptionArg("JNI-ERROR", new QoreObject(QC_THROWABLE, getProgram(), new QoreJniPrivateData(throwable.as<jobject>())), desc.release());
 }
-
 } // namespace jni

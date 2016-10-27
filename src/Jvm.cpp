@@ -45,6 +45,7 @@ QoreStringNode* Jvm::createVM() {
    options[0].optionString = (char*)"-Xrs";
    vm_args.nOptions = 1;
 
+   ///*
    std::string classpath;
    const char* classpathEnv = getenv("QORE_JNI_CLASSPATH");
    if (classpathEnv) {
@@ -52,6 +53,7 @@ QoreStringNode* Jvm::createVM() {
       options[1].optionString = &classpath[0];
       ++vm_args.nOptions;
    }
+   //*/
    vm_args.options = options;
 
    if (JNI_CreateJavaVM(&vm, reinterpret_cast<void **>(&env), &vm_args) != JNI_OK) {
