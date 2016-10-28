@@ -55,7 +55,7 @@ public:
 	       jint line = env.callIntMethod(jste, Globals::methodStackTraceElementGetLineNumber, nullptr);
 	       jboolean native = env.callBooleanMethod(jste, Globals::methodStackTraceElementIsNativeMethod, nullptr);
 
-	       QoreStringMaker code("%s::%s", cname.c_str(), mname.c_str());
+	       QoreStringMaker code("%s.%s", cname.c_str(), mname.c_str());
 
 	       //printd(LogLevel, "JniCallStack::JniCallStack() adding %s\n", code.c_str());
 	       add(native ? CT_BUILTIN : CT_USER, file.c_str(), line, line, code.c_str());
