@@ -141,12 +141,10 @@ static QoreStringNode* jni_module_init() {
       return new QoreStringNode("ERR");
    }
 
-   /*
    // setup classpath
    TempString classpath(SystemEnvironment::get("QORE_JNI_CLASSPATH"));
    if (classpath)
       qjcm.addClasspath(classpath->c_str());
-   */
 
    return nullptr;
 }

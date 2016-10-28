@@ -1308,20 +1308,22 @@ public:
 public:
    class GetStringUtfChars {
    public:
-      GetStringUtfChars(Env &env, const LocalReference<jstring> &str) : env(env), str(str),
-            chars(env.env->GetStringUTFChars(str, nullptr)) {
-         if (chars == nullptr) {
+      GetStringUtfChars(Env &env, const LocalReference<jstring> &str) :
+	 env(env), str(str),
+	 chars(str ? env.env->GetStringUTFChars(str, nullptr): nullptr) {
+         if (str && chars == nullptr) {
             throw new JavaException();
          }
       }
 
 
       ~GetStringUtfChars() {
-         env.env->ReleaseStringUTFChars(str, chars);
+         if (str)
+	    env.env->ReleaseStringUTFChars(str, chars);
       }
 
       const char *c_str() const {
-         return chars;
+         return chars ? chars : "";
       }
 
    private:

@@ -21,8 +21,12 @@
 %requires QUnit
 %requires Util
 
+# import Java classes to our script
 %module-cmd(jni) import javax.naming.InitialContext
 %module-cmd(jni) import javax.jms.*
+
+# add environment variable $GLASSFISH_JAR to the dynamic classpath (if set)
+%module-cmd(jni) add-classpath $GLASSFISH_JAR
 
 %exec-class Main
 
@@ -42,25 +46,13 @@ public class Main inherits QUnit::Test {
     }
 
     testJms() {
-        # these properties are the default; included here to provide an example
+        # these properties are the default; included here to provide an example for connecting to a remote server
         Properties props();
         props.setProperty("java.naming.factory.initial", "com.sun.enterprise.naming.SerialInitContextFactory");
         props.setProperty("org.omg.CORBA.ORBInitialHost", "localhost");
         props.setProperty("org.omg.CORBA.ORBInitialPort", "3700");
 
-        #InitialContext ctx(props);
-
-        InitialContext ctx;
-
-        try {
-            ctx = new InitialContext(props);
-        }
-        catch (hash ex) {
-            printf("%s\n", get_exception_string(ex));
-            printf("stack: \n");
-            map printf(" - %s:%d: %s::%s()\n", $1.getFileName(), $1.getLineNumber(), $1.getClassName(), $1.getMethodName()), ex.arg.getStackTrace();
-            return;
-        }
+        InitialContext ctx(props);
 
         Connection connection = cast<ConnectionFactory>(ctx.lookup("jms/__defaultConnectionFactory")).createConnection();
         Session session = connection.createSession(Session::AUTO_ACKNOWLEDGE);

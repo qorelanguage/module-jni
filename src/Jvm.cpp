@@ -39,21 +39,20 @@ QoreStringNode* Jvm::createVM() {
    JavaVMInitArgs vm_args;
    vm_args.version = JNI_VERSION_1_6;
    vm_args.ignoreUnrecognized = false;
+   vm_args.nOptions = 0;
 
    JavaVMOption options[2];
    // "reduced signals"
-   options[0].optionString = (char*)"-Xrs";
-   vm_args.nOptions = 1;
+   options[vm_args.nOptions++].optionString = (char*)"-Xrs";
 
-   ///*
+   /*
    std::string classpath;
    const char* classpathEnv = getenv("QORE_JNI_CLASSPATH");
    if (classpathEnv) {
       classpath = std::string("-Djava.class.path=") + classpathEnv;
-      options[1].optionString = &classpath[0];
-      ++vm_args.nOptions;
+      options[vm_args.nOptions++].optionString = &classpath[0];
    }
-   //*/
+   */
    vm_args.options = options;
 
    if (JNI_CreateJavaVM(&vm, reinterpret_cast<void **>(&env), &vm_args) != JNI_OK) {

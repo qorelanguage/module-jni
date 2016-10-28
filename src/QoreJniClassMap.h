@@ -33,7 +33,6 @@
 
 DLLLOCAL QoreClass* initJavaObjectClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initJavaArrayClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initJavaThrowableClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initJavaClassClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initJavaFieldClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initJavaStaticFieldClass(QoreNamespace& ns);

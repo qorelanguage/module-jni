@@ -117,7 +117,6 @@ void QoreJniClassMap::init() {
    qorejni->addSystemClass(initJavaObjectClass(*qorejni));
    qorejni->addSystemClass(initJavaInvocationHandlerClass(*qorejni));
    qorejni->addSystemClass(initJavaArrayClass(*qorejni));
-   qorejni->addSystemClass(initJavaThrowableClass(*qorejni));
    qorejni->addSystemClass(initJavaFieldClass(*qorejni));
    qorejni->addSystemClass(initJavaStaticFieldClass(*qorejni));
    qorejni->addSystemClass(initJavaMethodClass(*qorejni));
@@ -151,8 +150,6 @@ void QoreJniClassMap::init() {
    QC_THROWABLE = qjcm.find("java/lang/Throwable");
    CID_THROWABLE = QC_THROWABLE->getID();
 
-   //printd(LogLevel, "QoreJniClassMap::init() CID_THROWABLE: %d QC_THROWABLE: %p\n", CID_THROWABLE, QC_THROWABLE);
-
    init_jni_functions(*qorejni);
 
    // add "QoreJni" to "Jni" namespace
@@ -182,9 +179,11 @@ Class* QoreJniClassMap::loadClass(const QoreString& name) {
 Class* QoreJniClassMap::loadClass(const char* name) {
    Env env;
    try {
+      // first we try to load with the builtin classloader
       return Functions::loadClass(name);
    }
    catch (jni::Exception& e) {
+      // if this fails, then we try our classloader that supports dynamic classpaths
       e.ignore();
       QoreString nname(name);
       nname.replaceAll("/", ".");
@@ -204,8 +203,8 @@ AbstractQoreNode* QoreJniClassMap::getObject(LocalReference<jobject>& obj) {
    // see if object is an array
    LocalReference<jclass> jc = env.getObjectClass(obj);
 
-   //if (env.callBooleanMethod(jc, Globals::methodClassIsArray, nullptr))
-   //   return Array::getList(env, obj.cast<jarray>(), jc);
+   if (env.callBooleanMethod(jc, Globals::methodClassIsArray, nullptr))
+      return Array::getList(env, obj.cast<jarray>(), jc);
 
    return new QoreObject(qjcm.findCreateClass(jc), getProgram(), new QoreJniPrivateData(obj));
 }

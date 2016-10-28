@@ -26,7 +26,6 @@ set(QPP_SRC
     src/QC_JavaMethod.qpp
     src/QC_JavaStaticField.qpp
     src/QC_JavaStaticMethod.qpp
-    src/QC_JavaThrowable.qpp
 )
 
 set(CPP_SRC

@@ -323,18 +323,18 @@ public class Main inherits QUnit::Test {
         usleep(200ms);
         assertEq(3, i);
         assertThrows("CALLBACK-ERROR", sub() { callNow.invoke(o); });
-        h.destroy();
-
         try {
-            h = new QoreJni::JavaInvocationHandler(sub(QoreJni::JavaMethod m, *QoreJni::JavaArray args) { doThrow.invoke(); });
-            assertTrue(trueIfThrows.invoke(QoreJni::implement_interface(h, QoreJni::load_class("java/lang/Runnable"))));
-            h.destroy();
+            doThrow.invoke();
+            assertEq(False, True);
         }
         catch (hash ex) {
-            printf("%s\n", get_exception_string(ex));
-            printf("stack: \n");
-            map printf(" - %s:%d: %s::%s()\n", $1.getFileName(), $1.getLineNumber(), $1.getClassName(), $1.getMethodName()), ex.arg.getStackTrace();
+            assertEq(True, ex.callstack[0].file =~ /\.java/);
         }
+        h.destroy();
+
+        h = new QoreJni::JavaInvocationHandler(sub(QoreJni::JavaMethod m, *QoreJni::JavaArray args) { doThrow.invoke(); });
+        assertTrue(trueIfThrows.invoke(QoreJni::implement_interface(h, QoreJni::load_class("java/lang/Runnable"))));
+        h.destroy();
     }
 
     testConstructor() {

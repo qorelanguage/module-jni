@@ -20,6 +20,8 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     public QoreURLClassLoader() {
 	super(((URLClassLoader)ClassLoader.getSystemClassLoader()).getURLs());
+	// set the current classloader as the thread context classloader
+	setContext();
     }
 
     public void addPathOrig(String path) throws Exception {
@@ -41,6 +43,11 @@ public class QoreURLClassLoader extends URLClassLoader {
 	}
     }
     */
+
+    // sets the current classloader as the thread's contextual class loader
+    public void setContext() {
+	Thread.currentThread().setContextClassLoader(this);
+    }
 
     synchronized protected Class findClass(String name) throws ClassNotFoundException {
 	//debugLog("QoreURLClassLoader.findClass() " + name);
@@ -123,7 +130,7 @@ public class QoreURLClassLoader extends URLClassLoader {
 	    }
 
 	    if (basename != null && !basename.isEmpty()) {
-		debugLog("addJars() parent: " + fileentry.getParentFile().getPath() + " basename: " + basename);
+		//debugLog("addJars() parent: " + fileentry.getParentFile().getPath() + " basename: " + basename);
 		addJars(fileentry.getParentFile(), basename);
 	    }
 	    else if (!fileentry.exists()) { // s/never be due getCanonicalFile() above
@@ -133,7 +140,7 @@ public class QoreURLClassLoader extends URLClassLoader {
 		addURL(createUrl(fileentry));
 	    }
 	    else if (fileentry.getName().toLowerCase().endsWith(".zip") || fileentry.getName().toLowerCase().endsWith(".jar")) {
-		infoLog("adding jar: " + fileentry.getName());
+		//infoLog("adding jar: " + fileentry.getName());
 		addURL(createUrl(fileentry));
 	    }
 	    else {
@@ -202,7 +209,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     private URL createUrl(File fileentry) {
 	try {
 	    URL url = fileentry.toURI().toURL();
-	    infoLog("Added URL: '" + url.toString() + "'");
+	    //infoLog("Added URL: '" + url.toString() + "'");
 	    if (classPath.length() > 0) {
 		classPath += File.pathSeparator;
 	    }
