@@ -64,6 +64,14 @@ jmethodID Globals::methodClassGetCanonicalName;
 
 GlobalReference<jclass> Globals::classThrowable;
 jmethodID Globals::methodThrowableGetMessage;
+jmethodID Globals::methodThrowableGetStackTrace;
+
+GlobalReference<jclass> Globals::classStackTraceElement;
+jmethodID Globals::methodStackTraceElementGetClassName;
+jmethodID Globals::methodStackTraceElementGetFileName;
+jmethodID Globals::methodStackTraceElementGetLineNumber;
+jmethodID Globals::methodStackTraceElementGetMethodName;
+jmethodID Globals::methodStackTraceElementIsNativeMethod;
 
 GlobalReference<jclass> Globals::classString;
 
@@ -176,6 +184,14 @@ void Globals::init() {
    // get exception info first
    classThrowable = env.findClass("java/lang/Throwable").makeGlobal();
    methodThrowableGetMessage = env.getMethod(classThrowable, "getMessage", "()Ljava/lang/String;");
+   methodThrowableGetStackTrace = env.getMethod(classThrowable, "getStackTrace", "()[Ljava/lang/StackTraceElement;");
+
+   classStackTraceElement = env.findClass("java/lang/StackTraceElement").makeGlobal();
+   methodStackTraceElementGetClassName = env.getMethod(classStackTraceElement, "getClassName", "()Ljava/lang/String;");
+   methodStackTraceElementGetFileName = env.getMethod(classStackTraceElement, "getFileName", "()Ljava/lang/String;");
+   methodStackTraceElementGetLineNumber = env.getMethod(classStackTraceElement, "getLineNumber", "()I");
+   methodStackTraceElementGetMethodName = env.getMethod(classStackTraceElement, "getMethodName", "()Ljava/lang/String;");
+   methodStackTraceElementIsNativeMethod = env.getMethod(classStackTraceElement, "isNativeMethod", "()Z");
 
    classQoreExceptionWrapper = env.defineClass("org/qore/jni/QoreExceptionWrapper", nullptr, java_org_qore_jni_QoreExceptionWrapper_class, java_org_qore_jni_QoreExceptionWrapper_class_len).makeGlobal();
    env.registerNatives(classQoreExceptionWrapper, qoreExceptionWrapperNativeMethods, 2);
@@ -247,6 +263,8 @@ void Globals::init() {
 }
 
 void Globals::cleanup() {
+   classThrowable = nullptr;
+   classStackTraceElement = nullptr;
    classVoid = nullptr;
    classBoolean = nullptr;
    classByte = nullptr;
@@ -258,7 +276,6 @@ void Globals::cleanup() {
    classDouble = nullptr;
    classObject = nullptr;
    classClass = nullptr;
-   classThrowable = nullptr;
    classString = nullptr;
    classField = nullptr;
    classMethod = nullptr;

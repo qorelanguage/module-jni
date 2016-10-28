@@ -35,6 +35,7 @@
 #include "LocalReference.h"
 #include "Object.h"
 #include "Globals.h"
+#include "Env.h"
 
 extern QoreClass* QC_JAVAARRAY;
 extern qore_classid_t CID_JAVAARRAY;
@@ -67,6 +68,9 @@ public:
    DLLLOCAL void set(int64 index, const QoreValue &value);
 
    DLLLOCAL static void set(jarray array, Type elementType, jclass elementClass, int64 index, const QoreValue &value);
+
+   DLLLOCAL static QoreListNode* getList(Env& env, jarray array, jclass arrayClass);
+   DLLLOCAL static QoreValue get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index, bool to_qore);
 
    DLLLOCAL static LocalReference<jarray> getNew(Type elementType, jclass elementClass, jsize size);
 

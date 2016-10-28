@@ -20,6 +20,8 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     public QoreURLClassLoader() {
 	super(((URLClassLoader)ClassLoader.getSystemClassLoader()).getURLs());
+	// set the current classloader as the thread context classloader
+	setContext();
     }
 
     public void addPathOrig(String path) throws Exception {
@@ -27,13 +29,34 @@ public class QoreURLClassLoader extends URLClassLoader {
 	super.addURL(new URL("file", null, 0, path));
     }
 
+    /*
+    protected Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
+	debugLog("loadClass: " + name + " resolve: " + resolve);
+	try {
+	    Class rv = super.loadClass(name, resolve);
+	    debugLog("got: " + rv);
+	    return rv;
+	}
+	catch (ClassNotFoundException e) {
+	    debugLog("no class found");
+	    throw e;
+	}
+    }
+    */
+
+    // sets the current classloader as the thread's contextual class loader
+    public void setContext() {
+	Thread.currentThread().setContextClassLoader(this);
+    }
+
     synchronized protected Class findClass(String name) throws ClassNotFoundException {
 	//debugLog("QoreURLClassLoader.findClass() " + name);
 
 	Class result = classes.get(name); // checks in cached classes
-        if (result != null) {
-            return result;
-        }
+	if (result != null) {
+	    //debugLog("findClass() FOUND " + name + " in cache");
+	    return result;
+	}
 
 	String pname = name.replace('.', File.separatorChar);
 	for (String path : classPathElements) {
@@ -55,72 +78,76 @@ public class QoreURLClassLoader extends URLClassLoader {
 	    }
 	}
 
-	throw new ClassNotFoundException(name);
+	//debugLog("QoreURLClassLoader.findClass() " + name);
+	return super.findClass(name);
     }
 
-    public void addPath(String cp) {
-	//System.out.println("addPath: " + cp);
+    public void addPath(String classpath) {
+	//debugLog("addPath: " + classpath);
 	String seps = File.pathSeparator; // separators
 
 	// want to accept both system separator and ';'
         if (!File.pathSeparator.equals(";")) {
-	    seps+=";";
+	    seps += ";";
 	}
-	for (StringTokenizer st = new StringTokenizer(cp, seps, false); st.hasMoreTokens();) {
-	    String pe = st.nextToken();
-	    String bn = null;
+	for (StringTokenizer st = new StringTokenizer(classpath, seps, false); st.hasMoreTokens();) {
+	    String pathentry = st.nextToken();
+	    String basename = null;
 
-	    if (pe.length() == 0) { continue; }
+	    if (pathentry.length() == 0) {
+		continue;
+	    }
 
-	    File fe = new File(pe);
-	    if (fe.getName().indexOf('*') != -1) {
-		bn = fe.getName();
-		fe = fe.getParentFile();
-		if (fe.getName().indexOf('*') != -1) {
-		    errorLog("Ignoring wildcard in classpath directory element '" + pe + "'");
+	    File fileentry = new File(pathentry);
+	    if (fileentry.getName().indexOf('*') != -1) {
+		basename = fileentry.getName();
+		fileentry = fileentry.getParentFile();
+		if (fileentry.getName().indexOf('*') != -1) {
+		    errorLog("Ignoring wildcard in classpath directory element '" + pathentry + "'");
 		    continue;
 		}
             }
 
-	    if (!fe.isAbsolute() && pe.charAt(0) != '/' && pe.charAt(0) != '\\') {
-		fe = new File(fe.getPath());
+	    if (!fileentry.isAbsolute() && pathentry.charAt(0) != '/' && pathentry.charAt(0) != '\\') {
+		fileentry = new File(fileentry.getPath());
 	    }
 	    try {
-		fe = fe.getCanonicalFile();
+		fileentry = fileentry.getCanonicalFile();
 	    }
 	    catch (IOException thr) {
-		errorLog("Ignoring non-existent classpath element '" + fe + "' (" + thr + ").");
+		errorLog("Ignoring non-existent classpath element '" + fileentry + "' (" + thr + ").");
 		continue;
 	    }
-	    if (bn != null && !bn.isEmpty()) {
-		fe = new File(fe, bn);
+	    if (basename != null && !basename.isEmpty()) {
+		fileentry = new File(fileentry, basename);
 	    }
-	    if (classPathElements.contains(fe.getPath())) {
-		//errorLog("Skipping duplicate classpath element '"+fe+"'.");
+	    if (classPathElements.contains(fileentry.getPath())) {
+		//errorLog("Skipping duplicate classpath element '" + fileentry + "'.");
 		continue;
 	    }
 	    else {
-		classPathElements.add(fe.getPath());
+		classPathElements.add(fileentry.getPath());
 	    }
 
-	    if (bn != null && !bn.isEmpty()) {
-		debugLog("addJars() parent: " + fe.getParentFile().getPath() + " bn: " + bn);
-		addJars(fe.getParentFile(),bn);
+	    if (basename != null && !basename.isEmpty()) {
+		//debugLog("addJars() parent: " + fileentry.getParentFile().getPath() + " basename: " + basename);
+		addJars(fileentry.getParentFile(), basename);
 	    }
-	    else if (!fe.exists()) { // s/never be due getCanonicalFile() above
-		errorLog("Could not find classpath element '"+fe+"'");
+	    else if (!fileentry.exists()) { // s/never be due getCanonicalFile() above
+		errorLog("Could not find classpath element '" + fileentry + "'");
 	    }
-	    else if (fe.isDirectory()) {
-		addURL(createUrl(fe));
+	    else if (fileentry.isDirectory()) {
+		addURL(createUrl(fileentry));
 	    }
-	    else if (fe.getName().toLowerCase().endsWith(".zip") || fe.getName().toLowerCase().endsWith(".jar")) {
-		addURL(createUrl(fe));
+	    else if (fileentry.getName().toLowerCase().endsWith(".zip") || fileentry.getName().toLowerCase().endsWith(".jar")) {
+		//infoLog("adding jar: " + fileentry.getName());
+		addURL(createUrl(fileentry));
 	    }
 	    else {
-		errorLog("ClassPath element '"+fe+"' is not an existing directory and is not a file ending with '.zip' or '.jar'");
+		errorLog("ClassPath element '" + fileentry + "' is not an existing directory and is not a file ending with '.zip' or '.jar'");
 	    }
         }
-	//infoLog("Class loader is using classpath: \""+classPath+"\".");
+	//infoLog("Class loader is using classpath: \"" + classPath + "\".");
     }
 
     void infoLog(String msg) {
@@ -128,7 +155,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     }
 
     void debugLog(String msg) {
-	System.out.println("QoreURLClassLoader INFO: " + msg);
+	System.out.println("QoreURLClassLoader DEBUG: " + msg);
     }
 
     void errorLog(String msg) {
@@ -179,18 +206,18 @@ public class QoreURLClassLoader extends URLClassLoader {
 	}
     }
 
-    private URL createUrl(File fe) {
+    private URL createUrl(File fileentry) {
 	try {
-	    URL url = fe.toURI().toURL();
+	    URL url = fileentry.toURI().toURL();
 	    //infoLog("Added URL: '" + url.toString() + "'");
-	    if (classPath.length()>0) {
+	    if (classPath.length() > 0) {
 		classPath += File.pathSeparator;
 	    }
-	    this.classPath+=fe.getPath();
+	    this.classPath += fileentry.getPath();
 	    return url;
 	}
 	catch (MalformedURLException thr) {
-	    errorLog("classpath element '" + fe + "' could not be used to create a valid file system URL (" + thr + ")");
+	    errorLog("classpath element '" + fileentry + "' could not be used to create a valid file system URL (" + thr + ")");
 	    return null;
         }
     }

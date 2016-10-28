@@ -8,6 +8,7 @@
 
 %requires jni
 %requires QUnit
+%requires Util
 
 %module-cmd(jni) add-relative-classpath java/bin
 
@@ -322,6 +323,13 @@ public class Main inherits QUnit::Test {
         usleep(200ms);
         assertEq(3, i);
         assertThrows("CALLBACK-ERROR", sub() { callNow.invoke(o); });
+        try {
+            doThrow.invoke();
+            assertEq(False, True);
+        }
+        catch (hash ex) {
+            assertEq(True, ex.callstack[0].file =~ /\.java/);
+        }
         h.destroy();
 
         h = new QoreJni::JavaInvocationHandler(sub(QoreJni::JavaMethod m, *QoreJni::JavaArray args) { doThrow.invoke(); });

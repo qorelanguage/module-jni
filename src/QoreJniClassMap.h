@@ -33,7 +33,6 @@
 
 DLLLOCAL QoreClass* initJavaObjectClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initJavaArrayClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initJavaThrowableClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initJavaClassClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initJavaFieldClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initJavaStaticFieldClass(QoreNamespace& ns);
@@ -59,6 +58,10 @@ extern qore_classid_t CID_CLASS;
 extern QoreClass* QC_CLASSLOADER;
 // the Qore class ID for java::lang::ClassLoader
 extern qore_classid_t CID_CLASSLOADER;
+// the QoreClass for java::lang::Throwable
+extern QoreClass* QC_THROWABLE;
+// the Qore class ID for java::lang::Throwable
+extern qore_classid_t CID_THROWABLE;
 
 // forward reference
 class Class;
@@ -74,7 +77,7 @@ public:
 
    DLLLOCAL void destroy(ExceptionSink& xsink);
 
-   DLLLOCAL QoreObject* getObject(const LocalReference<jobject>& jobj);
+   DLLLOCAL AbstractQoreNode* getObject(LocalReference<jobject>& jobj);
 
    DLLLOCAL QoreClass* findCreateClass(jclass jc);
 
@@ -169,7 +172,7 @@ private:
    GlobalReference<jobject> jobj;
 
 public:
-   DLLLOCAL QoreJniPrivateData(const LocalReference<jobject>& n_jobj) : jobj(n_jobj.makeGlobal()) {
+   DLLLOCAL QoreJniPrivateData(jobject n_jobj) : jobj(GlobalReference<jobject>::fromLocal(n_jobj)) {
    }
 
    DLLLOCAL jobject getObject() const {

@@ -28,11 +28,45 @@
 #include "Jvm.h"
 #include "LocalReference.h"
 #include "Globals.h"
-#include "Throwable.h"
+#include "QoreJniClassMap.h"
 
 namespace jni {
 
 thread_local QoreThreadAttacher qoreThreadAttacher;
+
+class JniCallStack : public QoreCallStack {
+public:
+   DLLLOCAL JniCallStack(jobject throwable) {
+      Env env;
+
+      try {
+         LocalReference<jobjectArray> jstack = env.callObjectMethod(throwable, Globals::methodThrowableGetStackTrace, nullptr).as<jobjectArray>();
+         if (jstack) {
+            Type elementType = Globals::getType(Globals::classStackTraceElement);
+            for (jsize i = 0, e = env.getArrayLength(jstack); i < e; ++i) {
+               LocalReference<jobject> jste = env.getObjectArrayElement(jstack, i);
+
+               LocalReference<jstring> jcls = env.callObjectMethod(jste, Globals::methodStackTraceElementGetClassName, nullptr).as<jstring>();
+               jni::Env::GetStringUtfChars cname(env, jcls);
+               LocalReference<jstring> jmethod = env.callObjectMethod(jste, Globals::methodStackTraceElementGetMethodName, nullptr).as<jstring>();
+               jni::Env::GetStringUtfChars mname(env, jmethod);
+               LocalReference<jstring> jfilename = env.callObjectMethod(jste, Globals::methodStackTraceElementGetFileName, nullptr).as<jstring>();
+               jni::Env::GetStringUtfChars file(env, jfilename);
+               jint line = env.callIntMethod(jste, Globals::methodStackTraceElementGetLineNumber, nullptr);
+               jboolean native = env.callBooleanMethod(jste, Globals::methodStackTraceElementIsNativeMethod, nullptr);
+
+               QoreStringMaker code("%s.%s", cname.c_str(), mname.c_str());
+
+               //printd(LogLevel, "JniCallStack::JniCallStack() adding %s\n", code.c_str());
+               add(native ? CT_BUILTIN : CT_USER, file.c_str(), line, line, code.c_str());
+            }
+         }
+      }
+      catch (jni::Exception& e) {
+         e.ignore();
+      }
+   }
+};
 
 void JavaException::ignore() {
    JNIEnv* env = Jvm::getEnv();         //not using the Env wrapper because we don't want any C++ exceptions here
@@ -115,7 +149,7 @@ void JavaException::convert(ExceptionSink *xsink) {
          return;
       }
       //if l is zero, it means that the xsink wrapped in QoreExceptionWrapper has already been consumed. This should
-      //not happen, but if it does, we simply report the QoreExceptionWrapper as if it was normal Java exception
+      //not happen, but if it does, we simply report the QoreExceptionWrapper as if it was a normal Java exception
    }
 
    LocalReference<jstring> excName = static_cast<jstring>(env->CallObjectMethod(env->GetObjectClass(throwable), Globals::methodClassGetName));
@@ -147,7 +181,11 @@ void JavaException::convert(ExceptionSink *xsink) {
          env->ReleaseStringUTFChars(msg, chars);
       }
    }
-   xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(QC_JAVATHROWABLE, getProgram(), new Throwable(throwable)), desc.release());
+
+   // add Java call stack to Qore call stack
+   JniCallStack stack(throwable);
+
+   xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(QC_THROWABLE, getProgram(), new QoreJniPrivateData(throwable.as<jobject>())), desc.release(), stack);
 }
 
 void JavaException::ignoreOrRethrowNoClass() {
@@ -204,7 +242,10 @@ void JavaException::ignoreOrRethrowNoClass() {
          env->ReleaseStringUTFChars(msg, chars);
       }
    }
-   xsink.raiseExceptionArg("JNI-ERROR", new QoreObject(QC_JAVATHROWABLE, getProgram(), new Throwable(throwable)), desc.release());
-}
 
+   // add Java call stack to Qore call stack
+   JniCallStack stack(throwable);
+
+   xsink.raiseExceptionArg("JNI-ERROR", new QoreObject(QC_THROWABLE, getProgram(), new QoreJniPrivateData(throwable.as<jobject>())), desc.release(), stack);
+}
 } // namespace jni

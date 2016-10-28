@@ -71,6 +71,14 @@ public:
 
    static GlobalReference<jclass> classThrowable;                       // java.lang.Throwable
    static jmethodID methodThrowableGetMessage;                          // String Throwable.getMessage()
+   static jmethodID methodThrowableGetStackTrace;                       // String Throwable.getStackTrace()
+
+   static GlobalReference<jclass> classStackTraceElement;               // java.lang.StackTraceElement
+   static jmethodID methodStackTraceElementGetClassName;                // String StackTraceElement.getClassName()
+   static jmethodID methodStackTraceElementGetFileName;                 // String StackTraceElement.getFileName()
+   static jmethodID methodStackTraceElementGetLineNumber;               // int StackTraceElement.getLineNumber()
+   static jmethodID methodStackTraceElementGetMethodName;               // String StackTraceElement.getMethodName()
+   static jmethodID methodStackTraceElementIsNativeMethod;              // boolean StackTraceElement.isNativeMethod()
 
    static GlobalReference<jclass> classString;                          // java.lang.String
 

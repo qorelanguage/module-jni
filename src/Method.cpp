@@ -36,7 +36,6 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreValueList* args, size_t ba
 
    size_t paramCount = paramTypes.size();
    size_t argCount = args == nullptr ? 0 : args->size() - base;
-
    if (paramCount > argCount) {
       throw BasicException("Too few arguments in a Java method invocation");
    }
@@ -46,6 +45,7 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreValueList* args, size_t ba
 
    std::vector<jvalue> jargs(paramCount);
    for (size_t index = 0; index < paramCount; ++index) {
+      assert(index + base < args->size());
       QoreValue qv = args->retrieveEntry(index + base);
 
       switch (paramTypes[index].first) {

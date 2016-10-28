@@ -62,32 +62,50 @@ LocalReference<jarray> Array::getNew(Type elementType, jclass elementClass, jsiz
    }
 }
 
-QoreValue Array::get(int64 index, bool to_qore) {
-   Env env;
+QoreListNode* Array::getList(Env& env, jarray array, jclass arrayClass) {
+   LocalReference<jclass> elementClass = env.callObjectMethod(arrayClass, Globals::methodClassGetComponentType, nullptr).as<jclass>();
+   Type elementType = Globals::getType(elementClass);
+
+   ExceptionSink xsink;
+   ReferenceHolder<QoreListNode> l(new QoreListNode, &xsink);
+
+   for (jsize i = 0, e = env.getArrayLength(array); i < e; ++i) {
+      l->push(get(env, array, elementType, elementClass, i, true).takeNode());
+   }
+
+   return l.release();
+}
+
+QoreValue Array::get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index, bool to_qore) {
    switch (elementType) {
       case Type::Boolean:
-         return JavaToQore::convert(env.getBooleanArrayElement(array.cast<jbooleanArray>(), index));
+         return JavaToQore::convert(env.getBooleanArrayElement(static_cast<jbooleanArray>(array), index));
       case Type::Byte:
-         return JavaToQore::convert(env.getByteArrayElement(array.cast<jbyteArray>(), index));
+         return JavaToQore::convert(env.getByteArrayElement(static_cast<jbyteArray>(array), index));
       case Type::Char:
-         return JavaToQore::convert(env.getCharArrayElement(array.cast<jcharArray>(), index));
+         return JavaToQore::convert(env.getCharArrayElement(static_cast<jcharArray>(array), index));
       case Type::Short:
-         return JavaToQore::convert(env.getShortArrayElement(array.cast<jshortArray>(), index));
+         return JavaToQore::convert(env.getShortArrayElement(static_cast<jshortArray>(array), index));
       case Type::Int:
-         return JavaToQore::convert(env.getIntArrayElement(array.cast<jintArray>(), index));
+         return JavaToQore::convert(env.getIntArrayElement(static_cast<jintArray>(array), index));
       case Type::Long:
-         return JavaToQore::convert(env.getLongArrayElement(array.cast<jlongArray>(), index));
+         return JavaToQore::convert(env.getLongArrayElement(static_cast<jlongArray>(array), index));
       case Type::Float:
-         return JavaToQore::convert(env.getFloatArrayElement(array.cast<jfloatArray>(), index));
+         return JavaToQore::convert(env.getFloatArrayElement(static_cast<jfloatArray>(array), index));
       case Type::Double:
-         return JavaToQore::convert(env.getDoubleArrayElement(array.cast<jdoubleArray>(), index));
+         return JavaToQore::convert(env.getDoubleArrayElement(static_cast<jdoubleArray>(array), index));
       case Type::Reference:
       default:
          assert(elementType == Type::Reference);
          return to_qore
-	    ? JavaToQore::convertToQore(env.getObjectArrayElement(array.cast<jobjectArray>(), index))
-	    : JavaToQore::convert(env.getObjectArrayElement(array.cast<jobjectArray>(), index));
+	    ? JavaToQore::convertToQore(env.getObjectArrayElement(static_cast<jobjectArray>(array), index))
+	    : JavaToQore::convert(env.getObjectArrayElement(static_cast<jobjectArray>(array), index));
    }
+}
+
+QoreValue Array::get(int64 index, bool to_qore) {
+   Env env;
+   return get(env, array, elementType, elementClass, index, to_qore);
 }
 
 void Array::set(int64 index, const QoreValue &value) {
