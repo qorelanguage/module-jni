@@ -1309,17 +1309,16 @@ public:
    class GetStringUtfChars {
    public:
       GetStringUtfChars(Env &env, const LocalReference<jstring> &str) :
-	 env(env), str(str),
-	 chars(str ? env.env->GetStringUTFChars(str, nullptr): nullptr) {
+         env(env), str(str),
+         chars(str ? env.env->GetStringUTFChars(str, nullptr): nullptr) {
          if (str && chars == nullptr) {
             throw new JavaException();
          }
       }
 
-
       ~GetStringUtfChars() {
          if (str)
-	    env.env->ReleaseStringUTFChars(str, chars);
+            env.env->ReleaseStringUTFChars(str, chars);
       }
 
       const char *c_str() const {
