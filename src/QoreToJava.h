@@ -92,7 +92,7 @@ public:
       const AbstractQoreNode* n = src.getExceptionArg();
       if (n && n->getType() == NT_OBJECT) {
          const QoreObject* o = static_cast<const QoreObject*>(n);
-	 if (o->getClass(CID_THROWABLE) != nullptr) {
+         if (o->getClass(CID_THROWABLE) != nullptr) {
             ExceptionSink tempSink;
             SimpleRefHolder<QoreJniPrivateData> obj(static_cast<QoreJniPrivateData*>(o->getReferencedPrivateData(CID_THROWABLE, &tempSink)));
             if (!tempSink) {
