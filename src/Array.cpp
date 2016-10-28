@@ -105,31 +105,7 @@ QoreValue Array::get(Env& env, jarray array, Type elementType, jclass elementCla
 
 QoreValue Array::get(int64 index, bool to_qore) {
    Env env;
-   //return get(env, array, elementType, elementClass, index, to_qore);
-   switch (elementType) {
-      case Type::Boolean:
-         return JavaToQore::convert(env.getBooleanArrayElement(array.cast<jbooleanArray>(), index));
-      case Type::Byte:
-         return JavaToQore::convert(env.getByteArrayElement(array.cast<jbyteArray>(), index));
-      case Type::Char:
-         return JavaToQore::convert(env.getCharArrayElement(array.cast<jcharArray>(), index));
-      case Type::Short:
-         return JavaToQore::convert(env.getShortArrayElement(array.cast<jshortArray>(), index));
-      case Type::Int:
-         return JavaToQore::convert(env.getIntArrayElement(array.cast<jintArray>(), index));
-      case Type::Long:
-         return JavaToQore::convert(env.getLongArrayElement(array.cast<jlongArray>(), index));
-      case Type::Float:
-         return JavaToQore::convert(env.getFloatArrayElement(array.cast<jfloatArray>(), index));
-      case Type::Double:
-         return JavaToQore::convert(env.getDoubleArrayElement(array.cast<jdoubleArray>(), index));
-      case Type::Reference:
-      default:
-         assert(elementType == Type::Reference);
-         return to_qore
-	    ? JavaToQore::convertToQore(env.getObjectArrayElement(array.cast<jobjectArray>(), index))
-	    : JavaToQore::convert(env.getObjectArrayElement(array.cast<jobjectArray>(), index));
-   }
+   return get(env, array, elementType, elementClass, index, to_qore);
 }
 
 void Array::set(int64 index, const QoreValue &value) {
