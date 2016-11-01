@@ -34,11 +34,11 @@ public class Main inherits QUnit::Test {
         addTestCase("static fields access test", \testStaticFields());
         addTestCase("instance fields access test", \testInstanceFields());
         addTestCase("callback test", \testCallback());
-
-        /*
         addTestCase("constructor test", \testConstructor());
         addTestCase("string test", \testString());
-        addTestCase("array test", \testArray());
+        #addTestCase("array test", \testArray());
+
+        /*
         addTestCase("dispatcher destructor throws a Qore exception", \testDispatchDtorThrows());
         addTestCase("callback return value test", \testCallbackRetVal());
         addTestCase("special conversions test", \testSpecialConversions());
@@ -371,7 +371,7 @@ public class Main inherits QUnit::Test {
             assertEq(False, True);
         }
         catch (hash ex) {
-            assertEq(True, ex.callstack[0].file =~ /\.java/);
+            assertEq(True, ex.callstack[0].file =~ /\.java$/);
         }
         h.destroy();
 
@@ -382,23 +382,23 @@ public class Main inherits QUnit::Test {
         h.destroy();
     }
 
-    /*
     testConstructor() {
-        QoreJni::JavaClass cls = QoreJni::load_java_class("java/lang/Integer");
-        QoreJni::JavaConstructor ctor = cls.getConstructor("(I)V");
-        QoreJni::JavaObject obj = ctor.newInstance(42);
-        assertEq(42, cls.getMethod("intValue", "()I").invoke(obj));
+        Class cls = QoreJni::load_class("java/lang/Integer");
+        Constructor ctor = cls.getConstructor((Integer::TYPE,));
+        int i = ctor.newInstance((42,));
+        assertEq(42, cls.getDeclaredMethod("intValue").invoke(i));
     }
 
     testString() {
-        QoreJni::JavaClass cls = QoreJni::load_java_class("java/lang/Integer");
-        QoreJni::JavaObject obj = cls.getStaticMethod("valueOf", "(Ljava/lang/String;)Ljava/lang/Integer;").invoke("42");
-        assertEq(42, cls.getMethod("intValue", "()I").invoke(obj));
+        Class cls = load_class("java/lang/Integer");
+        int i = cls.getMethod("valueOf", (load_class("java/lang/String"),)).invoke(NOTHING, ("42",));
+        assertEq(42, cls.getMethod("intValue").invoke(i));
 
-        obj = cls.getConstructor("(I)V").newInstance(123);
-        assertEq("123", cls.getMethod("toString", "()Ljava/lang/String;").invoke(obj));
+        i = cls.getConstructor((Integer::TYPE,)).newInstance((123,));
+        assertEq("123", cls.getMethod("toString").invoke(i));
     }
 
+    /*
     testArray() {
         QoreJni::JavaArray a = QoreJni::new_boolean_array(3);
         a.set(0, True);

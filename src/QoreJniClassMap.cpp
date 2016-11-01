@@ -160,6 +160,10 @@ void QoreJniClassMap::init() {
 
    // add "QoreJni" to "Jni" namespace
    default_jns->addInitialNamespace(qorejni);
+
+   // rescan all classes
+   for (auto& i : jcmap)
+      i.second->rescanParents();
 }
 
 void QoreJniClassMap::destroy(ExceptionSink& xsink) {
@@ -370,9 +374,6 @@ QoreClass* QoreJniClassMap::createClassIntern(QoreNamespace* ns, QoreNamespace& 
    if (mods & JVM_ACC_FINAL)
       qc->setFinal();
 
-   // save class in namespace
-   ns->addSystemClass(qc);
-
    printd(LogLevel, "QoreJniClassMap::createClass() qc: %p ns: %p '%s::%s'\n", qc, ns, ns->getName(), qc->getName());
 
    // add to class maps
@@ -380,7 +381,7 @@ QoreClass* QoreJniClassMap::createClassIntern(QoreNamespace* ns, QoreNamespace& 
 
    Class* parent = jc->getSuperClass();
 
-   printd(LogLevel, "QoreJniClassMap::createClass() '%s' parent: %p\n", qc->getName(), parent);
+   printd(LogLevel, "QoreJniClassMap::createClass() '%s' parent: %p\n", jpath, parent);
 
    // add superclass
    if (parent)
@@ -388,14 +389,15 @@ QoreClass* QoreJniClassMap::createClassIntern(QoreNamespace* ns, QoreNamespace& 
    else if (qc != QC_OBJECT) // make interface classes at least inherit Object
       qc->addBuiltinVirtualBaseClass(QC_OBJECT);
 
-   populateQoreClass(*qc, jc);
-
    // get and process interfaces
    Env env;
    LocalReference<jobjectArray> interfaceArray = jc->getInterfaces();
+
    for (jsize i = 0, e = env.getArrayLength(interfaceArray); i < e; ++i) {
       addSuperClass(*qc, new Class(env.getObjectArrayElement(interfaceArray, i).as<jclass>()));
    }
+
+   populateQoreClass(*qc, jc);
 
    // add to target namespace if not default
    if (&jns != default_jns) {
@@ -405,13 +407,13 @@ QoreClass* QoreJniClassMap::createClassIntern(QoreNamespace* ns, QoreNamespace& 
       // copy class for assignment
       qc = new QoreClass(*qc);
 
-      printd(LogLevel, "QoreJniClassMap::createClass() qc: %p ns: %p '%s::%s'\n", qc, ns, ns->getName(), qc->getName());
-
-      // save class in namespace
-      ns->addSystemClass(qc);
+      printd(LogLevel, "QoreJniClassMap::createClass() '%s' qc: %p ns: %p '%s::%s'\n", jpath, qc, ns, ns->getName(), qc->getName());
    }
 
-   printd(LogLevel, "QoreJniClassMap::createClass() returning qc: %p ns: %p '%s' -> '%s::%s'\n", qc, ns, jpath, ns->getName(), qc->getName());
+   printd(LogLevel, "QoreJniClassMap::createClass() '%s' returning qc: %p ns: %p -> '%s::%s'\n", jpath, qc, ns, ns->getName(), qc->getName());
+
+   // save class in namespace
+   ns->addSystemClass(qc);
 
    return qc;
 }
@@ -426,11 +428,12 @@ void QoreJniClassMap::addSuperClass(QoreClass& qc, jni::Class* parent) {
    QoreString jpath(chars.c_str());
    jpath.replaceAll(".", "/");
    QoreClass* pc = find(jpath.c_str());
-   if (pc)
+   if (pc) {
       parent->deref();
-   else
-      //pc = createClass(*default_jns, chars.c_str(), jpath.c_str(), jni::Functions::loadClass(jpath));
+   }
+   else {
       pc = createClass(*default_jns, chars.c_str(), jpath.c_str(), loadClass(jpath));
+   }
 
    qc.addBuiltinVirtualBaseClass(pc);
 }
