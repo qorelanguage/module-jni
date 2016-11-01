@@ -1,5 +1,7 @@
 package org.qore.jni.test;
 
+import java.lang.reflect.*;
+
 public class Callbacks {
 
     static void callNow(Runnable r) {
@@ -16,6 +18,8 @@ public class Callbacks {
             return false;
         } catch (MyException e) {
             return true;
+        } catch (UndeclaredThrowableException e) {
+            return ((InvocationTargetException)e.getCause()).getTargetException() instanceof MyException ? true : false;
         }
     }
 

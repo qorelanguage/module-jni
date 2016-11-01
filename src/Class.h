@@ -105,6 +105,11 @@ public:
 
    DLLLOCAL void trackMethod(BaseMethod* m);
 
+   // returns a local reference to the jclass
+   DLLLOCAL jclass toLocal() {
+      return cls.toLocal();
+   }
+
 private:
    GlobalReference<jclass> cls;
    // for tracking Method objects associated with this Class

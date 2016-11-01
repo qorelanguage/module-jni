@@ -54,6 +54,10 @@ extern qore_classid_t CID_OBJECT;
 extern QoreClass* QC_CLASS;
 // the Qore class ID for java::lang::Class
 extern qore_classid_t CID_CLASS;
+// the QoreClass for java::lang::reflect::Method
+extern QoreClass* QC_METHOD;
+// the Qore class ID for java::reflect::Method
+extern qore_classid_t CID_METHOD;
 // the QoreClass for java::lang::ClassLoader
 extern QoreClass* QC_CLASSLOADER;
 // the Qore class ID for java::lang::ClassLoader
@@ -77,7 +81,7 @@ public:
 
    DLLLOCAL void destroy(ExceptionSink& xsink);
 
-   DLLLOCAL AbstractQoreNode* getObject(LocalReference<jobject>& jobj);
+   DLLLOCAL QoreValue getValue(LocalReference<jobject>& jobj);
 
    DLLLOCAL QoreClass* findCreateClass(jclass jc);
 
@@ -96,11 +100,15 @@ public:
 
    DLLLOCAL QoreClass* loadCreateClass(QoreNamespace& jns, const char* cstr);
 
-   DLLLOCAL LocalReference<jobject> getJavaObject(const QoreObject* o);
+   DLLLOCAL jobject getJavaObject(const QoreObject* o);
 
-   DLLLOCAL LocalReference<jarray> getJavaArray(const QoreListNode* l, jclass cls);
+   DLLLOCAL jarray getJavaArray(const QoreListNode* l, jclass cls);
 
    DLLLOCAL void addClasspath(const char* path);
+
+   DLLLOCAL jclass findLoadClass(const char* name);
+
+   DLLLOCAL jclass findLoadClass(const QoreString& name);
 
    DLLLOCAL Class* loadClass(const char* name);
 
@@ -131,12 +139,12 @@ protected:
    QoreNamespace* default_jns;
    bool init_done;
 
-   DLLLOCAL void addIntern(const char* name, Class* jc, QoreClass* qc) {
-      //printd(LogLevel, "QoreJniClassMap::addIntern() name: %s jc: %p qc: %p (%s)\n", name, jc, qc, qc->getName());
+   DLLLOCAL void addIntern(const char* name, QoreClass* qc) {
+      printd(LogLevel, "QoreJniClassMap::addIntern() name: %s qc: %p (%s)\n", name, qc, qc->getName());
 
 #ifdef DEBUG
       if (jcmap.find(name) != jcmap.end())
-         printd(0, "QoreJniClassMap::addIntern() name: %s jc: %p qc: %p (%s)\n", name, jc, qc, qc->getName());
+         printd(0, "QoreJniClassMap::addIntern() name: %s qc: %p (%s)\n", name, qc, qc->getName());
 #endif
 
       assert(jcmap.find(name) == jcmap.end());
@@ -164,7 +172,7 @@ protected:
    DLLLOCAL QoreClass* createClassIntern(QoreNamespace* ns, QoreNamespace& jns, const char* name, const char* jpath, Class* jc, QoreClass* qc);
 
 private:
-   DLLLOCAL LocalReference<jarray> getJavaArrayIntern(Env& env, const QoreListNode* l, jclass cls);
+   DLLLOCAL jarray getJavaArrayIntern(Env& env, const QoreListNode* l, jclass cls);
 };
 
 class QoreJniPrivateData : public AbstractPrivateData {
@@ -179,7 +187,7 @@ public:
       return jobj;
    }
 
-   DLLLOCAL LocalReference<jobject> getLocalReference() const {
+   DLLLOCAL jobject getLocalReference() const {
       return jobj.toLocal();
    }
 };

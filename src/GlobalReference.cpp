@@ -30,11 +30,18 @@
 namespace jni {
 
 template<>
-LocalReference<jobject> GlobalReference<jobject>::toLocal() const {
+jobject GlobalReference<jobject>::toLocal() const {
    jobject local = Jvm::getEnv()->NewLocalRef(ref);
    if (local == nullptr)
       throw JavaException();
    return local;
 }
 
+template<>
+jclass GlobalReference<jclass>::toLocal() const {
+   jclass local = static_cast<jclass>(Jvm::getEnv()->NewLocalRef(ref));
+   if (local == nullptr)
+      throw JavaException();
+   return local;
+}
 }

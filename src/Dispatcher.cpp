@@ -70,7 +70,7 @@ jobject QoreCodeDispatcher::dispatch(Env &env, jobject proxy, jobject method, jo
          QoreToJava::wrapException(xsink);
          return nullptr;
       }
-      return QoreToJava::toObject(qv, nullptr).release();
+      return QoreToJava::toObject(qv, nullptr);
    }
 }
 

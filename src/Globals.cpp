@@ -35,15 +35,15 @@
 
 namespace jni {
 
-GlobalReference<jclass> Globals::classVoid;
-GlobalReference<jclass> Globals::classBoolean;
-GlobalReference<jclass> Globals::classByte;
-GlobalReference<jclass> Globals::classChar;
-GlobalReference<jclass> Globals::classShort;
-GlobalReference<jclass> Globals::classInt;
-GlobalReference<jclass> Globals::classLong;
-GlobalReference<jclass> Globals::classFloat;
-GlobalReference<jclass> Globals::classDouble;
+GlobalReference<jclass> Globals::classPrimitiveVoid;
+GlobalReference<jclass> Globals::classPrimitiveBoolean;
+GlobalReference<jclass> Globals::classPrimitiveByte;
+GlobalReference<jclass> Globals::classPrimitiveChar;
+GlobalReference<jclass> Globals::classPrimitiveShort;
+GlobalReference<jclass> Globals::classPrimitiveInt;
+GlobalReference<jclass> Globals::classPrimitiveLong;
+GlobalReference<jclass> Globals::classPrimitiveFloat;
+GlobalReference<jclass> Globals::classPrimitiveDouble;
 
 GlobalReference<jclass> Globals::classObject;
 jmethodID Globals::methodObjectGetClass;
@@ -112,34 +112,87 @@ jmethodID Globals::ctorQoreURLClassLoader;
 jmethodID Globals::methodQoreURLClassLoaderAddPath;
 jmethodID Globals::methodQoreURLClassLoaderLoadClass;
 
+GlobalReference<jclass> Globals::classBoolean;
+jmethodID Globals::ctorBoolean;
+jmethodID Globals::methodBooleanBooleanValue;
+
+GlobalReference<jclass> Globals::classInteger;
+jmethodID Globals::ctorInteger;
+jmethodID Globals::methodIntegerIntValue;
+
+GlobalReference<jclass> Globals::classLong;
+jmethodID Globals::ctorLong;
+jmethodID Globals::methodLongLongValue;
+
+GlobalReference<jclass> Globals::classShort;
+jmethodID Globals::ctorShort;
+jmethodID Globals::methodShortShortValue;
+
+GlobalReference<jclass> Globals::classByte;
+jmethodID Globals::ctorByte;
+jmethodID Globals::methodByteByteValue;
+
+GlobalReference<jclass> Globals::classDouble;
+jmethodID Globals::ctorDouble;
+jmethodID Globals::methodDoubleDoubleValue;
+
+GlobalReference<jclass> Globals::classFloat;
+jmethodID Globals::ctorFloat;
+jmethodID Globals::methodFloatFloatValue;
+
+GlobalReference<jclass> Globals::classCharacter;
+jmethodID Globals::ctorCharacter;
+jmethodID Globals::methodCharacterCharValue;
+
 static void JNICALL invocation_handler_finalize(JNIEnv *, jclass, jlong ptr) {
    delete reinterpret_cast<Dispatcher *>(ptr);
 }
 
-static jobject JNICALL invocation_handler_invoke(JNIEnv *jenv, jobject, jlong ptr, jobject proxy, jobject method, jobjectArray args) {
+static jobject JNICALL invocation_handler_invoke(JNIEnv* jenv, jobject, jlong ptr, jobject proxy, jobject method, jobjectArray args) {
    Env env(jenv);
-   Dispatcher *dispatcher = reinterpret_cast<Dispatcher *>(ptr);
+   Dispatcher* dispatcher = reinterpret_cast<Dispatcher*>(ptr);
    return dispatcher->dispatch(env, proxy, method, args);
 }
 
-static void JNICALL qore_exception_wrapper_finalize(JNIEnv *, jclass, jlong ptr) {
-   ExceptionSink *xsink = reinterpret_cast<ExceptionSink *>(ptr);
+static void JNICALL qore_exception_wrapper_finalize(JNIEnv*, jclass, jlong ptr) {
+   ExceptionSink* xsink = reinterpret_cast<ExceptionSink*>(ptr);
+   //printd(LogLevel, "qore_exception_wrapper_finalize() xsink: %p\n", xsink);
    if (xsink != nullptr) {
       xsink->clear();
       delete xsink;
    }
 }
 
-static jstring JNICALL qore_exception_wrapper_get_message(JNIEnv *, jclass, jlong ptr) {
-   Env env;
-   ExceptionSink *xsink = reinterpret_cast<ExceptionSink *>(ptr);
+static jstring JNICALL qore_exception_wrapper_get_message(JNIEnv*, jclass, jlong ptr) {
+   ExceptionSink* xsink = reinterpret_cast<ExceptionSink*>(ptr);
 
-   const AbstractQoreNode *desc = xsink->getExceptionDesc();
-   if (desc != nullptr && desc->getType() == NT_STRING) {
-      ModifiedUtf8String str(*static_cast<const QoreStringNode*>(desc));
-      return env.newString(str.c_str()).release();
+   QoreString jstr;
+   const AbstractQoreNode* err = xsink->getExceptionErr();
+   QoreStringValueHelper err_str(err);
+   const AbstractQoreNode* desc = xsink->getExceptionDesc();
+   QoreStringValueHelper desc_str(desc);
+
+   if (!err_str->empty()) {
+      if (!desc_str->empty()) {
+         jstr.concat(err_str->c_str());
+         jstr.concat(": ");
+         jstr.concat(desc_str->c_str());
+      }
+      else
+         jstr.concat(err_str->c_str());
    }
-   return env.newString("No message").release();
+   else {
+      if (!desc_str->empty())
+         jstr.concat(desc_str->c_str());
+      else
+         jstr.concat("No message");
+   }
+
+   //printd(LogLevel, "qore_exception_wrapper_get_message() xsink: %p %s\n", xsink, jstr.c_str());
+
+   Env env;
+   ModifiedUtf8String str(jstr);
+   return env.newString(str.c_str()).release();
 }
 
 static JNINativeMethod invocationHandlerNativeMethods[2] = {
@@ -198,15 +251,15 @@ void Globals::init() {
    ctorQoreExceptionWrapper = env.getMethod(classQoreExceptionWrapper, "<init>", "(J)V");
    methodQoreExceptionWrapperGet = env.getMethod(classQoreExceptionWrapper, "get", "()J");
 
-   classVoid = getPrimitiveClass(env, "java/lang/Void");
-   classBoolean = getPrimitiveClass(env, "java/lang/Boolean");
-   classByte = getPrimitiveClass(env, "java/lang/Byte");
-   classChar = getPrimitiveClass(env, "java/lang/Character");
-   classShort = getPrimitiveClass(env, "java/lang/Short");
-   classInt = getPrimitiveClass(env, "java/lang/Integer");
-   classLong = getPrimitiveClass(env, "java/lang/Long");
-   classFloat = getPrimitiveClass(env, "java/lang/Float");
-   classDouble = getPrimitiveClass(env, "java/lang/Double");
+   classPrimitiveVoid = getPrimitiveClass(env, "java/lang/Void");
+   classPrimitiveBoolean = getPrimitiveClass(env, "java/lang/Boolean");
+   classPrimitiveByte = getPrimitiveClass(env, "java/lang/Byte");
+   classPrimitiveChar = getPrimitiveClass(env, "java/lang/Character");
+   classPrimitiveShort = getPrimitiveClass(env, "java/lang/Short");
+   classPrimitiveInt = getPrimitiveClass(env, "java/lang/Integer");
+   classPrimitiveLong = getPrimitiveClass(env, "java/lang/Long");
+   classPrimitiveFloat = getPrimitiveClass(env, "java/lang/Float");
+   classPrimitiveDouble = getPrimitiveClass(env, "java/lang/Double");
 
    classObject = env.findClass("java/lang/Object").makeGlobal();
    methodObjectGetClass = env.getMethod(classObject, "getClass", "()Ljava/lang/Class;");
@@ -260,20 +313,52 @@ void Globals::init() {
    ctorQoreURLClassLoader = env.getMethod(classQoreURLClassLoader, "<init>", "()V");
    methodQoreURLClassLoaderAddPath = env.getMethod(classQoreURLClassLoader, "addPath", "(Ljava/lang/String;)V");
    methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
+
+   classBoolean = env.findClass("java/lang/Boolean").makeGlobal();
+   ctorBoolean = env.getMethod(classBoolean, "<init>", "(Z)V");
+   methodBooleanBooleanValue = env.getMethod(classBoolean, "booleanValue", "()Z");
+
+   classInteger = env.findClass("java/lang/Integer").makeGlobal();
+   ctorInteger = env.getMethod(classInteger, "<init>", "(I)V");
+   methodIntegerIntValue = env.getMethod(classInteger, "intValue", "()I");
+
+   classDouble = env.findClass("java/lang/Double").makeGlobal();
+   ctorDouble = env.getMethod(classDouble, "<init>", "(D)V");
+   methodDoubleDoubleValue = env.getMethod(classDouble, "doubleValue", "()D");
+
+   classLong = env.findClass("java/lang/Long").makeGlobal();
+   ctorLong = env.getMethod(classLong, "<init>", "(J)V");
+   methodLongLongValue = env.getMethod(classLong, "longValue", "()J");
+
+   classShort = env.findClass("java/lang/Short").makeGlobal();
+   ctorShort = env.getMethod(classShort, "<init>", "(S)V");
+   methodShortShortValue = env.getMethod(classShort, "shortValue", "()S");
+
+   classByte = env.findClass("java/lang/Byte").makeGlobal();
+   ctorByte = env.getMethod(classByte, "<init>", "(B)V");
+   methodByteByteValue = env.getMethod(classByte, "byteValue", "()B");
+
+   classFloat = env.findClass("java/lang/Float").makeGlobal();
+   ctorFloat = env.getMethod(classFloat, "<init>", "(F)V");
+   methodFloatFloatValue = env.getMethod(classFloat, "floatValue", "()F");
+
+   classCharacter = env.findClass("java/lang/Character").makeGlobal();
+   ctorCharacter = env.getMethod(classCharacter, "<init>", "(C)V");
+   methodCharacterCharValue = env.getMethod(classCharacter, "charValue", "()C");
 }
 
 void Globals::cleanup() {
    classThrowable = nullptr;
    classStackTraceElement = nullptr;
-   classVoid = nullptr;
-   classBoolean = nullptr;
-   classByte = nullptr;
-   classChar = nullptr;
-   classShort = nullptr;
-   classInt = nullptr;
-   classLong = nullptr;
-   classFloat = nullptr;
-   classDouble = nullptr;
+   classPrimitiveVoid = nullptr;
+   classPrimitiveBoolean = nullptr;
+   classPrimitiveByte = nullptr;
+   classPrimitiveChar = nullptr;
+   classPrimitiveShort = nullptr;
+   classPrimitiveInt = nullptr;
+   classPrimitiveLong = nullptr;
+   classPrimitiveFloat = nullptr;
+   classPrimitiveDouble = nullptr;
    classObject = nullptr;
    classClass = nullptr;
    classString = nullptr;
@@ -284,35 +369,43 @@ void Globals::cleanup() {
    classQoreExceptionWrapper = nullptr;
    classProxy = nullptr;
    classQoreURLClassLoader = nullptr;
+   classBoolean = nullptr;
+   classInteger = nullptr;
+   classLong = nullptr;
+   classShort = nullptr;
+   classByte = nullptr;
+   classDouble = nullptr;
+   classFloat = nullptr;
+   classCharacter = nullptr;
 }
 
 Type Globals::getType(jclass cls) {
    Env env;
-   if (env.isSameObject(cls, classInt)) {
+   if (env.isSameObject(cls, classPrimitiveInt)) {
       return Type::Int;
    }
-   if (env.isSameObject(cls, classVoid)) {
+   if (env.isSameObject(cls, classPrimitiveVoid)) {
       return Type::Void;
    }
-   if (env.isSameObject(cls, classBoolean)) {
+   if (env.isSameObject(cls, classPrimitiveBoolean)) {
       return Type::Boolean;
    }
-   if (env.isSameObject(cls, classByte)) {
+   if (env.isSameObject(cls, classPrimitiveByte)) {
       return Type::Byte;
    }
-   if (env.isSameObject(cls, classChar)) {
+   if (env.isSameObject(cls, classPrimitiveChar)) {
       return Type::Char;
    }
-   if (env.isSameObject(cls, classShort)) {
+   if (env.isSameObject(cls, classPrimitiveShort)) {
       return Type::Short;
    }
-   if (env.isSameObject(cls, classLong)) {
+   if (env.isSameObject(cls, classPrimitiveLong)) {
       return Type::Long;
    }
-   if (env.isSameObject(cls, classFloat)) {
+   if (env.isSameObject(cls, classPrimitiveFloat)) {
       return Type::Float;
    }
-   if (env.isSameObject(cls, classDouble)) {
+   if (env.isSameObject(cls, classPrimitiveDouble)) {
       return Type::Double;
    }
    return Type::Reference;

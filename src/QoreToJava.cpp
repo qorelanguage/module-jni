@@ -28,9 +28,62 @@
 
 namespace jni {
 
-LocalReference<jobject> QoreToJava::toObject(const QoreValue &value, jclass cls) {
+jobject QoreToJava::toAnyObject(const QoreValue &value) {
+   Env env;
+   switch (value.getType()) {
+      case NT_BOOLEAN: {
+	 jvalue arg;
+	 arg.z = value.getAsBool();
+	 return env.newObject(Globals::classBoolean, Globals::ctorBoolean, &arg).release();
+      }
+      case NT_INT: {
+	 jvalue arg;
+	 arg.i = value.getAsBigInt();
+	 return env.newObject(Globals::classInteger, Globals::ctorInteger, &arg).release();
+      }
+      case NT_FLOAT: {
+	 jvalue arg;
+	 arg.d = value.getAsFloat();
+	 return env.newObject(Globals::classDouble, Globals::ctorDouble, &arg).release();
+      }
+      case NT_STRING: {
+	 ModifiedUtf8String str(*value.get<QoreStringNode>());
+	 Env env;
+	 return env.newString(str.c_str()).release();
+      }
+      case NT_OBJECT: {
+	 const QoreObject* o = value.get<QoreObject>();
+
+	 jobject javaObjectRef = qjcm.getJavaObject(o);
+	 if (javaObjectRef) {
+	    return javaObjectRef;
+	 }
+
+	 ExceptionSink xsink;
+	 TryPrivateDataRefHolder<ObjectBase> jo(o, CID_JAVAOBJECT, &xsink);
+	 if (jo)
+	    return jo->getLocalReference();
+	 break;
+      }
+      case NT_NOTHING:
+      case NT_NULL:
+	 return nullptr;
+      case NT_LIST:
+	 return Array::toJava(value.get<QoreListNode>()).release();
+   }
+   QoreStringMaker desc("don't know how to convert a value of type '%s' to a Java object (expecting 'java.lang.Object')", value.getTypeName());
+   throw BasicException(desc.c_str());
+}
+
+jobject QoreToJava::toObject(const QoreValue &value, jclass cls) {
    if (value.isNullOrNothing())
       return nullptr;
+
+   if (cls) {
+      Env env;
+      if (env.isSameObject(cls, Globals::classObject))
+	 return toAnyObject(value);
+   }
 
    LocalReference<jobject> javaObjectRef;
    switch (value.getType()) {
@@ -41,7 +94,7 @@ LocalReference<jobject> QoreToJava::toObject(const QoreValue &value, jclass cls)
 	 break;
       }
       case NT_LIST: {
-	 javaObjectRef = qjcm.getJavaArray(value.get<QoreListNode>(), cls).as<jobject>();
+	 javaObjectRef = static_cast<jobject>(qjcm.getJavaArray(value.get<QoreListNode>(), cls));
 	 break;
       }
       case NT_OBJECT: {
@@ -54,6 +107,15 @@ LocalReference<jobject> QoreToJava::toObject(const QoreValue &value, jclass cls)
 	    if (!jo) {
 	       if (xsink)
 		  throw XsinkException(xsink);
+
+	       if (cls) {
+		  Env env;
+		  LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
+		  Env::GetStringUtfChars cname(env, clsName);
+		  QoreStringMaker desc("A Java object argument of class '%s' expected; got object of class '%s' instead", cname.c_str(), o->getClassName());
+		  throw BasicException(desc.c_str());
+	       }
+
 	       QoreStringMaker desc("A Java object argument expected; got object of class '%s' instead", o->getClassName());
 	       throw BasicException(desc.c_str());
 	    }
@@ -63,6 +125,14 @@ LocalReference<jobject> QoreToJava::toObject(const QoreValue &value, jclass cls)
 	 break;
       }
       default: {
+	 if (cls) {
+	    Env env;
+	    LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
+	    Env::GetStringUtfChars cname(env, clsName);
+	    QoreStringMaker desc("A Java object argument of class '%s' expected; got type '%s' instead", cname.c_str(), value.getTypeName());
+	    throw BasicException(desc.c_str());
+	 }
+
 	 QoreStringMaker desc("A Java object argument expected; got type '%s' instead", value.getTypeName());
 	 throw BasicException(desc.c_str());
       }
@@ -83,7 +153,7 @@ LocalReference<jobject> QoreToJava::toObject(const QoreValue &value, jclass cls)
 	 throw BasicException(str.c_str());
       }
    }
-   return javaObjectRef;
+   return javaObjectRef.release();
 }
 
 }

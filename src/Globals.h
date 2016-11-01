@@ -42,15 +42,15 @@ enum class Type {
 class Globals {
 
 public:
-   static GlobalReference<jclass> classVoid;                            // class for the void return type
-   static GlobalReference<jclass> classBoolean;                         // class for the primitive type boolean
-   static GlobalReference<jclass> classByte;                            // class for the primitive type byte
-   static GlobalReference<jclass> classChar;                            // class for the primitive type char
-   static GlobalReference<jclass> classShort;                           // class for the primitive type short
-   static GlobalReference<jclass> classInt;                             // class for the primitive type int
-   static GlobalReference<jclass> classLong;                            // class for the primitive type long
-   static GlobalReference<jclass> classFloat;                           // class for the primitive type float
-   static GlobalReference<jclass> classDouble;                          // class for the primitive type double
+   static GlobalReference<jclass> classPrimitiveVoid;                   // class for the void return type
+   static GlobalReference<jclass> classPrimitiveBoolean;                // class for the primitive type boolean
+   static GlobalReference<jclass> classPrimitiveByte;                   // class for the primitive type byte
+   static GlobalReference<jclass> classPrimitiveChar;                   // class for the primitive type char
+   static GlobalReference<jclass> classPrimitiveShort;                  // class for the primitive type short
+   static GlobalReference<jclass> classPrimitiveInt;                    // class for the primitive type int
+   static GlobalReference<jclass> classPrimitiveLong;                   // class for the primitive type long
+   static GlobalReference<jclass> classPrimitiveFloat;                  // class for the primitive type float
+   static GlobalReference<jclass> classPrimitiveDouble;                 // class for the primitive type double
 
    static GlobalReference<jclass> classObject;                          // java.lang.Object
    static jmethodID methodObjectGetClass;                               // Class<?> Object.getClass()
@@ -118,6 +118,38 @@ public:
    static jmethodID ctorQoreURLClassLoader;                             // QoreURLClassLoader()
    static jmethodID methodQoreURLClassLoaderAddPath;                    // void QoreURLClassLoader.addPath(String)
    static jmethodID methodQoreURLClassLoaderLoadClass;                  // Class QoreURLClassLoader.loadClass(String)
+
+   static GlobalReference<jclass> classBoolean;                         // java.lang.Boolean
+   static jmethodID ctorBoolean;                                        // Boolean(boolean)
+   static jmethodID methodBooleanBooleanValue;                          // boolean Boolean.booleanValue()
+
+   static GlobalReference<jclass> classInteger;                         // java.lang.Integer
+   static jmethodID ctorInteger;                                        // Integer(int)
+   static jmethodID methodIntegerIntValue;                              // int Integer.intValue()
+
+   static GlobalReference<jclass> classLong;                            // java.lang.Long
+   static jmethodID ctorLong;                                           // Long(long)
+   static jmethodID methodLongLongValue;                                // long Long.longValue()
+
+   static GlobalReference<jclass> classShort;                           // java.lang.Short
+   static jmethodID ctorShort;                                          // Short(short)
+   static jmethodID methodShortShortValue;                              // short Short.shortValue()
+
+   static GlobalReference<jclass> classByte;                            // java.lang.Byte
+   static jmethodID ctorByte;                                           // Byte(byte)
+   static jmethodID methodByteByteValue;                                // byte Byte.byteValue()
+
+   static GlobalReference<jclass> classDouble;                          // java.lang.Double
+   static jmethodID ctorDouble;                                         // Double(double)
+   static jmethodID methodDoubleDoubleValue;                            // double Double.doubleValue()
+
+   static GlobalReference<jclass> classFloat;                           // java.lang.Float
+   static jmethodID ctorFloat;                                          // Float(float)
+   static jmethodID methodFloatFloatValue;                              // float Float.floatValue()
+
+   static GlobalReference<jclass> classCharacter;                       // java.lang.Character
+   static jmethodID ctorCharacter;                                      // Character(char)
+   static jmethodID methodCharacterCharValue;                           // char Character.charValue()
 
 public:
    static void init();

@@ -29,6 +29,7 @@
 */
 
 #include "Functions.h"
+#include "Method.h"
 #include "QoreJniClassMap.h"
 
 using namespace jni;
@@ -46,7 +47,7 @@ extern QoreClass* QC_JAVACLASS;
 string get_version() {
    try {
       return jni::Functions::getVersion();
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -54,19 +55,91 @@ string get_version() {
 
 //! Loads a Java class with given name.
 /**
-    @param name the name of the class to load in internal format (use slash instead of dot to separate packages)
+    @param name the name of the class to load in internal (\c "java/lang/String") format
+
     @return the loaded class
+
     @throws JNI-ERROR if the class cannot be loaded
 
     @par Example:
     @code{.py}
-    Jni::load_class("java/lang/String");
+    Class c = Jni::load_class("java/lang/String");
     @endcode
  */
-Jni::QoreJni::JavaClass load_class(string name) {
+Jni::java::lang::Class load_class(string name) {
+   try {
+      return new QoreObject(QC_CLASS, getProgram(), new QoreJniPrivateData(qjcm.findLoadClass(*name)));
+   } catch (jni::Exception& e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Invokes a method with the given arguments in a non-virtual way; meaning that even if the object provided is a child class, the method given in the first argument is executed
+/** @param method the method to invoke
+    @param object the object to use to invoke the method; for static methods, this argument can be @ref nothing
+
+    @note
+    - reflection is not used, so exceptions are thrown directly (i.e. not wrapped as \c java.lang.reflect.InvocationTargetException objects)
+    - for static method invocations, this function is identical to @ref invoke_nonvirtual()
+ */
+Jni::java::lang::Object invoke(Jni::java::lang::reflect::Method[QoreJniPrivateData] method, *Jni::java::lang::Object[QoreJniPrivateData] object, ...) {
+   ReferenceHolder<QoreJniPrivateData> m_holder(method, xsink);
+   ReferenceHolder<QoreJniPrivateData> obj_holder(object, xsink);
+   try {
+      Env env;
+      SimpleRefHolder<Class> cls(new Class(env.callObjectMethod(method->getObject(), Globals::methodMethodGetDeclaringClass, nullptr).as<jclass>()));
+      BaseMethod m(method->getObject(), *cls);
+      return object
+         ? m.invoke(object->getObject(), args, true, 2)
+         : m.invokeStatic(args, true, 2);
+   } catch (jni::Exception& e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Invokes a method with the given arguments in a non-virtual way; meaning that even if the object provided is a child class, the method given in the first argument is executed
+/** @param method the method to invoke
+    @param object the object to use to invoke the method; for static methods, this argument can be @ref nothing
+
+    @note
+    - reflection is not used, so exceptions are thrown directly (i.e. not wrapped as \c java.lang.reflect.InvocationTargetException objects)
+    - for static method invocations, this function is identical to @ref invoke()
+ */
+Jni::java::lang::Object invoke_nonvirtual(Jni::java::lang::reflect::Method[QoreJniPrivateData] method, *Jni::java::lang::Object[QoreJniPrivateData] object, ...) {
+   ReferenceHolder<QoreJniPrivateData> m_holder(method, xsink);
+   ReferenceHolder<QoreJniPrivateData> obj_holder(object, xsink);
+   try {
+      Env env;
+      SimpleRefHolder<Class> cls(new Class(env.callObjectMethod(method->getObject(), Globals::methodMethodGetDeclaringClass, nullptr).as<jclass>()));
+      BaseMethod m(method->getObject(), *cls);
+      return object
+         ? m.invokeNonvirtual(object->getObject(), args, true, 2)
+         : m.invokeStatic(args, true, 2);
+   } catch (jni::Exception& e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Loads a Java class with given name.
+/**
+    @param name the name of the class to load internal (\c "java/lang/String") format
+
+    @return the loaded class
+
+    @throws JNI-ERROR if the class cannot be loaded
+
+    @par Example:
+    @code{.py}
+    JavaClass c = Jni::load_java_class("java/lang/String");
+    @endcode
+ */
+Jni::QoreJni::JavaClass load_java_class(string name) {
    try {
       return new QoreObject(QC_JAVACLASS, getProgram(), qjcm.loadClass(*name));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -91,7 +164,7 @@ Jni::QoreJni::JavaObject implement_interface(Jni::QoreJni::JavaInvocationHandler
    SimpleRefHolder<jni::Class> classHolder(cls);
    try {
       return new QoreObject(QC_JAVAOBJECT, getProgram(), new jni::Object(jni::Functions::implementInterface(nullptr, invocationHandler, cls->getJavaObject())));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -119,7 +192,7 @@ Jni::QoreJni::JavaObject implement_interface(Jni::QoreJni::JavaObject[jni::Objec
    SimpleRefHolder<jni::Class> classHolder(cls);
    try {
       return new QoreObject(QC_JAVAOBJECT, getProgram(), new jni::Object(jni::Functions::implementInterface(classLoader->getJavaObject(), invocationHandler, cls->getJavaObject())));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -154,7 +227,7 @@ Jni::java::lang::Object implement_interface(Jni::QoreJni::JavaInvocationHandler[
 
    try {
       return new QoreObject(qc, getProgram(), new QoreJniPrivateData(jni::Functions::implementInterface(nullptr, invocationHandler, jc)));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -192,7 +265,7 @@ Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJni
 
    try {
       return new QoreObject(qc, getProgram(), new QoreJniPrivateData(jni::Functions::implementInterface(classLoader->getObject(), invocationHandler, jc)));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -206,7 +279,7 @@ Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJni
 Jni::QoreJni::JavaArray new_boolean_array(int size) {
    try {
       return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newBooleanArray(size));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -220,7 +293,7 @@ Jni::QoreJni::JavaArray new_boolean_array(int size) {
 Jni::QoreJni::JavaArray new_byte_array(int size) {
    try {
       return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newByteArray(size));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -234,7 +307,7 @@ Jni::QoreJni::JavaArray new_byte_array(int size) {
 Jni::QoreJni::JavaArray new_char_array(int size) {
    try {
       return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newCharArray(size));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -248,7 +321,7 @@ Jni::QoreJni::JavaArray new_char_array(int size) {
 Jni::QoreJni::JavaArray new_short_array(int size) {
    try {
       return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newShortArray(size));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -262,7 +335,7 @@ Jni::QoreJni::JavaArray new_short_array(int size) {
 Jni::QoreJni::JavaArray new_int_array(int size) {
    try {
       return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newIntArray(size));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -276,7 +349,7 @@ Jni::QoreJni::JavaArray new_int_array(int size) {
 Jni::QoreJni::JavaArray new_long_array(int size) {
    try {
       return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newLongArray(size));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -290,7 +363,7 @@ Jni::QoreJni::JavaArray new_long_array(int size) {
 Jni::QoreJni::JavaArray new_float_array(int size) {
    try {
       return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newFloatArray(size));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -304,7 +377,7 @@ Jni::QoreJni::JavaArray new_float_array(int size) {
 Jni::QoreJni::JavaArray new_double_array(int size) {
    try {
       return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newDoubleArray(size));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -320,7 +393,7 @@ Jni::QoreJni::JavaArray new_object_array(int size, Jni::QoreJni::JavaClass[jni::
    SimpleRefHolder<jni::Class> classHolder(cls);
    try {
       return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newObjectArray(size, cls));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }

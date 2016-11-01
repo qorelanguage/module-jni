@@ -35,18 +35,15 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreValueList* args, size_t ba
    assert(base == 0 || (args != nullptr && args->size() >= base));
 
    size_t paramCount = paramTypes.size();
-   size_t argCount = args == nullptr ? 0 : args->size() - base;
-   if (paramCount > argCount) {
-      throw BasicException("Too few arguments in a Java method invocation");
-   }
+   // missing arguments are treated as null
+   size_t argCount = args == nullptr ? 0 : (args->size() - base);
    if (paramCount < argCount) {
       throw BasicException("Too many arguments in a Java method invocation");
    }
 
    std::vector<jvalue> jargs(paramCount);
    for (size_t index = 0; index < paramCount; ++index) {
-      assert(index + base < args->size());
-      QoreValue qv = args->retrieveEntry(index + base);
+      QoreValue qv = args ? args->retrieveEntry(index + base) : QoreValue();
 
       switch (paramTypes[index].first) {
          case Type::Boolean:
@@ -76,7 +73,7 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreValueList* args, size_t ba
          case Type::Reference:
          default:
             assert(paramTypes[index].first == Type::Reference);
-            jargs[index].l = QoreToJava::toObject(qv, paramTypes[index].second).release();
+            jargs[index].l = QoreToJava::toObject(qv, paramTypes[index].second);
             break;
       }
    }
@@ -84,12 +81,29 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreValueList* args, size_t ba
    return std::move(jargs);
 }
 
-QoreValue BaseMethod::invoke(jobject object, const QoreValueList* args, bool to_qore) {
-   std::vector<jvalue> jargs = convertArgs(args, to_qore ? 0 : 1);
+void BaseMethod::doObjectException(Env& env, jobject object) {
+   LocalReference<jclass> ocls = env.getObjectClass(object);
+   LocalReference<jstring> ocname = env.callObjectMethod(ocls, Globals::methodClassGetName, nullptr).as<jstring>();
+   Env::GetStringUtfChars ocn(env, ocname);
+
+   LocalReference<jstring> mcname = env.callObjectMethod(cls->getJavaObject(), Globals::methodClassGetName, nullptr).as<jstring>();
+   Env::GetStringUtfChars mcn(env, mcname);
+
+   QoreString mname;
+   getName(mname);
+
+   QoreStringMaker desc("cannot invoke method %s.%s() on an object of class '%s' (%p)", mcn.c_str(), mname.c_str(),  ocn.c_str(), object);
+   throw BasicException(desc.c_str());
+}
+
+QoreValue BaseMethod::invoke(jobject object, const QoreValueList* args, bool to_qore, int offset) {
+   if (offset == -1)
+      offset = to_qore ? 0 : 1;
+   std::vector<jvalue> jargs = convertArgs(args, offset);
 
    Env env;
    if (!env.isInstanceOf(object, cls->getJavaObject())) {
-      throw BasicException("Passed instance does not match the method's class");
+      doObjectException(env, object);
    }
    switch (retValType) {
       case Type::Boolean:
@@ -120,12 +134,14 @@ QoreValue BaseMethod::invoke(jobject object, const QoreValueList* args, bool to_
    }
 }
 
-QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreValueList* args, bool to_qore) {
-   std::vector<jvalue> jargs = convertArgs(args, to_qore ? 0 : 1);
+QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreValueList* args, bool to_qore, int offset) {
+   if (offset == -1)
+      offset = to_qore ? 0 : 1;
+   std::vector<jvalue> jargs = convertArgs(args, offset);
 
    Env env;
    if (!env.isInstanceOf(object, cls->getJavaObject())) {
-      throw BasicException("Passed instance does not match the method's class");
+      doObjectException(env, object);
    }
    switch (retValType) {
       case Type::Boolean:
@@ -156,8 +172,10 @@ QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreValueList* args
    }
 }
 
-QoreValue BaseMethod::invokeStatic(const QoreValueList* args, bool to_qore) {
-   std::vector<jvalue> jargs = convertArgs(args);
+QoreValue BaseMethod::invokeStatic(const QoreValueList* args, bool to_qore, int offset) {
+   if (offset == -1)
+      offset = 0;
+   std::vector<jvalue> jargs = convertArgs(args, offset);
 
    Env env;
    switch (retValType) {
