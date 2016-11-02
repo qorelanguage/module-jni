@@ -62,7 +62,7 @@ public:
    DLLLOCAL LocalReference<jobject> makeLocal() const {
       jobject ref = getJavaObject();
       if (ref == nullptr)
-	 return nullptr;
+         return nullptr;
       jobject local = static_cast<jobject>(Jvm::getEnv()->NewLocalRef(ref));
       if (local == nullptr)
          throw JavaException();

@@ -178,8 +178,9 @@ static jstring JNICALL qore_exception_wrapper_get_message(JNIEnv*, jclass, jlong
          jstr.concat(": ");
          jstr.concat(desc_str->c_str());
       }
-      else
+      else {
          jstr.concat(err_str->c_str());
+      }
    }
    else {
       if (!desc_str->empty())
