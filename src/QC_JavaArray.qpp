@@ -31,16 +31,33 @@
 #include <qore/Qore.h>
 
 #include "Array.h"
+#include "QoreJniClassMap.h"
+
+using namespace jni;
 
 //! Instances of this class represent Java arrays.
 /**
  */
-qclass JavaArray [arg=jni::Array* array; ns=Qore::Jni; flags=final; vparent=JavaObject];
+qclass JavaArray [arg=jni::Array* array; ns=Qore::Jni; flags=final];
 
 //! Defined private to prevent Qore code from creating instances.
 /**
  */
 private:internal JavaArray::constructor() {
+}
+
+//! Returns the class of the object.
+/**
+    @return the class of the object
+ */
+Class JavaArray::getClass() {
+   try {
+      jni::Env env;
+      return new QoreObject(QC_CLASS, getProgram(), new QoreJniPrivateData(env.getObjectClass(array->getJavaObject())));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
 }
 
 //! Returns the length of the array.
@@ -65,21 +82,6 @@ int JavaArray::length() {
 any JavaArray::get(int index) {
    try {
       return array->get(index);
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! Retrieves an element.
-/**
-    @param index the 0-based index of the element
-    @return the value of the element
-    @throws JNI-ERROR if the index is out of bounds
- */
-any JavaArray::getJava(int index) {
-   try {
-      return array->get(index, true);
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();

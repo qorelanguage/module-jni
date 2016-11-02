@@ -119,15 +119,6 @@ void QoreJniClassMap::init() {
    classLoader = env.newObject(Globals::classQoreURLClassLoader, Globals::ctorQoreURLClassLoader, nullptr).makeGlobal();
 
    QoreNamespace* qorejni = new QoreNamespace("QoreJni");
-   qorejni->addSystemClass(initJavaObjectClass(*qorejni));
-   qorejni->addSystemClass(initJavaInvocationHandlerClass(*qorejni));
-   qorejni->addSystemClass(initJavaArrayClass(*qorejni));
-   qorejni->addSystemClass(initJavaFieldClass(*qorejni));
-   qorejni->addSystemClass(initJavaStaticFieldClass(*qorejni));
-   qorejni->addSystemClass(initJavaMethodClass(*qorejni));
-   qorejni->addSystemClass(initJavaStaticMethodClass(*qorejni));
-   qorejni->addSystemClass(initJavaConstructorClass(*qorejni));
-   qorejni->addSystemClass(initJavaClassClass(*qorejni));
 
    // create java.lang namespace with automatic class loader handler
    QoreNamespace* javans = new QoreNamespace("java");
@@ -156,14 +147,19 @@ void QoreJniClassMap::init() {
    QC_THROWABLE = find("java/lang/Throwable");
    CID_THROWABLE = QC_THROWABLE->getID();
 
-   init_jni_functions(*qorejni);
-
    // add "QoreJni" to "Jni" namespace
    default_jns->addInitialNamespace(qorejni);
 
    // rescan all classes
    for (auto& i : jcmap)
       i.second->rescanParents();
+
+   // add low-level API classes
+   qorejni->addSystemClass(initJavaInvocationHandlerClass(*qorejni));
+   qorejni->addSystemClass(initJavaArrayClass(*qorejni));
+
+   // add low-level API functions
+   init_jni_functions(*qorejni);
 }
 
 void QoreJniClassMap::destroy(ExceptionSink& xsink) {
@@ -585,7 +581,7 @@ jobject QoreJniClassMap::getJavaObject(const QoreObject* o) {
       return nullptr;
    ExceptionSink xsink;
    TryPrivateDataRefHolder<QoreJniPrivateData> jo(o, CID_OBJECT, &xsink);
-   return jo ? jo->getLocalReference() : nullptr;
+   return jo ? jo->makeLocal().release() : nullptr;
 }
 
 jarray QoreJniClassMap::getJavaArray(const QoreListNode* l, jclass cls) {
@@ -620,6 +616,21 @@ jarray QoreJniClassMap::getJavaArrayIntern(Env& env, const QoreListNode* l, jcla
    return array.release();
 }
 
+/*
+QoreObject* QoreJniClassMap::newArray(jclass cls, int size) {
+   if (size < 1) {
+      QoreStringMaker desc("cannot instantiate an array with size %d; must be greater than 0", size);
+      throw BasicException(desc.c_str());
+   }
+
+   LocalReference<jarray> array = Array::getNew(Globals::getType(cls), cls, (jsize)size);
+   Env env;
+   LocalReference<jclass> acls = env.getObjectClass(array);
+   QoreClass* qc = findCreateClass(acls);
+   return new QoreObject(qc, getProgram(), new QoreJniPrivateData(array.release()));
+}
+*/
+
 static void exec_java_constructor(const QoreClass& qc, BaseMethod* m, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
    try {
       self->setPrivate(qc.getID(), new QoreJniPrivateData(m->newQoreInstance(args)));
@@ -631,7 +642,7 @@ static void exec_java_constructor(const QoreClass& qc, BaseMethod* m, QoreObject
 
 static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
    try {
-      return m->invokeStatic(args, true);
+      return m->invokeStatic(args);
    }
    catch (jni::Exception& e) {
       e.convert(xsink);
@@ -641,7 +652,7 @@ static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, 
 
 static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObject* self, QoreJniPrivateData* jd, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
    try {
-      return m->invokeNonvirtual(jd->getObject(), args, true);
+      return m->invokeNonvirtual(jd->getObject(), args);
    }
    catch (jni::Exception& e) {
       e.convert(xsink);
@@ -669,7 +680,7 @@ void QoreJniClassMap::doFields(QoreClass& qc, jni::Class* jc) {
       printd(LogLevel, "+ adding field %s %s.%s\n", typeInfoGetName(fieldTypeInfo), qc.getName(), fname.c_str());
 
       if (field->isStatic()) {
-         QoreValue v(field->getStatic(true));
+         QoreValue v(field->getStatic());
          if (v.isNothing())
             v.assign(0ll);
 

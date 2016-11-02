@@ -59,10 +59,6 @@ jobject QoreToJava::toAnyObject(const QoreValue &value) {
 	    return javaObjectRef;
 	 }
 
-	 ExceptionSink xsink;
-	 TryPrivateDataRefHolder<ObjectBase> jo(o, CID_JAVAOBJECT, &xsink);
-	 if (jo)
-	    return jo->getLocalReference();
 	 break;
       }
       case NT_NOTHING:
@@ -102,25 +98,24 @@ jobject QoreToJava::toObject(const QoreValue &value, jclass cls) {
 
 	 javaObjectRef = qjcm.getJavaObject(o);
 	 if (!javaObjectRef) {
-	    ExceptionSink xsink;
-	    TryPrivateDataRefHolder<ObjectBase> jo(o, CID_JAVAOBJECT, &xsink);
-	    if (!jo) {
-	       if (xsink)
-		  throw XsinkException(xsink);
+            ExceptionSink xsink;
+            TryPrivateDataRefHolder<ObjectBase> jo(o, CID_JAVAARRAY, &xsink);
+            if (!jo) {
+               if (xsink)
+                  throw XsinkException(xsink);
 
-	       if (cls) {
-		  Env env;
-		  LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
-		  Env::GetStringUtfChars cname(env, clsName);
-		  QoreStringMaker desc("A Java object argument of class '%s' expected; got object of class '%s' instead", cname.c_str(), o->getClassName());
-		  throw BasicException(desc.c_str());
-	       }
+               if (cls) {
+                  Env env;
+                  LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
+                  Env::GetStringUtfChars cname(env, clsName);
+                  QoreStringMaker desc("A Java object argument of class '%s' expected; got object of class '%s' instead", cname.c_str(), o->getClassName());
+                  throw BasicException(desc.c_str());
+               }
 
-	       QoreStringMaker desc("A Java object argument expected; got object of class '%s' instead", o->getClassName());
-	       throw BasicException(desc.c_str());
-	    }
-
-	    javaObjectRef = jo->getLocalReference();
+               QoreStringMaker desc("A Java object argument expected; got object of class '%s' instead", o->getClassName());
+               throw BasicException(desc.c_str());
+            }
+            javaObjectRef = jo->makeLocal();
 	 }
 	 break;
       }

@@ -118,7 +118,7 @@ protected:
    // class loader
    GlobalReference<jobject> classLoader;
 
-   // map of java class names (ex 'java/lang/object') to QoreClass ptrs
+   // map of java class names (ex 'java/lang/Object') to QoreClass ptrs
    typedef std::map<std::string, QoreClass*> jcmap_t;
    jcmap_t jcmap;
 
@@ -183,11 +183,16 @@ public:
    DLLLOCAL QoreJniPrivateData(jobject n_jobj) : jobj(GlobalReference<jobject>::fromLocal(n_jobj)) {
    }
 
+   template <typename T>
+   DLLLOCAL T cast() const {
+      return jobj.cast<T>();
+   }
+
    DLLLOCAL jobject getObject() const {
       return jobj;
    }
 
-   DLLLOCAL jobject getLocalReference() const {
+   DLLLOCAL LocalReference<jobject> makeLocal() const {
       return jobj.toLocal();
    }
 };

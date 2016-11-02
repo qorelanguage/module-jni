@@ -38,9 +38,6 @@
 #include "LocalReference.h"
 #include "Object.h"
 
-extern QoreClass* QC_JAVACLASS;
-extern qore_classid_t CID_JAVACLASS;
-
 namespace jni {
 
 class Field;

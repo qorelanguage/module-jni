@@ -82,8 +82,8 @@ public class Main inherits QUnit::Test {
     }
 
     # JMS message callback for the MessageListener interface
-    messageCallback(QoreJni::JavaMethod method, *QoreJni::JavaArray args) {
-        TextMessage msg = cast<TextMessage>(args.getJava(0));
+    messageCallback(Method method, *list args) {
+        TextMessage msg = args[0];
         data = msg.getText();
         if (m_options.verbose)
             printf("*** JMS message received: %y\n", msg.getText());

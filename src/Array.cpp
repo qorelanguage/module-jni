@@ -29,6 +29,19 @@
 
 namespace jni {
 
+Array::Array(jclass ecls, int size) {
+   LocalReference<jclass> cls(ecls);
+   if (size < 1) {
+      QoreStringMaker desc("cannot instantiate an array with size %d; must be greater than 0", size);
+      throw BasicException(desc.c_str());
+   }
+
+   elementClass = cls.makeGlobal();
+   elementType = Globals::getType(elementClass);
+
+   array = Array::getNew(elementType, elementClass, (jsize)size).makeGlobal();
+}
+
 Array::Array(jarray array) : array(GlobalReference<jarray>::fromLocal(array)) {
    printd(LogLevel, "Array::Array(), this: %p, object: %p\n", this, static_cast<jarray>(this->array));
 
@@ -70,13 +83,13 @@ QoreListNode* Array::getList(Env& env, jarray array, jclass arrayClass) {
    ReferenceHolder<QoreListNode> l(new QoreListNode, &xsink);
 
    for (jsize i = 0, e = env.getArrayLength(array); i < e; ++i) {
-      l->push(get(env, array, elementType, elementClass, i, true).takeNode());
+      l->push(get(env, array, elementType, elementClass, i).takeNode());
    }
 
    return l.release();
 }
 
-QoreValue Array::get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index, bool to_qore) {
+QoreValue Array::get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index) {
    switch (elementType) {
       case Type::Boolean:
          return JavaToQore::convert(env.getBooleanArrayElement(static_cast<jbooleanArray>(array), index));
@@ -97,15 +110,13 @@ QoreValue Array::get(Env& env, jarray array, Type elementType, jclass elementCla
       case Type::Reference:
       default:
          assert(elementType == Type::Reference);
-         return to_qore
-            ? JavaToQore::convertToQore(env.getObjectArrayElement(static_cast<jobjectArray>(array), index))
-            : JavaToQore::convert(env.getObjectArrayElement(static_cast<jobjectArray>(array), index));
+         return JavaToQore::convertToQore(env.getObjectArrayElement(static_cast<jobjectArray>(array), index));
    }
 }
 
-QoreValue Array::get(int64 index, bool to_qore) {
+QoreValue Array::get(int64 index) {
    Env env;
-   return get(env, array, elementType, elementClass, index, to_qore);
+   return get(env, array, elementType, elementClass, index);
 }
 
 void Array::set(int64 index, const QoreValue &value) {

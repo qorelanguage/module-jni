@@ -96,9 +96,7 @@ void BaseMethod::doObjectException(Env& env, jobject object) {
    throw BasicException(desc.c_str());
 }
 
-QoreValue BaseMethod::invoke(jobject object, const QoreValueList* args, bool to_qore, int offset) {
-   if (offset == -1)
-      offset = to_qore ? 0 : 1;
+QoreValue BaseMethod::invoke(jobject object, const QoreValueList* args, int offset) {
    std::vector<jvalue> jargs = convertArgs(args, offset);
 
    Env env;
@@ -123,9 +121,7 @@ QoreValue BaseMethod::invoke(jobject object, const QoreValueList* args, bool to_
       case Type::Double:
          return JavaToQore::convert(env.callDoubleMethod(object, id, &jargs[0]));
       case Type::Reference:
-         return to_qore
-            ? JavaToQore::convertToQore(env.callObjectMethod(object, id, &jargs[0]))
-            : JavaToQore::convert(env.callObjectMethod(object, id, &jargs[0]));
+         return JavaToQore::convertToQore(env.callObjectMethod(object, id, &jargs[0]));
       case Type::Void:
       default:
          assert(retValType == Type::Void);
@@ -134,9 +130,7 @@ QoreValue BaseMethod::invoke(jobject object, const QoreValueList* args, bool to_
    }
 }
 
-QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreValueList* args, bool to_qore, int offset) {
-   if (offset == -1)
-      offset = to_qore ? 0 : 1;
+QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreValueList* args, int offset) {
    std::vector<jvalue> jargs = convertArgs(args, offset);
 
    Env env;
@@ -161,9 +155,7 @@ QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreValueList* args
       case Type::Double:
          return JavaToQore::convert(env.callNonvirtualDoubleMethod(object, cls->getJavaObject(), id, &jargs[0]));
       case Type::Reference:
-         return to_qore
-            ? JavaToQore::convertToQore(env.callNonvirtualObjectMethod(object, cls->getJavaObject(), id, &jargs[0]))
-            : JavaToQore::convert(env.callNonvirtualObjectMethod(object, cls->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convertToQore(env.callNonvirtualObjectMethod(object, cls->getJavaObject(), id, &jargs[0]));
       case Type::Void:
       default:
          assert(retValType == Type::Void);
@@ -172,9 +164,7 @@ QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreValueList* args
    }
 }
 
-QoreValue BaseMethod::invokeStatic(const QoreValueList* args, bool to_qore, int offset) {
-   if (offset == -1)
-      offset = 0;
+QoreValue BaseMethod::invokeStatic(const QoreValueList* args, int offset) {
    std::vector<jvalue> jargs = convertArgs(args, offset);
 
    Env env;
@@ -196,9 +186,7 @@ QoreValue BaseMethod::invokeStatic(const QoreValueList* args, bool to_qore, int 
       case Type::Double:
          return JavaToQore::convert(env.callStaticDoubleMethod(cls->getJavaObject(), id, &jargs[0]));
       case Type::Reference:
-         return to_qore
-            ? JavaToQore::convertToQore(env.callStaticObjectMethod(cls->getJavaObject(), id, &jargs[0]))
-            : JavaToQore::convert(env.callStaticObjectMethod(cls->getJavaObject(), id, &jargs[0]));
+         return JavaToQore::convertToQore(env.callStaticObjectMethod(cls->getJavaObject(), id, &jargs[0]));
       case Type::Void:
       default:
          assert(retValType == Type::Void);
@@ -210,7 +198,7 @@ QoreValue BaseMethod::invokeStatic(const QoreValueList* args, bool to_qore, int 
 QoreValue BaseMethod::newInstance(const QoreValueList* args) {
    std::vector<jvalue> jargs = convertArgs(args);
    Env env;
-   return JavaToQore::convert(env.newObject(cls->getJavaObject(), id, &jargs[0]));
+   return JavaToQore::convertToQore(env.newObject(cls->getJavaObject(), id, &jargs[0]));
 }
 
 LocalReference<jobject> BaseMethod::newQoreInstance(const QoreValueList* args) {
