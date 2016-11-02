@@ -29,11 +29,10 @@
 */
 
 #include "Functions.h"
+#include "Method.h"
 #include "QoreJniClassMap.h"
 
 using namespace jni;
-
-extern QoreClass* QC_JAVACLASS;
 
 /** @defgroup JNI functions.
  */
@@ -46,7 +45,7 @@ extern QoreClass* QC_JAVACLASS;
 string get_version() {
    try {
       return jni::Functions::getVersion();
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -54,19 +53,69 @@ string get_version() {
 
 //! Loads a Java class with given name.
 /**
-    @param name the name of the class to load in internal format (use slash instead of dot to separate packages)
+    @param name the name of the class to load in internal (\c "java/lang/String") format
+
     @return the loaded class
+
     @throws JNI-ERROR if the class cannot be loaded
 
     @par Example:
     @code{.py}
-    Jni::load_class("java/lang/String");
+    Class c = Jni::load_class("java/lang/String");
     @endcode
  */
-Jni::QoreJni::JavaClass load_class(string name) {
+Jni::java::lang::Class load_class(string name) {
    try {
-      return new QoreObject(QC_JAVACLASS, getProgram(), qjcm.loadClass(*name));
-   } catch (jni::Exception &e) {
+      return new QoreObject(QC_CLASS, getProgram(), new QoreJniPrivateData(qjcm.findLoadClass(*name)));
+   } catch (jni::Exception& e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Invokes a method with the given arguments in a non-virtual way; meaning that even if the object provided is a child class, the method given in the first argument is executed
+/** @param method the method to invoke
+    @param object the object to use to invoke the method; for static methods, this argument can be @ref nothing
+
+    @note
+    - reflection is not used, so exceptions are thrown directly (i.e. not wrapped as \c java.lang.reflect.InvocationTargetException objects)
+    - for static method invocations, this function is identical to @ref invoke_nonvirtual()
+ */
+Jni::java::lang::Object invoke(Jni::java::lang::reflect::Method[QoreJniPrivateData] method, *Jni::java::lang::Object[QoreJniPrivateData] object, ...) {
+   ReferenceHolder<QoreJniPrivateData> m_holder(method, xsink);
+   ReferenceHolder<QoreJniPrivateData> obj_holder(object, xsink);
+   try {
+      Env env;
+      SimpleRefHolder<Class> cls(new Class(env.callObjectMethod(method->getObject(), Globals::methodMethodGetDeclaringClass, nullptr).as<jclass>()));
+      BaseMethod m(method->getObject(), *cls);
+      return object
+         ? m.invoke(object->getObject(), args, 2)
+         : m.invokeStatic(args, 2);
+   } catch (jni::Exception& e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
+
+//! Invokes a method with the given arguments in a non-virtual way; meaning that even if the object provided is a child class, the method given in the first argument is executed
+/** @param method the method to invoke
+    @param object the object to use to invoke the method; for static methods, this argument can be @ref nothing
+
+    @note
+    - reflection is not used, so exceptions are thrown directly (i.e. not wrapped as \c java.lang.reflect.InvocationTargetException objects)
+    - for static method invocations, this function is identical to @ref invoke()
+ */
+Jni::java::lang::Object invoke_nonvirtual(Jni::java::lang::reflect::Method[QoreJniPrivateData] method, *Jni::java::lang::Object[QoreJniPrivateData] object, ...) {
+   ReferenceHolder<QoreJniPrivateData> m_holder(method, xsink);
+   ReferenceHolder<QoreJniPrivateData> obj_holder(object, xsink);
+   try {
+      Env env;
+      SimpleRefHolder<Class> cls(new Class(env.callObjectMethod(method->getObject(), Globals::methodMethodGetDeclaringClass, nullptr).as<jclass>()));
+      BaseMethod m(method->getObject(), *cls);
+      return object
+         ? m.invokeNonvirtual(object->getObject(), args, 2)
+         : m.invokeStatic(args, 2);
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -76,66 +125,13 @@ Jni::QoreJni::JavaClass load_class(string name) {
 /**
     @param invocationHandler the invocation handler
     @param cls the interface to implement
-    @return a Java object that implement the interface by calling the invocation handler
+    @return a Java object that implements the interface by calling the invocation handler
 
     @par Example:
     @code{.py}
-    JavaClass runnableClass = Jni::load_class("java/lang/Runnable");
+    Class runnableClass = Jni::load_class("java/lang/Runnable");
     JavaInvocationHandler h(any sub(Method m, *Array args) { doRun(); });
-    JavaObject runnableInstance = Jni::implement_interface(h, runnableClass);
-    # runnableInstance now has a Java method void run() that calls Qore function doRun()
-    @endcode
- */
-Jni::QoreJni::JavaObject implement_interface(Jni::QoreJni::JavaInvocationHandler[jni::InvocationHandler] invocationHandler, Jni::QoreJni::JavaClass[jni::Class] cls) {
-   SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
-   SimpleRefHolder<jni::Class> classHolder(cls);
-   try {
-      return new QoreObject(QC_JAVAOBJECT, getProgram(), new jni::Object(jni::Functions::implementInterface(nullptr, invocationHandler, cls->getJavaObject())));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! Creates a Java object that implements given interface using an invocation handler using an explicit class loader.
-/**
-    @param classLoader the class loader that loaded the interface
-    @param invocationHandler the invocation handler
-    @param cls the interface to implement
-    @return a Java object that implement the interface by calling the invocation handler
-
-    @par Example:
-    @code{.py}
-    JavaObject classLoader = ...;
-    JavaClass runnableClass = use classLoader to load class "java/lang/Runnable"
-    JavaInvocationHandler h(any sub(Method m, *Array args) { doRun(); });
-    JavaObject runnableInstance = Jni::implement_interface(classLoader, h, runnableClass);
-    # runnableInstance now has a Java method void run() that calls Qore function doRun()
-    @endcode
- */
-Jni::QoreJni::JavaObject implement_interface(Jni::QoreJni::JavaObject[jni::ObjectBase] classLoader, Jni::QoreJni::JavaInvocationHandler[jni::InvocationHandler] invocationHandler, Jni::QoreJni::JavaClass[jni::Class] cls) {
-   SimpleRefHolder<jni::ObjectBase> classLoaderHolder(classLoader);
-   SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
-   SimpleRefHolder<jni::Class> classHolder(cls);
-   try {
-      return new QoreObject(QC_JAVAOBJECT, getProgram(), new jni::Object(jni::Functions::implementInterface(classLoader->getJavaObject(), invocationHandler, cls->getJavaObject())));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! Creates a Java object that implements given interface using an invocation handler.
-/**
-    @param invocationHandler the invocation handler
-    @param cls the interface to implement
-    @return a Java object that implement the interface by calling the invocation handler
-
-    @par Example:
-    @code{.py}
-    JavaClass runnableClass = Jni::load_class("java/lang/Runnable");
-    JavaInvocationHandler h(any sub(Method m, *Array args) { doRun(); });
-    JavaObject runnableInstance = Jni::implement_interface(h, runnableClass);
+    Object runnableInstance = Jni::implement_interface(h, runnableClass);
     # runnableInstance now has a Java method void run() that calls Qore function doRun()
     @endcode
  */
@@ -154,7 +150,7 @@ Jni::java::lang::Object implement_interface(Jni::QoreJni::JavaInvocationHandler[
 
    try {
       return new QoreObject(qc, getProgram(), new QoreJniPrivateData(jni::Functions::implementInterface(nullptr, invocationHandler, jc)));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
@@ -165,14 +161,14 @@ Jni::java::lang::Object implement_interface(Jni::QoreJni::JavaInvocationHandler[
     @param classLoader the class loader that loaded the interface
     @param invocationHandler the invocation handler
     @param cls the interface to implement
-    @return a Java object that implement the interface by calling the invocation handler
+    @return a Java object that implements the interface by calling the invocation handler
 
     @par Example:
     @code{.py}
-    JavaObject classLoader = ...;
-    JavaClass runnableClass = use classLoader to load class "java/lang/Runnable"
-    JavaInvocationHandler h(any sub(Method m, *Array args) { doRun(); });
-    JavaObject runnableInstance = Jni::implement_interface(classLoader, h, runnableClass);
+    ClassLoader classLoader = ...;
+    Class runnableClass = load_class("java/lang/Runnable");
+    JavaInvocationHandler h(any sub(Method m, *list args) { doRun(); });
+    Object runnableInstance = Jni::implement_interface(classLoader, h, runnableClass);
     # runnableInstance now has a Java method void run() that calls Qore function doRun()
     @endcode
  */
@@ -192,135 +188,22 @@ Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJni
 
    try {
       return new QoreObject(qc, getProgram(), new QoreJniPrivateData(jni::Functions::implementInterface(classLoader->getObject(), invocationHandler, jc)));
-   } catch (jni::Exception &e) {
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }
 }
 
-//! Allocates a new Java array of booleans.
-/**
+//! Allocates a new Java array
+/** @param cls the Class of the component type of the Array
     @param size the size of the array to allocate
-    @return the allocated array
- */
-Jni::QoreJni::JavaArray new_boolean_array(int size) {
-   try {
-      return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newBooleanArray(size));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
 
-//! Allocates a new Java array of bytes.
-/**
-    @param size the size of the array to allocate
     @return the allocated array
  */
-Jni::QoreJni::JavaArray new_byte_array(int size) {
+Jni::QoreJni::JavaArray new_array(Jni::java::lang::Class[QoreJniPrivateData] cls, int size) {
    try {
-      return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newByteArray(size));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! Allocates a new Java array of chars.
-/**
-    @param size the size of the array to allocate
-    @return the allocated array
- */
-Jni::QoreJni::JavaArray new_char_array(int size) {
-   try {
-      return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newCharArray(size));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! Allocates a new Java array of shorts.
-/**
-    @param size the size of the array to allocate
-    @return the allocated array
- */
-Jni::QoreJni::JavaArray new_short_array(int size) {
-   try {
-      return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newShortArray(size));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! Allocates a new Java array of ints.
-/**
-    @param size the size of the array to allocate
-    @return the allocated array
- */
-Jni::QoreJni::JavaArray new_int_array(int size) {
-   try {
-      return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newIntArray(size));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! Allocates a new Java array of longs.
-/**
-    @param size the size of the array to allocate
-    @return the allocated array
- */
-Jni::QoreJni::JavaArray new_long_array(int size) {
-   try {
-      return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newLongArray(size));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! Allocates a new Java array of floats.
-/**
-    @param size the size of the array to allocate
-    @return the allocated array
- */
-Jni::QoreJni::JavaArray new_float_array(int size) {
-   try {
-      return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newFloatArray(size));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! Allocates a new Java array of doubles.
-/**
-    @param size the size of the array to allocate
-    @return the allocated array
- */
-Jni::QoreJni::JavaArray new_double_array(int size) {
-   try {
-      return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newDoubleArray(size));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
-
-//! Allocates a new Java array of object references.
-/**
-    @param size the size of the array to allocate
-    @param cls the type of the array elements
-    @return the allocated array
- */
-Jni::QoreJni::JavaArray new_object_array(int size, Jni::QoreJni::JavaClass[jni::Class] cls) {
-   SimpleRefHolder<jni::Class> classHolder(cls);
-   try {
-      return new QoreObject(QC_JAVAARRAY, getProgram(), jni::Functions::newObjectArray(size, cls));
-   } catch (jni::Exception &e) {
+      return new QoreObject(QC_JAVAARRAY, getProgram(), new Array(cls->makeLocal().as<jclass>(), size));
+   } catch (jni::Exception& e) {
       e.convert(xsink);
       return QoreValue();
    }

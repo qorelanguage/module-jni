@@ -34,9 +34,6 @@
 #include <qore/Qore.h>
 #include "LocalReference.h"
 
-extern QoreClass* QC_JAVAOBJECT;
-extern qore_classid_t CID_JAVAOBJECT;
-
 namespace jni {
 
 /**
@@ -62,10 +59,10 @@ public:
     * \brief Returns a local reference to the JNI object.
     * \return a local reference to the JNI object
     */
-   DLLLOCAL jobject getLocalReference() const {
+   DLLLOCAL LocalReference<jobject> makeLocal() const {
       jobject ref = getJavaObject();
       if (ref == nullptr)
-	 return nullptr;
+         return nullptr;
       jobject local = static_cast<jobject>(Jvm::getEnv()->NewLocalRef(ref));
       if (local == nullptr)
          throw JavaException();

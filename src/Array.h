@@ -55,6 +55,13 @@ public:
     */
    DLLLOCAL Array(jarray array);
 
+   /**
+    * \brief Constructor
+    * \param elementClass a local reference to the component class
+    * \param size the size of the array
+    */
+   DLLLOCAL Array(jclass elementClass, int size);
+
    DLLLOCAL ~Array() {
       printd(LogLevel, "Array::~Array(), this: %p, object: %p\n", this, static_cast<jarray>(this->array));
    }
@@ -64,15 +71,20 @@ public:
    }
 
    DLLLOCAL int64 length();
-   DLLLOCAL QoreValue get(int64 index, bool to_qore = false);
+   DLLLOCAL QoreValue get(int64 index);
    DLLLOCAL void set(int64 index, const QoreValue &value);
 
    DLLLOCAL static void set(jarray array, Type elementType, jclass elementClass, int64 index, const QoreValue &value);
 
    DLLLOCAL static QoreListNode* getList(Env& env, jarray array, jclass arrayClass);
-   DLLLOCAL static QoreValue get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index, bool to_qore);
+   DLLLOCAL static QoreValue get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index);
 
    DLLLOCAL static LocalReference<jarray> getNew(Type elementType, jclass elementClass, jsize size);
+
+   DLLLOCAL static LocalReference<jarray> toJava(const QoreListNode* l);
+   DLLLOCAL static LocalReference<jarray> toObjectArray(const QoreListNode* l, jclass elementClass);
+
+   DLLLOCAL static jclass getClassForValue(QoreValue v);
 
 private:
    GlobalReference<jarray> array;

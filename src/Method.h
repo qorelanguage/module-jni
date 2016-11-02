@@ -38,10 +38,6 @@
 
 #include <classfile_constants.h>
 
-extern QoreClass* QC_JAVAMETHOD;
-extern QoreClass* QC_JAVASTATICMETHOD;
-extern QoreClass* QC_JAVACONSTRUCTOR;
-
 namespace jni {
 
 class QoreJniClassMap;
@@ -82,6 +78,11 @@ public:
    }
 
    /**
+    * \brief throws a BasicException when the passed object's class does not match the expected class
+    */
+   DLLLOCAL void doObjectException(Env& env, jobject object);
+
+   /**
     * \brief Invokes an instance method.
     * \param object the instance
     * \param args the arguments
@@ -89,7 +90,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invoke(jobject object, const QoreValueList* args, bool to_qore = false);
+   QoreValue invoke(jobject object, const QoreValueList* args, int offset = 0);
 
    /**
     * \brief Invokes an instance method non-virtually.
@@ -99,7 +100,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invokeNonvirtual(jobject object, const QoreValueList* args, bool to_qore = false);
+   QoreValue invokeNonvirtual(jobject object, const QoreValueList* args, int offset = 0);
 
    /**
     * \brief Invokes a static method.
@@ -107,7 +108,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invokeStatic(const QoreValueList* args, bool to_qore = false);
+   QoreValue invokeStatic(const QoreValueList* args, int offset = 0);
 
    /**
     * \brief Creates a new object by invoking a constructor.

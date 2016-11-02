@@ -45,7 +45,7 @@ public:
 #ifndef NDEBUG
       int rc =
 #endif
-	 pthread_mutex_lock(&p_lock);
+      pthread_mutex_lock(&p_lock);
       assert(!rc);
    }
 
@@ -53,7 +53,7 @@ public:
 #ifndef NDEBUG
       int rc =
 #endif
-	 pthread_mutex_unlock(&p_lock);
+      pthread_mutex_unlock(&p_lock);
       assert(!rc);
    }
 

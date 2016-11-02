@@ -29,6 +29,19 @@
 
 namespace jni {
 
+Array::Array(jclass ecls, int size) {
+   LocalReference<jclass> cls(ecls);
+   if (size < 1) {
+      QoreStringMaker desc("cannot instantiate an array with size %d; must be greater than 0", size);
+      throw BasicException(desc.c_str());
+   }
+
+   elementClass = cls.makeGlobal();
+   elementType = Globals::getType(elementClass);
+
+   array = Array::getNew(elementType, elementClass, (jsize)size).makeGlobal();
+}
+
 Array::Array(jarray array) : array(GlobalReference<jarray>::fromLocal(array)) {
    printd(LogLevel, "Array::Array(), this: %p, object: %p\n", this, static_cast<jarray>(this->array));
 
@@ -58,7 +71,7 @@ LocalReference<jarray> Array::getNew(Type elementType, jclass elementClass, jsiz
       case Type::Reference:
       default:
          assert(elementType == Type::Reference);
-	 return env.newObjectArray(size, elementClass).as<jarray>();
+         return env.newObjectArray(size, elementClass).as<jarray>();
    }
 }
 
@@ -70,13 +83,13 @@ QoreListNode* Array::getList(Env& env, jarray array, jclass arrayClass) {
    ReferenceHolder<QoreListNode> l(new QoreListNode, &xsink);
 
    for (jsize i = 0, e = env.getArrayLength(array); i < e; ++i) {
-      l->push(get(env, array, elementType, elementClass, i, true).takeNode());
+      l->push(get(env, array, elementType, elementClass, i).takeNode());
    }
 
    return l.release();
 }
 
-QoreValue Array::get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index, bool to_qore) {
+QoreValue Array::get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index) {
    switch (elementType) {
       case Type::Boolean:
          return JavaToQore::convert(env.getBooleanArrayElement(static_cast<jbooleanArray>(array), index));
@@ -97,15 +110,13 @@ QoreValue Array::get(Env& env, jarray array, Type elementType, jclass elementCla
       case Type::Reference:
       default:
          assert(elementType == Type::Reference);
-         return to_qore
-	    ? JavaToQore::convertToQore(env.getObjectArrayElement(static_cast<jobjectArray>(array), index))
-	    : JavaToQore::convert(env.getObjectArrayElement(static_cast<jobjectArray>(array), index));
+         return JavaToQore::convertToQore(env.getObjectArrayElement(static_cast<jobjectArray>(array), index));
    }
 }
 
-QoreValue Array::get(int64 index, bool to_qore) {
+QoreValue Array::get(int64 index) {
    Env env;
-   return get(env, array, elementType, elementClass, index, to_qore);
+   return get(env, array, elementType, elementClass, index);
 }
 
 void Array::set(int64 index, const QoreValue &value) {
@@ -142,8 +153,70 @@ void Array::set(jarray array, Type elementType, jclass elementClass, int64 index
       case Type::Reference:
       default:
          assert(elementType == Type::Reference);
-         env.setObjectArrayElement((jobjectArray)array, index, QoreToJava::toObject(value, elementClass).release());
+         env.setObjectArrayElement((jobjectArray)array, index, QoreToJava::toObject(value, elementClass));
    }
+}
+
+jclass Array::getClassForValue(QoreValue v) {
+   switch (v.getType()) {
+      case NT_INT: return Globals::classPrimitiveInt.toLocal();
+      case NT_FLOAT: return Globals::classPrimitiveDouble.toLocal();
+      case NT_BOOLEAN: return Globals::classPrimitiveBoolean.toLocal();
+      case NT_STRING: return Globals::classString.toLocal();
+      case NT_OBJECT: {
+         QoreObject* o = v.get<QoreObject>();
+         ExceptionSink xsink;
+         SimpleRefHolder<QoreJniPrivateData> obj(static_cast<QoreJniPrivateData*>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
+         if (!obj) {
+            if (xsink)
+               throw XsinkException(xsink);
+            QoreStringMaker desc("cannot create a Java array from an object of class '%s'", o->getClassName());
+            throw BasicException(desc.c_str());
+         }
+         Env env;
+         return env.getObjectClass(obj->getObject()).release();
+      }
+   }
+   QoreStringMaker desc("cannot create a Java array from a list that contains values of type '%s'", v.getTypeName());
+   throw BasicException(desc.c_str());
+}
+
+LocalReference<jarray> Array::toObjectArray(const QoreListNode* l, jclass elementClass) {
+   Type elementType = Globals::getType(elementClass);
+
+   LocalReference<jarray> jarray = getNew(elementType, elementClass, l->size());
+   for (unsigned i = 0, e = l->size(); i != e; ++i) {
+      set(jarray, elementType, elementClass, i, l->retrieve_entry(i));
+   }
+
+   return jarray.release();
+}
+
+LocalReference<jarray> Array::toJava(const QoreListNode* l) {
+   if (l->empty())
+      return nullptr;
+
+   LocalReference<jclass> elementClass = 0;
+
+   // check list to see if we have a unique type
+   for (unsigned i = 0, e = l->size(); i != e; ++i) {
+      // get this element's target Java class
+      QoreValue v(l->retrieve_entry(i));
+      if (v.isNullOrNothing())
+         continue;
+      LocalReference<jclass> eclass = getClassForValue(v);
+      if (!elementClass)
+         elementClass = eclass.release();
+      else if (elementClass != eclass) {
+         elementClass = Globals::classObject.toLocal();
+         break;
+      }
+   }
+
+   if (!elementClass)
+      elementClass = Globals::classObject.toLocal();
+
+   return toObjectArray(l, elementClass).release();
 }
 
 } // namespace jni

@@ -40,9 +40,6 @@
 #include "Env.h"
 #include "QoreJniClassMap.h"
 
-extern QoreClass* QC_JAVAFIELD;
-extern QoreClass* QC_JAVASTATICFIELD;
-
 namespace jni {
 
 /**
@@ -101,7 +98,7 @@ public:
     * \return the value of the static field
     * \throws Exception if the value cannot be retrieved
     */
-   QoreValue getStatic(bool to_qore = false);
+   QoreValue getStatic();
 
    /**
     * \brief Sets the value of a static field.

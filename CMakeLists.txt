@@ -17,15 +17,8 @@ endif()
 
 set(QPP_SRC
     src/ql_jni.qpp
-    src/QC_JavaObject.qpp
     src/QC_JavaArray.qpp
-    src/QC_JavaClass.qpp
-    src/QC_JavaConstructor.qpp
-    src/QC_JavaField.qpp
     src/QC_JavaInvocationHandler.qpp
-    src/QC_JavaMethod.qpp
-    src/QC_JavaStaticField.qpp
-    src/QC_JavaStaticMethod.qpp
 )
 
 set(CPP_SRC

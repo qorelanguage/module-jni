@@ -118,7 +118,7 @@ public:
     * \brief Returns a local reference from the global reference
     * \return the local reference
     */
-   DLLLOCAL LocalReference<T> toLocal() const;
+   DLLLOCAL T toLocal() const;
 
 private:
    GlobalReference(const GlobalReference &) = delete;

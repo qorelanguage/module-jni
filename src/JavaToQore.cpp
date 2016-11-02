@@ -44,7 +44,7 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
       return QoreValue(new QoreStringNode(chars.c_str(), QCS_UTF8));
    }
 
-   return qjcm.getObject(v);
+   return qjcm.getValue(v);
 }
 
 } // namespace jni

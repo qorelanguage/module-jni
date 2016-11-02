@@ -185,7 +185,8 @@ void JavaException::convert(ExceptionSink *xsink) {
    // add Java call stack to Qore call stack
    JniCallStack stack(throwable);
 
-   xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(QC_THROWABLE, getProgram(), new QoreJniPrivateData(throwable.as<jobject>())), desc.release(), stack);
+   LocalReference<jclass> tcls(env->GetObjectClass(throwable));
+   xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(qjcm.findCreateClass(tcls), getProgram(), new QoreJniPrivateData(throwable.as<jobject>())), desc.release(), stack);
 }
 
 void JavaException::ignoreOrRethrowNoClass() {

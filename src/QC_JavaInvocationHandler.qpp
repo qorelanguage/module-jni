@@ -29,12 +29,30 @@
 */
 
 #include <qore/Qore.h>
+
 #include "InvocationHandler.h"
+#include "QoreJniClassMap.h"
+
+using namespace jni;
 
 //! Represents an invocation handler used to implement callback from Java to Qore.
 /**
  */
-qclass JavaInvocationHandler [arg=jni::InvocationHandler* handler; ns=Qore::Jni; flags=final; vparent=JavaObject];
+qclass JavaInvocationHandler [arg=jni::InvocationHandler* handler; ns=Qore::Jni; flags=final];
+
+//! Returns the class of the object.
+/**
+    @return the class of the object
+ */
+Class JavaInvocationHandler::getClass() {
+   try {
+      jni::Env env;
+      return new QoreObject(QC_CLASS, getProgram(), new QoreJniPrivateData(env.getObjectClass(handler->getJavaObject())));
+   } catch (jni::Exception &e) {
+      e.convert(xsink);
+      return QoreValue();
+   }
+}
 
 //! Creates a new invocation handler.
 /**

@@ -53,43 +53,46 @@ namespace jni {
 class QoreToJava {
 
 public:
-   static jboolean toBoolean(const QoreValue &value) {
+   static jboolean toBoolean(const QoreValue& value) {
       return value.getAsBool() ? JNI_TRUE : JNI_FALSE;
    }
 
-   static jbyte toByte(const QoreValue &value) {
+   static jbyte toByte(const QoreValue& value) {
       return static_cast<jbyte>(value.getAsBigInt());
    }
 
-   static jchar toChar(const QoreValue &value) {
+   static jchar toChar(const QoreValue& value) {
       return static_cast<jchar>(value.getAsBigInt());
    }
 
-   static jdouble toDouble(const QoreValue &value) {
+   static jdouble toDouble(const QoreValue& value) {
       return static_cast<jdouble>(value.getAsFloat());
    }
 
-   static jfloat toFloat(const QoreValue &value) {
+   static jfloat toFloat(const QoreValue& value) {
       return static_cast<jfloat>(value.getAsFloat());
    }
 
-   static jint toInt(const QoreValue &value) {
+   static jint toInt(const QoreValue& value) {
       return static_cast<jint>(value.getAsBigInt());
    }
 
-   static jlong toLong(const QoreValue &value) {
+   static jlong toLong(const QoreValue& value) {
       return static_cast<jlong>(value.getAsBigInt());
    }
 
-   static jshort toShort(const QoreValue &value) {
+   static jshort toShort(const QoreValue& value) {
       return static_cast<jshort>(value.getAsBigInt());
    }
 
-   static LocalReference<jobject> toObject(const QoreValue &value, jclass cls);
+   static jobject toObject(const QoreValue& value, jclass cls);
 
-   static void wrapException(ExceptionSink &src) {
+   static jobject toAnyObject(const QoreValue& value);
+
+   static void wrapException(ExceptionSink& src) {
       Env env;
       const AbstractQoreNode* n = src.getExceptionArg();
+
       if (n && n->getType() == NT_OBJECT) {
          const QoreObject* o = static_cast<const QoreObject*>(n);
          if (o->getClass(CID_THROWABLE) != nullptr) {

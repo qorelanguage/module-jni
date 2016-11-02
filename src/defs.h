@@ -178,11 +178,11 @@ public:
       va_list args;
 
       while (true) {
-	 va_start(args, message);
-	 int rc = desc.vsprintf(message, args);
-	 va_end(args);
-	 if (!rc)
-	    break;
+         va_start(args, message);
+         int rc = desc.vsprintf(message, args);
+         va_end(args);
+         if (!rc)
+            break;
       }
    }
 

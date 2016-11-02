@@ -65,7 +65,7 @@ QoreValue BaseField::get(jobject object) {
       case Type::Reference:
       default:
          assert(type == Type::Reference);
-         return JavaToQore::convert(env.getObjectField(object, id));
+         return JavaToQore::convertToQore(env.getObjectField(object, id));
    }
 }
 
@@ -102,12 +102,12 @@ void BaseField::set(jobject object, const QoreValue &value) {
       case Type::Reference:
       default:
          assert(type == Type::Reference);
-         env.setObjectField(object, id, QoreToJava::toObject(value, typeClass).release());
+         env.setObjectField(object, id, QoreToJava::toObject(value, typeClass));
          break;
    }
 }
 
-QoreValue BaseField::getStatic(bool to_qore) {
+QoreValue BaseField::getStatic() {
    Env env;
    switch (type) {
       case Type::Boolean:
@@ -129,9 +129,7 @@ QoreValue BaseField::getStatic(bool to_qore) {
       case Type::Reference:
       default:
          assert(type == Type::Reference);
-         return to_qore
-            ? JavaToQore::convertToQore(env.getStaticObjectField(cls->getJavaObject(), id))
-            : JavaToQore::convert(env.getStaticObjectField(cls->getJavaObject(), id));
+         return JavaToQore::convertToQore(env.getStaticObjectField(cls->getJavaObject(), id));
    }
 }
 
@@ -165,7 +163,7 @@ void BaseField::setStatic(const QoreValue &value) {
       case Type::Reference:
       default:
          assert(type == Type::Reference);
-         env.setStaticObjectField(cls->getJavaObject(), id, QoreToJava::toObject(value, typeClass).release());
+         env.setStaticObjectField(cls->getJavaObject(), id, QoreToJava::toObject(value, typeClass));
          break;
    }
 }

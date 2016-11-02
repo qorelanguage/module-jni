@@ -49,7 +49,7 @@ QoreCodeDispatcher::~QoreCodeDispatcher() {
    }
 }
 
-jobject QoreCodeDispatcher::dispatch(Env &env, jobject proxy, jobject method, jobjectArray jargs) {
+jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jobjectArray jargs) {
    try {
       qoreThreadAttacher.attach();
    } catch (Exception &e) {
@@ -61,16 +61,17 @@ jobject QoreCodeDispatcher::dispatch(Env &env, jobject proxy, jobject method, jo
 
    ExceptionSink xsink;
    {
-      ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
-      int mods = env.callIntMethod(method, Globals::methodMethodGetModifiers, nullptr);
-      args->push(new QoreObject(mods & 8 ? QC_JAVASTATICMETHOD : QC_JAVAMETHOD, getProgram(), new Method(method)));
-      args->push(jargs == nullptr ? nullptr : new QoreObject(QC_JAVAARRAY, getProgram(), new Array(jargs)));
+      ReferenceHolder<QoreListNode> args(new QoreListNode, &xsink);
+      args->push(new QoreObject(QC_METHOD, getProgram(), new QoreJniPrivateData(method)));
+      if (jargs)
+         args->push(Array::getList(env, jargs, env.getObjectClass(jargs)));
+
       QoreValue qv = callback->execValue(*args, &xsink);
       if (xsink) {
          QoreToJava::wrapException(xsink);
          return nullptr;
       }
-      return QoreToJava::toObject(qv, nullptr).release();
+      return QoreToJava::toObject(qv, nullptr);
    }
 }
 

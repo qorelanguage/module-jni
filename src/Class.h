@@ -38,9 +38,6 @@
 #include "LocalReference.h"
 #include "Object.h"
 
-extern QoreClass* QC_JAVACLASS;
-extern qore_classid_t CID_JAVACLASS;
-
 namespace jni {
 
 class Field;
@@ -104,6 +101,11 @@ public:
    DLLLOCAL int getModifiers();
 
    DLLLOCAL void trackMethod(BaseMethod* m);
+
+   // returns a local reference to the jclass
+   DLLLOCAL jclass toLocal() {
+      return cls.toLocal();
+   }
 
 private:
    GlobalReference<jclass> cls;
