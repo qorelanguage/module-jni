@@ -64,7 +64,7 @@ public class Main inherits QUnit::Test {
 
         # in order to implement the MessageListener interface for the callback, we have to use implement_interface() as follows:
         ClassLoader loader = connection.getClass().getClassLoader();
-        consumer.setMessageListener(cast<MessageListener>(QoreJni::implement_interface(loader, new QoreJni::JavaInvocationHandler(\messageCallback()), Class::forName("javax.jms.MessageListener", True, loader))));
+        consumer.setMessageListener(cast<MessageListener>(implement_interface(loader, new QoreInvocationHandler(\messageCallback()), Class::forName("javax.jms.MessageListener", True, loader))));
 
         connection.start();
 

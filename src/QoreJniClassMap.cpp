@@ -57,6 +57,10 @@ qore_classid_t CID_CLASSLOADER;
 QoreClass* QC_THROWABLE;
 // the Qore class ID for java::lang::Throwable
 qore_classid_t CID_THROWABLE;
+// the QoreClass for java::lang::reflect::InvocationHandler
+QoreClass* QC_INVOCATIONHANDLER;
+// the Qore class ID for java::lang::reflect::InvocationHandler
+qore_classid_t CID_INVOCATIONHANDLER;
 
 QoreJniClassMap qjcm;
 static void exec_java_constructor(const QoreClass& qc, BaseMethod* m, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
@@ -118,8 +122,6 @@ void QoreJniClassMap::init() {
    // get our classloader
    classLoader = env.newObject(Globals::classQoreURLClassLoader, Globals::ctorQoreURLClassLoader, nullptr).makeGlobal();
 
-   QoreNamespace* qorejni = new QoreNamespace("QoreJni");
-
    // create java.lang namespace with automatic class loader handler
    QoreNamespace* javans = new QoreNamespace("java");
    QoreNamespace* langns = new QoreNamespace("lang");
@@ -146,20 +148,30 @@ void QoreJniClassMap::init() {
    CID_CLASSLOADER = QC_CLASSLOADER->getID();
    QC_THROWABLE = find("java/lang/Throwable");
    CID_THROWABLE = QC_THROWABLE->getID();
-
-   // add "QoreJni" to "Jni" namespace
-   default_jns->addInitialNamespace(qorejni);
+   QC_INVOCATIONHANDLER = findCreateClass(*default_jns, "java/lang/reflect/InvocationHandler");
+   CID_INVOCATIONHANDLER = QC_INVOCATIONHANDLER->getID();
 
    // rescan all classes
    for (auto& i : jcmap)
       i.second->rescanParents();
 
    // add low-level API classes
-   qorejni->addSystemClass(initJavaInvocationHandlerClass(*qorejni));
-   qorejni->addSystemClass(initJavaArrayClass(*qorejni));
+   {
+      QoreNamespace* org = new QoreNamespace("org");
+      QoreNamespace* qore = new QoreNamespace("qore");
+      QoreNamespace* jni = new QoreNamespace("jni");
 
-   // add low-level API functions
-   init_jni_functions(*qorejni);
+      jni->addSystemClass(initQoreInvocationHandlerClass(*jni));
+      jni->addSystemClass(initJavaArrayClass(*jni));
+
+      // add low-level API functions
+      init_jni_functions(*jni);
+
+      org->addInitialNamespace(qore);
+      qore->addInitialNamespace(jni);
+
+      default_jns->addInitialNamespace(org);
+   }
 }
 
 void QoreJniClassMap::destroy(ExceptionSink& xsink) {

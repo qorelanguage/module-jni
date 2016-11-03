@@ -130,12 +130,12 @@ Jni::java::lang::Object invoke_nonvirtual(Jni::java::lang::reflect::Method[QoreJ
     @par Example:
     @code{.py}
     Class runnableClass = Jni::load_class("java/lang/Runnable");
-    JavaInvocationHandler h(any sub(Method m, *Array args) { doRun(); });
+    QoreInvocationHandler h(any sub(Method m, *list args) { doRun(); });
     Object runnableInstance = Jni::implement_interface(h, runnableClass);
     # runnableInstance now has a Java method void run() that calls Qore function doRun()
     @endcode
  */
-Jni::java::lang::Object implement_interface(Jni::QoreJni::JavaInvocationHandler[jni::InvocationHandler] invocationHandler, Jni::java::lang::Class[QoreJniPrivateData] cls) {
+Jni::java::lang::Object implement_interface(Jni::org::qore::jni::QoreInvocationHandler[jni::InvocationHandler] invocationHandler, Jni::java::lang::Class[QoreJniPrivateData] cls) {
    SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
    SimpleRefHolder<QoreJniPrivateData> classHolder(cls);
 
@@ -167,12 +167,12 @@ Jni::java::lang::Object implement_interface(Jni::QoreJni::JavaInvocationHandler[
     @code{.py}
     ClassLoader classLoader = ...;
     Class runnableClass = load_class("java/lang/Runnable");
-    JavaInvocationHandler h(any sub(Method m, *list args) { doRun(); });
+    QoreInvocationHandler h(any sub(Method m, *list args) { doRun(); });
     Object runnableInstance = Jni::implement_interface(classLoader, h, runnableClass);
     # runnableInstance now has a Java method void run() that calls Qore function doRun()
     @endcode
  */
-Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJniPrivateData] classLoader, Jni::QoreJni::JavaInvocationHandler[jni::InvocationHandler] invocationHandler, Jni::java::lang::Class[QoreJniPrivateData] cls) {
+Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJniPrivateData] classLoader, Jni::org::qore::jni::InvocationHandler[jni::InvocationHandler] invocationHandler, Jni::java::lang::Class[QoreJniPrivateData] cls) {
    SimpleRefHolder<QoreJniPrivateData> classLoaderHolder(classLoader);
    SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
    SimpleRefHolder<QoreJniPrivateData> classHolder(cls);
@@ -200,7 +200,7 @@ Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJni
 
     @return the allocated array
  */
-Jni::QoreJni::JavaArray new_array(Jni::java::lang::Class[QoreJniPrivateData] cls, int size) {
+Jni::org::qore::jni::JavaArray new_array(Jni::java::lang::Class[QoreJniPrivateData] cls, int size) {
    try {
       return new QoreObject(QC_JAVAARRAY, getProgram(), new Array(cls->makeLocal().as<jclass>(), size));
    } catch (jni::Exception& e) {

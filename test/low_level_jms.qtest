@@ -25,12 +25,12 @@ class ClassLoader {
     }
 
     constructor(softlist urls) {
-        Class urlClass = QoreJni::load_class("java/net/URL");
+        Class urlClass = load_class("java/net/URL");
         Constructor urlCtor = urlClass.getConstructor((load_class("java/lang/String"),));
 
         list urlArray = map urlCtor.newInstance(($1,)), urls;
 
-        Class classLoaderClass = QoreJni::load_class("java/net/URLClassLoader");
+        Class classLoaderClass = load_class("java/net/URLClassLoader");
 
         loadClassMethod = classLoaderClass.getMethod("loadClass", (load_class("java/lang/String"),));
         this = classLoaderClass.getConstructor((load_class("[Ljava/net/URL;"),)).newInstance((urlArray,));
@@ -133,7 +133,7 @@ class MessageConsumer {
 
     setMessageListener(code listener) {
         code w = wrapListener(listener, textMessageClass);
-        setMessageListenerMethod.invoke(this, (QoreJni::implement_interface(classLoader.get(), new QoreJni::JavaInvocationHandler(w), messageListenerClass),));
+        setMessageListenerMethod.invoke(this, (implement_interface(classLoader.get(), new QoreInvocationHandler(w), messageListenerClass),));
     }
 }
 
@@ -255,10 +255,10 @@ class JmsContext {
 
     constructor(softlist classpath) {
         classLoader = new ClassLoader(classpath);
-        ctxClass = QoreJni::load_class("javax/naming/InitialContext");
+        ctxClass = load_class("javax/naming/InitialContext");
         lookup = ctxClass.getMethod("lookup", (load_class("java/lang/String"),));
 
-        Class threadClass = QoreJni::load_class("java/lang/Thread");
+        Class threadClass = load_class("java/lang/Thread");
         Object thread = threadClass.getMethod("currentThread").invoke();
         threadClass.getMethod("setContextClassLoader", (load_class("java/lang/ClassLoader"),)).invoke(thread, (classLoader.get(),));
 

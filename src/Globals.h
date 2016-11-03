@@ -103,9 +103,9 @@ public:
    static jmethodID methodConstructorGetModifiers;                      // int Constructor.getModifiers()
    static jmethodID methodConstructorIsVarArgs;                         // boolean Constructor.isVarArgs()
 
-   static GlobalReference<jclass> classInvocationHandlerImpl;           // org.qore.jni.InvocationHandlerImpl
-   static jmethodID ctorInvocationHandlerImpl;                          // InvocationHandlerImpl(long)
-   static jmethodID methodInvocationHandlerImplDestroy;                 // void InvocationHandlerImpl.destroy()
+   static GlobalReference<jclass> classQoreInvocationHandler;           // org.qore.jni.QoreInvocationHandler
+   static jmethodID ctorQoreInvocationHandler;                          // QoreInvocationHandler(long)
+   static jmethodID methodQoreInvocationHandlerDestroy;                 // void QoreInvocationHandler.destroy()
 
    static GlobalReference<jclass> classQoreExceptionWrapper;            // org.qore.jni.QoreExceptionWrapper
    static jmethodID ctorQoreExceptionWrapper;                           // QoreExceptionWrapper(long)

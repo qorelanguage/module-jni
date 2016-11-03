@@ -39,11 +39,11 @@ Array::Array(jclass ecls, int size) {
    elementClass = cls.makeGlobal();
    elementType = Globals::getType(elementClass);
 
-   array = Array::getNew(elementType, elementClass, (jsize)size).makeGlobal();
+   jobj = GlobalReference<jobject>::fromLocal(Array::getNew(elementType, elementClass, (jsize)size).as<jobject>());
 }
 
-Array::Array(jarray array) : array(GlobalReference<jarray>::fromLocal(array)) {
-   printd(LogLevel, "Array::Array(), this: %p, object: %p\n", this, static_cast<jarray>(this->array));
+Array::Array(jarray array) : QoreJniPrivateData(array) {
+   printd(LogLevel, "Array::Array(), this: %p, object: %p\n", this, jobj.cast<jarray>());
 
    Env env;
    LocalReference<jclass> arrayClass = env.getObjectClass(array);
@@ -53,7 +53,7 @@ Array::Array(jarray array) : array(GlobalReference<jarray>::fromLocal(array)) {
 
 int64 Array::length() {
    Env env;
-   return env.getArrayLength(array);
+   return env.getArrayLength(jobj.cast<jarray>());
 }
 
 LocalReference<jarray> Array::getNew(Type elementType, jclass elementClass, jsize size) {
@@ -116,11 +116,11 @@ QoreValue Array::get(Env& env, jarray array, Type elementType, jclass elementCla
 
 QoreValue Array::get(int64 index) {
    Env env;
-   return get(env, array, elementType, elementClass, index);
+   return get(env, jobj.cast<jarray>(), elementType, elementClass, index);
 }
 
 void Array::set(int64 index, const QoreValue &value) {
-   set(array, elementType, elementClass, index, value);
+   set(jobj.cast<jarray>(), elementType, elementClass, index, value);
 }
 
 void Array::set(jarray array, Type elementType, jclass elementClass, int64 index, const QoreValue &value) {

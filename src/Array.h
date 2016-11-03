@@ -33,7 +33,7 @@
 
 #include <qore/Qore.h>
 #include "LocalReference.h"
-#include "Object.h"
+#include "QoreJniPrivateData.h"
 #include "Globals.h"
 #include "Env.h"
 
@@ -45,7 +45,7 @@ namespace jni {
 /**
  * \brief Represents a Java array instance.
  */
-class Array : public ObjectBase {
+class Array : public QoreJniPrivateData {
 
 public:
    /**
@@ -63,11 +63,7 @@ public:
    DLLLOCAL Array(jclass elementClass, int size);
 
    DLLLOCAL ~Array() {
-      printd(LogLevel, "Array::~Array(), this: %p, object: %p\n", this, static_cast<jarray>(this->array));
-   }
-
-   DLLLOCAL jarray getJavaObject() const override {
-      return array;
+      printd(LogLevel, "Array::~Array(), this: %p, object: %p\n", this, jobj.cast<jarray>());
    }
 
    DLLLOCAL int64 length();
@@ -87,7 +83,6 @@ public:
    DLLLOCAL static jclass getClassForValue(QoreValue v);
 
 private:
-   GlobalReference<jarray> array;
    GlobalReference<jclass> elementClass;
    Type elementType;
 };

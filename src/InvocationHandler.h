@@ -32,28 +32,22 @@
 #define QORE_JNI_INVOCATIONHANDLER_H_
 
 #include <memory>
-#include "Object.h"
+//#include "Object.h"
+#include "QoreJniPrivateData.h"
 #include "Dispatcher.h"
 
-extern QoreClass* QC_JAVAINVOCATIONHANDLER;
-extern qore_classid_t CID_JAVAINVOCATIONHANDLER;
+extern QoreClass* QC_QOREINVOCATIONHANDLER;
+extern qore_classid_t CID_QOREINVOCATIONHANDLER;
 
 namespace jni {
 
-class InvocationHandler : public ObjectBase {
+class InvocationHandler : public QoreJniPrivateData {
 
 public:
    InvocationHandler(std::unique_ptr<Dispatcher> dispatcher);
-   InvocationHandler(const ResolvedCallReferenceNode *callback);
-
-   jobject getJavaObject() const override {
-      return handler;
-   }
+   InvocationHandler(const ResolvedCallReferenceNode* callback);
 
    void destroy();
-
-private:
-   GlobalReference<jobject> handler;
 };
 
 } // namespace jni
