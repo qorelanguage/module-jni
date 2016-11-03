@@ -18,7 +18,7 @@ endif()
 set(QPP_SRC
     src/ql_jni.qpp
     src/QC_JavaArray.qpp
-    src/QC_JavaInvocationHandler.qpp
+    src/QC_QoreInvocationHandler.qpp
 )
 
 set(CPP_SRC

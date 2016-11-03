@@ -112,7 +112,7 @@ public:
       jvalue arg;
       arg.j = reinterpret_cast<jlong>(xsink.get());
       LocalReference<jobject> obj = env.newObject(Globals::classQoreExceptionWrapper, Globals::ctorQoreExceptionWrapper, &arg);
-      xsink.release();      //from now on, the Java instance of InvocationHandlerImpl is responsible for the dispatcher
+      xsink.release(); // from now on, the Java instance of QoreExceptionWrapper is responsible for the exception sink
       env.throwException(obj.as<jthrowable>());
    }
 

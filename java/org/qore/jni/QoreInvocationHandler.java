@@ -3,12 +3,12 @@ package org.qore.jni;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
-public class InvocationHandlerImpl implements InvocationHandler {
+public class QoreInvocationHandler implements InvocationHandler {
 
     private long ptr;
     private int counter;
 
-    InvocationHandlerImpl(long ptr) {
+    QoreInvocationHandler(long ptr) {
         this.ptr = ptr;
         counter = 1;
     }

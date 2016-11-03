@@ -23,6 +23,7 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 //------------------------------------------------------------------------------
+
 #include "InvocationHandler.h"
 #include "Globals.h"
 
@@ -32,9 +33,9 @@ InvocationHandler::InvocationHandler(std::unique_ptr<Dispatcher> dispatcher) {
    Env env;
    jvalue arg;
    arg.j = reinterpret_cast<jlong>(dispatcher.get());
-   LocalReference<jobject> obj = env.newObject(Globals::classInvocationHandlerImpl, Globals::ctorInvocationHandlerImpl, &arg);
-   dispatcher.release();      //from now on, the Java instance of InvocationHandlerImpl is responsible for the dispatcher
-   handler = obj.makeGlobal();
+   LocalReference<jobject> obj = env.newObject(Globals::classQoreInvocationHandler, Globals::ctorQoreInvocationHandler, &arg);
+   dispatcher.release();    // from now on, the Java instance of QoreInvocationHandler is responsible for the dispatcher
+   jobj = obj.makeGlobal();
 }
 
 InvocationHandler::InvocationHandler(const ResolvedCallReferenceNode *callback)
@@ -43,7 +44,7 @@ InvocationHandler::InvocationHandler(const ResolvedCallReferenceNode *callback)
 
 void InvocationHandler::destroy() {
    Env env;
-   env.callVoidMethod(handler, Globals::methodInvocationHandlerImplDestroy, nullptr);
+   env.callVoidMethod(jobj, Globals::methodQoreInvocationHandlerDestroy, nullptr);
 }
 
 } // namespace jni

@@ -25,21 +25,13 @@
 
 #define _QORE_JNI_QOREJAVACLASSMAP_H
 
-#include "GlobalReference.h"
-#include "LocalReference.h"
+#include "QoreJniPrivateData.h"
 #include "QoreJniThreads.h"
 #include "Env.h"
 #include "Class.h"
 
-DLLLOCAL QoreClass* initJavaObjectClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initJavaArrayClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initJavaClassClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initJavaFieldClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initJavaStaticFieldClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initJavaMethodClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initJavaStaticMethodClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initJavaConstructorClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initJavaInvocationHandlerClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initQoreInvocationHandlerClass(QoreNamespace& ns);
 
 DLLLOCAL void init_jni_functions(QoreNamespace& ns);
 DLLLOCAL QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname);
@@ -66,6 +58,10 @@ extern qore_classid_t CID_CLASSLOADER;
 extern QoreClass* QC_THROWABLE;
 // the Qore class ID for java::lang::Throwable
 extern qore_classid_t CID_THROWABLE;
+// the QoreClass for java::lang::reflect::InvocationHandler
+extern QoreClass* QC_INVOCATIONHANDLER;
+// the Qore class ID for java::lang::reflect::InvocationHandler
+extern qore_classid_t CID_INVOCATIONHANDLER;
 
 // forward reference
 class Class;
@@ -173,28 +169,6 @@ protected:
 
 private:
    DLLLOCAL jarray getJavaArrayIntern(Env& env, const QoreListNode* l, jclass cls);
-};
-
-class QoreJniPrivateData : public AbstractPrivateData {
-private:
-   GlobalReference<jobject> jobj;
-
-public:
-   DLLLOCAL QoreJniPrivateData(jobject n_jobj) : jobj(GlobalReference<jobject>::fromLocal(n_jobj)) {
-   }
-
-   template <typename T>
-   DLLLOCAL T cast() const {
-      return jobj.cast<T>();
-   }
-
-   DLLLOCAL jobject getObject() const {
-      return jobj;
-   }
-
-   DLLLOCAL LocalReference<jobject> makeLocal() const {
-      return jobj.toLocal();
-   }
 };
 
 extern QoreJniClassMap qjcm;

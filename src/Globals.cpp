@@ -96,9 +96,9 @@ jmethodID Globals::methodConstructorToString;
 jmethodID Globals::methodConstructorGetModifiers;
 jmethodID Globals::methodConstructorIsVarArgs;
 
-GlobalReference<jclass> Globals::classInvocationHandlerImpl;
-jmethodID Globals::ctorInvocationHandlerImpl;
-jmethodID Globals::methodInvocationHandlerImplDestroy;
+GlobalReference<jclass> Globals::classQoreInvocationHandler;
+jmethodID Globals::ctorQoreInvocationHandler;
+jmethodID Globals::methodQoreInvocationHandlerDestroy;
 
 GlobalReference<jclass> Globals::classQoreExceptionWrapper;
 jmethodID Globals::ctorQoreExceptionWrapper;
@@ -228,7 +228,7 @@ static GlobalReference<jclass> getPrimitiveClass(Env &env, const char *wrapperNa
    return std::move(env.getStaticObjectField(wrapperClass, typeFieldId).as<jclass>().makeGlobal());
 }
 
-#include "JavaClassInvocationHandlerImpl.inc"
+#include "JavaClassQoreInvocationHandler.inc"
 #include "JavaClassQoreExceptionWrapper.inc"
 #include "JavaClassQoreURLClassLoader.inc"
 
@@ -302,10 +302,10 @@ void Globals::init() {
    methodConstructorGetModifiers = env.getMethod(classConstructor, "getModifiers", "()I");
    methodConstructorIsVarArgs = env.getMethod(classConstructor, "isVarArgs", "()Z");
 
-   classInvocationHandlerImpl = env.defineClass("org/qore/jni/InvocationHandlerImpl", nullptr, java_org_qore_jni_InvocationHandlerImpl_class, java_org_qore_jni_InvocationHandlerImpl_class_len).makeGlobal();
-   env.registerNatives(classInvocationHandlerImpl, invocationHandlerNativeMethods, 2);
-   ctorInvocationHandlerImpl = env.getMethod(classInvocationHandlerImpl, "<init>", "(J)V");
-   methodInvocationHandlerImplDestroy = env.getMethod(classInvocationHandlerImpl, "destroy", "()V");
+   classQoreInvocationHandler = env.defineClass("org/qore/jni/QoreInvocationHandler", nullptr, java_org_qore_jni_QoreInvocationHandler_class, java_org_qore_jni_QoreInvocationHandler_class_len).makeGlobal();
+   env.registerNatives(classQoreInvocationHandler, invocationHandlerNativeMethods, 2);
+   ctorQoreInvocationHandler = env.getMethod(classQoreInvocationHandler, "<init>", "(J)V");
+   methodQoreInvocationHandlerDestroy = env.getMethod(classQoreInvocationHandler, "destroy", "()V");
 
    classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
    methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance", "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
@@ -366,7 +366,7 @@ void Globals::cleanup() {
    classField = nullptr;
    classMethod = nullptr;
    classConstructor = nullptr;
-   classInvocationHandlerImpl = nullptr;
+   classQoreInvocationHandler = nullptr;
    classQoreExceptionWrapper = nullptr;
    classProxy = nullptr;
    classQoreURLClassLoader = nullptr;

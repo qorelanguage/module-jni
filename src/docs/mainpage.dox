@@ -1,0 +1,36 @@
+/** @mainpage Qore jni Module
+
+    @tableofcontents
+
+    @section jniintro Introduction
+
+    The jni module allows for Java APIs to be used in %Qore as if the Java APIs were %Qore APIs.  The module provides a high-level
+    binding and mapping of Java functionality in %Qore as well as run-time data translations back and forth between Java and %Qore data.
+
+    This module is released under the MIT license (see \c COPYING.MIT in the source distribution for more information).  The module is tagged as such in the module's header (meaning it can be loaded unconditionally regardless of how the %Qore library was initialized).
+
+    To use the module in a %Qore script, use the \c %%requires directive as follows:
+    @code %requires jni @endcode
+
+    Or, to import Java APIs into the %Qore program; any of the following jni-module-specific parse directives can be used, each of which also causes the jni module to be loaded and initialized:
+    - <tt>%module-cmd(jni) import <i>java.namespace.path.*</i></tt>: imports the given wilcard path or class into the %Qore program
+    - <tt>%module-cmd(jni) add-classpath </tt><i>path</i>: adds the given paths to the runtime dynamic classpath
+    - <tt>%module-cmd(jni) add-relative-classpath </tt><i>path</i>: adds the given paths as relative to the current program to the runtime dynamic classpath
+
+    Helper classes provided by this module:
+    - @ref Jni::org::qore::jni::JavaArray "JavaArray": a convenience class for using Java Arrays in %Qore
+    - @ref Jni::org::qore::jni::QoreInvocationHandler "QoreInvocationHandler": a convenience class for executing %Qore-language callsbacks from Java
+
+    Helper functions provided by this module:
+    - @ref get_version(): Returns the version of the JNI API
+    - @ref implement_interface(): Creates a Java object that implements given interface using an invocation handler
+    - @ref invoke(): Invokes a method with the given arguments in a non-virtual way; meaning that even if the object provided is a child class, the method given in the first argument is executed
+    - @ref invoke_nonvirtual(): Invokes a method with the given arguments in a non-virtual way; meaning that even if the object provided is a child class, the method given in the first argument is executed
+    - @ref load_class(): Loads a Java class with given name
+    - @ref new_array(): Creates a @ref JavaArray class of the given type and size
+
+    @section jnireleasenotes jni Module Release Notes
+
+    @subsection jni_1_0 jni Module Version 1.0
+    - initial public release
+*/

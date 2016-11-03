@@ -81,7 +81,7 @@ public:
          args[0].l = classLoader;
       }
       args[1].l = interfaces;
-      args[2].l = invocationHandler->getJavaObject();
+      args[2].l = invocationHandler->getObject();
       return env.callStaticObjectMethod(Globals::classProxy, Globals::methodProxyNewProxyInstance, args);
    }
 

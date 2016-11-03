@@ -38,7 +38,7 @@ using namespace jni;
 //! Instances of this class represent Java arrays.
 /**
  */
-qclass JavaArray [arg=jni::Array* array; ns=Qore::Jni; flags=final];
+qclass JavaArray [arg=Array* array; ns=Jni::org::qore::jni; vparent=Object; flags=final];
 
 //! Defined private to prevent Qore code from creating instances.
 /**
@@ -53,7 +53,7 @@ private:internal JavaArray::constructor() {
 Class JavaArray::getClass() {
    try {
       jni::Env env;
-      return new QoreObject(QC_CLASS, getProgram(), new QoreJniPrivateData(env.getObjectClass(array->getJavaObject())));
+      return new QoreObject(QC_CLASS, getProgram(), new QoreJniPrivateData(env.getObjectClass(array->getObject())));
    } catch (jni::Exception &e) {
       e.convert(xsink);
       return QoreValue();

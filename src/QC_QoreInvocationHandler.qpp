@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_JavaInvocationHandler.qpp JavaInvocationHandler class definition */
+/** @file QC_QoreInvocationHandler.qpp QoreInvocationHandler class definition */
 /*
   Qore Programming Language
 
@@ -38,21 +38,7 @@ using namespace jni;
 //! Represents an invocation handler used to implement callback from Java to Qore.
 /**
  */
-qclass JavaInvocationHandler [arg=jni::InvocationHandler* handler; ns=Qore::Jni; flags=final];
-
-//! Returns the class of the object.
-/**
-    @return the class of the object
- */
-Class JavaInvocationHandler::getClass() {
-   try {
-      jni::Env env;
-      return new QoreObject(QC_CLASS, getProgram(), new QoreJniPrivateData(env.getObjectClass(handler->getJavaObject())));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
-}
+qclass QoreInvocationHandler [arg=jni::InvocationHandler* handler; ns=Jni::org::qore::jni; flags=final; vparent=InvocationHandler];
 
 //! Creates a new invocation handler.
 /**
@@ -60,14 +46,14 @@ Class JavaInvocationHandler::getClass() {
 
     @par Example:
     @code{.py}
-    new JavaInvocationHandler(any sub(Jni::Method m, *Jni::Array args) {
+    QoreInvocationHandler h(any sub(Jni::Method m, *list args) {
         # handle invocation of method m with arguments args
     });
     @endcode
  */
-JavaInvocationHandler::constructor(code dispatcher) {
+QoreInvocationHandler::constructor(code dispatcher) {
    try {
-      self->setPrivate(CID_JAVAINVOCATIONHANDLER, new jni::InvocationHandler(dispatcher));
+      self->setPrivate(CID_QOREINVOCATIONHANDLER, new jni::InvocationHandler(dispatcher));
    } catch (jni::Exception &e) {
       e.convert(xsink);
    }
@@ -76,7 +62,7 @@ JavaInvocationHandler::constructor(code dispatcher) {
 //! Explicitly destroys the invocation handler even if it is still reachable from Java.
 /**
  */
-nothing JavaInvocationHandler::destroy() {
+nothing QoreInvocationHandler::destroy() {
    try {
       handler->destroy();
    } catch (jni::Exception &e) {

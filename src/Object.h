@@ -37,7 +37,7 @@
 namespace jni {
 
 /**
- * \brief Base class for private data of Qore objects that represent Java object.
+ * \brief Base class for private data of Qore objects that represent Java objects.
  */
 class ObjectBase : public AbstractPrivateData {
 
