@@ -34,7 +34,6 @@
 #include <qore/Qore.h>
 #include "LocalReference.h"
 #include "QoreJniPrivateData.h"
-//#include "Object.h"
 #include "Globals.h"
 #include "Env.h"
 
