@@ -66,12 +66,6 @@ public:
       printd(LogLevel, "Array::~Array(), this: %p, object: %p\n", this, jobj.cast<jarray>());
    }
 
-   /*
-   DLLLOCAL jarray getJavaObject() const override {
-      return array;
-   }
-   */
-
    DLLLOCAL int64 length();
    DLLLOCAL QoreValue get(int64 index);
    DLLLOCAL void set(int64 index, const QoreValue &value);
