@@ -83,7 +83,6 @@ public:
    DLLLOCAL static jclass getClassForValue(QoreValue v);
 
 private:
-   //GlobalReference<jarray> array;
    GlobalReference<jclass> elementClass;
    Type elementType;
 };
