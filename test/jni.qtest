@@ -401,7 +401,7 @@ public class Main inherits QUnit::Test {
         # get java class name
         assertEq("boolean[]", a.getClass().getCanonicalName());
         # get internal class name
-        assertEq("[2", a.getClass().getName());
+        assertEq("[Z", a.getClass().getName());
         # get Qore class name
         assertEq("JavaArray", a.className());
         a.set(0, True);
