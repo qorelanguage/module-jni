@@ -146,7 +146,10 @@ static QoreStringNode* jni_module_init() {
 }
 
 static void jni_module_ns_init(QoreNamespace* rns, QoreNamespace* qns) {
+   QoreProgram* pgm = getProgram();
    rns->addNamespace(qjcm.getRootNS().copy());
+   JniProgramContext* jni = new JniProgramContext(pgm);
+   pgm->setExternalData("jni", jni);
 }
 
 static void jni_module_delete() {

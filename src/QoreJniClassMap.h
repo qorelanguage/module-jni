@@ -66,6 +66,9 @@ extern qore_classid_t CID_INVOCATIONHANDLER;
 // forward reference
 class Class;
 
+// map of java class names (ex 'java/lang/Object') to QoreClass ptrs
+typedef std::map<std::string, QoreClass*> jcmap_t;
+
 class QoreJniClassMap {
 public:
    mutable QoreJniThreadLock m;
@@ -110,12 +113,15 @@ public:
 
    DLLLOCAL Class* loadClass(const QoreString& name);
 
+   // xxx
+   DLLLOCAL QoreClass* findCreateQoreClass(const char* name);
+   DLLLOCAL Class* loadClass(const char* name, bool& base);
+
 protected:
    // class loader
    GlobalReference<jobject> classLoader;
 
    // map of java class names (ex 'java/lang/Object') to QoreClass ptrs
-   typedef std::map<std::string, QoreClass*> jcmap_t;
    jcmap_t jcmap;
 
    // map of java class names to const QoreTypeInfo ptrs
@@ -167,11 +173,47 @@ protected:
    DLLLOCAL QoreClass* createClass(QoreNamespace& jns, const char* name, const char* jpath, Class* jc);
    DLLLOCAL QoreClass* createClassIntern(QoreNamespace* ns, QoreNamespace& jns, const char* name, const char* jpath, Class* jc, QoreClass* qc);
 
+   // xxx
+   DLLLOCAL QoreClass* createClassInNamespace(QoreNamespace* ns, QoreNamespace& jns, const char* name, const char* jpath, Class* jc, QoreClass* qc);
+
 private:
    DLLLOCAL jarray getJavaArrayIntern(Env& env, const QoreListNode* l, jclass cls);
 };
 
 extern QoreJniClassMap qjcm;
+
+class JniProgramContext : public AbstractQoreProgramExternalData {
+protected:
+   // map of java class names (ex 'java/lang/Object') to QoreClass ptrs
+   jcmap_t jcmap;
+   // Jni namespace pointer for the current Program
+   QoreNamespace* jni;
+
+public:
+   DLLLOCAL JniProgramContext(QoreProgram* pgm) {
+      jni = pgm->getRootNS()->findLocalNamespace("Jni");
+      assert(jni);
+   }
+
+   DLLLOCAL JniProgramContext(const JniProgramContext& old) {
+   }
+
+   DLLLOCAL virtual ~JniProgramContext() {
+   }
+
+   DLLLOCAL QoreNamespace* getJniNamespace() const {
+      return jni;
+   }
+
+   DLLLOCAL virtual AbstractQoreProgramExternalData* copy() const {
+      return new JniProgramContext(*this);
+   }
+
+   DLLLOCAL virtual void doDeref() {
+      delete this;
+   }
+};
+
 }
 
 #endif
