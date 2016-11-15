@@ -107,10 +107,17 @@ jmethodID Globals::methodQoreExceptionWrapperGet;
 GlobalReference<jclass> Globals::classProxy;
 jmethodID Globals::methodProxyNewProxyInstance;
 
+GlobalReference<jclass> Globals::classClassLoader;
+jmethodID Globals::methodClassLoaderLoadClass;
+
 GlobalReference<jclass> Globals::classQoreURLClassLoader;
 jmethodID Globals::ctorQoreURLClassLoader;
 jmethodID Globals::methodQoreURLClassLoaderAddPath;
 jmethodID Globals::methodQoreURLClassLoaderLoadClass;
+
+GlobalReference<jclass> Globals::classThread;
+jmethodID Globals::methodThreadCurrentThread;
+jmethodID Globals::methodThreadGetContextClassLoader;
 
 GlobalReference<jclass> Globals::classBoolean;
 jmethodID Globals::ctorBoolean;
@@ -310,10 +317,17 @@ void Globals::init() {
    classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
    methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance", "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
 
+   classClassLoader = env.findClass("java/lang/ClassLoader").makeGlobal();
+   methodClassLoaderLoadClass = env.getMethod(classClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
+
    classQoreURLClassLoader = env.defineClass("org/qore/jni/QoreURLClassLoader", nullptr, java_org_qore_jni_QoreURLClassLoader_class, java_org_qore_jni_QoreURLClassLoader_class_len).makeGlobal();
    ctorQoreURLClassLoader = env.getMethod(classQoreURLClassLoader, "<init>", "()V");
    methodQoreURLClassLoaderAddPath = env.getMethod(classQoreURLClassLoader, "addPath", "(Ljava/lang/String;)V");
    methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
+
+   classThread = env.findClass("java/lang/Thread").makeGlobal();
+   methodThreadCurrentThread = env.getStaticMethod(classThread, "currentThread", "()Ljava/lang/Thread;");
+   methodThreadGetContextClassLoader = env.getMethod(classThread, "getContextClassLoader", "()Ljava/lang/ClassLoader;");
 
    classBoolean = env.findClass("java/lang/Boolean").makeGlobal();
    ctorBoolean = env.getMethod(classBoolean, "<init>", "(Z)V");
@@ -369,7 +383,9 @@ void Globals::cleanup() {
    classQoreInvocationHandler = nullptr;
    classQoreExceptionWrapper = nullptr;
    classProxy = nullptr;
+   classClassLoader = nullptr;
    classQoreURLClassLoader = nullptr;
+   classThread = nullptr;
    classBoolean = nullptr;
    classInteger = nullptr;
    classLong = nullptr;

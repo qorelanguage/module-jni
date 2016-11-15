@@ -64,6 +64,7 @@ public:
    jobject dispatch(Env &env, jobject proxy, jobject method, jobjectArray args) override;
 
 private:
+   QoreProgram* pgm = getProgram();
    ResolvedCallReferenceNode *callback;
 };
 

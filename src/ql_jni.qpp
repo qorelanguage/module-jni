@@ -145,8 +145,8 @@ Jni::java::lang::Object implement_interface(Jni::org::qore::jni::QoreInvocationH
    jni::Env::GetStringUtfChars cname(env, clsName);
    QoreString jcname(cname.c_str());
    jcname.replaceAll(".", "/");
-   jclass jc = (jclass)cls->getObject();
-   QoreClass* qc = qjcm.findCreateClass(jc);
+   LocalReference<jclass> jc = cls->makeLocal().as<jclass>();
+   QoreClass* qc = qjcm.findCreateQoreClass(jc);
 
    try {
       return new QoreObject(qc, getProgram(), new QoreJniPrivateData(jni::Functions::implementInterface(nullptr, invocationHandler, jc)));
@@ -183,8 +183,8 @@ Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJni
    jni::Env::GetStringUtfChars cname(env, clsName);
    QoreString jcname(cname.c_str());
    jcname.replaceAll(".", "/");
-   jclass jc = (jclass)cls->getObject();
-   QoreClass* qc = qjcm.findCreateClass(jc);
+   LocalReference<jclass> jc = cls->makeLocal().as<jclass>();
+   QoreClass* qc = qjcm.findCreateQoreClass(jc);
 
    try {
       return new QoreObject(qc, getProgram(), new QoreJniPrivateData(jni::Functions::implementInterface(classLoader->getObject(), invocationHandler, jc)));
