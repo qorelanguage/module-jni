@@ -114,10 +114,17 @@ public:
    static GlobalReference<jclass> classProxy;                           // java.lang.reflect.Proxy
    static jmethodID methodProxyNewProxyInstance;                        // Object Proxy.newProxyInstance(ClassLoader, Class[], InvocationHandler)
 
+   static GlobalReference<jclass> classClassLoader;                     // java.lang.ClassLoader
+   static jmethodID methodClassLoaderLoadClass;                         // Class ClassLoader.loadClass(String)
+
    static GlobalReference<jclass> classQoreURLClassLoader;              // org.qore.jni.QoreURLClassLoader
    static jmethodID ctorQoreURLClassLoader;                             // QoreURLClassLoader()
    static jmethodID methodQoreURLClassLoaderAddPath;                    // void QoreURLClassLoader.addPath(String)
    static jmethodID methodQoreURLClassLoaderLoadClass;                  // Class QoreURLClassLoader.loadClass(String)
+
+   static GlobalReference<jclass> classThread;                          // java.lang.Thread
+   static jmethodID methodThreadCurrentThread;                          // Thread Thread.currentThread()
+   static jmethodID methodThreadGetContextClassLoader;                  // ClassLoader Thread.getContextClassLoader()
 
    static GlobalReference<jclass> classBoolean;                         // java.lang.Boolean
    static jmethodID ctorBoolean;                                        // Boolean(boolean)

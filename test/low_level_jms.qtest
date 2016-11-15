@@ -64,12 +64,18 @@ class TextMessage inherits Message {
     private:internal {
         Method setTextMethod;
         Method getTextMethod;
+        Method acknowledgeMethod;
+        Method getJMSRedeliveredMethod;
+        Method getJMSMessageIDMethod;
     }
 
     constructor(Object this) : Message(this) {
         Class clazz = this.getClass();
         setTextMethod = clazz.getMethod("setText", (load_class("java/lang/String"),));
         getTextMethod = clazz.getMethod("getText");
+        acknowledgeMethod = clazz.getMethod("acknowledge");
+        getJMSRedeliveredMethod = clazz.getMethod("getJMSRedelivered");
+        getJMSMessageIDMethod = clazz.getMethod("getJMSMessageID");
     }
 
     setText(string text) {
@@ -78,6 +84,18 @@ class TextMessage inherits Message {
 
     string getText() {
         return getTextMethod.invoke(this);
+    }
+
+    acknowledge() {
+        acknowledgeMethod.invoke(this);
+    }
+
+    bool getJMSRedelivered() {
+        return getJMSRedeliveredMethod.invoke(this);
+    }
+
+    string getJMSMessageID() {
+        return getJMSMessageIDMethod.invoke(this);
     }
 }
 
@@ -113,13 +131,13 @@ code sub wrapListener(code listener, Class textMessageClass) {
 }
 
 class MessageConsumer {
-
     private:internal {
         ClassLoader classLoader;
         Object this;
         Method setMessageListenerMethod;
         Class textMessageClass;
         Class messageListenerClass;
+        Method closeMethod;
     }
 
     constructor(ClassLoader classLoader, Object this) {
@@ -129,11 +147,20 @@ class MessageConsumer {
         setMessageListenerMethod = clazz.getMethod("setMessageListener", (classLoader.loadClass("javax/jms/MessageListener"),));
         textMessageClass = classLoader.loadClass("javax/jms/TextMessage");
         messageListenerClass = classLoader.loadClass("javax/jms/MessageListener");
+        closeMethod = clazz.getMethod("close");
     }
 
     setMessageListener(code listener) {
         code w = wrapListener(listener, textMessageClass);
         setMessageListenerMethod.invoke(this, (implement_interface(classLoader.get(), new QoreInvocationHandler(w), messageListenerClass),));
+    }
+
+    setMessageListener() {
+        setMessageListenerMethod.invoke(this, (NOTHING,));
+    }
+
+    close() {
+        closeMethod.invoke(this);
     }
 }
 
@@ -255,7 +282,8 @@ class JmsContext {
 
     constructor(softlist classpath) {
         classLoader = new ClassLoader(classpath);
-        ctxClass = load_class("javax/naming/InitialContext");
+        ctxClass = classLoader.loadClass("javax/naming/InitialContext");
+        #load_class("javax/naming/InitialContext");
         lookup = ctxClass.getMethod("lookup", (load_class("java/lang/String"),));
 
         Class threadClass = load_class("java/lang/Thread");
@@ -266,7 +294,14 @@ class JmsContext {
     }
 
     ConnectionFactory getConnectionFactory(string name) {
-        return new ConnectionFactory(classLoader, lookup.invoke(namingContext, (name,)));
+        #return new ConnectionFactory(classLoader, lookup.invoke(namingContext, (name,)));
+        try {
+            return new ConnectionFactory(classLoader, lookup.invoke(namingContext, (name,)));
+        }
+        catch (hash ex) {
+            printf("%N\n", ex.arg.getCause().getMessage());
+            rethrow;
+        }
     }
 
     Destination getDestination(string name) {
@@ -308,7 +343,7 @@ public class Main inherits QUnit::Test {
 
         ConnectionFactory connectionFactory = ctx.getConnectionFactory("jms/__defaultConnectionFactory");
         Connection connection = connectionFactory.createConnection();
-        Session session = connection.createSession(Session::AUTO_ACKNOWLEDGE);
+        Session session = connection.createSession(Session::CLIENT_ACKNOWLEDGE);
 
         #### NOTE: create the JMS queue in advance - ex:
         # prompt% ./bin/asadmin
@@ -320,19 +355,24 @@ public class Main inherits QUnit::Test {
         MessageConsumer consumer = session.createConsumer(queue);
 
         consumer.setMessageListener(sub(object msg) {
+            # ignore redeliveries
+            if (msg.getJMSRedelivered())
+                return;
             data = msg.getText();
             if (m_options.verbose)
-                printf("*** JMS message received: %y\n", data);
+                printf("*** JMS message received: %y (id: %y)\n", msg.getText(), msg.getJMSMessageID());
+            msg.acknowledge();
             c.dec();
         });
 
         connection.start();
 
         TextMessage message = session.createTextMessage();
-        message.setText("Hello, world!");
+        message.setText(TextMsg);
 
         producer.send(message);
         c.waitForZero();
         assertEq(TextMsg, data);
+        printf("done\n");
     }
 }

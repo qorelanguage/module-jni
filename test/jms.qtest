@@ -55,7 +55,7 @@ public class Main inherits QUnit::Test {
         InitialContext ctx(props);
 
         Connection connection = cast<ConnectionFactory>(ctx.lookup("jms/__defaultConnectionFactory")).createConnection();
-        Session session = connection.createSession(Session::AUTO_ACKNOWLEDGE);
+        Session session = connection.createSession(Session::CLIENT_ACKNOWLEDGE);
 
         Destination queue = cast<Destination>(ctx.lookup("abc"));
 
@@ -84,9 +84,13 @@ public class Main inherits QUnit::Test {
     # JMS message callback for the MessageListener interface
     messageCallback(Method method, *list args) {
         TextMessage msg = args[0];
+        # ignore redeliveries
+        if (msg.getJMSRedelivered())
+            return;
         data = msg.getText();
+        msg.acknowledge();
         if (m_options.verbose)
-            printf("*** JMS message received: %y\n", msg.getText());
+            printf("*** JMS message received: %y (id: %y)\n", msg.getText(), msg.getJMSMessageID());
         c.dec();
     }
 }

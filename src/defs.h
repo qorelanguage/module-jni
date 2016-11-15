@@ -133,14 +133,18 @@ public:
    /**
     * \brief Constructor.
     */
-   JavaException() {
+   DLLLOCAL JavaException() {
    }
 
-   void convert(ExceptionSink *xsink) override;
+   DLLLOCAL void convert(ExceptionSink *xsink) override;
 
-   void ignore() override;
+   DLLLOCAL void ignore() override;
 
-   void ignoreOrRethrowNoClass();
+   DLLLOCAL void ignoreOrRethrowNoClass();
+
+   DLLLOCAL jthrowable save();
+
+   DLLLOCAL void restore(jthrowable je);
 
    DLLLOCAL QoreStringNode* toString() const;
 };
@@ -154,10 +158,10 @@ public:
     * \brief Constructor.
     * \param message the exception message
     */
-   BasicException(std::string message) : message(std::move(message)) {
+   DLLLOCAL BasicException(std::string message) : message(std::move(message)) {
    }
 
-   void convert(ExceptionSink *xsink) override {
+   DLLLOCAL void convert(ExceptionSink *xsink) override {
       xsink->raiseException("JNI-ERROR", message.c_str());
    }
 

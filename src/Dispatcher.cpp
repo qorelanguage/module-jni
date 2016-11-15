@@ -31,6 +31,7 @@
 namespace jni {
 
 QoreCodeDispatcher::QoreCodeDispatcher(const ResolvedCallReferenceNode *callback) : callback(callback->refRefSelf()) {
+   pgm->ref();
    printd(LogLevel, "QoreCodeDispatcher::QoreCodeDispatcher(), this: %p\n", this);
 }
 
@@ -44,6 +45,7 @@ QoreCodeDispatcher::~QoreCodeDispatcher() {
    printd(LogLevel, "QoreCodeDispatcher::~QoreCodeDispatcher(), this: %p\n", this);
    ExceptionSink xsink;
    callback->deref(&xsink);
+   pgm->deref(&xsink);
    if (xsink) {
       QoreToJava::wrapException(xsink);
    }
@@ -57,14 +59,19 @@ jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jo
       return nullptr;
    }
 
-   printd(LogLevel, "QoreCodeDispatcher::dispatch(), this: %p\n", this);
+   printd(LogLevel, "QoreCodeDispatcher::dispatch(), this: %p pgm: %p\n", this, pgm);
 
    ExceptionSink xsink;
    {
       ReferenceHolder<QoreListNode> args(new QoreListNode, &xsink);
       args->push(new QoreObject(QC_METHOD, getProgram(), new QoreJniPrivateData(method)));
-      if (jargs)
+      if (jargs) {
+         // we need to set the Program context if executing in a new thread
+         // when creating arguments in case QoreClass
+         // objects must be created from Java objects
+         QoreProgramContextHelper pch(pgm);
          args->push(Array::getList(env, jargs, env.getObjectClass(jargs)));
+      }
 
       QoreValue qv = callback->execValue(*args, &xsink);
       if (xsink) {

@@ -69,10 +69,26 @@ public:
 };
 
 void JavaException::ignore() {
-   JNIEnv* env = Jvm::getEnv();         //not using the Env wrapper because we don't want any C++ exceptions here
+   // not using the Env wrapper because we don't want any C++ exceptions here
+   JNIEnv* env = Jvm::getEnv();
    LocalReference<jthrowable> throwable = env->ExceptionOccurred();
    assert(throwable != nullptr);
    env->ExceptionClear();
+}
+
+jthrowable JavaException::save() {
+   // not using the Env wrapper because we don't want any C++ exceptions here
+   JNIEnv* env = Jvm::getEnv();
+   LocalReference<jthrowable> throwable = env->ExceptionOccurred();
+   assert(throwable != nullptr);
+   env->ExceptionClear();
+   return throwable.release();
+}
+
+void JavaException::restore(jthrowable je) {
+   // not using the Env wrapper because we don't want any C++ exceptions here
+   JNIEnv* env = Jvm::getEnv();
+   env->Throw(je);
 }
 
 QoreStringNode* JavaException::toString() const {
@@ -186,7 +202,7 @@ void JavaException::convert(ExceptionSink *xsink) {
    JniCallStack stack(throwable);
 
    LocalReference<jclass> tcls(env->GetObjectClass(throwable));
-   xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(qjcm.findCreateClass(tcls), getProgram(), new QoreJniPrivateData(throwable.as<jobject>())), desc.release(), stack);
+   xsink->raiseExceptionArg("JNI-ERROR", new QoreObject(qjcm.findCreateQoreClass(tcls), getProgram(), new QoreJniPrivateData(throwable.as<jobject>())), desc.release(), stack);
 }
 
 void JavaException::ignoreOrRethrowNoClass() {
