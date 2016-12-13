@@ -776,7 +776,14 @@ void JniExternalProgramData::addClasspath(const char* path) {
    LocalReference<jstring> jname = env.newString(path);
    jvalue jarg;
    jarg.l = jname;
-   env.callVoidMethod(classLoader, Globals::methodQoreURLClassLoaderAddPath, &jarg);
+   try {
+      env.callVoidMethod(classLoader, Globals::methodQoreURLClassLoaderAddPath, &jarg);
+   }
+   catch (jni::Exception& e) {
+      // display exception info on the console as an unhandled exception
+      ExceptionSink xsink;
+      e.convert(&xsink);
+   }
 }
 
 }

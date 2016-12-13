@@ -52,6 +52,8 @@ class MakeInc {
 
         StreamWriter w(new FileOutputStream(outname));
 
+        name =~ s/\$/_/g;
+
         w.printf("//generated from %s\nstatic unsigned char java_org_qore_jni_%s_class[] = {", file, name);
 
         # character count
@@ -76,7 +78,7 @@ class MakeInc {
         }
 
         string oname = basename(file);
-        oname =~ s/\./_/g;
+        oname =~ s/[\.\$]/_/g;
         w.printf("\n};\nstatic unsigned int java_org_qore_jni_%s_len = %d;\n", oname, tc);
     }
 
