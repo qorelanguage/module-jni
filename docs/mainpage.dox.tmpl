@@ -1,0 +1,242 @@
+/** @mainpage Qore jni Module
+
+    @tableofcontents
+
+    @section jniintro Introduction
+
+    The \c jni module allows for Java APIs to be used in %Qore as if the Java APIs were %Qore APIs.  The module provides a high-level
+    binding and mapping of Java functionality in %Qore as well as run-time data translations back and forth between Java and %Qore data.
+
+    This module is released under the MIT license (see \c COPYING.MIT in the source distribution for more information).  The module is tagged as such in the module's header (meaning it can be loaded unconditionally regardless of how the %Qore library was initialized).
+
+    To use the module in a %Qore script, use the \c %%requires directive as follows:
+    @code %requires jni @endcode
+
+    Helper classes provided by this module:
+    |!Class|!Description
+    |@ref Jni::org::qore::jni::JavaArray "JavaArray"|a convenience class for using Java Arrays in %Qore
+    |@ref Jni::org::qore::jni::QoreInvocationHandler "QoreInvocationHandler"|a convenience class for executing %Qore-language callbacks from Java
+
+    Helper functions provided by this module:
+    |!Function|!Description
+    |@ref get_version()|Returns the version of the JNI API
+    |@ref implement_interface()|Creates a Java object that implements given interface using an invocation handler
+    |@ref invoke()|Invokes a method with the given arguments
+    |@ref invoke_nonvirtual()|Invokes a method with the given arguments in a non-virtual way; meaning that even if the object provided is a child class, the method given in the first argument is executed
+    |@ref load_class()|Loads a Java class with given name and returns a \c java.lang.Class object for that class
+    |@ref new_array()|Creates a @ref Jni::org::qore::jni::JavaArray "JavaArray" object of the given type and size
+
+    @section jni_examples Examples
+
+    @par JMS Example:
+    @code{.py}
+ #!/usr/bin/env qore
+
+ %new-style
+ %require-types
+ %strict-args
+ %enable-all-warnings
+
+ %requires jni
+ %requires QUnit
+ %requires Util
+
+ # import Java classes to our script
+ %module-cmd(jni) import javax.naming.InitialContext
+ %module-cmd(jni) import javax.jms.*
+
+ # add environment variable $GLASSFISH_JAR to the dynamic classpath (if set)
+ %module-cmd(jni) add-classpath $GLASSFISH_JAR
+
+ %exec-class Main
+
+ public class Main inherits QUnit::Test {
+     private {
+         Counter c(1);
+         any data;
+
+         const TextMsg = "Hello, world!";
+     }
+
+     constructor() : Test("JMS test", "1.0", \ARGV) {
+         addTestCase("base test", \testJms());
+
+         # Return for compatibility with test harness that checks return value.
+         set_return_value(main());
+     }
+
+     testJms() {
+         # these properties are the default; included here to provide an example for connecting to a remote server
+         Properties props();
+         props.setProperty("java.naming.factory.initial", "com.sun.enterprise.naming.SerialInitContextFactory");
+         props.setProperty("org.omg.CORBA.ORBInitialHost", "localhost");
+         props.setProperty("org.omg.CORBA.ORBInitialPort", "3700");
+
+         InitialContext ctx(props);
+
+         Connection connection = cast<ConnectionFactory>(ctx.lookup("jms/__defaultConnectionFactory")).createConnection();
+         Session session = connection.createSession(Session::CLIENT_ACKNOWLEDGE);
+
+         Destination queue = cast<Destination>(ctx.lookup("abc"));
+
+         MessageProducer producer = session.createProducer(queue);
+         MessageConsumer consumer = session.createConsumer(queue);
+
+         # in order to implement the MessageListener interface for the callback, we have to use implement_interface() as follows:
+         ClassLoader loader = connection.getClass().getClassLoader();
+         consumer.setMessageListener(cast<MessageListener>(implement_interface(loader, new QoreInvocationHandler(\messageCallback()), Class::forName("javax.jms.MessageListener", True, loader))));
+
+         connection.start();
+
+         TextMessage message = session.createTextMessage();
+         message.setText(TextMsg);
+
+         producer.send(message);
+         # wait for message to be received
+         c.waitForZero();
+
+         assertEq(TextMsg, data);
+
+         # unset the listener and exit
+         consumer.setMessageListener(NOTHING);
+     }
+
+     # JMS message callback for the MessageListener interface
+     messageCallback(Method method, *list args) {
+         TextMessage msg = args[0];
+         # ignore redeliveries
+         if (msg.getJMSRedelivered())
+             return;
+         data = msg.getText();
+         msg.acknowledge();
+         if (m_options.verbose)
+             printf("*** JMS message received: %y (id: %y)\n", msg.getText(), msg.getJMSMessageID());
+         c.dec();
+     }
+ }
+    @endcode
+
+    @section jniimport Importing Java APIs
+
+    To import Java APIs into the %Qore program; any of the following jni-module-specific parse directives can be used, each of which also causes the jni module to be loaded and initialized:
+    - @code{.qore} %module-cmd(jni) import java.namespace.path.* @endcode imports the given wilcard path or class into the %Qore program
+    - @code{.qore} %module-cmd(jni) add-classpath filesystem/path:another/path @endcode adds the given paths to the runtime dynamic classpath; supports environment variable substitution
+    - @code{.qore} %module-cmd(jni) add-relative-classpath ../relative/path @endcode adds the given paths as relative to the current program to the runtime dynamic classpath
+
+    @section jni_types Type Conversions Between Qore and Java
+
+    The \c jni module uses reflection to automatically map Java classes to Qore classes.  This class mapping and Qore class creation happens at parse time (when @ref jniimport "importing Java APIs" into %Qore) and also at runtime (if a new class is encountered that has not already been mapped).
+
+    There are two types of conversions:
+    - @ref jni_qore2java_specific: when the type is known in advance
+    - @ref jni_qore2java_default: when the type is \c java.lang.Object
+
+    @subsection jni_qore2java_specific Qore to Java Defined Type Conversions
+
+    The following table describes type conversions for Java types when the \c jni module must convert a %Qore value to the declared type:
+
+    Qore to Specific Java Type Conversions
+    |!Target Java Type|!Source %Qore Type
+    |\c boolean|any; conversions are made like with @ref Qore::boolean() "boolean()"
+    |\c byte|any; conversions are made like with @ref Qore::int() "int()"
+    |\c char|any; conversions are made like with @ref Qore::int() "int()"
+    |\c short|any; conversions are made like with @ref Qore::int() "int()"
+    |\c int|any; conversions are made like with @ref Qore::int() "int()"
+    |\c long|any; conversions are made like with @ref Qore::int() "int()"
+    |\c float|any; conversions are made like with @ref Qore::float() "float()"
+    |\c double|any; conversions are made like with @ref Qore::float() "float()"
+
+    For other types, @ref jni_qore2java_default "default conversions" are used.
+
+    @subsection jni_qore2java_default Qore to Java Default Type Conversions
+
+    The following table describes type conversions for Java types when the \c jni module must convert a %Qore value to the declared type:
+
+    Qore to Java Default Type Conversions
+    |!Source %Qore Type|!Target Java Type
+    |@ref bool_type "bool"|\c boolean
+    |@ref int_type "int"|\c int (note: precision is lost here)
+    |@ref float_type "float"|\c double
+    |@ref string_type "string"|\c java.lang.String
+    |@ref nothing_type "NOTHING" and @ref null_type "NULL"|\c void
+    |@ref list_type "list"|\c java.lang.Array
+    |@ref Jni::org::qore::jni::JavaArray "JavaArray"|\c java.lang.Array
+    |all \c jni objects|direct conversion
+
+    @note
+    - %Qore 64-bit integers are automatically converted to 32-bit Java integers; to get a Java \c long value; use: @code{.py} new Long(val) @endcode
+    - see @ref jni_arrays for more information about conversions between %Qore lists and Java arrays
+
+    @subsection jni_java_to_qore Java to Qore Type Conversions
+
+    Java to %Qore Type Conversions
+    |!Source Java Type|!Target %Qore Type
+    |\c boolean|@ref bool_type "bool"
+    |\c byte|@ref int_type "int"
+    |\c char|@ref int_type "int"
+    |\c short|@ref int_type "int"
+    |\c int|@ref int_type "int"
+    |\c long|@ref int_type "int"
+    |\c float|@ref float_type "float"
+    |\c double|@ref float_type "double"
+    |\c java.lang.String|@ref string_type "string"
+    |\c java.lang.Array|@ref list_type "list"
+    |all other objects|direct conversion
+
+    @note see @ref jni_arrays for more information about conversions between %Qore lists and Java arrays
+
+    @subsection jni_arrays Java Arrays
+
+    Arrays are mapped directly to and from Qore lists.  When converting from a Qore list to a Java array, the list is scanned, and if it can be mapped to a single Java type, then an array of that type is created.  Otherwise, an array of \c java.lang.Object is created and the %Qore values are mapped directly to Java values.
+
+    %Qore lists are passed by value and Java arrays are objects (which, like %Qore objects, are passed with a copy of a reference to the object).  To get similar functionality in %Qore, you can use the @ref Jni::org::qore::jni::JavaArray "JavaArray" class supplied with the \c jni module, which is automatically converted to a Java array object like a list, but is also passed with a copy of a reference to the object in %Qore.
+
+    @subsubsection jni_array_varargs Java Arrays as Variable Arguments
+
+    When a Java method declares variable arguments, such arguments must be given as a single array value (so a %Qore list or @ref Jni::org::qore::jni::JavaArray "JavaArray" object).  Consider the following example:
+    @code{.py}
+    StringBuilder stringBuilder("");
+    Method stringBuilderAppendLong = stringBuilderClass.getMethod("append", (Long::TYPE,));
+    stringBuilderAppendLong.invoke(stringBuilder, (20,));
+    printf("%y\n", stringBuilder.toString());
+    @endcode
+
+    In the above example, the \c java.lang.Class.getMethod() and the \c java.lang.Method.invoke() methods both take a variable number of arguments after the first argument.  In the mapped Qore class, these must be given as a %Qore list (as in the above example) or a @ref Jni::org::qore::jni::JavaArray "JavaArray" object.
+
+    @section jni_class_mapping Java Class Mapping
+
+    The \c jni module attempts to create %Qore classes that match the source Java class as closely as possible to maximize the usefulness of Java APIs in %Qore.
+
+    When creating %Qore class methods from the corresponding Java source method, types are mapped according to @ref jni_java_to_qore.
+    Because %Qore has fewer types than Java, this can lead to method signature collissions in the generated %Qore class.
+
+    In such cases, only the first method returned by the internal call to \c java.lang.Class.getDeclaredMethods() is mapped.
+
+    To call an unmapped method, use reflection to get a \c java.lang.Method object and make the call using \c java.lang.Method.invoke() as in the folllowing example:
+    @code{.py}
+    StringBuilder stringBuilder("");
+    Method stringBuilderAppendLong = stringBuilderClass.getMethod("append", (Long::TYPE,));
+    stringBuilderAppendLong.invoke(stringBuilder, (20,));
+    printf("%y\n", stringBuilder.toString());
+    @endcode
+
+    @section jni_classloader Java Classloader
+
+    There is a global classloader for all Java objects reachable without special classpath.  For all other objects,
+    each %Qore @ref Qore::Program "Program" container has its own custom classloader provided by the \c jni module
+    that supports a dynamic classpath.
+
+    The %Qore @ref Qore::Program "Program"-specific dynamic classpath can be set with the \c import commands as documented in @ref jniimport.
+
+    Explicit class loaders can also be used as in Java as in the following example:
+    @code{.py}
+    softlist urls = (new URL("file:///my/dir/my-api.jar"));
+    URLClassLoader classLoader(urls);
+    Class myClass = classLoader.loadClass("MyClass");
+    @endcode
+
+    @section jnireleasenotes jni Module Release Notes
+
+    @subsection jni_1_0 jni Module Version 1.0
+    - initial public release
+*/
