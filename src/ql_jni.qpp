@@ -37,6 +37,7 @@ using namespace jni;
 /** @defgroup JNI functions.
  */
 //@{
+namespace Jni::org::qore::jni;
 
 //! Returns the version of the JNI API.
 /**
@@ -172,7 +173,7 @@ Jni::java::lang::Object implement_interface(Jni::org::qore::jni::QoreInvocationH
     # runnableInstance now has a Java method void run() that calls Qore function doRun()
     @endcode
  */
-Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJniPrivateData] classLoader, Jni::org::qore::jni::InvocationHandler[jni::InvocationHandler] invocationHandler, Jni::java::lang::Class[QoreJniPrivateData] cls) {
+Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJniPrivateData] classLoader, Jni::org::qore::jni::QoreInvocationHandler[jni::InvocationHandler] invocationHandler, Jni::java::lang::Class[QoreJniPrivateData] cls) {
    SimpleRefHolder<QoreJniPrivateData> classLoaderHolder(classLoader);
    SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
    SimpleRefHolder<QoreJniPrivateData> classHolder(cls);

@@ -64,6 +64,7 @@ public:
    /**
     * \brief Constructor.
     * \param method an instance of java.lang.reflect.Method
+    * \cls the Class object for the method
     */
    DLLLOCAL BaseMethod(jobject method, Class* cls) : cls(cls) {
       Env env;
@@ -86,7 +87,7 @@ public:
     * \brief Invokes an instance method.
     * \param object the instance
     * \param args the arguments
-    * \param base the offset in args for the arguments
+    * \param offset the offset in args for the arguments
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
@@ -96,7 +97,7 @@ public:
     * \brief Invokes an instance method non-virtually.
     * \param object the instance
     * \param args the arguments
-    * \param base the offset in args for the arguments
+    * \param offset the offset in args for the arguments
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
@@ -105,6 +106,7 @@ public:
    /**
     * \brief Invokes a static method.
     * \param args the arguments
+    * \param offset the offset in args for the arguments
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */

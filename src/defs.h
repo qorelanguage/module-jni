@@ -176,6 +176,7 @@ class QoreJniException : public IgnorableException {
 public:
    /**
     * \brief Constructor.
+    * \param err the exception error string
     * \param message the exception message
     */
    QoreJniException(std::string err, const char* message, ...) : err(std::move(err)) {

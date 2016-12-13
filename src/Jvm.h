@@ -57,7 +57,7 @@ public:
 
    /**
     * \brief Sets the Env object associated with this thread.
-    * \param the Env object associated with this thread
+    * \param env the Env object associated with this thread
     */
    static void setEnv(JNIEnv *env) {
       Jvm::env = env;
