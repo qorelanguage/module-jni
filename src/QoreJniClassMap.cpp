@@ -305,6 +305,8 @@ QoreClass* QoreJniClassMap::findCreateQoreClass(LocalReference<jclass>& jc) {
 QoreClass* QoreJniClassMap::findCreateQoreClassInProgram(const char* name, const char* jpath, Class* c) {
    SimpleRefHolder<Class> cls(c);
 
+   printd(LogLevel, "QoreJniClassMap::findCreateQoreClassInProgram() looking up: '%s'\n", jpath);
+
    // we always grab the global JNI lock first because we might need to add base classes
    // while setting up the class loaded with the jni module's classloader, and we need to
    // ensure that these locks are always acquired in order
@@ -344,6 +346,8 @@ QoreClass* QoreJniClassMap::findCreateQoreClass(const char* name) {
 
 QoreClass* QoreJniClassMap::findCreateQoreClassInBase(const char* name, const char* jpath, Class* c) {
    SimpleRefHolder<Class> cls(c);
+
+   printd(LogLevel, "QoreJniClassMap::findCreateQoreClassInBase() looking up: '%s'\n", jpath);
 
    // we need to protect access to the default namespace and class map with a lock
    QoreJniAutoLocker al(m);

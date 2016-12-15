@@ -130,8 +130,8 @@ public class QoreURLClassLoader extends URLClassLoader {
 	    }
 
 	    if (basename != null && !basename.isEmpty()) {
-		//debugLog("addJars() parent: " + fileentry.getParentFile().getPath() + " basename: " + basename);
-		addJars(fileentry.getParentFile(), basename);
+		//debugLog("addWildcard() parent: " + fileentry.getParentFile().getPath() + " basename: " + basename);
+		addWildcard(fileentry.getParentFile(), basename);
 	    }
 	    else if (!fileentry.exists()) { // s/never be due getCanonicalFile() above
 		errorLog("Could not find classpath element '" + fileentry + "'");
@@ -139,15 +139,20 @@ public class QoreURLClassLoader extends URLClassLoader {
 	    else if (fileentry.isDirectory()) {
 		addURL(createUrl(fileentry));
 	    }
-	    else if (fileentry.getName().toLowerCase().endsWith(".zip") || fileentry.getName().toLowerCase().endsWith(".jar")) {
+	    else if (isLoadable(fileentry.getName())) {
 		//infoLog("adding jar: " + fileentry.getName());
 		addURL(createUrl(fileentry));
-	    }
+            }
 	    else {
-		errorLog("ClassPath element '" + fileentry + "' is not an existing directory and is not a file ending with '.zip' or '.jar'");
+		errorLog("ClassPath element '" + fileentry + "' is not an existing directory and is not a file ending with '.zip', '.jar', or '.class'");
 	    }
         }
 	//infoLog("Class loader is using classpath: \"" + classPath + "\".");
+    }
+
+    static boolean isLoadable(String name) {
+        name = name.toLowerCase();
+        return (name.endsWith(".zip") || name.endsWith(".jar") || name.endsWith(".class")) ? true : false;
     }
 
     void infoLog(String msg) {
@@ -163,47 +168,48 @@ public class QoreURLClassLoader extends URLClassLoader {
     }
 
     /**
-     * Adds a set of JAR files using a generic base name to this loader's classpath.  See @link:addClassPath(String) for
+     * Adds a set of files using a generic base name to this loader's classpath.  See @link:addClassPath(String) for
      * details of the generic base name.
      */
-    public void addJars(File dir, String nam) {
-	if (nam.endsWith(".jar")) {
-	    nam = nam.substring(0, (nam.length() - 4));
-	}
-
-	nam.replace(new StringBuffer("*"), new StringBuffer(".*"));
-
+    public void addWildcard(File dir, String nam) {
 	if (!dir.exists()) {
-	    errorLog("Cannot find directory for classpath element '" + dir + File.separator + nam + ".jar'");
+	    errorLog("Cannot find directory for classpath element '" + dir + File.separator + nam);
 	    return;
         }
 
 	if (!dir.canRead()) {
-	    errorLog("Cannot read directory for classpath element '" + dir + File.separator + nam + ".jar'");
+	    errorLog("Cannot read directory for classpath element '" + dir + File.separator + nam);
 	    return;
         }
 
-	final String pattern = nam;
+        // make a regex pattern from the glob pattern
+        final String pattern = nam.replace(new StringBuffer("*"), new StringBuffer(".*"));
+
+        //debugLog("dir: " + dir + " pattern: " + pattern);
 
 	File[] files = dir.listFiles(new FilenameFilter() {
 		@Override
 		public boolean accept(File dir, String name) {
-		    return name.matches("^" + pattern + "\\.jar$");
+		    return name.matches("^" + pattern + "$");
 		}
 	    });
 
 	if (files == null) {
-	    errorLog("Error accessing directory for classpath element '" + dir + File.separator + nam + ".jar'");
+	    errorLog("Error accessing directory for classpath element '" + dir + File.separator + nam);
 	    return;
 	}
 
 	if (files.length == 0) {
+	    debugLog("no matching files for classpath element '" + dir + File.separator + nam);
 	    return;
 	}
 
 	for (File f : files) {
-	    addURL(createUrl(f));
-	}
+            if (isLoadable(f.getName())) {
+                //debugLog("adding file: " + f.getName());
+                addURL(createUrl(f));
+            }
+        }
     }
 
     private URL createUrl(File fileentry) {
