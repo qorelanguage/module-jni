@@ -238,6 +238,7 @@ static GlobalReference<jclass> getPrimitiveClass(Env &env, const char *wrapperNa
 #include "JavaClassQoreInvocationHandler.inc"
 #include "JavaClassQoreExceptionWrapper.inc"
 #include "JavaClassQoreURLClassLoader.inc"
+#include "JavaClassQoreURLClassLoader$1.inc"
 
 void Globals::init() {
    Env env;
@@ -324,6 +325,8 @@ void Globals::init() {
    ctorQoreURLClassLoader = env.getMethod(classQoreURLClassLoader, "<init>", "()V");
    methodQoreURLClassLoaderAddPath = env.getMethod(classQoreURLClassLoader, "addPath", "(Ljava/lang/String;)V");
    methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
+
+   env.defineClass("org/qore/jni/QoreURLClassLoader$1", nullptr, java_org_qore_jni_QoreURLClassLoader_1_class, java_org_qore_jni_QoreURLClassLoader_1_class_len);
 
    classThread = env.findClass("java/lang/Thread").makeGlobal();
    methodThreadCurrentThread = env.getStaticMethod(classThread, "currentThread", "()Ljava/lang/Thread;");
