@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 2.8.3)
 
 project(qore-jni-module)
-set(PROJECT_VERSION 1.0.0)
+
+set (VERSION_MAJOR 1)
+set (VERSION_MINOR 0)
+set (VERSION_PATCH 0)
+
+set(PROJECT_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 find_package(Qore 0.8.13 REQUIRED)
 find_package(JNI REQUIRED)
