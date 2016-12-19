@@ -134,6 +134,7 @@ static QoreStringNode* jni_module_init() {
          ExceptionSink xsink;
          e.convert(&xsink);
       }
+      tclist.pop(false);
       return new QoreStringNode("ERR");
    }
 
@@ -262,7 +263,9 @@ static void qore_jni_mc_import(QoreString& arg) {
    }
 
    if (!wc) {
-      qjcm.findCreateQoreClass(arg.getBuffer());
+      QoreString jpath(arg);
+      jpath.replaceAll(".", "/");
+      qjcm.findLoadClass(jpath.c_str());
    }
 }
 

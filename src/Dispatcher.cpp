@@ -54,7 +54,7 @@ QoreCodeDispatcher::~QoreCodeDispatcher() {
 jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jobjectArray jargs) {
    try {
       qoreThreadAttacher.attach();
-   } catch (Exception &e) {
+   } catch (Exception& e) {
       env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
       return nullptr;
    }
@@ -62,7 +62,7 @@ jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jo
    printd(LogLevel, "QoreCodeDispatcher::dispatch(), this: %p pgm: %p\n", this, pgm);
 
    ExceptionSink xsink;
-   {
+   try {
       ReferenceHolder<QoreListNode> args(new QoreListNode, &xsink);
       args->push(new QoreObject(QC_METHOD, getProgram(), new QoreJniPrivateData(method)));
       if (jargs) {
@@ -79,6 +79,10 @@ jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jo
          return nullptr;
       }
       return QoreToJava::toObject(qv, nullptr);
+   }
+   catch (Exception& e) {
+      env.throwNew(env.findClass("java/lang/RuntimeException"), "could not execute Qore callback");
+      return nullptr;
    }
 }
 

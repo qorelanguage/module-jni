@@ -16,7 +16,6 @@ import java.io.FilenameFilter;
 public class QoreURLClassLoader extends URLClassLoader {
     private HashSet<String> classPathElements = new HashSet<String>();
     private String classPath = new String();
-    private Hashtable<String, Class> classes = new Hashtable<String, Class>(); //used to cache already defined classes
 
     public QoreURLClassLoader() {
 	super(((URLClassLoader)ClassLoader.getSystemClassLoader()).getURLs());
@@ -31,7 +30,7 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     /*
     protected Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
-	debugLog("loadClass: " + name + " resolve: " + resolve);
+        debugLog("loadClass: " + name + " resolve: " + resolve);
 	try {
 	    Class rv = super.loadClass(name, resolve);
 	    debugLog("got: " + rv);
@@ -47,39 +46,6 @@ public class QoreURLClassLoader extends URLClassLoader {
     // sets the current classloader as the thread's contextual class loader
     public void setContext() {
 	Thread.currentThread().setContextClassLoader(this);
-    }
-
-    synchronized protected Class findClass(String name) throws ClassNotFoundException {
-	//debugLog("QoreURLClassLoader.findClass() " + name);
-
-	Class result = classes.get(name); // checks in cached classes
-	if (result != null) {
-	    //debugLog("findClass() FOUND " + name + " in cache");
-	    return result;
-	}
-
-	String pname = name.replace('.', File.separatorChar);
-	for (String path : classPathElements) {
-	    path = path + File.separator + pname + ".class";
-	    File f = new File(path);
-	    if (f.exists() && f.isFile()) {
-		//debugLog("LOADING: " + path);
-		try {
-		    byte[] data = Files.readAllBytes(FileSystems.getDefault().getPath(path));
-		    result = defineClass(name, data, 0, data.length);
-		    classes.put(name, result);
-		    //debugLog("RETURNING: " + result + " len: " + data.length);
-		    return result;
-		}
-		catch (IOException e) {
-		    errorLog("IOException: " + e);
-		    // ignore
-		}
-	    }
-	}
-
-	//debugLog("QoreURLClassLoader.findClass() " + name);
-	return super.findClass(name);
     }
 
     public void addPath(String classpath) {
@@ -144,7 +110,7 @@ public class QoreURLClassLoader extends URLClassLoader {
 		addURL(createUrl(fileentry));
             }
 	    else {
-		errorLog("ClassPath element '" + fileentry + "' is not an existing directory and is not a file ending with '.zip', '.jar', or '.class'");
+		errorLog("ClassPath element '" + fileentry + "' is not an existing directory and is not a file ending with '.zip' or '.jar'");
 	    }
         }
 	//infoLog("Class loader is using classpath: \"" + classPath + "\".");
@@ -152,7 +118,7 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     static boolean isLoadable(String name) {
         name = name.toLowerCase();
-        return (name.endsWith(".zip") || name.endsWith(".jar") || name.endsWith(".class")) ? true : false;
+        return (name.endsWith(".zip") || name.endsWith(".jar")) ? true : false;
     }
 
     void infoLog(String msg) {
