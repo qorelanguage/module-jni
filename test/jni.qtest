@@ -49,24 +49,24 @@ public class Main inherits QUnit::Test {
         # get the Math class
         Class mathClass = load_class("java/lang/Math");
         # get the Math.acos() static method
-        Method acosMethod = mathClass.getDeclaredMethod("acos", (Double::TYPE,));
+        Method acosMethod = mathClass.getDeclaredMethod("acos", Double::TYPE);
 
         # get the StringBuffer class
         Class stringBufferClass = load_class("java/lang/StringBuffer");
         # get the StringBuffer constructor with no arguments
         Constructor stringBufferConstructor = stringBufferClass.getConstructor();
         # get StringBuffer.append(double)
-        Method appendDoubleMethod = stringBufferClass.getDeclaredMethod("append", (Double::TYPE,));
+        Method appendDoubleMethod = stringBufferClass.getDeclaredMethod("append", Double::TYPE);
         # get StringBuffer.toString()
         Method toStringMethod = stringBufferClass.getDeclaredMethod("toString");
         # create a StringBuffer object
         Object buf = stringBufferConstructor.newInstance(());
 
         # write to our buffer
-        appendDoubleMethod.invoke(buf, (1.0,));
-        appendDoubleMethod.invoke(buf, (new Double(1.0),));
-        appendDoubleMethod.invoke(buf, (acosMethod.invoke(NOTHING, (new Double(-1.0),)),));
-        appendDoubleMethod.invoke(buf, (acosMethod.invoke(NOTHING, (-1.0,)),));
+        appendDoubleMethod.invoke(buf, 1.0);
+        appendDoubleMethod.invoke(buf, new Double(1.0));
+        appendDoubleMethod.invoke(buf, acosMethod.invoke(NOTHING, new Double(-1.0)));
+        appendDoubleMethod.invoke(buf, acosMethod.invoke(NOTHING, -1.0));
 
         assertEq("1.01.03.1415926535897933.141592653589793", toStringMethod.invoke(buf));
     }
@@ -75,34 +75,34 @@ public class Main inherits QUnit::Test {
         Class clazz = load_class("org/qore/jni/test/StaticMethods");
 
         # the purpose is to test all possible argument and return value types
-        Method set = clazz.getDeclaredMethod("set", (Integer::TYPE,));
+        Method set = clazz.getDeclaredMethod("set", Integer::TYPE);
         Method get = clazz.getDeclaredMethod("get");                                       # overloaded
         Method cmp = clazz.getDeclaredMethod("cmp", (Short::TYPE, Long::TYPE));
         Method add = clazz.getDeclaredMethod("add", (Byte::TYPE, Character::TYPE));
-        Method get2 = clazz.getDeclaredMethod("get", (Boolean::TYPE,));                    # overloaded
+        Method get2 = clazz.getDeclaredMethod("get", Boolean::TYPE);                    # overloaded
         Method avg = clazz.getDeclaredMethod("avg", (Byte::TYPE, Byte::TYPE, Byte::TYPE)); # overloaded
         Method max = clazz.getDeclaredMethod("max", (Long::TYPE, Long::TYPE));
         Method avg2 = clazz.getDeclaredMethod("avg", (Float::TYPE, Float::TYPE));          # overloaded
         Method avg3 = clazz.getDeclaredMethod("avg", (Double::TYPE, Double::TYPE));        # overloaded
-        Method wrap = clazz.getDeclaredMethod("wrap", (Integer::TYPE,));
-        Method unwrap = clazz.getDeclaredMethod("unwrap", (load_class("java/lang/Integer"),));
+        Method wrap = clazz.getDeclaredMethod("wrap", Integer::TYPE);
+        Method unwrap = clazz.getDeclaredMethod("unwrap", load_class("java/lang/Integer"));
         Method getLongArray = clazz.getDeclaredMethod("getLongArray");
-        Method useArray = clazz.getDeclaredMethod("useArray", (load_class("[Ljava/lang/Object;"),)); #"([Ljava/lang/Object;)V");
+        Method useArray = clazz.getDeclaredMethod("useArray", load_class("[Ljava/lang/Object;"));
 
         # set() expects one argument
         assertThrows("JNI-ERROR", "java.lang.IllegalArgumentException", sub() { set.invoke(); });
 
         # get() expects no arguments
-        assertThrows("JNI-ERROR", "java.lang.IllegalArgumentException", sub() { get.invoke(NOTHING, (123,)); });
+        assertThrows("JNI-ERROR", "java.lang.IllegalArgumentException", sub() { get.invoke(NOTHING, 123); });
 
         #assertThrows("JNI-ERROR", "?", sub() { get.invoke(123); });
 
         # cmp() expects two arguments
-        assertThrows("JNI-ERROR", "java.lang.IllegalArgumentException", sub() { cmp.invoke(NOTHING, (1,)); });
+        assertThrows("JNI-ERROR", "java.lang.IllegalArgumentException", sub() { cmp.invoke(NOTHING, 1); });
         assertThrows("JNI-ERROR", "java.lang.IllegalArgumentException", sub() { cmp.invoke(NOTHING, (1, 2, 3)); });
 
         # set() has no retval, we test the side effect below using get()
-        set.invoke(NOTHING, (42,));
+        set.invoke(NOTHING, 42);
 
         # get() returns the value previously passed to set()
         assertEq(42, get.invoke());
@@ -119,8 +119,8 @@ public class Main inherits QUnit::Test {
         assertEq(999, add.invoke(NOTHING, (new Byte(255), new Character(1000))));     #255 is -1
 
         # get2() throws if called with true, otherwise returns 2^63-1
-        assertThrows("JNI-ERROR", sub() { get2.invoke(NOTHING, (True,)); });
-        assertEq(0x7FFFFFFFFFFFFFFF, get2.invoke(NOTHING, (False,)));
+        assertThrows("JNI-ERROR", sub() { get2.invoke(NOTHING, True); });
+        assertEq(0x7FFFFFFFFFFFFFFF, get2.invoke(NOTHING, False));
 
         # avg() 'converts' all args to byte and returns their average
         assertEq(2, avg.invoke(NOTHING, (new Byte(1), new Byte(2), new Byte(3))));
@@ -139,10 +139,10 @@ public class Main inherits QUnit::Test {
         assertFloatEq(2.92, avg3.invoke(NOTHING, (3.14, 2.7)), 0.00000000000000001);
 
         # wrap() & unwrap()
-        assertEq(42, wrap.invoke(NOTHING, (42,)));
-        assertEq(42, unwrap.invoke(NOTHING, (new Integer(42),)));
+        assertEq(42, wrap.invoke(NOTHING, 42));
+        assertEq(42, unwrap.invoke(NOTHING, new Integer(42)));
         assertEq(-123, unwrap.invoke(NOTHING, (NOTHING,)));
-        assertThrows("JNI-ERROR", sub() { unwrap.invoke(NOTHING, (True,)); });
+        assertThrows("JNI-ERROR", sub() { unwrap.invoke(NOTHING, True); });
         assertThrows("JNI-ERROR", sub() { unwrap.invoke(self); });
 
         Integer i(10);
@@ -178,7 +178,7 @@ public class Main inherits QUnit::Test {
         fInA.setAccessible(True);
         assertThrows("JNI-ERROR", "java.lang.IllegalAccessException", sub () { (MethodHandles::publicLookup()).findVirtual(clsA, "f", MethodType::methodType(Integer::TYPE)); });
         MethodHandle handle = MethodHandles::publicLookup().unreflect(fInA);
-        assertThrows("JNI-ERROR", "java.lang.UnsupportedOperationException", sub () { handle.invokeExact((c,)); });
+        assertThrows("JNI-ERROR", "java.lang.UnsupportedOperationException", sub () { handle.invokeExact(c); });
 
         assertEq(1, invoke_nonvirtual(fInA, c));
         assertEq(2, invoke_nonvirtual(fInB, c));
@@ -192,19 +192,19 @@ public class Main inherits QUnit::Test {
     testFloatConversions() {
         Class clazz = load_class("org/qore/jni/test/FloatConversions");
 
-        assertTrue(clazz.getDeclaredMethod("isNaNFloat", (Float::TYPE,)).invoke(NOTHING, (new Float(@NaN@),)));
-        assertTrue(clazz.getDeclaredMethod("isNInfFloat", (Float::TYPE,)).invoke(NOTHING, (new Float(-@Inf@),)));
-        assertTrue(clazz.getDeclaredMethod("isPInfFloat", (Float::TYPE,)).invoke(NOTHING, (new Float(@Inf@),)));
-        assertTrue(clazz.getDeclaredMethod("getNaNFloat", ()).invoke().nanp());
-        assertEq(-@Inf@, clazz.getDeclaredMethod("getNInfFloat", ()).invoke());
-        assertEq(@Inf@, clazz.getDeclaredMethod("getPInfFloat", ()).invoke());
+        assertTrue(clazz.getDeclaredMethod("isNaNFloat", Float::TYPE).invoke(NOTHING, new Float(@NaN@)));
+        assertTrue(clazz.getDeclaredMethod("isNInfFloat", Float::TYPE).invoke(NOTHING, new Float(-@Inf@)));
+        assertTrue(clazz.getDeclaredMethod("isPInfFloat", Float::TYPE).invoke(NOTHING, new Float(@Inf@)));
+        assertTrue(clazz.getDeclaredMethod("getNaNFloat").invoke().nanp());
+        assertEq(-@Inf@, clazz.getDeclaredMethod("getNInfFloat").invoke());
+        assertEq(@Inf@, clazz.getDeclaredMethod("getPInfFloat").invoke());
 
-        assertTrue(clazz.getDeclaredMethod("isNaNDouble", (Double::TYPE,)).invoke(NOTHING, (@NaN@,)));
-        assertTrue(clazz.getDeclaredMethod("isNInfDouble", (Double::TYPE,)).invoke(NOTHING, (-@Inf@,)));
-        assertTrue(clazz.getDeclaredMethod("isPInfDouble", (Double::TYPE,)).invoke(NOTHING, (@Inf@,)));
-        assertTrue(clazz.getDeclaredMethod("getNaNDouble", ()).invoke().nanp());
-        assertEq(-@Inf@, clazz.getDeclaredMethod("getNInfDouble", ()).invoke());
-        assertEq(@Inf@, clazz.getDeclaredMethod("getPInfDouble", ()).invoke());
+        assertTrue(clazz.getDeclaredMethod("isNaNDouble", Double::TYPE).invoke(NOTHING, @NaN@));
+        assertTrue(clazz.getDeclaredMethod("isNInfDouble", Double::TYPE).invoke(NOTHING, -@Inf@));
+        assertTrue(clazz.getDeclaredMethod("isPInfDouble", Double::TYPE).invoke(NOTHING, @Inf@));
+        assertTrue(clazz.getDeclaredMethod("getNaNDouble").invoke().nanp());
+        assertEq(-@Inf@, clazz.getDeclaredMethod("getNInfDouble").invoke());
+        assertEq(@Inf@, clazz.getDeclaredMethod("getPInfDouble").invoke());
     }
 
     testStaticFields() {
@@ -253,9 +253,9 @@ public class Main inherits QUnit::Test {
         d.set(NOTHING, @Inf@);
         assertTrue(d.get().infp());
 
-        int myint = clazz.getDeclaredMethod("wrap", (Integer::TYPE,)).invoke(NOTHING, (42, ));
+        int myint = clazz.getDeclaredMethod("wrap", Integer::TYPE).invoke(NOTHING, (42, ));
         n.set(NOTHING, myint);
-        assertEq(42, clazz.getDeclaredMethod("unwrapN", ()).invoke());
+        assertEq(42, clazz.getDeclaredMethod("unwrapN").invoke());
 
         assertThrows("JNI-ERROR", sub(){ l.set(NOTHING, myint); });
         assertEq(NOTHING, l.get());
@@ -348,13 +348,13 @@ public class Main inherits QUnit::Test {
         Method callInThread = clazz.getDeclaredMethod("callInThread", (runnableClass, ));
         Method trueIfThrows = clazz.getDeclaredMethod("trueIfThrows", (runnableClass, ));
         Method doThrow = clazz.getDeclaredMethod("doThrow");
-        callNow.invoke(NOTHING, (o,));
+        callNow.invoke(NOTHING, o);
         assertEq(2, i);
-        callInThread.invoke(NOTHING, (o,));
+        callInThread.invoke(NOTHING, o);
         usleep(200ms);
         assertEq(3, i);
         try {
-            callNow.invoke(NOTHING, (o, ));
+            callNow.invoke(NOTHING, o);
             assertEq(False, True);
         }
         catch (hash ex) {
@@ -375,24 +375,24 @@ public class Main inherits QUnit::Test {
 
         doThrow.setAccessible(True);
         trueIfThrows.setAccessible(True);
-        h = new QoreInvocationHandler(sub(Method m, *list args) { doThrow.invoke(NOTHING, ()); });
-        assertTrue(trueIfThrows.invoke(NOTHING, (implement_interface(h, runnableClass),)));
+        h = new QoreInvocationHandler(sub(Method m, *list args) { doThrow.invoke(NOTHING); });
+        assertTrue(trueIfThrows.invoke(NOTHING, implement_interface(h, runnableClass)));
         h.destroy();
     }
 
     testConstructor() {
         Class cls = load_class("java/lang/Integer");
-        Constructor ctor = cls.getConstructor((Integer::TYPE,));
-        int i = ctor.newInstance((42,));
+        Constructor ctor = cls.getConstructor(Integer::TYPE);
+        int i = ctor.newInstance(42);
         assertEq(42, cls.getDeclaredMethod("intValue").invoke(i));
     }
 
     testString() {
         Class cls = load_class("java/lang/Integer");
-        int i = cls.getMethod("valueOf", (load_class("java/lang/String"),)).invoke(NOTHING, ("42",));
+        int i = cls.getMethod("valueOf", load_class("java/lang/String")).invoke(NOTHING, "42");
         assertEq(42, cls.getMethod("intValue").invoke(i));
 
-        i = cls.getConstructor((Integer::TYPE,)).newInstance((123,));
+        i = cls.getConstructor(Integer::TYPE).newInstance(123);
         assertEq("123", cls.getMethod("toString").invoke(i));
     }
 
@@ -516,35 +516,35 @@ public class Main inherits QUnit::Test {
         Class stringFactoryClass = load_class("org/qore/jni/test/StringFactory");
         Object f = implement_interface(h, stringFactoryClass);
         Class clazz = load_class("org/qore/jni/test/Callbacks");
-        Method createString = clazz.getDeclaredMethod("createString", (stringFactoryClass,));
-        assertEq("*STR*", createString.invoke(NOTHING, (f,)));
+        Method createString = clazz.getDeclaredMethod("createString", stringFactoryClass);
+        assertEq("*STR*", createString.invoke(NOTHING, f));
     }
 
     testSpecialConversions() {
-        Method m = load_class("org/qore/jni/test/StaticMethods").getDeclaredMethod("conversions", (load_class("java/lang/String"),));
-        assertEq(NOTHING, m.invoke(NOTHING, ("",)));
+        Method m = load_class("org/qore/jni/test/StaticMethods").getDeclaredMethod("conversions", load_class("java/lang/String"));
+        assertEq(NOTHING, m.invoke(NOTHING, ""));
 
-        any o = m.invoke(NOTHING, ("method",));
+        any o = m.invoke(NOTHING, "method");
         assertTrue(o instanceof Method);
-        assertEq("42", o.invoke(load_class("java/lang/Integer").getConstructor((Integer::TYPE,)).newInstance((42,))));
+        assertEq("42", o.invoke(load_class("java/lang/Integer").getConstructor(Integer::TYPE).newInstance(42)));
 
-        o = m.invoke(NOTHING, ("static method",));
+        o = m.invoke(NOTHING, "static method");
         assertTrue(o instanceof Method);
-        assertEq("42", load_class("java/lang/Integer").getMethod("toString").invoke(o.invoke(NOTHING, (42,))));
+        assertEq("42", load_class("java/lang/Integer").getMethod("toString").invoke(o.invoke(NOTHING, 42)));
 
-        o = m.invoke(NOTHING, ("constructor",));
+        o = m.invoke(NOTHING, "constructor");
         assertTrue(o instanceof Constructor);
-        assertEq("42", load_class("java/lang/Integer").getMethod("toString").invoke(o.newInstance((42,))));
+        assertEq("42", load_class("java/lang/Integer").getMethod("toString").invoke(o.newInstance(42)));
 
         Class fieldsClass = load_class("org/qore/jni/test/Fields");
         Object fieldsInstance = fieldsClass.getDeclaredField("instance").get();
 
-        o = m.invoke(NOTHING, ("field",));
+        o = m.invoke(NOTHING, "field");
         assertTrue(o instanceof Field);
         o.set(fieldsInstance, 123);
         assertEq(123, fieldsClass.getDeclaredField("i").get(fieldsInstance));
 
-        o = m.invoke(NOTHING, ("static field",));
+        o = m.invoke(NOTHING, "static field");
         assertTrue(o instanceof Field);
         o.set(NOTHING, 456);
         assertThrows("JNI-ERROR", "java.lang.IllegalArgumentException", \o.set());
