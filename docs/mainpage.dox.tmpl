@@ -2,7 +2,7 @@
 
     @tableofcontents
 
-    @section jniintro Introduction
+    @section jniintro jni Module Introduction
 
     The \c jni module allows for Java APIs to be used in %Qore as if the Java APIs were %Qore APIs.  The module provides a high-level
     binding and mapping of Java functionality in %Qore as well as run-time data translations back and forth between Java and %Qore data.
@@ -123,13 +123,20 @@
     - @code{.qore} %module-cmd(jni) add-classpath filesystem/path:another/path @endcode adds the given paths to the runtime dynamic classpath; supports environment variable substitution
     - @code{.qore} %module-cmd(jni) add-relative-classpath ../relative/path @endcode adds the given paths as relative to the current program to the runtime dynamic classpath
 
+    All classes in \c java.lang.* are imported implicitly.  Referencing an imported class in %Qore code
+    causes a %Qore class to be generated dynamically that presents the Java class.   Instantiating a %Qore class
+    based on a Java class also instantiates an internal Java object that is attached to the %Qore object.  Calling methods on
+    the object will cause the same Java methods to be called with any arguments provided.
+
+    @see @ref jni_class_mapping for more information
+
     @section jni_types Type Conversions Between Qore and Java
 
     The \c jni module uses reflection to automatically map Java classes to Qore classes.  This class mapping and Qore class creation happens at parse time (when @ref jniimport "importing Java APIs" into %Qore) and also at runtime (if a new class is encountered that has not already been mapped).
 
     There are two types of conversions:
-    - @ref jni_qore2java_specific: when the type is known in advance
-    - @ref jni_qore2java_default: when the type is \c java.lang.Object
+    - @ref jni_qore2java_specific "Qore to Java Defined Type Conversions": when the type is known in advance
+    - @ref jni_qore2java_default "Qore to Java Default Type Conversions": when the type is \c java.lang.Object
 
     @subsection jni_qore2java_specific Qore to Java Defined Type Conversions
 
@@ -219,6 +226,26 @@
     stringBuilderAppendLong.invoke(stringBuilder, (20,));
     printf("%y\n", stringBuilder.toString());
     @endcode
+
+    @subsection jniclassmapping  Java Inner Classes
+
+    Java inner classes are mapped as %Qore classes by appending \c "__" to the outer class's name and then appending the
+    name of the inner class.
+
+    For example:
+    @code{.java}
+class Outer {
+   public Outer() {
+   }
+
+   public class Inner {
+       public Inner() {
+       }
+   }
+}
+    @endcode
+
+    The inner class would be created as \c "Outer__Inner" in %Qore.
 
     @section jni_classloader Java Classloader
 
