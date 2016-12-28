@@ -61,6 +61,7 @@ jmethodID Globals::methodClassGetModifiers;
 jmethodID Globals::methodClassIsPrimitive;
 jmethodID Globals::methodClassGetDeclaredMethods;
 jmethodID Globals::methodClassGetCanonicalName;
+jmethodID Globals::methodClassGetDeclaredField;
 
 GlobalReference<jclass> Globals::classThrowable;
 jmethodID Globals::methodThrowableGetMessage;
@@ -286,6 +287,7 @@ void Globals::init() {
    methodClassIsPrimitive = env.getMethod(classClass, "isPrimitive", "()Z");
    methodClassGetDeclaredMethods = env.getMethod(classClass, "getDeclaredMethods", "()[Ljava/lang/reflect/Method;");
    methodClassGetCanonicalName = env.getMethod(classClass, "getCanonicalName", "()Ljava/lang/String;");
+   methodClassGetDeclaredField = env.getMethod(classClass, "getDeclaredField", "(Ljava/lang/String;)Ljava/lang/reflect/Field;");
 
    classString = env.findClass("java/lang/String").makeGlobal();
 
