@@ -4,6 +4,7 @@ public class Fields {
 
     static Fields instance = new Fields();
 
+    protected int pi = 1;
     private boolean z;
     byte b;
     char c;

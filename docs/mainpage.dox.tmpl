@@ -23,7 +23,7 @@
     |@ref implement_interface()|Creates a Java object that implements given interface using an invocation handler
     |@ref invoke()|Invokes a method with the given arguments
     |@ref invoke_nonvirtual()|Invokes a method with the given arguments in a non-virtual way; meaning that even if the object provided is a child class, the method given in the first argument is executed
-    |@ref load_class()|Loads a Java class with given name and returns a \c java.lang.Class object for that class
+    |@ref load_class()|Loads a Java class with given name and returns a \c java::lang::Class object
     |@ref new_array()|Creates a @ref Jni::org::qore::jni::JavaArray "JavaArray" object of the given type and size
 
     @section jni_examples Examples
@@ -210,7 +210,15 @@
 
     In the above example, the \c java.lang.Class.getMethod() and the \c java.lang.Method.invoke() methods both take a variable number of arguments after the first argument.  In the mapped Qore class, these must be given as a %Qore list (as in the above example) or a @ref Jni::org::qore::jni::JavaArray "JavaArray" object.
 
-    @section jni_class_mapping Java Class Mapping
+    @section jni_class_mapping Java Class and Package Mapping
+
+    @subsection jni_package_mapping Java Package to Qore Namespace Mapping
+
+    The \c jni module maps Java packages to %Qore namespaces.  Therefore in Java \c java.lang.String can be referred to
+    as \c java::lang::String in Qore as in the following example:
+    @code{.py}
+    java::lang::String str();
+    @endcode
 
     The \c jni module attempts to create %Qore classes that match the source Java class as closely as possible to maximize the usefulness of Java APIs in %Qore.
 
@@ -246,6 +254,48 @@ class Outer {
     @endcode
 
     The inner class would be created as \c "Outer__Inner" in %Qore.
+
+    @subsection jni_class_subclassing Subclassing Java Classes
+
+    When subclassing Java classes in %Qore, the %Qore class code is not executed by Java when dispatching method calls
+    in Java itself.  This means that overriding Java methods in %Qore is only valid for code executed from %Qore.
+
+    To override a Java method when called from Java, you must subclass the class in Java as well and import the child class
+    into your %Qore program.
+
+    One exception to this limitation is with interfaces; programmers can use the
+    @ref Jni::org::qore::jni::QoreInvocationHandler "QoreInvocationHandler" class to execute %Qore-language callbacks
+    based on Java interfaces; see the documentation for @ref Jni::org::qore::jni::QoreInvocationHandler "QoreInvocationHandler"
+    for more information.
+
+    @subsection jni_class_fields Java Class Fields to Qore Class Mappings
+
+    Java fields are mapped to different %Qore class members according to the Java type according to the following table.
+
+    <b>Java Field to Qore Class Member Mappings</b>
+    |!Java|!Qore|!Qore Example
+    |\c \b static \c \b final|%Qore class constants|@code{.py}MyClass::myField@endcode
+    |\c \b static (non-final)|%Qore static class members|@code{.py}obj.myField@endcode
+    |all others|normal %Qore class members|@code{.py}obj.myField@endcode
+
+    For example:
+    @code{.py}
+System::out.println("testing...");
+    @endcode
+
+    @note Java field values are only stored in Java; they are not mirrored in %Qore.  Java field values are accessed
+    with the class's \c memberGate() method; updating a Java object's field value in Qore will not cause the field value
+    to be updated in Java.  To update the field's value in Java, use \c java::lang::reflect::Field::set().
+
+    @subsection jni_access_mapping Java Access Mapping
+
+    Java access modifiers are mapped directly to Qore access modifiers as in the following table.
+
+    <b>Java to Qore Access Mappings</b>
+    |!Java|!Qore
+    |\c \b public|\c \b public
+    |\c \b protected|\c \b private (or \c \b private:hierarchy)
+    |\c \b private|\c \b private:internal
 
     @section jni_classloader Java Classloader
 

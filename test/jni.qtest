@@ -13,6 +13,7 @@
 %module-cmd(jni) add-relative-classpath java/bin
 %module-cmd(jni) import java.lang.reflect.*
 %module-cmd(jni) import java.lang.invoke.*
+%module-cmd(jni) import org.qore.jni.test.Fields
 
 %exec-class Main
 
@@ -21,6 +22,12 @@ class DtorThrows {
         throw "DTOR-ERROR";
     }
     dummy() {
+    }
+}
+
+class MyFields inherits Fields {
+    any memberGate(string str) {
+        return Fields::memberGate(str, True);
     }
 }
 
@@ -334,6 +341,23 @@ public class Main inherits QUnit::Test {
         o.set(instance, clazz);                                                 # classes are objects, too
 
         assertThrows("JNI-ERROR", sub() { z.set(byteArray, True); });
+
+        # test Qore explicit Field access
+        assertEq((0, 0, 0), instance.ba);
+        assertEq((NOTHING, NOTHING, NOTHING), instance.oa);
+        assertEq((NOTHING, NOTHING, NOTHING), instance.ia);
+
+        # Qore's access protection is triggered here
+        assertThrows("INVALID-MEMBER", sub () { delete instance.z;});
+        # here the builtin methodGate method is called
+        assertThrows("JNI-ACCESS-ERROR", sub () { any bl = instance.z; delete bl; });
+        # Qore's access protection is triggered here
+        assertThrows("PRIVATE-MEMBER", sub () { delete instance.pi;});
+        # here the builtin methodGate method is called
+        assertThrows("JNI-ACCESS-ERROR", sub () { any bl = instance.pi; delete bl; });
+
+        MyFields mf();
+        assertEq(1, mf.pi);
     }
 
     testCallback() {

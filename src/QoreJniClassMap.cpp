@@ -96,6 +96,77 @@ QoreJniClassMap::jpmap_t QoreJniClassMap::jpmap = {
    {"boolean", {boolTypeInfo, "Z"}},
 };
 
+class JniQoreClass : public QoreBuiltinClass {
+public:
+   DLLLOCAL JniQoreClass(const char* name) : QoreBuiltinClass(name) {
+      addMethod((void*)0, "memberGate", (q_external_method_t)memberGate, Public, 0, QDOM_DEFAULT, anyTypeInfo, paramTypeInfo);
+
+      setPublicMemberFlag();
+      setGateAccessFlag();
+   }
+
+   static QoreValue memberGate(const QoreMethod& meth, void* m, QoreObject* self, QoreJniPrivateData* jd, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
+      if (!args || args->size() != 2)
+         return QoreValue();
+
+      bool cls_access;
+      const QoreStringNode* mname;
+      {
+         QoreValue qv = args->retrieveEntry(0);
+         if (qv.getType() != NT_STRING)
+            return QoreValue();
+         mname = qv.get<QoreStringNode>();
+         qv = args->retrieveEntry(1);
+         if (qv.getType() != NT_BOOLEAN)
+            return QoreValue();
+         cls_access = qv.getAsBool();
+      }
+
+      //printd(LogLevel, "JniQoreClass::memberGate: '%s'\n", mname->c_str());
+
+      jobject jobj = jd->getObject();
+      try {
+         Env env;
+         LocalReference<jobject> cls = env.callObjectMethod(jobj, Globals::methodObjectGetClass, nullptr);
+
+         ModifiedUtf8String str(*mname);
+         LocalReference<jstring> fname = env.newString(str.c_str());
+
+         std::vector<jvalue> jargs(1);
+         jargs[0].l = fname;
+
+         LocalReference<jobject> field = env.callObjectMethod(cls, Globals::methodClassGetDeclaredField, &jargs[0]);
+
+         // check access here
+         int mods = env.callIntMethod(field, Globals::methodFieldGetModifiers, nullptr);
+         if (mods & JVM_ACC_PROTECTED) {
+            if (!cls_access) {
+               LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetName, nullptr).as<jstring>();
+               jni::Env::GetStringUtfChars cname(env, clsName);
+               xsink->raiseException("JNI-ACCESS-ERROR", "cannot access private (Java 'protected') member '%s' of class '%s'", mname->c_str(), cname.c_str());
+               return QoreValue();
+            }
+         }
+         else if (mods & JVM_ACC_PRIVATE) {
+            LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetName, nullptr).as<jstring>();
+            jni::Env::GetStringUtfChars cname(env, clsName);
+            xsink->raiseException("JNI-ACCESS-ERROR", "cannot access private:internal (Java 'private') member '%s' of class '%s'", mname->c_str(), cname.c_str());
+            return QoreValue();
+         }
+
+         jargs[0].l = jobj;
+         return JavaToQore::convertToQore(env.callObjectMethod(field, Globals::methodFieldGet, &jargs[0]));
+      }
+      catch (jni::JavaException& e) {
+         e.convert(xsink);
+         return QoreValue();
+      }
+   }
+
+private:
+   type_vec_t paramTypeInfo = { stringTypeInfo, boolTypeInfo };
+};
+
 static QoreNamespace* jni_find_create_namespace(QoreNamespace& jns, const char* name, const char*& sn) {
    printd(LogLevel, "jni_find_create_namespace() jns: %p '%s'\n", &jns, name);
 
@@ -134,7 +205,7 @@ void QoreJniClassMap::init() {
    const char* sn;
    QoreNamespace* ns = jni_find_create_namespace(*default_jns, "java.lang.Object", sn);
 
-   QC_OBJECT = new QoreBuiltinClass("Object");
+   QC_OBJECT = new JniQoreClass("Object");
    CID_OBJECT = QC_OBJECT->getID();
    createClassInNamespace(ns, *default_jns, "java/lang/Object", Functions::loadClass("java/lang/Object"), QC_OBJECT, *this);
 
@@ -363,7 +434,7 @@ QoreBuiltinClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name
       }
    }
 
-   qc = new QoreBuiltinClass(sn);
+   qc = new JniQoreClass(sn);
    createClassInNamespace(ns, *jpc->getJniNamespace(), jpath, cls.release(), qc, *jpc);
 
    return qc;
@@ -420,7 +491,7 @@ QoreBuiltinClass* QoreJniClassMap::findCreateQoreClassInBase(QoreString& name, c
       }
    }
 
-   qc = new QoreBuiltinClass(sn);
+   qc = new JniQoreClass(sn);
    assert(qc->isSystem());
    createClassInNamespace(ns, *default_jns, jpath, cls.release(), qc, *this);
 
@@ -766,6 +837,14 @@ static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObj
    }
 }
 
+static const char* access_str(ClassAccess a) {
+   switch (a) {
+      case Public: return "public";
+      case Private: return "private";
+      default: return "private:internal";
+   }
+}
+
 void QoreJniClassMap::doFields(QoreBuiltinClass& qc, jni::Class* jc) {
    Env env;
 
@@ -784,64 +863,22 @@ void QoreJniClassMap::doFields(QoreBuiltinClass& qc, jni::Class* jc) {
       const QoreTypeInfo* fieldTypeInfo = field->getQoreTypeInfo(*this);
 
       if (field->isStatic()) {
-         printd(LogLevel, "+ adding field %s %s.%s (%s)\n", typeInfoGetName(fieldTypeInfo), qc.getName(), fname.c_str(), field->isFinal() ? "const" : "var");
+         printd(LogLevel, "+ adding static field %s %s %s.%s (%s)\n", access_str(field->getAccess()), typeInfoGetName(fieldTypeInfo), qc.getName(), fname.c_str(), field->isFinal() ? "const" : "var");
 
          QoreValue v(field->getStatic());
          if (v.isNothing())
             v.assign(0ll);
 
          if (field->isFinal())
-            qc.addBuiltinConstant(fname.getBuffer(), v, field->getAccess());
+            qc.addBuiltinConstant(fname.c_str(), v, field->getAccess());
          else
-            qc.addBuiltinStaticVar(fname.getBuffer(), v, field->getAccess());
-      }
-   }
-
-   /*
-   JArray<java::lang::reflect::Field*>* fields = jc->getDeclaredFields();
-   for (int i = 0; i < fields->length; ++i) {
-      java::lang::reflect::Field* f = elements(fields)[i];
-
-      f->setAccessible(true);
-
-      int mod = f->getModifiers();
-
-      QoreString fname;
-      getQoreString(f->getName(), fname);
-
-      assert(fname.strlen());
-
-#ifdef DEBUG
-      QoreString fstr;
-      getQoreString(f->toString(), fstr);
-      printd(5, "  + adding %s.%s (%s)\n", qc.getName(), fname.getBuffer(), fstr.getBuffer());
-#endif
-
-      bool priv = mod & (java::lang::reflect::Modifier::PRIVATE|java::lang::reflect::Modifier::PROTECTED);
-
-      java::lang::Class *typec = f->getType();
-      const QoreTypeInfo *type = getQoreType(typec);
-
-      if (mod & java::lang::reflect::Modifier::STATIC) {
-         AbstractQoreNode *val = toQore(f->get(0), xsink);
-         if (*xsink)
-            break;
-
-         if (mod & java::lang::reflect::Modifier::FINAL) {
-            if (val)
-               qc.addBuiltinConstant(fname.getBuffer(), val, priv);
-         }
-         else
-            qc.addBuiltinStaticVar(fname.getBuffer(), val, priv, type);
+            qc.addBuiltinStaticVar(fname.c_str(), v, field->getAccess(), fieldTypeInfo);
       }
       else {
-         if (priv)
-            qc.addPrivateMember(fname.getBuffer(), type);
-         else
-            qc.addPublicMember(fname.getBuffer(), type);
+         printd(LogLevel, "+ adding field %s %s %s.%s\n", access_str(field->getAccess()), typeInfoGetName(fieldTypeInfo), qc.getName(), fname.c_str());
+         qc.addMember(fname.c_str(), field->getAccess(), fieldTypeInfo);
       }
    }
-   */
 }
 
 JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni) : jni(n_jni) {
