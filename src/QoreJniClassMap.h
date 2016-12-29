@@ -162,9 +162,9 @@ protected:
 
    DLLLOCAL void addSuperClass(QoreBuiltinClass& qc, Class* parent, bool interface);
 
-   DLLLOCAL QoreBuiltinClass* createClassInNamespace(QoreNamespace* ns, QoreNamespace& jns, const char* name, const char* jpath, Class* jc, QoreBuiltinClass* qc, QoreJniClassMapBase& map);
-   DLLLOCAL QoreBuiltinClass* findCreateQoreClassInBase(const char* name, const char* jpath, Class* c);
-   DLLLOCAL QoreBuiltinClass* findCreateQoreClassInProgram(const char* name, const char* jpath, Class* c);
+   DLLLOCAL QoreBuiltinClass* createClassInNamespace(QoreNamespace* ns, QoreNamespace& jns, const char* jpath, Class* jc, QoreBuiltinClass* qc, QoreJniClassMapBase& map);
+   DLLLOCAL QoreBuiltinClass* findCreateQoreClassInBase(QoreString& name, const char* jpath, Class* c);
+   DLLLOCAL QoreBuiltinClass* findCreateQoreClassInProgram(QoreString& name, const char* jpath, Class* c);
    DLLLOCAL Class* loadClass(const char* name, bool& base);
 
 private:

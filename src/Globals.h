@@ -68,6 +68,7 @@ public:
    static jmethodID methodClassIsPrimitive;                             // boolean Class.isPrimitive()
    static jmethodID methodClassGetDeclaredMethods;                      // Method[] Class.getDeclaredMethods()
    static jmethodID methodClassGetCanonicalName;                        // String Class.getCanonicalName()
+   static jmethodID methodClassGetDeclaredField;                        // Field Class.getField()
 
    static GlobalReference<jclass> classThrowable;                       // java.lang.Throwable
    static jmethodID methodThrowableGetMessage;                          // String Throwable.getMessage()
