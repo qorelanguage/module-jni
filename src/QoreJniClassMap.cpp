@@ -98,8 +98,8 @@ QoreJniClassMap::jpmap_t QoreJniClassMap::jpmap = {
 
 class JniQoreClass : public QoreBuiltinClass {
 public:
-   DLLLOCAL JniQoreClass(const char* name) : QoreBuiltinClass(name) {
-      addMethod((void*)0, "memberGate", (q_external_method_t)memberGate, Public, 0, QDOM_DEFAULT, anyTypeInfo, paramTypeInfo);
+   DLLLOCAL JniQoreClass(const char* name) : QoreBuiltinClass(name, QDOM_UNCONTROLLED_APIS) {
+      addMethod((void*)0, "memberGate", (q_external_method_t)memberGate, Public, 0, QDOM_UNCONTROLLED_APIS, anyTypeInfo, paramTypeInfo);
 
       setPublicMemberFlag();
       setGateAccessFlag();
@@ -648,7 +648,7 @@ void QoreJniClassMap::doConstructors(QoreBuiltinClass& qc, jni::Class* jc) {
          continue;
       }
 
-      qc.addConstructor((void*)*meth, (q_external_constructor_t)exec_java_constructor, meth->getAccess(), meth->getFlags(), QDOM_DEFAULT, paramTypeInfo);
+      qc.addConstructor((void*)*meth, (q_external_constructor_t)exec_java_constructor, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_APIS, paramTypeInfo);
       jc->trackMethod(meth.release());
    }
 }
@@ -746,7 +746,7 @@ void QoreJniClassMap::doMethods(QoreBuiltinClass& qc, jni::Class* jc) {
             printd(LogLevel, "QoreJniClassMap::doMethods() skipping already-created static variant %s::%s()\n", qc.getName(), mname.c_str());
             continue;
          }
-         qc.addStaticMethod((void*)*meth, mname.c_str(), (q_external_static_method_t)exec_java_static_method, meth->getAccess(), meth->getFlags(), QDOM_DEFAULT, returnTypeInfo, paramTypeInfo);
+         qc.addStaticMethod((void*)*meth, mname.c_str(), (q_external_static_method_t)exec_java_static_method, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_APIS, returnTypeInfo, paramTypeInfo);
       }
       else {
          if (mname == "copy" || mname == "constructor" || mname == "destructor" || mname == "methodGate" || mname == "memberNotification" || mname == "memberGate")
@@ -762,7 +762,7 @@ void QoreJniClassMap::doMethods(QoreBuiltinClass& qc, jni::Class* jc) {
          if (meth->isAbstract())
             qc.addAbstractMethodVariant(mname.c_str(), meth->getAccess(), meth->getFlags(), returnTypeInfo, paramTypeInfo);
          else
-            qc.addMethod((void*)*meth, mname.c_str(), (q_external_method_t)exec_java_method, meth->getAccess(), meth->getFlags(), QDOM_DEFAULT, returnTypeInfo, paramTypeInfo);
+            qc.addMethod((void*)*meth, mname.c_str(), (q_external_method_t)exec_java_method, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_APIS, returnTypeInfo, paramTypeInfo);
       }
       jc->trackMethod(meth.release());
    }
