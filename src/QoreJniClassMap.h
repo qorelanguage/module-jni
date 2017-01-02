@@ -4,7 +4,7 @@
 
   Qore Programming Language JNI Module
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -200,6 +200,8 @@ public:
    DLLLOCAL virtual void doDeref() {
       delete this;
    }
+
+   DLLLOCAL static void setContext(Env& env);
 
 protected:
    // Jni namespace pointer for the current Program

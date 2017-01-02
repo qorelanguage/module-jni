@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -51,7 +51,7 @@ Array::Array(jarray array) : QoreJniPrivateData(array) {
    elementType = Globals::getType(elementClass);
 }
 
-int64 Array::length() {
+int64 Array::length() const {
    Env env;
    return env.getArrayLength(jobj.cast<jarray>());
 }
@@ -114,7 +114,7 @@ QoreValue Array::get(Env& env, jarray array, Type elementType, jclass elementCla
    }
 }
 
-QoreValue Array::get(int64 index) {
+QoreValue Array::get(int64 index) const {
    Env env;
    return get(env, jobj.cast<jarray>(), elementType, elementClass, index);
 }
@@ -217,6 +217,11 @@ LocalReference<jarray> Array::toJava(const QoreListNode* l) {
       elementClass = Globals::classObject.toLocal();
 
    return toObjectArray(l, elementClass).release();
+}
+
+QoreListNode* Array::getArgList(Env& env, jarray array) {
+   LocalReference<jclass> arrayClass = env.getObjectClass(array);
+   return getList(env, array, arrayClass);
 }
 
 } // namespace jni

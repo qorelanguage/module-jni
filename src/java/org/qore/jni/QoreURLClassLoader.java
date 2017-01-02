@@ -14,12 +14,15 @@ import java.util.Hashtable;
 import java.io.FilenameFilter;
 
 public class QoreURLClassLoader extends URLClassLoader {
+    private static InheritableThreadLocal<QoreURLClassLoader> current = new InheritableThreadLocal<QoreURLClassLoader>();
     private HashSet<String> classPathElements = new HashSet<String>();
     private String classPath = new String();
+    private long pgm_ptr;
 
-    public QoreURLClassLoader() {
+    public QoreURLClassLoader(long p_ptr) {
 	super(((URLClassLoader)ClassLoader.getSystemClassLoader()).getURLs());
 	// set the current classloader as the thread context classloader
+        pgm_ptr = p_ptr;
 	setContext();
     }
 
@@ -43,9 +46,18 @@ public class QoreURLClassLoader extends URLClassLoader {
     }
     */
 
+    public static long getProgramPtr() {
+        return current.get().pgm_ptr;
+    }
+
+    public static QoreURLClassLoader getCurrent() {
+        return current.get();
+    }
+
     // sets the current classloader as the thread's contextual class loader
     public void setContext() {
 	Thread.currentThread().setContextClassLoader(this);
+        current.set(this);
     }
 
     public void addPath(String classpath) {
@@ -121,15 +133,15 @@ public class QoreURLClassLoader extends URLClassLoader {
         return (name.endsWith(".zip") || name.endsWith(".jar")) ? true : false;
     }
 
-    void infoLog(String msg) {
+    static private void infoLog(String msg) {
 	System.out.println("QoreURLClassLoader INFO: " + msg);
     }
 
-    void debugLog(String msg) {
+    static private void debugLog(String msg) {
 	System.out.println("QoreURLClassLoader DEBUG: " + msg);
     }
 
-    void errorLog(String msg) {
+    static private void errorLog(String msg) {
 	System.out.println("QoreURLClassLoader ERROR: " + msg);
     }
 

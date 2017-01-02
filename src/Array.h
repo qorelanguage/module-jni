@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,6 @@ namespace jni {
  * \brief Represents a Java array instance.
  */
 class Array : public QoreJniPrivateData {
-
 public:
    /**
     * \brief Constructor.
@@ -66,9 +65,11 @@ public:
       printd(LogLevel, "Array::~Array(), this: %p, object: %p\n", this, jobj.cast<jarray>());
    }
 
-   DLLLOCAL int64 length();
-   DLLLOCAL QoreValue get(int64 index);
+   DLLLOCAL int64 length() const;
+   DLLLOCAL QoreValue get(int64 index) const;
    DLLLOCAL void set(int64 index, const QoreValue &value);
+
+   DLLLOCAL static QoreListNode* getArgList(Env& env, jarray array);
 
    DLLLOCAL static void set(jarray array, Type elementType, jclass elementClass, int64 index, const QoreValue &value);
 

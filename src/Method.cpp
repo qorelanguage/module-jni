@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 - 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2015 - 2017 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -207,7 +207,7 @@ LocalReference<jobject> BaseMethod::newQoreInstance(const QoreValueList* args) {
    return env.newObject(cls->getJavaObject(), id, &jargs[0]);
 }
 
-void BaseMethod::getName(QoreString& str) {
+void BaseMethod::getName(QoreString& str) const {
    Env env;
    // get Method name
    LocalReference<jstring> jmName = env.callObjectMethod(method, Globals::methodMethodGetName, nullptr).as<jstring>();
@@ -228,6 +228,13 @@ int BaseMethod::getParamTypes(type_vec_t& paramTypeInfo, QoreJniClassMap& clsmap
 
 const QoreTypeInfo* BaseMethod::getReturnTypeInfo(QoreJniClassMap& clsmap) {
    return clsmap.getQoreType(retValClass);
+}
+
+void BaseMethod::getSignature(QoreString& str) const {
+   Env env;
+   LocalReference<jstring> sig = env.callObjectMethod(method, Globals::methodMethodToGenericString, nullptr).as<jstring>();
+   Env::GetStringUtfChars msig(env, sig);
+   str.concat(msig.c_str());
 }
 
 } // namespace jni

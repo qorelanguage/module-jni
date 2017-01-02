@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -97,6 +97,7 @@ public:
    static jmethodID methodMethodGetModifiers;                           // int Method.getModifiers()
    static jmethodID methodMethodIsVarArgs;                              // bool Method.isVarArgs()
    static jmethodID methodMethodGetName;                                // String Method.getName()
+   static jmethodID methodMethodToGenericString;                        // String Method.getName()
 
    static GlobalReference<jclass> classConstructor;                     // java.lang.reflect.Constructor
    static jmethodID methodConstructorGetParameterTypes;                 // Class<?>[] Constructor.getParameterTypes()
@@ -107,6 +108,10 @@ public:
    static GlobalReference<jclass> classQoreInvocationHandler;           // org.qore.jni.QoreInvocationHandler
    static jmethodID ctorQoreInvocationHandler;                          // QoreInvocationHandler(long)
    static jmethodID methodQoreInvocationHandlerDestroy;                 // void QoreInvocationHandler.destroy()
+
+   static GlobalReference<jclass> classQoreJavaApi;                     // org.qore.jni.QoreJavaApi
+   static jmethodID methodQoreJavaApiCallFunction;                      // Object QoreJavaApi.callFunction(String name, Object...)
+   static jmethodID methodQoreJavaApiCallFunctionArgs;                  // Object QoreJavaApi.callFunctionArgs(String name, Object[])
 
    static GlobalReference<jclass> classQoreExceptionWrapper;            // org.qore.jni.QoreExceptionWrapper
    static jmethodID ctorQoreExceptionWrapper;                           // QoreExceptionWrapper(long)
@@ -119,13 +124,19 @@ public:
    static jmethodID methodClassLoaderLoadClass;                         // Class ClassLoader.loadClass(String)
 
    static GlobalReference<jclass> classQoreURLClassLoader;              // org.qore.jni.QoreURLClassLoader
-   static jmethodID ctorQoreURLClassLoader;                             // QoreURLClassLoader()
+   static jmethodID ctorQoreURLClassLoader;                             // QoreURLClassLoader(long)
    static jmethodID methodQoreURLClassLoaderAddPath;                    // void QoreURLClassLoader.addPath(String)
    static jmethodID methodQoreURLClassLoaderLoadClass;                  // Class QoreURLClassLoader.loadClass(String)
+   static jmethodID methodQoreURLClassLoaderSetContext;                 // Class QoreURLClassLoader.setContext()
+   static jmethodID methodQoreURLClassLoaderGetProgramPtr;              // long QoreURLClassLoader.getProgramPtr()
 
    static GlobalReference<jclass> classThread;                          // java.lang.Thread
    static jmethodID methodThreadCurrentThread;                          // Thread Thread.currentThread()
    static jmethodID methodThreadGetContextClassLoader;                  // ClassLoader Thread.getContextClassLoader()
+
+   static GlobalReference<jclass> classHashMap;                         // java.util.HashMap
+   static jmethodID ctorHashMap;                                        // HashMap()
+   static jmethodID methodHashMapPut;                                   // Object HashMap.put(Object K, Object V)
 
    static GlobalReference<jclass> classBoolean;                         // java.lang.Boolean
    static jmethodID ctorBoolean;                                        // Boolean(boolean)
