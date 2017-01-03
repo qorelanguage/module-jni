@@ -22,15 +22,28 @@ else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
+# adds a make rule for each java -> class generation
+MACRO(GENERATE_JAVA _class_files _src_files _input)
+    GET_FILENAME_COMPONENT(_base ${_input} NAME_WE)
+    GET_FILENAME_COMPONENT(_pkgdir ${_input} DIRECTORY)
+    SET(_output ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${_base}.class)
+    foreach (it ${ARGN})
+        #message(STATUS "IT: ${it}")
+        SET(_output ${_output} ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${_base}\$${it}.class)
+    endforeach()
+    SET(${_src_files} ${${_src_files}} ${CMAKE_SOURCE_DIR}/src/java/${_input})
+    SET(${_class_files} ${${_class_files}} ${_output})
+ENDMACRO(GENERATE_JAVA)
+
 MACRO(GENERATE_JAVA_INC _inc_files)
     foreach (it ${ARGN})
+        #message(STATUS "IT: ${it}")
         GET_FILENAME_COMPONENT(_base ${it} NAME_WE)
-        SET(_infile ${_classDir}/org/qore/jni/${_base}.class)
-        SET(_outfile ${CMAKE_CURRENT_BINARY_DIR}/include/${_base}.inc)
+        SET(_infile ${CMAKE_CURRENT_BINARY_DIR}/org/qore/jni/${_base}.class)
+        SET(_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${_base}.inc)
 
         add_custom_command(
             OUTPUT ${_outfile}
-            COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/include
             COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_infile} ${_outfile}
             MAIN_DEPENDENCY ${_infile}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -40,15 +53,43 @@ MACRO(GENERATE_JAVA_INC _inc_files)
     endforeach()
 ENDMACRO(GENERATE_JAVA_INC)
 
-set(JAVA_JAR_SRC
-    src/java/org/qore/jni/QoreExceptionWrapper.java
-    src/java/org/qore/jni/QoreHashMap.java
-    src/java/org/qore/jni/QoreInvocationHandler.java
-    src/java/org/qore/jni/QoreJavaApi.java
-    src/java/org/qore/jni/QoreURLClassLoader.java
+generate_java(JAVA_JAR_CLASSES JAVA_JAR_SRC org/qore/jni/QoreJavaApi.java)
+generate_java(JAVA_JAR_CLASSES JAVA_JAR_SRC org/qore/jni/QoreExceptionWrapper.java)
+generate_java(JAVA_JAR_CLASSES JAVA_JAR_SRC org/qore/jni/QoreHashMap.java)
+generate_java(JAVA_JAR_CLASSES JAVA_JAR_SRC org/qore/jni/QoreInvocationHandler.java)
+generate_java(JAVA_JAR_CLASSES JAVA_JAR_SRC org/qore/jni/QoreURLClassLoader.java)
+
+#message(STATUS "MESSAGE Src: ${JAVA_JAR_SRC}")
+#message(STATUS "MESSAGE Classes: ${JAVA_JAR_CLASSES}")
+
+add_custom_command(
+    OUTPUT ${JAVA_JAR_CLASSES}
+    COMMAND ${Java_JAVAC_EXECUTABLE} -d ${CMAKE_CURRENT_BINARY_DIR} ${JAVA_JAR_SRC}
+    DEPENDS ${JAVA_JAR_SRC}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
 )
 
-add_jar(qore-jni ${JAVA_JAR_SRC})
+# generate jar manually
+add_custom_command(
+    OUTPUT qore-jni.jar
+    COMMAND ${Java_JAR_EXECUTABLE} cf qore-jni.jar ${JAVA_JAR_CLASSES}
+    DEPENDS ${JAVA_JAR_CLASSES}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+)
+
+add_custom_target(qore-jni ALL DEPENDS qore-jni.jar)
+
+#set(JAVA_JAR_SRC
+#    src/java/org/qore/jni/QoreExceptionWrapper.java
+#    src/java/org/qore/jni/QoreHashMap.java
+#    src/java/org/qore/jni/QoreInvocationHandler.java
+#    src/java/org/qore/jni/QoreJavaApi.java
+#    src/java/org/qore/jni/QoreURLClassLoader.java
+#)
+
+#add_jar(qore-jni ${JAVA_JAR_SRC})
 
 set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/Callbacks.java
@@ -62,13 +103,17 @@ set(JAVA_TEST_JAR_SRC
 )
 
 add_jar(qore-jni-test ${JAVA_TEST_JAR_SRC}
-    INCLUDE_JARS qore-jni
-    OUTPUT_DIR test
+    INCLUDE_JARS qore-jni.jar
 )
 
-get_target_property(_classDir qore-jni CLASSDIR)
+add_custom_command(
+    TARGET qore-jni-test
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/qore-jni-test.jar ${CMAKE_SOURCE_DIR}/test
+)
 
-message(STATUS "MESSAGE Class compiled to ${_classDir}")
+#get_target_property(_classDir qore-jni CLASSDIR)
+#message(STATUS "MESSAGE Classes: ${JAR_CLASSLIST}")
 
 set(QPP_SRC
     src/ql_jni.qpp
@@ -109,7 +154,19 @@ include_directories(${JNI_INCLUDE_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/src)
 target_include_directories(${module_name} PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
 
-generate_java_inc(QORE_INC_SRC ${JAVA_JAR_SRC} "QoreURLClassLoader\$1.java")
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/JavaClassQoreURLClassLoader$$1.inc
+    COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${CMAKE_CURRENT_BINARY_DIR}/org/qore/jni/QoreURLClassLoader$1.class ${CMAKE_CURRENT_BINARY_DIR}/JavaClassQoreURLClassLoader_1.inc
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/org/qore/jni/QoreURLClassLoader.class
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+)
+
+generate_java_inc(QORE_INC_SRC ${JAVA_JAR_SRC})
+message(STATUS "QORE_INC_SRC: ${QORE_INC_SRC}")
+set_source_files_properties(${CMAKE_SOURCE_DIR}/src/Globals.cpp PROPERTIES OBJECT_DEPENDS "${QORE_INC_SRC};JavaClassQoreURLClassLoader$$1.inc")
+
+message(STATUS "JAVA_JAR_CLASSES: ${JAVA_JAR_CLASSES}")
 add_custom_target(QORE_INC_FILES DEPENDS ${QORE_INC_SRC})
 add_dependencies(${module_name} QORE_INC_FILES)
 

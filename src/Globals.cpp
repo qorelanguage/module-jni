@@ -296,7 +296,7 @@ static GlobalReference<jclass> getPrimitiveClass(Env &env, const char *wrapperNa
 #include "JavaClassQoreInvocationHandler.inc"
 #include "JavaClassQoreExceptionWrapper.inc"
 #include "JavaClassQoreURLClassLoader.inc"
-#include "JavaClassQoreURLClassLoader$1.inc"
+#include "JavaClassQoreURLClassLoader_1.inc"
 #include "JavaClassQoreJavaApi.inc"
 
 void Globals::init() {
