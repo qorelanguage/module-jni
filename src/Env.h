@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -48,8 +48,7 @@ public:
     * \brief Default constructor. Attaches current thread to the JVM.
     * \throws UnableToAttachException if the thread cannot be attached to the JVM
     */
-   Env() : env(Jvm::attachAndGetEnv()) {
-   }
+   Env();
 
    /**
     * \brief Constructor.

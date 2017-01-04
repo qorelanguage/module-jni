@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -28,10 +28,13 @@
 /// \brief TODO file description
 ///
 //------------------------------------------------------------------------------
+
 #include "Globals.h"
 #include "Env.h"
 #include "Dispatcher.h"
 #include "ModifiedUtf8String.h"
+#include "Array.h"
+#include "QoreToJava.h"
 
 namespace jni {
 
@@ -90,6 +93,7 @@ jmethodID Globals::methodMethodGetDeclaringClass;
 jmethodID Globals::methodMethodGetModifiers;
 jmethodID Globals::methodMethodIsVarArgs;
 jmethodID Globals::methodMethodGetName;
+jmethodID Globals::methodMethodToGenericString;
 
 GlobalReference<jclass> Globals::classConstructor;
 jmethodID Globals::methodConstructorGetParameterTypes;
@@ -100,6 +104,10 @@ jmethodID Globals::methodConstructorIsVarArgs;
 GlobalReference<jclass> Globals::classQoreInvocationHandler;
 jmethodID Globals::ctorQoreInvocationHandler;
 jmethodID Globals::methodQoreInvocationHandlerDestroy;
+
+GlobalReference<jclass> Globals::classQoreJavaApi;
+jmethodID Globals::methodQoreJavaApiCallFunction;
+jmethodID Globals::methodQoreJavaApiCallFunctionArgs;
 
 GlobalReference<jclass> Globals::classQoreExceptionWrapper;
 jmethodID Globals::ctorQoreExceptionWrapper;
@@ -115,10 +123,16 @@ GlobalReference<jclass> Globals::classQoreURLClassLoader;
 jmethodID Globals::ctorQoreURLClassLoader;
 jmethodID Globals::methodQoreURLClassLoaderAddPath;
 jmethodID Globals::methodQoreURLClassLoaderLoadClass;
+jmethodID Globals::methodQoreURLClassLoaderSetContext;
+jmethodID Globals::methodQoreURLClassLoaderGetProgramPtr;
 
 GlobalReference<jclass> Globals::classThread;
 jmethodID Globals::methodThreadCurrentThread;
 jmethodID Globals::methodThreadGetContextClassLoader;
+
+GlobalReference<jclass> Globals::classHashMap;
+jmethodID Globals::ctorHashMap;
+jmethodID Globals::methodHashMapPut;
 
 GlobalReference<jclass> Globals::classBoolean;
 jmethodID Globals::ctorBoolean;
@@ -160,6 +174,41 @@ static jobject JNICALL invocation_handler_invoke(JNIEnv* jenv, jobject, jlong pt
    Env env(jenv);
    Dispatcher* dispatcher = reinterpret_cast<Dispatcher*>(ptr);
    return dispatcher->dispatch(env, proxy, method, args);
+}
+
+static jobject JNICALL java_api_call_function(JNIEnv* jenv, jobject obj, QoreProgram* pgm, jstring name, jobjectArray args) {
+   qoreThreadAttacher.attach();
+
+   Env env(jenv);
+
+   QoreProgramContextHelper pch(pgm);
+
+   ExceptionSink xsink;
+
+   jsize len = args ? env.getArrayLength(args) : 0;
+   ReferenceHolder<QoreListNode> qore_args(&xsink);
+
+   if (len)
+      qore_args = Array::getArgList(env, args);
+
+   Env::GetStringUtfChars fname(env, name);
+   //printd(LogLevel, "java_api_call_function() '%s()' args: %p %d\n", fname.c_str(), *qore_args, len);
+
+   ValueHolder rv(pgm->callFunction(fname.c_str(), *qore_args, &xsink), &xsink);
+
+   if (xsink) {
+      QoreToJava::wrapException(xsink);
+      return nullptr;
+   }
+
+   try {
+      return QoreToJava::toAnyObject(*rv);
+   }
+   catch (jni::Exception& e) {
+      e.convert(&xsink);
+      QoreToJava::wrapException(xsink);
+      return nullptr;
+   }
 }
 
 static void JNICALL qore_exception_wrapper_finalize(JNIEnv*, jclass, jlong ptr) {
@@ -206,26 +255,34 @@ static jstring JNICALL qore_exception_wrapper_get_message(JNIEnv*, jclass, jlong
 
 static JNINativeMethod invocationHandlerNativeMethods[2] = {
       {
-            const_cast<char *>("finalize0"),
-            const_cast<char *>("(J)V"),
+            const_cast<char*>("finalize0"),
+            const_cast<char*>("(J)V"),
             reinterpret_cast<void*>(invocation_handler_finalize)
       },
       {
-            const_cast<char *>("invoke0"),
-            const_cast<char *>("(JLjava/lang/Object;Ljava/lang/reflect/Method;[Ljava/lang/Object;)Ljava/lang/Object;"),
+            const_cast<char*>("invoke0"),
+            const_cast<char*>("(JLjava/lang/Object;Ljava/lang/reflect/Method;[Ljava/lang/Object;)Ljava/lang/Object;"),
             reinterpret_cast<void*>(invocation_handler_invoke)
       }
 };
 
+static JNINativeMethod qoreJavaApiNativeMethods[1] = {
+      {
+            const_cast<char*>("callFunction0"),
+            const_cast<char*>("(JLjava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;"),
+            reinterpret_cast<void*>(java_api_call_function)
+      },
+};
+
 static JNINativeMethod qoreExceptionWrapperNativeMethods[2] = {
       {
-            const_cast<char *>("finalize0"),
-            const_cast<char *>("(J)V"),
+            const_cast<char*>("finalize0"),
+            const_cast<char*>("(J)V"),
             reinterpret_cast<void*>(qore_exception_wrapper_finalize)
       },
       {
-            const_cast<char *>("getMessage0"),
-            const_cast<char *>("(J)Ljava/lang/String;"),
+            const_cast<char*>("getMessage0"),
+            const_cast<char*>("(J)Ljava/lang/String;"),
             reinterpret_cast<void*>(qore_exception_wrapper_get_message)
       }
 };
@@ -239,7 +296,8 @@ static GlobalReference<jclass> getPrimitiveClass(Env &env, const char *wrapperNa
 #include "JavaClassQoreInvocationHandler.inc"
 #include "JavaClassQoreExceptionWrapper.inc"
 #include "JavaClassQoreURLClassLoader.inc"
-#include "JavaClassQoreURLClassLoader$1.inc"
+#include "JavaClassQoreURLClassLoader_1.inc"
+#include "JavaClassQoreJavaApi.inc"
 
 void Globals::init() {
    Env env;
@@ -305,6 +363,7 @@ void Globals::init() {
    methodMethodGetModifiers = env.getMethod(classMethod, "getModifiers", "()I");
    methodMethodIsVarArgs = env.getMethod(classMethod, "isVarArgs", "()Z");
    methodMethodGetName = env.getMethod(classMethod, "getName", "()Ljava/lang/String;");
+   methodMethodToGenericString = env.getMethod(classMethod, "toGenericString", "()Ljava/lang/String;");
 
    classConstructor = env.findClass("java/lang/reflect/Constructor").makeGlobal();
    methodConstructorGetParameterTypes = env.getMethod(classConstructor, "getParameterTypes", "()[Ljava/lang/Class;");
@@ -317,6 +376,9 @@ void Globals::init() {
    ctorQoreInvocationHandler = env.getMethod(classQoreInvocationHandler, "<init>", "(J)V");
    methodQoreInvocationHandlerDestroy = env.getMethod(classQoreInvocationHandler, "destroy", "()V");
 
+   classQoreJavaApi = env.defineClass("org/qore/jni/QoreJavaApi", nullptr, java_org_qore_jni_QoreJavaApi_class, java_org_qore_jni_QoreJavaApi_class_len).makeGlobal();
+   env.registerNatives(classQoreJavaApi, qoreJavaApiNativeMethods, 1);
+
    classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
    methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance", "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
 
@@ -324,15 +386,21 @@ void Globals::init() {
    methodClassLoaderLoadClass = env.getMethod(classClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
 
    classQoreURLClassLoader = env.defineClass("org/qore/jni/QoreURLClassLoader", nullptr, java_org_qore_jni_QoreURLClassLoader_class, java_org_qore_jni_QoreURLClassLoader_class_len).makeGlobal();
-   ctorQoreURLClassLoader = env.getMethod(classQoreURLClassLoader, "<init>", "()V");
+   ctorQoreURLClassLoader = env.getMethod(classQoreURLClassLoader, "<init>", "(J)V");
    methodQoreURLClassLoaderAddPath = env.getMethod(classQoreURLClassLoader, "addPath", "(Ljava/lang/String;)V");
    methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
+   methodQoreURLClassLoaderSetContext = env.getMethod(classQoreURLClassLoader, "setContext", "()V");
+   methodQoreURLClassLoaderGetProgramPtr = env.getStaticMethod(classQoreURLClassLoader, "getProgramPtr", "()J");
 
    env.defineClass("org/qore/jni/QoreURLClassLoader$1", nullptr, java_org_qore_jni_QoreURLClassLoader_1_class, java_org_qore_jni_QoreURLClassLoader_1_class_len);
 
    classThread = env.findClass("java/lang/Thread").makeGlobal();
    methodThreadCurrentThread = env.getStaticMethod(classThread, "currentThread", "()Ljava/lang/Thread;");
    methodThreadGetContextClassLoader = env.getMethod(classThread, "getContextClassLoader", "()Ljava/lang/ClassLoader;");
+
+   classHashMap = env.findClass("java/util/HashMap").makeGlobal();
+   ctorHashMap = env.getMethod(classHashMap, "<init>", "()V");
+   methodHashMapPut = env.getMethod(classHashMap, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 
    classBoolean = env.findClass("java/lang/Boolean").makeGlobal();
    ctorBoolean = env.getMethod(classBoolean, "<init>", "(Z)V");
@@ -387,10 +455,12 @@ void Globals::cleanup() {
    classConstructor = nullptr;
    classQoreInvocationHandler = nullptr;
    classQoreExceptionWrapper = nullptr;
+   classQoreJavaApi = nullptr;
    classProxy = nullptr;
    classClassLoader = nullptr;
    classQoreURLClassLoader = nullptr;
    classThread = nullptr;
+   classHashMap = nullptr;
    classBoolean = nullptr;
    classInteger = nullptr;
    classLong = nullptr;

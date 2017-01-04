@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -83,7 +83,7 @@ private:
  * \brief An exception that can be safely ignored with no action
  */
 class IgnorableException : public Exception {
-   void ignore() override {
+   DLLLOCAL void ignore() override {
    }
 };
 
@@ -96,11 +96,11 @@ public:
     * \brief Constructor.
     * \param err the error code
     */
-   UnableToAttachException(jint err) : err(err) {
+   DLLLOCAL UnableToAttachException(jint err) : err(err) {
       printd(LogLevel, "JNI - error attaching thread %d, err: %d\n", gettid(), err);
    }
 
-   void convert(ExceptionSink *xsink) override {
+   DLLLOCAL void convert(ExceptionSink *xsink) override {
       xsink->raiseException("JNI-ERROR", "Unable to attach thread to the JVM, error %d", err);
    }
 
@@ -116,11 +116,11 @@ public:
    /**
     * \brief Constructor.
     */
-   UnableToRegisterException() {
+   DLLLOCAL UnableToRegisterException() {
       printd(LogLevel, "JNI - error registering thread %ld with Qore\n", pthread_self());
    }
 
-   void convert(ExceptionSink *xsink) override {
+   DLLLOCAL void convert(ExceptionSink *xsink) override {
       xsink->raiseException("JNI-ERROR", "Unable to register thread with Qore");
    }
 };
@@ -179,7 +179,7 @@ public:
     * \param err the exception error string
     * \param message the exception message
     */
-   QoreJniException(std::string err, const char* message, ...) : err(std::move(err)) {
+   DLLLOCAL QoreJniException(std::string err, const char* message, ...) : err(std::move(err)) {
       va_list args;
 
       while (true) {
@@ -191,7 +191,7 @@ public:
       }
    }
 
-   void convert(ExceptionSink *xsink) override {
+   DLLLOCAL void convert(ExceptionSink *xsink) override {
       xsink->raiseException(err.c_str(), desc.c_str());
    }
 
@@ -209,11 +209,11 @@ public:
     * \brief Constructor.
     * \param xsink the exception sink with an exception
     */
-   XsinkException(ExceptionSink &xsink) : sink(new ExceptionSink()) {
+   DLLLOCAL XsinkException(ExceptionSink &xsink) : sink(new ExceptionSink()) {
       sink->assimilate(xsink);
    }
 
-   void convert(ExceptionSink *xsink) override {
+   DLLLOCAL void convert(ExceptionSink *xsink) override {
       xsink->assimilate(*sink);
    }
 
@@ -227,17 +227,17 @@ private:
 
 class QoreThreadAttacher {
 public:
-   QoreThreadAttacher() : attached(false) {
+   DLLLOCAL QoreThreadAttacher() : attached(false) {
    }
 
-   ~QoreThreadAttacher() {
+   DLLLOCAL ~QoreThreadAttacher() {
       if (attached) {
          printd(LogLevel, "Detaching thread %ld from Qore\n", pthread_self());
          q_deregister_foreign_thread();
       }
    }
 
-   void attach() {
+   DLLLOCAL void attach() {
       int rc = q_register_foreign_thread();
       if (rc == QFT_OK) {
          attached = true;
@@ -245,6 +245,10 @@ public:
       } else if (rc != QFT_REGISTERED) {
          throw UnableToRegisterException();
       }
+   }
+
+   DLLLOCAL operator bool() const {
+      return attached;
    }
 
 private:

@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -60,6 +60,13 @@ jobject QoreToJava::toAnyObject(const QoreValue& value) {
          }
          break;
       }
+      case NT_HASH: {
+         return makeHashMap(*value.get<QoreHashNode>());
+      }
+      case NT_BINARY: {
+         return makeByteArray(*value.get<BinaryNode>());
+      }
+
       case NT_NOTHING:
       case NT_NULL:
          return nullptr;
@@ -148,6 +155,36 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
       }
    }
    return javaObjectRef.release();
+}
+
+jobject QoreToJava::makeHashMap(const QoreHashNode& h) {
+   Env env;
+   LocalReference<jobject> hm = env.newObject(Globals::classHashMap, Globals::ctorHashMap, nullptr);
+
+   ConstHashIterator i(h);
+   while (i.next()) {
+      LocalReference<jstring> key = env.newString(i.getKey());
+      QoreValue v(i.getValue());
+      LocalReference<jobject> value = toAnyObject(v);
+
+      std::vector<jvalue> jargs(2);
+      jargs[0].l = key;
+      jargs[1].l = value;
+
+      env.callObjectMethod(hm, Globals::methodHashMapPut, &jargs[0]);
+   }
+
+   return hm.release();
+}
+
+jbyteArray QoreToJava::makeByteArray(const BinaryNode& b) {
+   Env env;
+   LocalReference<jbyteArray> array = env.newByteArray(b.size()).as<jbyteArray>();
+   for (jsize i = 0; i < b.size(); ++i) {
+      env.setByteArrayElement(array, i, ((const char*)b.getPtr())[i]);
+   }
+
+   return array.release();
 }
 
 }

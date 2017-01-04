@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2015 Qore Technologies
+//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -62,6 +62,14 @@ public:
    static void setEnv(JNIEnv *env) {
       Jvm::env = env;
    }
+
+   /**
+    * \brief Returns the Env object associated with this thread. Attaches the thread to the JVM if needed.
+    * \param new_thread an output variable indicating if this thread is attaching to the JVM for the first time or not
+    * \return the Env object associated with this thread
+    * \throws UnableToAttachException if the thread cannot be attached to the JVM
+    */
+   static JNIEnv* attachAndGetEnv(bool& new_attach);
 
    /**
     * \brief Returns the Env object associated with this thread. Attaches the thread to the JVM if needed.

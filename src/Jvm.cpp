@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -24,9 +24,12 @@
 //
 //------------------------------------------------------------------------------
 #include "Jvm.h"
+
 #include <qore/Qore.h>
+
 #include "defs.h"
 #include "Globals.h"
+#include "QoreJniClassMap.h"
 
 namespace jni {
 
@@ -41,21 +44,13 @@ QoreStringNode* Jvm::createVM() {
    vm_args.ignoreUnrecognized = false;
    vm_args.nOptions = 0;
 
-   JavaVMOption options[2];
+   JavaVMOption options[1];
    // "reduced signals"
    options[vm_args.nOptions++].optionString = (char*)"-Xrs";
 
-   /*
-   std::string classpath;
-   const char* classpathEnv = getenv("QORE_JNI_CLASSPATH");
-   if (classpathEnv) {
-      classpath = std::string("-Djava.class.path=") + classpathEnv;
-      options[vm_args.nOptions++].optionString = &classpath[0];
-   }
-   */
    vm_args.options = options;
 
-   if (JNI_CreateJavaVM(&vm, reinterpret_cast<void **>(&env), &vm_args) != JNI_OK) {
+   if (JNI_CreateJavaVM(&vm, reinterpret_cast<void**>(&env), &vm_args) != JNI_OK) {
       return new QoreStringNode("JNI_CreateJavaVM() failed");
    }
    try {
@@ -82,12 +77,28 @@ JNIEnv *Jvm::attachAndGetEnv() {
    assert(vm != nullptr);
 
    if (env == nullptr) {
-      jint err = vm->AttachCurrentThread(reinterpret_cast<void **>(&env), nullptr);
+      jint err = vm->AttachCurrentThread(reinterpret_cast<void**>(&env), nullptr);
       if (err != JNI_OK) {
          throw UnableToAttachException(err);
       }
       printd(LogLevel, "JNI - thread %d attached, env: %p\n", gettid(), env);
    }
+   return env;
+}
+
+JNIEnv* Jvm::attachAndGetEnv(bool& new_attach) {
+   assert(vm != nullptr);
+
+   if (env == nullptr) {
+      jint err = vm->AttachCurrentThread(reinterpret_cast<void**>(&env), nullptr);
+      if (err != JNI_OK) {
+         throw UnableToAttachException(err);
+      }
+      new_attach = true;
+      printd(LogLevel, "JNI - thread %d attached, env: %p\n", gettid(), env);
+   }
+   else
+      new_attach = false;
    return env;
 }
 

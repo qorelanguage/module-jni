@@ -4,7 +4,7 @@
 
   Qore Programming Language JNI Module
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -63,7 +63,7 @@ QoreBuiltinClass* QC_INVOCATIONHANDLER;
 qore_classid_t CID_INVOCATIONHANDLER;
 
 QoreJniClassMap qjcm;
-static void exec_java_constructor(const QoreBuiltinClass& qc, BaseMethod* m, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
+static void exec_java_constructor(const QoreMethod& meth, BaseMethod* m, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObject* self, QoreJniPrivateData* jd, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 
@@ -98,8 +98,8 @@ QoreJniClassMap::jpmap_t QoreJniClassMap::jpmap = {
 
 class JniQoreClass : public QoreBuiltinClass {
 public:
-   DLLLOCAL JniQoreClass(const char* name) : QoreBuiltinClass(name) {
-      addMethod((void*)0, "memberGate", (q_external_method_t)memberGate, Public, 0, QDOM_DEFAULT, anyTypeInfo, paramTypeInfo);
+   DLLLOCAL JniQoreClass(const char* name) : QoreBuiltinClass(name, QDOM_UNCONTROLLED_API) {
+      addMethodVariant((void*)0, "memberGate", (q_external_method_t)memberGate, Public, 0, QDOM_UNCONTROLLED_API, anyTypeInfo, paramTypeInfo);
 
       setPublicMemberFlag();
       setGateAccessFlag();
@@ -648,7 +648,7 @@ void QoreJniClassMap::doConstructors(QoreBuiltinClass& qc, jni::Class* jc) {
          continue;
       }
 
-      qc.addConstructor((void*)*meth, (q_external_constructor_t)exec_java_constructor, meth->getAccess(), meth->getFlags(), QDOM_DEFAULT, paramTypeInfo);
+      qc.addConstructorVariant((void*)*meth, (q_external_constructor_t)exec_java_constructor, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_API, paramTypeInfo);
       jc->trackMethod(meth.release());
    }
 }
@@ -746,7 +746,7 @@ void QoreJniClassMap::doMethods(QoreBuiltinClass& qc, jni::Class* jc) {
             printd(LogLevel, "QoreJniClassMap::doMethods() skipping already-created static variant %s::%s()\n", qc.getName(), mname.c_str());
             continue;
          }
-         qc.addStaticMethod((void*)*meth, mname.c_str(), (q_external_static_method_t)exec_java_static_method, meth->getAccess(), meth->getFlags(), QDOM_DEFAULT, returnTypeInfo, paramTypeInfo);
+         qc.addStaticMethodVariant((void*)*meth, mname.c_str(), (q_external_static_method_t)exec_java_static_method, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_API, returnTypeInfo, paramTypeInfo);
       }
       else {
          if (mname == "copy" || mname == "constructor" || mname == "destructor" || mname == "methodGate" || mname == "memberNotification" || mname == "memberGate")
@@ -762,7 +762,7 @@ void QoreJniClassMap::doMethods(QoreBuiltinClass& qc, jni::Class* jc) {
          if (meth->isAbstract())
             qc.addAbstractMethodVariant(mname.c_str(), meth->getAccess(), meth->getFlags(), returnTypeInfo, paramTypeInfo);
          else
-            qc.addMethod((void*)*meth, mname.c_str(), (q_external_method_t)exec_java_method, meth->getAccess(), meth->getFlags(), QDOM_DEFAULT, returnTypeInfo, paramTypeInfo);
+            qc.addMethodVariant((void*)*meth, mname.c_str(), (q_external_method_t)exec_java_method, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_API, returnTypeInfo, paramTypeInfo);
       }
       jc->trackMethod(meth.release());
    }
@@ -808,9 +808,9 @@ jarray QoreJniClassMap::getJavaArrayIntern(Env& env, const QoreListNode* l, jcla
    return array.release();
 }
 
-static void exec_java_constructor(const QoreBuiltinClass& qc, BaseMethod* m, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
+static void exec_java_constructor(const QoreMethod& qmeth, BaseMethod* m, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
    try {
-      self->setPrivate(qc.getID(), new QoreJniPrivateData(m->newQoreInstance(args)));
+      self->setPrivate(qmeth.getClass()->getID(), new QoreJniPrivateData(m->newQoreInstance(args)));
    }
    catch (jni::Exception& e) {
       e.convert(xsink);
@@ -884,8 +884,14 @@ void QoreJniClassMap::doFields(QoreBuiltinClass& qc, jni::Class* jc) {
 JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni) : jni(n_jni) {
    assert(jni);
    Env env;
+
+   // set up QoreURLClassLoader constructor args
+   jvalue jarg;
+   jarg.j = (long)getProgram();
+   assert(jarg.j);
+
    // create our custom classloader
-   classLoader = env.newObject(Globals::classQoreURLClassLoader, Globals::ctorQoreURLClassLoader, nullptr).makeGlobal();
+   classLoader = env.newObject(Globals::classQoreURLClassLoader, Globals::ctorQoreURLClassLoader, &jarg).makeGlobal();
 
    // setup classpath
    TempString classpath(SystemEnvironment::get("QORE_JNI_CLASSPATH"));
@@ -914,6 +920,19 @@ void JniExternalProgramData::addClasspath(const char* path) {
       ExceptionSink xsink;
       e.convert(&xsink);
    }
+}
+
+void JniExternalProgramData::setContext(Env& env) {
+   QoreProgram* pgm = getProgram();
+   assert(pgm);
+   JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+   assert(jpc);
+
+   // set classloader context in new thread
+   env.callVoidMethod(jpc->classLoader, Globals::methodQoreURLClassLoaderSetContext, nullptr);
+
+   printd(0, "JniExternalProgramData::setContext() pgm: %p jpc: %p\n", pgm, jpc);
+   //printd(LogLevel, "JniExternalProgramData::setContext() pgm: %p jpc: %p\n", pgm, jpc);
 }
 
 }

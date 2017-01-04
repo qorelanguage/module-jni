@@ -15,6 +15,7 @@
 class MakeInc {
     private {
         const Opts = (
+            "verbose": "v,verbose:i+",
             "help": "h,help",
             );
 
@@ -39,7 +40,8 @@ class MakeInc {
         else
             outname = getName(outname);
 
-        printf("processing %s -> %s\n", file, outname);
+        if (opts.verbose)
+            printf("processing %s -> %s\n", file, outname);
 
         string name = basename(file);
         {
@@ -84,7 +86,9 @@ class MakeInc {
 
     static usage() {
         printf("usage: %s [options]
- -h,--help     this help text\n",
+ -h,--help           this help text
+ -v,--verbose[=ARG]  verbosity level
+",
                get_script_name());
         exit(1);
     }

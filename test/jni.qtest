@@ -10,10 +10,12 @@
 %requires QUnit
 %requires Util
 
-%module-cmd(jni) add-relative-classpath java/bin
+#%module-cmd(jni) add-relative-classpath java/bin
+%module-cmd(jni) add-relative-classpath qore-jni-test.jar
 %module-cmd(jni) import java.lang.reflect.*
 %module-cmd(jni) import java.lang.invoke.*
 %module-cmd(jni) import org.qore.jni.test.Fields
+%module-cmd(jni) import org.qore.jni.test.QoreJavaApiTest
 
 %exec-class Main
 
@@ -32,7 +34,6 @@ class MyFields inherits Fields {
 }
 
 public class Main inherits QUnit::Test {
-
     constructor() : Test("jni test", "1.0") {
         addTestCase("class test", \testJniClasses());
         addTestCase("static method invocation test", \testStaticMethods());
@@ -47,9 +48,15 @@ public class Main inherits QUnit::Test {
         addTestCase("dispatcher destructor throws a Qore exception", \testDispatchDtorThrows());
         addTestCase("callback return value test", \testCallbackRetVal());
         addTestCase("special conversions test", \testSpecialConversions());
+        addTestCase("api test", \testQoreJavaApi());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    testQoreJavaApi() {
+        HashMap hm = QoreJavaApiTest::callFunctionTest();
+        delete hm;
     }
 
     testJniClasses() {

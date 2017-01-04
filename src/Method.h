@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -128,7 +128,7 @@ public:
     */
    LocalReference<jobject> newQoreInstance(const QoreValueList* args);
 
-   void getName(QoreString& str);
+   void getName(QoreString& str) const;
 
    int isStatic() const {
       return mods & JVM_ACC_STATIC;
@@ -164,6 +164,8 @@ public:
    DLLLOCAL int getParamTypes(type_vec_t& paramTypeInfo, QoreJniClassMap& clsmap);
 
    DLLLOCAL const QoreTypeInfo* getReturnTypeInfo(QoreJniClassMap& clsmap);
+
+   DLLLOCAL void getSignature(QoreString& str) const;
 
 protected:
    DLLLOCAL BaseMethod() {
