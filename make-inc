@@ -15,7 +15,7 @@
 class MakeInc {
     private {
         const Opts = (
-            "verboe": "v,verbose:i+",
+            "verbose": "v,verbose:i+",
             "help": "h,help",
             );
 
