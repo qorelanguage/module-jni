@@ -25,7 +25,7 @@ endif()
 # adds a make rule for java -> class generation annd class -> inc generation
 MACRO(GENERATE_JAVA _input)
     GET_FILENAME_COMPONENT(_base ${_input} NAME_WE)
-    GET_FILENAME_COMPONENT(_pkgdir ${_input} DIRECTORY)
+    GET_FILENAME_COMPONENT(_pkgdir ${_input} PATH)
     SET(_class_file ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${_base}.class)
 
     # generate rules to generate include files for primary classes
