@@ -930,8 +930,6 @@ void JniExternalProgramData::setContext(Env& env) {
 
    // set classloader context in new thread
    env.callVoidMethod(jpc->classLoader, Globals::methodQoreURLClassLoaderSetContext, nullptr);
-
-   printd(0, "JniExternalProgramData::setContext() pgm: %p jpc: %p\n", pgm, jpc);
    //printd(LogLevel, "JniExternalProgramData::setContext() pgm: %p jpc: %p\n", pgm, jpc);
 }
 
