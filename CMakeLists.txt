@@ -22,6 +22,8 @@ else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
+SET(_qore_jni_sentinel ${CMAKE_CURRENT_BINARY_DIR}/qore-jni.sentinel)
+
 # adds a make rule for java -> class generation annd class -> inc generation
 MACRO(GENERATE_JAVA _input)
     GET_FILENAME_COMPONENT(_base ${_input} NAME_WE)
@@ -33,13 +35,12 @@ MACRO(GENERATE_JAVA _input)
     add_custom_command(
         OUTPUT ${_inc_outfile}
         COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_class_file} ${_inc_outfile}
-        DEPENDS ${_class_file}
+        DEPENDS ${_qore_jni_sentinel}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
 
     SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_class_file})
-    SET(JAVA_JAR_TARGETS ${JAVA_JAR_TARGETS} ${_class_file})
     SET(JAVA_JAR_SRC ${JAVA_JAR_SRC} ${CMAKE_SOURCE_DIR}/src/java/${_input})
     SET(QORE_INC_FILES ${QORE_INC_FILES} ${_inc_outfile})
 
@@ -53,12 +54,11 @@ MACRO(GENERATE_JAVA _input)
         add_custom_command(
             OUTPUT ${_inc_outfile}
             COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_inc_infile} ${_inc_outfile}
-            DEPENDS ${_inc_infile}
+            DEPENDS ${_qore_jni_sentinel}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             VERBATIM
         )
         SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_inc_infile})
-        SET(JAVA_JAR_TARGETS ${JAVA_JAR_TARGETS} ${_inc_infile_target})
         SET(QORE_INC_FILES ${QORE_INC_FILES} ${_inc_outfile})
     endforeach()
 ENDMACRO(GENERATE_JAVA)
@@ -75,8 +75,9 @@ generate_java(org/qore/jni/QoreURLClassLoader.java 1)
 #message(STATUS "MESSAGE Inc: ${QORE_INC_FILES}")
 
 add_custom_command(
-    OUTPUT ${JAVA_JAR_TARGETS}
+    OUTPUT ${_qore_jni_sentinel}
     COMMAND ${Java_JAVAC_EXECUTABLE} -d ${CMAKE_CURRENT_BINARY_DIR} ${JAVA_JAR_SRC}
+    COMMAND ${CMAKE_COMMAND} -E touch ${_qore_jni_sentinel}
     DEPENDS ${JAVA_JAR_SRC}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
@@ -86,7 +87,7 @@ add_custom_command(
 add_custom_command(
     OUTPUT qore-jni.jar
     COMMAND ${Java_JAR_EXECUTABLE} cf qore-jni.jar ${JAVA_JAR_CLASSES}
-    DEPENDS ${JAVA_JAR_TARGETS}
+    DEPENDS ${_qore_jni_sentinel}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
 )
