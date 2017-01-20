@@ -36,9 +36,9 @@
 
 using namespace jni;
 
-Env::Env() {
+Env::Env(bool set_context) {
    bool new_attach;
    env = Jvm::attachAndGetEnv(new_attach);
-   if (new_attach)
+   if (set_context && new_attach)
       JniExternalProgramData::setContext(*this);
 }

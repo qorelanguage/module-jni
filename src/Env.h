@@ -46,9 +46,10 @@ class Env {
 public:
    /**
     * \brief Default constructor. Attaches current thread to the JVM.
+    * \param set_context set the classloader context
     * \throws UnableToAttachException if the thread cannot be attached to the JVM
     */
-   Env();
+   Env(bool set_context = true);
 
    /**
     * \brief Constructor.

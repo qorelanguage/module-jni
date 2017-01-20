@@ -883,7 +883,7 @@ void QoreJniClassMap::doFields(QoreBuiltinClass& qc, jni::Class* jc) {
 
 JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni) : jni(n_jni) {
    assert(jni);
-   Env env;
+   Env env(false);
 
    // set up QoreURLClassLoader constructor args
    jvalue jarg;

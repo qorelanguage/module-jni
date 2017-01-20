@@ -47,18 +47,12 @@ constexpr int LogLevel = 10;
 /**
  * \brief Base class for exceptions.
  */
-class Exception {
+class Exception : public AbstractException {
 public:
    /**
     * \brief Default virtual destructor.
     */
    virtual ~Exception() = default;
-
-   /**
-    * \brief Raises the corresponding Qore exception in the ExceptionSink.
-    * \param xsink the exception sink
-    */
-   virtual void convert(ExceptionSink *xsink) = 0;
 
    /**
     * \brief ignore the exception

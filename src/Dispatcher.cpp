@@ -52,6 +52,11 @@ QoreCodeDispatcher::~QoreCodeDispatcher() {
 }
 
 jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jobjectArray jargs) {
+   if (q_libqore_shutdown()) {
+      env.throwNew(env.findClass("java/lang/RuntimeException"), "could not execute Qore callback; the Qore library has already been shut down");
+      return nullptr;
+   }
+
    try {
       qoreThreadAttacher.attach();
    } catch (Exception& e) {
