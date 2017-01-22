@@ -176,7 +176,8 @@ static jobject JNICALL invocation_handler_invoke(JNIEnv* jenv, jobject, jlong pt
    return dispatcher->dispatch(env, proxy, method, args);
 }
 
-static jobject JNICALL java_api_call_function(JNIEnv* jenv, jobject obj, QoreProgram* pgm, jstring name, jobjectArray args) {
+static jobject JNICALL java_api_call_function(JNIEnv* jenv, jobject obj, jlong ptr, jstring name, jobjectArray args) {
+   QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
    qoreThreadAttacher.attach();
 
    Env env(jenv);
