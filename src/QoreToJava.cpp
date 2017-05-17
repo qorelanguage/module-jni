@@ -134,8 +134,8 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
             throw BasicException(desc.c_str());
          }
 
-         QoreStringMaker desc("A Java object argument expected; got type '%s' instead", value.getTypeName());
-         throw BasicException(desc.c_str());
+         // convert primitive types to java objects if possible
+         return toAnyObject(value);
       }
    }
 
