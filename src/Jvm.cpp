@@ -50,8 +50,9 @@ QoreStringNode* Jvm::createVM() {
 
    vm_args.options = options;
 
-   if (JNI_CreateJavaVM(&vm, reinterpret_cast<void**>(&env), &vm_args) != JNI_OK) {
-      return new QoreStringNode("JNI_CreateJavaVM() failed");
+   int rc = JNI_CreateJavaVM(&vm, reinterpret_cast<void**>(&env), &vm_args);
+   if (rc != JNI_OK) {
+      return new QoreStringNodeMaker("JNI_CreateJavaVM() failed with error code %d", rc);
    }
    try {
       Globals::init();
