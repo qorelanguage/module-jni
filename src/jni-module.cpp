@@ -105,6 +105,8 @@ static QoreStringNode* jni_module_init() {
       return err;
    }
 
+   //printd(5, "jni_module_init() initialized JVM\n");
+
 #ifdef QORE_JVM_SIGNALS
    {
       sigset_t mask;
@@ -116,8 +118,10 @@ static QoreStringNode* jni_module_init() {
          sigaddset(&mask, sig);
          // reassign signals needed by the JVM
          QoreStringNode *err = qore_reassign_signal(sig, QORE_JNI_MODULE_NAME);
-         if (err)
+         if (err) {
+            jni::Jvm::destroyVM();
             return err;
+         }
       }
       // unblock threads
       pthread_sigmask(SIG_UNBLOCK, &mask, 0);
@@ -136,6 +140,7 @@ static QoreStringNode* jni_module_init() {
          e.convert(&xsink);
       }
       tclist.pop(false);
+      jni::Jvm::destroyVM();
       return new QoreStringNode("ERR");
    }
 
