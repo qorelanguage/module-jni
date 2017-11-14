@@ -98,6 +98,13 @@ static void jni_thread_cleanup(void*) {
 
 static QoreStringNode* jni_module_init() {
    printd(LogLevel, "jni_module_init()\n");
+
+   QoreStringNode* err = jni::Jvm::createVM();
+   if (err) {
+      err->prepend("Could not create the Java Virtual Machine: ");
+      return err;
+   }
+
 #ifdef QORE_JVM_SIGNALS
    {
       sigset_t mask;
@@ -116,12 +123,6 @@ static QoreStringNode* jni_module_init() {
       pthread_sigmask(SIG_UNBLOCK, &mask, 0);
    }
 #endif
-
-   QoreStringNode* err = jni::Jvm::createVM();
-   if (err) {
-      err->prepend("Could not create the Java Virtual Machine: ");
-      return err;
-   }
 
    tclist.push(jni_thread_cleanup, nullptr);
 
