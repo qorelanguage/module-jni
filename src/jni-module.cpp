@@ -1,34 +1,34 @@
 /* -*- indent-tabs-mode: nil -*- */
 /*
-  jni-module.cpp
+    jni-module.cpp
 
-  JNI integration to Qore
+    JNI integration to Qore
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -49,14 +49,16 @@ using namespace jni;
 
 #define QORE_JNI_MODULE_NAME "jni"
 
-#define QORE_JVM_SIGNALS SIGTRAP, SIGUSR1, SIGSEGV, SIGBUS
-
-#ifdef QORE_JVM_SIGNALS
+#ifndef Q_WINDOWS
 #include <signal.h>
 #include <pthread.h>
-static int qore_jvm_sigs[] = { QORE_JVM_SIGNALS };
-#define NUM_JVM_SIGS (sizeof(qore_jvm_sigs) / sizeof(int))
 #endif
+
+sig_vec_t sig_vec = {
+#ifndef Q_WINDOWS
+    SIGTRAP, SIGUSR1, SIGSEGV, SIGBUS
+#endif
+};
 
 static QoreStringNode* jni_module_init();
 static void jni_module_ns_init(QoreNamespace* rns, QoreNamespace* qns);
@@ -87,64 +89,63 @@ static void qore_jni_mc_add_relative_classpath(QoreString& arg);
 // module cmds
 typedef std::map<std::string, std::function<qore_jni_module_cmd_t>> mcmap_t;
 static mcmap_t mcmap = {
-   {"import", qore_jni_mc_import},
-   {"add-classpath", qore_jni_mc_add_classpath},
-   {"add-relative-classpath", qore_jni_mc_add_relative_classpath},
+    {"import", qore_jni_mc_import},
+    {"add-classpath", qore_jni_mc_add_classpath},
+    {"add-relative-classpath", qore_jni_mc_add_relative_classpath},
 };
 
 static void jni_thread_cleanup(void*) {
-   jni::Jvm::threadCleanup();
+    jni::Jvm::threadCleanup();
 }
 
 static QoreStringNode* jni_module_init() {
-   printd(LogLevel, "jni_module_init()\n");
+    printd(LogLevel, "jni_module_init()\n");
 
-   QoreStringNode* err = jni::Jvm::createVM();
-   if (err) {
-      err->prepend("Could not create the Java Virtual Machine: ");
-      return err;
-   }
+    QoreStringNode* err = jni::Jvm::createVM();
+    if (err) {
+        err->prepend("Could not create the Java Virtual Machine: ");
+        return err;
+    }
 
    //printd(5, "jni_module_init() initialized JVM\n");
 
-#ifdef QORE_JVM_SIGNALS
-   {
-      sigset_t mask;
-      // setup signal mask
-      sigemptyset(&mask);
-      for (unsigned i = 0; i < NUM_JVM_SIGS; ++i) {
-         int sig = qore_jvm_sigs[i];
-         //printd(LogLevel, "jni_module_init() unblocking signal %d\n", sig);
-         sigaddset(&mask, sig);
-         // reassign signals needed by the JVM
-         QoreStringNode *err = qore_reassign_signal(sig, QORE_JNI_MODULE_NAME);
-         if (err) {
+#ifndef Q_WINDOWS
+    {
+        QoreStringNode *err = qore_reassign_signals(sig_vec, QORE_JNI_MODULE_NAME);
+        if (err) {
             jni::Jvm::destroyVM();
             return err;
-         }
-      }
-      // unblock threads
-      pthread_sigmask(SIG_UNBLOCK, &mask, 0);
-   }
+        }
+        sigset_t mask;
+        // setup signal mask
+        sigemptyset(&mask);
+        for (auto& sig : sig_vec) {
+            //printd(LogLevel, "jni_module_init() unblocking signal %d\n", sig);
+            sigaddset(&mask, sig);
+        }
+        // unblock threads
+        pthread_sigmask(SIG_UNBLOCK, &mask, 0);
+    }
 #endif
 
-   tclist.push(jni_thread_cleanup, nullptr);
+    tclist.push(jni_thread_cleanup, nullptr);
 
-   try {
-      qjcm.init();
-   }
-   catch (jni::Exception& e) {
-      // display exception info on the console as an unhandled exception
-      {
-         ExceptionSink xsink;
-         e.convert(&xsink);
-      }
-      tclist.pop(false);
-      jni::Jvm::destroyVM();
-      return new QoreStringNode("ERR");
-   }
+    try {
+        qjcm.init();
+    }
+    catch (jni::Exception& e) {
+        // display exception info on the console as an unhandled exception
+        {
+            ExceptionSink xsink;
+            e.convert(&xsink);
+        }
+        tclist.pop(false);
+        qore_release_signals(sig_vec, QORE_JNI_MODULE_NAME);
+        jni::Jvm::destroyVM();
+        return new QoreStringNode("ERR");
+    }
 
-   return nullptr;
+    return nullptr;
 }
 
 static void jni_module_ns_init(QoreNamespace* rns, QoreNamespace* qns) {
