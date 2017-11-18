@@ -11,6 +11,9 @@ set(PROJECT_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 find_package(Qore 0.8.13 REQUIRED)
 find_package(JNI REQUIRED)
 find_package(Java REQUIRED)
+if((NOT ${Java_VERSION_MAJOR} EQUAL 1) OR (NOT ${Java_VERSION_MINOR} EQUAL 8))
+    message(FATAL_ERROR "This module requires Java 8 to build; the current Java version is ${Java_VERSION}.")
+endif()
 include(UseJava)
 
 # Check for C++11.
