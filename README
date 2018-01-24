@@ -1,3 +1,25 @@
 JNI module for the Qore programming language.
 
 http://qore.org
+
+macOS
+-----
+
+To ensure that JNI programs work on macOS, ensure that your installed JDK declares the
+"BundledApp" and "JNI" capabilities in the Info.plist file for the installed JDK.
+
+For example, the latest version for 1.8 is at the time of writing this part of the
+README in the following file:
+
+       /Library/Java/JavaVirtualMachines/jdk1.8.0_162.jdk/Contents/Info.plist
+
+Edit the Info.plist file to look as follows:
+
+                <key>JVMCapabilities</key>
+                <array>
+                        <string>BundledApp</string>
+                        <string>CommandLine</string>
+                        <string>JNI</string>
+                </array>
+
+After this JNI programs should work normally.
