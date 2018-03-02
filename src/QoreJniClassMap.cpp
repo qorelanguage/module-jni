@@ -4,7 +4,7 @@
 
   Qore Programming Language JNI Module
 
-  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -866,11 +866,12 @@ void QoreJniClassMap::doFields(QoreBuiltinClass& qc, jni::Class* jc) {
          printd(LogLevel, "+ adding static field %s %s %s.%s (%s)\n", access_str(field->getAccess()), typeInfoGetName(fieldTypeInfo), qc.getName(), fname.c_str(), field->isFinal() ? "const" : "var");
 
          QoreValue v(field->getStatic());
-         if (v.isNothing())
-            v.assign(0ll);
 
-         if (field->isFinal())
+         if (field->isFinal()) {
+            if (v.isNothing())
+               v.assign(0ll);
             qc.addBuiltinConstant(fname.c_str(), v, field->getAccess());
+         }
          else
             qc.addBuiltinStaticVar(fname.c_str(), v, field->getAccess(), fieldTypeInfo);
       }
