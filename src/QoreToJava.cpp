@@ -78,83 +78,86 @@ jobject QoreToJava::toAnyObject(const QoreValue& value) {
 }
 
 jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
-   if (value.isNullOrNothing())
-      return nullptr;
+    if (value.isNullOrNothing())
+        return nullptr;
 
-   if (cls) {
-      Env env;
-      if (env.isSameObject(cls, Globals::classObject))
-         return toAnyObject(value);
-   }
+    if (cls) {
+        Env env;
+        if (env.isSameObject(cls, Globals::classObject))
+            return toAnyObject(value);
+    }
 
-   LocalReference<jobject> javaObjectRef;
-   switch (value.getType()) {
-      case NT_STRING: {
-         ModifiedUtf8String str(*value.get<QoreStringNode>());
-         Env env;
-         javaObjectRef = env.newString(str.c_str()).release();
-         break;
-      }
-      case NT_LIST: {
-         javaObjectRef = static_cast<jobject>(qjcm.getJavaArray(value.get<QoreListNode>(), cls));
-         break;
-      }
-      case NT_OBJECT: {
-         const QoreObject* o = value.get<QoreObject>();
-
-         javaObjectRef = qjcm.getJavaObject(o);
-         if (!javaObjectRef) {
-            ExceptionSink xsink;
-            TryPrivateDataRefHolder<ObjectBase> jo(o, CID_JAVAARRAY, &xsink);
-            if (!jo) {
-               if (xsink)
-                  throw XsinkException(xsink);
-
-               if (cls) {
-                  Env env;
-                  LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
-                  Env::GetStringUtfChars cname(env, clsName);
-                  QoreStringMaker desc("A Java object argument of class '%s' expected; got object of class '%s' instead", cname.c_str(), o->getClassName());
-                  throw BasicException(desc.c_str());
-               }
-
-               QoreStringMaker desc("A Java object argument expected; got object of class '%s' instead", o->getClassName());
-               throw BasicException(desc.c_str());
-            }
-            javaObjectRef = jo->makeLocal();
-         }
-         break;
-      }
-      default: {
-         if (cls) {
+    LocalReference<jobject> javaObjectRef;
+    switch (value.getType()) {
+        case NT_STRING: {
+            ModifiedUtf8String str(*value.get<QoreStringNode>());
             Env env;
+            javaObjectRef = env.newString(str.c_str()).release();
+            break;
+        }
+        case NT_LIST: {
+            javaObjectRef = static_cast<jobject>(qjcm.getJavaArray(value.get<QoreListNode>(), cls));
+            break;
+        }
+        case NT_OBJECT: {
+            const QoreObject* o = value.get<QoreObject>();
+
+            javaObjectRef = qjcm.getJavaObject(o);
+            if (!javaObjectRef) {
+                ExceptionSink xsink;
+                TryPrivateDataRefHolder<ObjectBase> jo(o, CID_JAVAARRAY, &xsink);
+                if (!jo) {
+                    if (xsink)
+                        throw XsinkException(xsink);
+
+                    if (cls) {
+                        Env env;
+                        LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
+                        Env::GetStringUtfChars cname(env, clsName);
+                        QoreStringMaker desc("A Java object argument of class '%s' expected; got object of class '%s' instead", cname.c_str(), o->getClassName());
+                        throw BasicException(desc.c_str());
+                    }
+
+                    QoreStringMaker desc("A Java object argument expected; got object of class '%s' instead", o->getClassName());
+                    throw BasicException(desc.c_str());
+                }
+                javaObjectRef = jo->makeLocal();
+            }
+            break;
+        }
+        default: {
+            if (cls) {
+                Env env;
+                LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
+                Env::GetStringUtfChars cname(env, clsName);
+                QoreStringMaker desc("A Java object argument of class '%s' expected; got type '%s' instead", cname.c_str(), value.getTypeName());
+                throw BasicException(desc.c_str());
+            }
+
+            // convert primitive types to java objects if possible
+            return toAnyObject(value);
+        }
+    }
+
+    if (cls) {
+        Env env;
+        if (!env.isInstanceOf(javaObjectRef, cls)) {
             LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
             Env::GetStringUtfChars cname(env, clsName);
-            QoreStringMaker desc("A Java object argument of class '%s' expected; got type '%s' instead", cname.c_str(), value.getTypeName());
-            throw BasicException(desc.c_str());
-         }
 
-         // convert primitive types to java objects if possible
-         return toAnyObject(value);
-      }
-   }
+            LocalReference<jclass> ocls = env.getObjectClass(javaObjectRef);
+            LocalReference<jstring> oclsName = env.callObjectMethod(ocls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
+            Env::GetStringUtfChars ocname(env, oclsName);
 
-   if (cls) {
-      Env env;
-      if (!env.isInstanceOf(javaObjectRef, cls)) {
-         LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
-         Env::GetStringUtfChars cname(env, clsName);
-
-         LocalReference<jclass> ocls = env.getObjectClass(javaObjectRef);
-
-         LocalReference<jstring> oclsName = env.callObjectMethod(ocls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
-         Env::GetStringUtfChars ocname(env, oclsName);
-
-         QoreStringMaker str("expected class '%s'; instead got an object of class '%s'", cname.c_str(), ocname.c_str());
-         throw BasicException(str.c_str());
-      }
-   }
-   return javaObjectRef.release();
+            // we allow methods to be called if the canonical class names are the same
+            // although in reality these may be different classes
+            if (strcmp(ocname.c_str(), cname.c_str())) {
+                QoreStringMaker str("expected class '%s'; instead got an object of class '%s'", cname.c_str(), ocname.c_str());
+                throw BasicException(str.c_str());
+            }
+        }
+    }
+    return javaObjectRef.release();
 }
 
 jobject QoreToJava::makeHashMap(const QoreHashNode& h) {

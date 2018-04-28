@@ -389,55 +389,60 @@ QoreBuiltinClass* QoreJniClassMap::findCreateQoreClass(LocalReference<jclass>& j
 }
 
 QoreBuiltinClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name, const char* jpath, Class* c) {
-   SimpleRefHolder<Class> cls(c);
+    SimpleRefHolder<Class> cls(c);
 
-   printd(LogLevel, "QoreJniClassMap::findCreateQoreClassInProgram() looking up: '%s'\n", jpath);
+    printd(LogLevel, "QoreJniClassMap::findCreateQoreClassInProgram() looking up: '%s'\n", jpath);
 
-   // we always grab the global JNI lock first because we might need to add base classes
-   // while setting up the class loaded with the jni module's classloader, and we need to
-   // ensure that these locks are always acquired in order
-   QoreJniAutoLocker al(m);
+    // we always grab the global JNI lock first because we might need to add base classes
+    // while setting up the class loaded with the jni module's classloader, and we need to
+    // ensure that these locks are always acquired in order
+    QoreJniAutoLocker al(m);
 
-   // check current Program's namespace
-   JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
-   if (!jpc)
-      throw BasicException("could not attach to deleted Qore Program");
+    // check current Program's namespace
+    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
+    if (!jpc)
+        throw BasicException("could not attach to deleted Qore Program");
 
-   QoreBuiltinClass* qc = jpc->find(jpath);
-   if (qc)
-      return qc;
+    QoreBuiltinClass* qc = jpc->find(jpath);
+    if (qc)
+        return qc;
 
-   // grab current Program's parse lock before manipulating namespaces
-   CurrentProgramRuntimeExternalParseContextHelper pch;
-   if (!pch)
-      throw BasicException("could not attach to deleted Qore Program");
+    // grab current Program's parse lock before manipulating namespaces
+    CurrentProgramRuntimeExternalParseContextHelper pch;
+    if (!pch)
+        throw BasicException("could not attach to deleted Qore Program");
 
-   // see if we have an inner class
-   int ic_idx = name.rfind('$');
-   if (ic_idx != -1) {
-      name.replaceChar(ic_idx, '_');
-      name.insertch('_', ic_idx + 1, 1);
-   }
+    // see if we have an inner class
+    int ic_idx = -1;
+    while (true) {
+        int i = name.rfind('$');
+        if (i == -1) {
+            break;
+        }
+        ic_idx = i;
+        name.replaceChar(i, '_');
+        name.insertch('_', i + 1, 1);
+    }
 
-   // find/create parent namespace in default / master Jni namespace first
-   const char* sn;
-   QoreNamespace* ns = jni_find_create_namespace(*jpc->getJniNamespace(), name.c_str(), sn);
-   if (ic_idx != -1) {
-      // get last '.'
-      int dot = name.rfind('.');
+    // find/create parent namespace in default / master Jni namespace first
+    const char* sn;
+    QoreNamespace* ns = jni_find_create_namespace(*jpc->getJniNamespace(), name.c_str(), sn);
+    if (ic_idx != -1) {
+        // get last '.'
+        int dot = name.rfind('.');
 
-      // check for name conflict
-      while (ns->findLocalClass(sn)) {
-         // add an underscore
-         name.insertch('_', ic_idx + 2, 1);
-         sn = name.c_str() + (dot != -1 ? dot + 1 : 0);
-      }
-   }
+        // check for name conflict
+        while (ns->findLocalClass(sn)) {
+            // add an underscore
+            name.insertch('_', ic_idx + 2, 1);
+            sn = name.c_str() + (dot != -1 ? dot + 1 : 0);
+        }
+    }
 
-   qc = new JniQoreClass(sn);
-   createClassInNamespace(ns, *jpc->getJniNamespace(), jpath, cls.release(), qc, *jpc);
+    qc = new JniQoreClass(sn);
+    createClassInNamespace(ns, *jpc->getJniNamespace(), jpath, cls.release(), qc, *jpc);
 
-   return qc;
+    return qc;
 }
 
 QoreBuiltinClass* QoreJniClassMap::findCreateQoreClass(const char* name) {
