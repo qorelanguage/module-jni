@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -51,77 +51,76 @@ namespace jni {
  * is performed. This will allow to change the conversion (e.g. add range checking) in the future consistently.
  */
 class QoreToJava {
-
 public:
-   static jboolean toBoolean(const QoreValue& value) {
-      return value.getAsBool() ? JNI_TRUE : JNI_FALSE;
-   }
+    static jboolean toBoolean(const QoreValue& value) {
+        return value.getAsBool() ? JNI_TRUE : JNI_FALSE;
+    }
 
-   static jbyte toByte(const QoreValue& value) {
-      return static_cast<jbyte>(value.getAsBigInt());
-   }
+    static jbyte toByte(const QoreValue& value) {
+        return static_cast<jbyte>(value.getAsBigInt());
+    }
 
-   static jchar toChar(const QoreValue& value) {
-      return static_cast<jchar>(value.getAsBigInt());
-   }
+    static jchar toChar(const QoreValue& value) {
+        return static_cast<jchar>(value.getAsBigInt());
+    }
 
-   static jdouble toDouble(const QoreValue& value) {
-      return static_cast<jdouble>(value.getAsFloat());
-   }
+    static jdouble toDouble(const QoreValue& value) {
+        return static_cast<jdouble>(value.getAsFloat());
+    }
 
-   static jfloat toFloat(const QoreValue& value) {
-      return static_cast<jfloat>(value.getAsFloat());
-   }
+    static jfloat toFloat(const QoreValue& value) {
+        return static_cast<jfloat>(value.getAsFloat());
+    }
 
-   static jint toInt(const QoreValue& value) {
-      return static_cast<jint>(value.getAsBigInt());
-   }
+    static jint toInt(const QoreValue& value) {
+        return static_cast<jint>(value.getAsBigInt());
+    }
 
-   static jlong toLong(const QoreValue& value) {
-      return static_cast<jlong>(value.getAsBigInt());
-   }
+    static jlong toLong(const QoreValue& value) {
+        return static_cast<jlong>(value.getAsBigInt());
+    }
 
-   static jshort toShort(const QoreValue& value) {
-      return static_cast<jshort>(value.getAsBigInt());
-   }
+    static jshort toShort(const QoreValue& value) {
+        return static_cast<jshort>(value.getAsBigInt());
+    }
 
-   static jobject toObject(const QoreValue& value, jclass cls);
+    static jobject toObject(const QoreValue& value, jclass cls);
 
-   static jobject toAnyObject(const QoreValue& value);
+    static jobject toAnyObject(const QoreValue& value);
 
-   static jobject makeHashMap(const QoreHashNode& h);
+    static jobject makeHashMap(const QoreHashNode& h);
 
-   static jbyteArray makeByteArray(const BinaryNode& b);
+    static jbyteArray makeByteArray(const BinaryNode& b);
 
-   static void wrapException(ExceptionSink& src) {
-      Env env;
-      const AbstractQoreNode* n = src.getExceptionArg();
+    static void wrapException(ExceptionSink& src) {
+        Env env;
+        QoreValue n = src.getExceptionArg();
 
-      if (n && n->getType() == NT_OBJECT) {
-         const QoreObject* o = static_cast<const QoreObject*>(n);
-         if (o->getClass(CID_THROWABLE) != nullptr) {
-            ExceptionSink tempSink;
-            SimpleRefHolder<QoreJniPrivateData> obj(static_cast<QoreJniPrivateData*>(o->getReferencedPrivateData(CID_THROWABLE, &tempSink)));
-            if (!tempSink) {
-               env.throwException(static_cast<jthrowable>(obj->getObject()));
-               src.clear();
-               return;
+        if (n.getType() == NT_OBJECT) {
+            const QoreObject* o = n.get<const QoreObject>();
+            if (o->getClass(CID_THROWABLE) != nullptr) {
+                ExceptionSink tempSink;
+                SimpleRefHolder<QoreJniPrivateData> obj(static_cast<QoreJniPrivateData*>(o->getReferencedPrivateData(CID_THROWABLE, &tempSink)));
+                if (!tempSink) {
+                    env.throwException(static_cast<jthrowable>(obj->getObject()));
+                    src.clear();
+                    return;
+                }
             }
-         }
-      }
+        }
 
-      std::unique_ptr<ExceptionSink> xsink = std::unique_ptr<ExceptionSink>(new ExceptionSink());
-      xsink->assimilate(src);
+        std::unique_ptr<ExceptionSink> xsink = std::unique_ptr<ExceptionSink>(new ExceptionSink());
+        xsink->assimilate(src);
 
-      jvalue arg;
-      arg.j = reinterpret_cast<jlong>(xsink.get());
-      LocalReference<jobject> obj = env.newObject(Globals::classQoreExceptionWrapper, Globals::ctorQoreExceptionWrapper, &arg);
-      xsink.release(); // from now on, the Java instance of QoreExceptionWrapper is responsible for the exception sink
-      env.throwException(obj.as<jthrowable>());
-   }
+        jvalue arg;
+        arg.j = reinterpret_cast<jlong>(xsink.get());
+        LocalReference<jobject> obj = env.newObject(Globals::classQoreExceptionWrapper, Globals::ctorQoreExceptionWrapper, &arg);
+        xsink.release(); // from now on, the Java instance of QoreExceptionWrapper is responsible for the exception sink
+        env.throwException(obj.as<jthrowable>());
+    }
 
 private:
-   QoreToJava() = delete;
+    QoreToJava() = delete;
 };
 
 } // namespace jni

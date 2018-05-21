@@ -1,24 +1,24 @@
 /* -*- indent-tabs-mode: nil -*- */
 /*
-  QoreJniClassMap.cpp
+    QoreJniClassMap.cpp
 
-  Qore Programming Language JNI Module
+    Qore Programming Language JNI Module
 
-  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <qore/Qore.h>
@@ -63,9 +63,9 @@ QoreBuiltinClass* QC_INVOCATIONHANDLER;
 qore_classid_t CID_INVOCATIONHANDLER;
 
 QoreJniClassMap qjcm;
-static void exec_java_constructor(const QoreMethod& meth, BaseMethod* m, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
-static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
-static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObject* self, QoreJniPrivateData* jd, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
+static void exec_java_constructor(const QoreMethod& meth, BaseMethod* m, QoreObject* self, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
+static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
+static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObject* self, QoreJniPrivateData* jd, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 
 QoreJniThreadLock QoreJniClassMap::m;
 
@@ -99,13 +99,13 @@ QoreJniClassMap::jpmap_t QoreJniClassMap::jpmap = {
 class JniQoreClass : public QoreBuiltinClass {
 public:
    DLLLOCAL JniQoreClass(const char* name) : QoreBuiltinClass(name, QDOM_UNCONTROLLED_API) {
-      addMethodVariant((void*)0, "memberGate", (q_external_method_t)memberGate, Public, 0, QDOM_UNCONTROLLED_API, anyTypeInfo, paramTypeInfo);
+      addMethod(nullptr, "memberGate", (q_external_method_t)memberGate, Public, 0, QDOM_UNCONTROLLED_API, anyTypeInfo, paramTypeInfo);
 
       setPublicMemberFlag();
       setGateAccessFlag();
    }
 
-   static QoreValue memberGate(const QoreMethod& meth, void* m, QoreObject* self, QoreJniPrivateData* jd, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
+   static QoreValue memberGate(const QoreMethod& meth, void* m, QoreObject* self, QoreJniPrivateData* jd, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
       if (!args || args->size() != 2)
          return QoreValue();
 
@@ -648,7 +648,7 @@ void QoreJniClassMap::doConstructors(QoreBuiltinClass& qc, jni::Class* jc) {
          continue;
       }
 
-      qc.addConstructorVariant((void*)*meth, (q_external_constructor_t)exec_java_constructor, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_API, paramTypeInfo);
+      qc.addConstructor((void*)*meth, (q_external_constructor_t)exec_java_constructor, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_API, paramTypeInfo);
       jc->trackMethod(meth.release());
    }
 }
@@ -746,7 +746,7 @@ void QoreJniClassMap::doMethods(QoreBuiltinClass& qc, jni::Class* jc) {
             printd(LogLevel, "QoreJniClassMap::doMethods() skipping already-created static variant %s::%s()\n", qc.getName(), mname.c_str());
             continue;
          }
-         qc.addStaticMethodVariant((void*)*meth, mname.c_str(), (q_external_static_method_t)exec_java_static_method, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_API, returnTypeInfo, paramTypeInfo);
+         qc.addStaticMethod((void*)*meth, mname.c_str(), (q_external_static_method_t)exec_java_static_method, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_API, returnTypeInfo, paramTypeInfo);
       }
       else {
          if (mname == "copy" || mname == "constructor" || mname == "destructor" || mname == "methodGate" || mname == "memberNotification" || mname == "memberGate")
@@ -760,9 +760,9 @@ void QoreJniClassMap::doMethods(QoreBuiltinClass& qc, jni::Class* jc) {
          }
 
          if (meth->isAbstract())
-            qc.addAbstractMethodVariant(mname.c_str(), meth->getAccess(), meth->getFlags(), returnTypeInfo, paramTypeInfo);
+            qc.addAbstractMethod(mname.c_str(), meth->getAccess(), meth->getFlags(), returnTypeInfo, paramTypeInfo);
          else
-            qc.addMethodVariant((void*)*meth, mname.c_str(), (q_external_method_t)exec_java_method, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_API, returnTypeInfo, paramTypeInfo);
+            qc.addMethod((void*)*meth, mname.c_str(), (q_external_method_t)exec_java_method, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_API, returnTypeInfo, paramTypeInfo);
       }
       jc->trackMethod(meth.release());
    }
@@ -796,19 +796,19 @@ jarray QoreJniClassMap::getJavaArray(const QoreListNode* l, jclass cls) {
 }
 
 jarray QoreJniClassMap::getJavaArrayIntern(Env& env, const QoreListNode* l, jclass cls) {
-   Type elementType = Globals::getType(cls);
+    Type elementType = Globals::getType(cls);
 
-   LocalReference<jarray> array = Array::getNew(elementType, cls, l->size());
+    LocalReference<jarray> array = Array::getNew(elementType, cls, l->size());
 
-   // now populate array
-   for (jsize i = 0; i < l->size(); ++i) {
-      Array::set(array, elementType, cls, i, l->retrieve_entry(i));
-   }
+    // now populate array
+    for (jsize i = 0; i < l->size(); ++i) {
+        Array::set(array, elementType, cls, i, l->retrieveEntry(i));
+    }
 
-   return array.release();
+    return array.release();
 }
 
-static void exec_java_constructor(const QoreMethod& qmeth, BaseMethod* m, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
+static void exec_java_constructor(const QoreMethod& qmeth, BaseMethod* m, QoreObject* self, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
    try {
       self->setPrivate(qmeth.getClass()->getID(), new QoreJniPrivateData(m->newQoreInstance(args)));
    }
@@ -817,7 +817,7 @@ static void exec_java_constructor(const QoreMethod& qmeth, BaseMethod* m, QoreOb
    }
 }
 
-static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
+static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
    try {
       return m->invokeStatic(args);
    }
@@ -827,7 +827,7 @@ static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, 
    }
 }
 
-static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObject* self, QoreJniPrivateData* jd, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
+static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObject* self, QoreJniPrivateData* jd, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
    try {
       return m->invokeNonvirtual(jd->getObject(), args);
    }
