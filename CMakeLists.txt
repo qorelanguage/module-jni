@@ -8,7 +8,7 @@ set (VERSION_PATCH 0)
 
 set(PROJECT_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-find_package(Qore 0.8.13 REQUIRED)
+find_package(Qore 0.9 REQUIRED)
 find_package(JNI REQUIRED)
 find_package(Java REQUIRED)
 if((NOT ${Java_VERSION_MAJOR} EQUAL 1) OR (NOT ${Java_VERSION_MINOR} EQUAL 8))

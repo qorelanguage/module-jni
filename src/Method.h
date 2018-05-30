@@ -91,7 +91,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invoke(jobject object, const QoreValueList* args, int offset = 0);
+   QoreValue invoke(jobject object, const QoreListNode* args, int offset = 0);
 
    /**
     * \brief Invokes an instance method non-virtually.
@@ -101,7 +101,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invokeNonvirtual(jobject object, const QoreValueList* args, int offset = 0);
+   QoreValue invokeNonvirtual(jobject object, const QoreListNode* args, int offset = 0);
 
    /**
     * \brief Invokes a static method.
@@ -110,7 +110,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invokeStatic(const QoreValueList* args, int offset = 0);
+   QoreValue invokeStatic(const QoreListNode* args, int offset = 0);
 
    /**
     * \brief Creates a new object by invoking a constructor.
@@ -118,7 +118,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue newInstance(const QoreValueList* args);
+   QoreValue newInstance(const QoreListNode* args);
 
    /**
     * \brief Creates a new Qore object by invoking a constructor.
@@ -126,7 +126,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   LocalReference<jobject> newQoreInstance(const QoreValueList* args);
+   LocalReference<jobject> newQoreInstance(const QoreListNode* args);
 
    void getName(QoreString& str) const;
 
@@ -171,7 +171,7 @@ protected:
    DLLLOCAL BaseMethod() {
    }
 
-   std::vector<jvalue> convertArgs(const QoreValueList* args, size_t base = 0);
+   std::vector<jvalue> convertArgs(const QoreListNode* args, size_t base = 0);
 
    void init(Env &env) {
       retValClass = env.callObjectMethod(method, Globals::methodMethodGetReturnType, nullptr).as<jclass>().makeGlobal();
