@@ -9,6 +9,26 @@ class ThreadTest implements Runnable {
     }
 }
 
+class ThreadTest2 implements Runnable {
+    public Runnable runme1;
+    public Runnable runme2;
+
+    ThreadTest2(Runnable runme1, Runnable runme2) {
+        this.runme1 = runme1;
+        this.runme2 = runme2;
+    }
+
+    public void run() {
+        try {
+            // this will throw an exception
+            runme1.run();
+        }
+        catch (Exception e) {
+        }
+
+        runme2.run();
+    }
+}
 
 public class QoreJavaApiTest {
     static HashMap callFunctionTest() {
@@ -16,5 +36,9 @@ public class QoreJavaApiTest {
 
         (new Thread(new ThreadTest())).start();
         return hm;
+    }
+
+    static void threadTest(Runnable runme1, Runnable runme2) {
+        (new Thread(new ThreadTest2(runme1, runme2))).start();
     }
 }
