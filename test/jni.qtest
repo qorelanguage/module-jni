@@ -35,6 +35,7 @@ class MyFields inherits Fields {
 
 public class Main inherits QUnit::Test {
     constructor() : Test("jni test", "1.0") {
+        addTestCase("issue 2950", \issue2950());
         addTestCase("class test", \testJniClasses());
         addTestCase("static method invocation test", \testStaticMethods());
         addTestCase("instance method invocation test", \testInstanceMethods());
@@ -54,6 +55,28 @@ public class Main inherits QUnit::Test {
         set_return_value(main());
     }
 
+    issue2950() {
+        int i = 0;
+        Program p(PO_NEW_STYLE);
+        p.parse("list<auto> sub get_closure() {
+    Counter c(1);
+    return (sub (Method m, *list args) { }, c);
+}
+        ", "");
+
+        (code closure1, Counter c) = p.callFunction("get_closure");
+        delete p;
+
+        code closure2 = sub(Method m, *list args) { ++i; c.dec(); };
+
+        QoreInvocationHandler h1(closure1);
+        QoreInvocationHandler h2(closure2);
+        lang::Class runnableClass = load_class("java/lang/Runnable");
+        QoreJavaApiTest::threadTest(implement_interface(h1, runnableClass), implement_interface(h2, runnableClass));
+        c.waitForZero();
+        assertEq(1, i);
+    }
+
     testQoreJavaApi() {
         HashMap hm = QoreJavaApiTest::callFunctionTest();
         delete hm;
@@ -61,18 +84,18 @@ public class Main inherits QUnit::Test {
 
     testJniClasses() {
         # get the Math class
-        Class mathClass = load_class("java/lang/Math");
+        lang::Class mathClass = load_class("java/lang/Math");
         # get the Math.acos() static method
-        Method acosMethod = mathClass.getDeclaredMethod("acos", Double::TYPE);
+        reflect::Method acosMethod = mathClass.getDeclaredMethod("acos", Double::TYPE);
 
         # get the StringBuffer class
-        Class stringBufferClass = load_class("java/lang/StringBuffer");
+        lang::Class stringBufferClass = load_class("java/lang/StringBuffer");
         # get the StringBuffer constructor with no arguments
         Constructor stringBufferConstructor = stringBufferClass.getConstructor();
         # get StringBuffer.append(double)
-        Method appendDoubleMethod = stringBufferClass.getDeclaredMethod("append", Double::TYPE);
+        reflect::Method appendDoubleMethod = stringBufferClass.getDeclaredMethod("append", Double::TYPE);
         # get StringBuffer.toString()
-        Method toStringMethod = stringBufferClass.getDeclaredMethod("toString");
+        reflect::Method toStringMethod = stringBufferClass.getDeclaredMethod("toString");
         # create a StringBuffer object
         Object buf = stringBufferConstructor.newInstance(());
 
@@ -86,7 +109,7 @@ public class Main inherits QUnit::Test {
     }
 
     testStaticMethods() {
-        Class clazz = load_class("org/qore/jni/test/StaticMethods");
+        lang::Class clazz = load_class("org/qore/jni/test/StaticMethods");
 
         # the purpose is to test all possible argument and return value types
         Method set = clazz.getDeclaredMethod("set", Integer::TYPE);
@@ -170,18 +193,18 @@ public class Main inherits QUnit::Test {
     }
 
     testInstanceMethods() {
-        Class clsMethods = load_class("org/qore/jni/test/Methods");
-        Class clsA = load_class("org/qore/jni/test/A");
-        Class clsB = load_class("org/qore/jni/test/B");
-        Class clsC = load_class("org/qore/jni/test/C");
+        lang::Class clsMethods = load_class("org/qore/jni/test/Methods");
+        lang::Class clsA = load_class("org/qore/jni/test/A");
+        lang::Class clsB = load_class("org/qore/jni/test/B");
+        lang::Class clsC = load_class("org/qore/jni/test/C");
 
         Object c = clsMethods.getDeclaredField("c").get(NOTHING);
         Object b = clsMethods.getDeclaredField("b").get(NOTHING);
 
-        Method fInA = clsA.getDeclaredMethod("f");
-        Method fInB = clsB.getDeclaredMethod("f");
-        Method fInC = clsC.getDeclaredMethod("f");
-        Method mInC = clsC.getDeclaredMethod("m");
+        reflect::Method fInA = clsA.getDeclaredMethod("f");
+        reflect::Method fInB = clsB.getDeclaredMethod("f");
+        reflect::Method fInC = clsC.getDeclaredMethod("f");
+        reflect::Method mInC = clsC.getDeclaredMethod("m");
 
         # virtual dispatch
         assertEq(3, fInA.invoke(c));
@@ -204,7 +227,7 @@ public class Main inherits QUnit::Test {
     }
 
     testFloatConversions() {
-        Class clazz = load_class("org/qore/jni/test/FloatConversions");
+        lang::Class clazz = load_class("org/qore/jni/test/FloatConversions");
 
         assertTrue(clazz.getDeclaredMethod("isNaNFloat", Float::TYPE).invoke(NOTHING, new Float(@NaN@)));
         assertTrue(clazz.getDeclaredMethod("isNInfFloat", Float::TYPE).invoke(NOTHING, new Float(-@Inf@)));
@@ -222,7 +245,7 @@ public class Main inherits QUnit::Test {
     }
 
     testStaticFields() {
-        Class clazz = load_class("org/qore/jni/test/StaticFields");
+        lang::Class clazz = load_class("org/qore/jni/test/StaticFields");
 
         Field z = clazz.getDeclaredField("z");
         Field b = clazz.getDeclaredField("b");
@@ -290,7 +313,7 @@ public class Main inherits QUnit::Test {
     }
 
     testInstanceFields() {
-        Class clazz = load_class("org/qore/jni/test/Fields");
+        lang::Class clazz = load_class("org/qore/jni/test/Fields");
 
         Object instance = clazz.getDeclaredField("instance").get();
 
@@ -372,9 +395,9 @@ public class Main inherits QUnit::Test {
         QoreInvocationHandler h(sub(Method m, *list args) { if (++i > 3) throw "CALLBACK-ERROR";});
         assertEq("org.qore.jni.QoreInvocationHandler", h.getClass().getCanonicalName());
 
-        Class runnableClass = load_class("java/lang/Runnable");
+        lang::Class runnableClass = load_class("java/lang/Runnable");
         Object o = implement_interface(h, runnableClass);
-        Class clazz = load_class("org/qore/jni/test/Callbacks");
+        lang::Class clazz = load_class("org/qore/jni/test/Callbacks");
         Method callNow = clazz.getDeclaredMethod("callNow", (runnableClass, ));
         Method callInThread = clazz.getDeclaredMethod("callInThread", (runnableClass, ));
         Method trueIfThrows = clazz.getDeclaredMethod("trueIfThrows", (runnableClass, ));
@@ -412,14 +435,14 @@ public class Main inherits QUnit::Test {
     }
 
     testConstructor() {
-        Class cls = load_class("java/lang/Integer");
+        lang::Class cls = load_class("java/lang/Integer");
         Constructor ctor = cls.getConstructor(Integer::TYPE);
         int i = ctor.newInstance(42);
         assertEq(42, cls.getDeclaredMethod("intValue").invoke(i));
     }
 
     testString() {
-        Class cls = load_class("java/lang/Integer");
+        lang::Class cls = load_class("java/lang/Integer");
         int i = cls.getMethod("valueOf", load_class("java/lang/String")).invoke(NOTHING, "42");
         assertEq(42, cls.getMethod("intValue").invoke(i));
 
@@ -544,18 +567,18 @@ public class Main inherits QUnit::Test {
 
     testCallbackRetVal() {
         QoreInvocationHandler h(any sub(Method m, *list args) { return "STR"; });
-        Class stringFactoryClass = load_class("org/qore/jni/test/StringFactory");
+        lang::Class stringFactoryClass = load_class("org/qore/jni/test/StringFactory");
         Object f = implement_interface(h, stringFactoryClass);
-        Class clazz = load_class("org/qore/jni/test/Callbacks");
+        lang::Class clazz = load_class("org/qore/jni/test/Callbacks");
         Method createString = clazz.getDeclaredMethod("createString", stringFactoryClass);
         assertEq("*STR*", createString.invoke(NOTHING, f));
     }
 
     testSpecialConversions() {
-        Method m = load_class("org/qore/jni/test/StaticMethods").getDeclaredMethod("conversions", load_class("java/lang/String"));
+        reflect::Method m = load_class("org/qore/jni/test/StaticMethods").getDeclaredMethod("conversions", load_class("java/lang/String"));
         assertEq(NOTHING, m.invoke(NOTHING, ""));
 
-        any o = m.invoke(NOTHING, "method");
+        auto o = m.invoke(NOTHING, "method");
         assertTrue(o instanceof Method);
         assertEq("42", o.invoke(load_class("java/lang/Integer").getConstructor(Integer::TYPE).newInstance(42)));
 
@@ -567,7 +590,7 @@ public class Main inherits QUnit::Test {
         assertTrue(o instanceof Constructor);
         assertEq("42", load_class("java/lang/Integer").getMethod("toString").invoke(o.newInstance(42)));
 
-        Class fieldsClass = load_class("org/qore/jni/test/Fields");
+        lang::Class fieldsClass = load_class("org/qore/jni/test/Fields");
         Object fieldsInstance = fieldsClass.getDeclaredField("instance").get();
 
         o = m.invoke(NOTHING, "field");
