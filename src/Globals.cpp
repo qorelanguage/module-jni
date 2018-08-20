@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -222,36 +222,36 @@ static void JNICALL qore_exception_wrapper_finalize(JNIEnv*, jclass, jlong ptr) 
 }
 
 static jstring JNICALL qore_exception_wrapper_get_message(JNIEnv*, jclass, jlong ptr) {
-   ExceptionSink* xsink = reinterpret_cast<ExceptionSink*>(ptr);
+    ExceptionSink* xsink = reinterpret_cast<ExceptionSink*>(ptr);
 
-   QoreString jstr;
-   const AbstractQoreNode* err = xsink->getExceptionErr();
-   QoreStringValueHelper err_str(err);
-   const AbstractQoreNode* desc = xsink->getExceptionDesc();
-   QoreStringValueHelper desc_str(desc);
+    QoreString jstr;
+    QoreValue err = xsink->getExceptionErr();
+    QoreStringValueHelper err_str(err);
+    QoreValue desc = xsink->getExceptionDesc();
+    QoreStringValueHelper desc_str(desc);
 
-   if (!err_str->empty()) {
-      if (!desc_str->empty()) {
-         jstr.concat(err_str->c_str());
-         jstr.concat(": ");
-         jstr.concat(desc_str->c_str());
-      }
-      else {
-         jstr.concat(err_str->c_str());
-      }
-   }
-   else {
-      if (!desc_str->empty())
-         jstr.concat(desc_str->c_str());
-      else
-         jstr.concat("No message");
-   }
+    if (!err_str->empty()) {
+        if (!desc_str->empty()) {
+            jstr.concat(err_str->c_str());
+            jstr.concat(": ");
+            jstr.concat(desc_str->c_str());
+        }
+        else {
+            jstr.concat(err_str->c_str());
+        }
+    }
+    else {
+        if (!desc_str->empty())
+            jstr.concat(desc_str->c_str());
+        else
+            jstr.concat("No message");
+    }
 
-   //printd(LogLevel, "qore_exception_wrapper_get_message() xsink: %p %s\n", xsink, jstr.c_str());
+    //printd(LogLevel, "qore_exception_wrapper_get_message() xsink: %p %s\n", xsink, jstr.c_str());
 
-   Env env;
-   ModifiedUtf8String str(jstr);
-   return env.newString(str.c_str()).release();
+    Env env;
+    ModifiedUtf8String str(jstr);
+    return env.newString(str.c_str()).release();
 }
 
 static JNINativeMethod invocationHandlerNativeMethods[2] = {
