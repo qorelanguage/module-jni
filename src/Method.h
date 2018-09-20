@@ -155,9 +155,9 @@ public:
 
    int64 getFlags() const {
       Env env;
-      int64 flags = QC_NO_FLAGS;
+      int64 flags = QCF_NO_FLAGS;
       if (env.callBooleanMethod(method, Globals::methodMethodIsVarArgs, nullptr))
-         flags |= QC_USES_EXTRA_ARGS;
+         flags |= QCF_USES_EXTRA_ARGS;
       return flags;
    }
 

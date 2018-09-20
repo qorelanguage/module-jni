@@ -378,7 +378,7 @@ public class Main inherits QUnit::Test {
         assertEq((NOTHING, NOTHING, NOTHING), instance.ia);
 
         # Qore's access protection is triggered here
-        assertThrows("INVALID-MEMBER", sub () { delete instance.z;});
+        assertThrows("PRIVATE-MEMBER", sub () { delete instance.z;});
         # here the builtin methodGate method is called
         assertThrows("JNI-ACCESS-ERROR", sub () { any bl = instance.z; delete bl; });
         # Qore's access protection is triggered here
