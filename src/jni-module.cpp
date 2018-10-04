@@ -149,13 +149,13 @@ static QoreStringNode* jni_module_init() {
 }
 
 static void jni_module_ns_init(QoreNamespace* rns, QoreNamespace* qns) {
-   QoreProgram* pgm = getProgram();
-   assert(pgm->getRootNS() == rns);
-   if (!pgm->getExternalData("jni")) {
-      QoreNamespace* jnins = qjcm.getJniNs().copy();
-      rns->addNamespace(jnins);
-      pgm->setExternalData("jni", new JniExternalProgramData(jnins));
-   }
+    QoreProgram* pgm = getProgram();
+    assert(pgm->getRootNS() == rns);
+    if (!pgm->getExternalData("jni")) {
+        QoreNamespace* jnins = qjcm.getJniNs().copy();
+        rns->addNamespace(jnins);
+        pgm->setExternalData("jni", new JniExternalProgramData(jnins));
+    }
 }
 
 static void jni_module_delete() {

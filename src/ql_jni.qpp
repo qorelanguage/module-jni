@@ -31,6 +31,7 @@
 #include "Functions.h"
 #include "Method.h"
 #include "QoreJniClassMap.h"
+#include "JavaToQore.h"
 
 using namespace jni;
 

@@ -33,18 +33,26 @@
 namespace jni {
 
 QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
-   if (!v)
-      return QoreValue();
+    if (!v) {
+        return QoreValue();
+    }
 
-   Env env;
+    Env env;
 
-   // convert to Qore value if possible
-   if (env.isInstanceOf(v, Globals::classString)) {
-      Env::GetStringUtfChars chars(env, v.as<jstring>());
-      return QoreValue(new QoreStringNode(chars.c_str(), QCS_UTF8));
-   }
+    // convert to Qore value if possible
+    if (env.isInstanceOf(v, Globals::classString)) {
+        Env::GetStringUtfChars chars(env, v.as<jstring>());
+        return QoreValue(new QoreStringNode(chars.c_str(), QCS_UTF8));
+    }
 
-   return qjcm.getValue(v);
+    if (env.isInstanceOf(v, Globals::classZonedDateTime)) {
+        LocalReference<jstring> date_str = env.callObjectMethod(v,
+            Globals::methodZonedDateTimeToString, nullptr).as<jstring>();
+        Env::GetStringUtfChars chars(env, date_str);
+        return QoreValue(new DateTimeNode(chars.c_str()));
+    }
+
+    return qjcm.getValue(v);
 }
 
 } // namespace jni

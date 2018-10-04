@@ -139,8 +139,8 @@ public:
    static jmethodID methodHashMapPut;                                   // Object HashMap.put(Object K, Object V)
 
    static GlobalReference<jclass> classZonedDateTime;                   // java.time.ZonedDateTime
-   static jmethodID ctorZonedDateTime;                                  // ZonedDateTime()
    static jmethodID methodZonedDateTimeParse;                           // ZonedDateTime.parse()
+   static jmethodID methodZonedDateTimeToString;                        // ZonedDateTime.toString()
 
    static GlobalReference<jclass> classPeriod;                          // java.time.Period
 

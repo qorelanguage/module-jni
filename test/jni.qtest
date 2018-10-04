@@ -16,6 +16,7 @@
 %module-cmd(jni) import java.lang.invoke.*
 %module-cmd(jni) import org.qore.jni.test.Fields
 %module-cmd(jni) import org.qore.jni.test.QoreJavaApiTest
+#%module-cmd(jni) import java.time.ZonedDateTime
 
 %exec-class Main
 
@@ -39,6 +40,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("jni test", "1.0") {
+        addTestCase("date test", \dateTest());
         addTestCase("defineClass", \defineClassTest());
         addTestCase("issue 2950", \issue2950());
         addTestCase("class test", \testJniClasses());
@@ -58,6 +60,13 @@ public class Main inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    dateTest() {
+        date now = now_us();
+        string date_str = now.format("YYYY-MM-DDTHH:mm:SS.xxZ");
+        date d = ZonedDateTime::parse(new String(date_str));
+        assertEq(now, d);
     }
 
     defineClassTest() {

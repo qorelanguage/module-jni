@@ -165,6 +165,7 @@
     |@ref int_type "int"|\c int (note: precision is lost here)
     |@ref float_type "float"|\c double
     |@ref string_type "string"|\c java.lang.String
+    |@ref date_time "date"|\c java.time.ZonedDateTime
     |@ref nothing_type "NOTHING" and @ref null_type "NULL"|\c void
     |@ref list_type "list"|\c java.lang.Array
     |@ref hash_type "hash"|\c java.util.HashMap
@@ -188,6 +189,7 @@
     |\c float|@ref float_type "float"
     |\c double|@ref float_type "double"
     |\c java.lang.String|@ref string_type "string"
+    |\c java.time.ZonedDateTime|@ref date_type "date"
     |\c java.lang.Array|@ref list_type "list"
     |all other objects|direct conversion
 
@@ -318,6 +320,8 @@ System::out.println("testing...");
     @subsection jni_1_1 jni Module Version 1.1
     - added @ref Jni::org::qore::jni::define_class() "define_class()"
       (<a href="https://github.com/qorelanguage/qore/issues/3023">issue 3023</a>)
+    - added support for date <-> java.time.ZonedDateTime conversions
+      (<a href="https://github.com/qorelanguage/qore/issues/3026">issue 3026</a>)
 
     @subsection jni_1_0 jni Module Version 1.0
     - initial public release

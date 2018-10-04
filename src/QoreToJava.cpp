@@ -29,63 +29,67 @@
 namespace jni {
 
 jobject QoreToJava::toAnyObject(const QoreValue& value) {
-   Env env;
-   switch (value.getType()) {
-      case NT_BOOLEAN: {
-         jvalue arg;
-         arg.z = value.getAsBool();
-         return env.newObject(Globals::classBoolean, Globals::ctorBoolean, &arg).release();
-      }
-      case NT_INT: {
-         jvalue arg;
-         arg.i = value.getAsBigInt();
-         return env.newObject(Globals::classInteger, Globals::ctorInteger, &arg).release();
-      }
-      case NT_FLOAT: {
-         jvalue arg;
-         arg.d = value.getAsFloat();
-         return env.newObject(Globals::classDouble, Globals::ctorDouble, &arg).release();
-      }
-      case NT_STRING: {
-         ModifiedUtf8String str(*value.get<QoreStringNode>());
-         Env env;
-         return env.newString(str.c_str()).release();
-      }
-      case NT_DATE: {
-          const DateTimeNode* d = value.get<const DateTimeNode>();
-          if (d->isAbsolute()) {
-              QoreString str;
-              d->format(str, "YYYY-MM-DDTHH:mm:SS.xxZ");
-              LocalReference<jobject> obj = env.newObject(Globals::classZonedDateTime, Globals::ctorZonedDateTime, nullptr);
-              return obj;
-          } else {
-              assert(false);
-          }
-      }
-      case NT_OBJECT: {
-         const QoreObject* o = value.get<QoreObject>();
+    Env env;
+    switch (value.getType()) {
+        case NT_BOOLEAN: {
+            jvalue arg;
+            arg.z = value.getAsBool();
+            return env.newObject(Globals::classBoolean, Globals::ctorBoolean, &arg).release();
+        }
+        case NT_INT: {
+            jvalue arg;
+            arg.i = value.getAsBigInt();
+            return env.newObject(Globals::classInteger, Globals::ctorInteger, &arg).release();
+        }
+        case NT_FLOAT: {
+            jvalue arg;
+            arg.d = value.getAsFloat();
+            return env.newObject(Globals::classDouble, Globals::ctorDouble, &arg).release();
+        }
+        case NT_STRING: {
+            ModifiedUtf8String str(*value.get<QoreStringNode>());
+            Env env;
+            return env.newString(str.c_str()).release();
+        }
+        case NT_DATE: {
+            const DateTimeNode* d = value.get<const DateTimeNode>();
+            if (d->isAbsolute()) {
+                QoreString str;
+                d->format(str, "YYYY-MM-DDTHH:mm:SS.xxZ");
 
-         jobject javaObjectRef = qjcm.getJavaObject(o);
-         if (javaObjectRef) {
-            return javaObjectRef;
-         }
-         break;
-      }
-      case NT_HASH: {
-         return makeHashMap(*value.get<QoreHashNode>());
-      }
-      case NT_BINARY: {
-         return makeByteArray(*value.get<BinaryNode>());
-      }
+                LocalReference<jstring> date_str = env.newString(str.c_str());
+                std::vector<jvalue> jargs(1);
+                jargs[0].l = date_str;
+                return env.callStaticObjectMethod(Globals::classZonedDateTime, Globals::methodZonedDateTimeParse, &jargs[0]).release();
+            } else {
+                QoreStringMaker desc("cannot convert a relative date/time value to a Java object (expecting an absolute date/time value)", value.getTypeName());
+                throw BasicException(desc.c_str());
+            }
+        }
+        case NT_OBJECT: {
+            const QoreObject* o = value.get<QoreObject>();
 
-      case NT_NOTHING:
-      case NT_NULL:
-         return nullptr;
-      case NT_LIST:
-         return Array::toJava(value.get<QoreListNode>()).release();
-   }
-   QoreStringMaker desc("don't know how to convert a value of type '%s' to a Java object (expecting 'java.lang.Object')", value.getTypeName());
-   throw BasicException(desc.c_str());
+            jobject javaObjectRef = qjcm.getJavaObject(o);
+            if (javaObjectRef) {
+                return javaObjectRef;
+            }
+            break;
+        }
+        case NT_HASH: {
+            return makeHashMap(*value.get<QoreHashNode>());
+        }
+        case NT_BINARY: {
+            return makeByteArray(*value.get<BinaryNode>());
+        }
+
+        case NT_NOTHING:
+        case NT_NULL:
+            return nullptr;
+        case NT_LIST:
+            return Array::toJava(value.get<QoreListNode>()).release();
+    }
+    QoreStringMaker desc("don't know how to convert a value of type '%s' to a Java object (expecting 'java.lang.Object')", value.getTypeName());
+    throw BasicException(desc.c_str());
 }
 
 jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {

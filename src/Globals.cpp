@@ -136,8 +136,8 @@ jmethodID Globals::methodHashMapPut;
 
 // java.time.ZonedDateTime
 GlobalReference<jclass> Globals::classZonedDateTime;
-jmethodID Globals::ctorZonedDateTime;
 jmethodID Globals::methodZonedDateTimeParse;
+jmethodID Globals::methodZonedDateTimeToString;
 
 // java.time.Period
 GlobalReference<jclass> Globals::classPeriod;
@@ -412,8 +412,8 @@ void Globals::init() {
     methodHashMapPut = env.getMethod(classHashMap, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 
     classZonedDateTime = env.findClass("java/time/ZonedDateTime").makeGlobal();
-    ctorZonedDateTime = env.getMethod(classZonedDateTime, "<init>", "()V");
-    methodZonedDateTimeParse = env.getMethod(classZonedDateTime, "parse", "(Ljava/lang/CharSequence");
+    methodZonedDateTimeParse = env.getStaticMethod(classZonedDateTime, "parse", "(Ljava/lang/CharSequence;)Ljava/time/ZonedDateTime;");
+    methodZonedDateTimeToString = env.getMethod(classZonedDateTime, "toString", "()Ljava/lang/String;");
 
     classPeriod = env.findClass("java/time/Period").makeGlobal();
 
