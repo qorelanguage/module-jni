@@ -325,45 +325,45 @@ QoreValue QoreJniClassMap::getValue(LocalReference<jobject>& obj) {
 }
 
 Class* QoreJniClassMap::loadClass(const char* name, bool& base) {
-   base = true;
+    base = true;
 
-   try {
-      // first we try to load with the builtin classloader
-      return Functions::loadClass(name);
-   }
-   catch (jni::JavaException& e) {
-      Env env;
-      // if this fails, then we try our classloader that supports dynamic classpaths
-      e.ignore();
-      base = false;
-      QoreString nname(name);
-      nname.replaceAll("/", ".");
-      printd(LogLevel, "QoreJniClassMap::loadClass() '%s'\n", nname.c_str());
-      LocalReference<jstring> jname = env.newString(nname.c_str());
-      jvalue jarg;
-      jarg.l = jname;
+    try {
+        // first we try to load with the builtin classloader
+        return Functions::loadClass(name);
+    }
+    catch (jni::JavaException& e) {
+        Env env;
+        // if this fails, then we try our classloader that supports dynamic classpaths
+        e.ignore();
+        base = false;
+        QoreString nname(name);
+        nname.replaceAll("/", ".");
+        printd(LogLevel, "QoreJniClassMap::loadClass() '%s'\n", nname.c_str());
+        LocalReference<jstring> jname = env.newString(nname.c_str());
+        jvalue jarg;
+        jarg.l = jname;
 
-      JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
-      assert(jpc);
-      try {
-         LocalReference<jclass> c = env.callObjectMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderLoadClass, &jarg).as<jclass>();
-         printd(LogLevel, "QoreJniClassMap::loadClass() program-specific '%s': %p\n", nname.c_str(), *c);
-         return new Class(c.release());
-      }
-      catch (jni::JavaException& e) {
-         LocalReference<jthrowable> je = e.save();
-         // try to load from any thread context class loader
-         LocalReference<jobject> thread = env.callStaticObjectMethod(Globals::classThread, Globals::methodThreadCurrentThread, nullptr);
-         LocalReference<jobject> cl = env.callObjectMethod(thread, Globals::methodThreadGetContextClassLoader, nullptr);
-         if (!cl) {
-            e.restore(je.release());
-            throw;
-         }
-         LocalReference<jclass> c = env.callObjectMethod(cl, Globals::methodClassLoaderLoadClass, &jarg).as<jclass>();
-         printd(LogLevel, "QoreJniClassMap::loadClass() thread-local '%s': %p\n", nname.c_str(), *c);
-         return new Class(c.release());
-      }
-   }
+        JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
+        assert(jpc);
+        try {
+            LocalReference<jclass> c = env.callObjectMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderLoadClass, &jarg).as<jclass>();
+            //printd(LogLevel, "QoreJniClassMap::loadClass() program-specific '%s': %p\n", nname.c_str(), *c);
+            return new Class(c.release());
+        }
+        catch (jni::JavaException& e) {
+            LocalReference<jthrowable> je = e.save();
+            // try to load from any thread context class loader
+            LocalReference<jobject> thread = env.callStaticObjectMethod(Globals::classThread, Globals::methodThreadCurrentThread, nullptr);
+            LocalReference<jobject> cl = env.callObjectMethod(thread, Globals::methodThreadGetContextClassLoader, nullptr);
+            if (!cl) {
+                e.restore(je.release());
+                throw;
+            }
+            LocalReference<jclass> c = env.callObjectMethod(cl, Globals::methodClassLoaderLoadClass, &jarg).as<jclass>();
+            printd(LogLevel, "QoreJniClassMap::loadClass() thread-local '%s': %p\n", nname.c_str(), *c);
+            return new Class(c.release());
+        }
+    }
 }
 
 QoreBuiltinClass* QoreJniClassMap::findCreateQoreClass(LocalReference<jclass>& jc) {

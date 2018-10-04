@@ -1,31 +1,31 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /** @file ql_jni.qpp Definition of functions in the Jni namespace */
 /*
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include "Functions.h"
@@ -44,12 +44,12 @@ namespace Jni::org::qore::jni;
     @return the version of the JNI API
  */
 string get_version() {
-   try {
-      return jni::Functions::getVersion();
-   } catch (jni::Exception& e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
+    try {
+        return jni::Functions::getVersion();
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        return QoreValue();
+    }
 }
 
 //! Loads a Java class with given name.
@@ -66,12 +66,12 @@ string get_version() {
     @endcode
  */
 Jni::java::lang::Class load_class(string name) {
-   try {
-      return new QoreObject(QC_CLASS, getProgram(), new QoreJniPrivateData(qjcm.findLoadClass(*name)));
-   } catch (jni::Exception& e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
+    try {
+        return new QoreObject(QC_CLASS, getProgram(), new QoreJniPrivateData(qjcm.findLoadClass(*name)));
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        return QoreValue();
+    }
 }
 
 //! Invokes a method with the given arguments in a non-virtual way; meaning that even if the object provided is a child class, the method given in the first argument is executed
@@ -83,19 +83,19 @@ Jni::java::lang::Class load_class(string name) {
     - for static method invocations, this function is identical to @ref invoke_nonvirtual()
  */
 Jni::java::lang::Object invoke(Jni::java::lang::reflect::Method[QoreJniPrivateData] method, *Jni::java::lang::Object[QoreJniPrivateData] object, ...) {
-   ReferenceHolder<QoreJniPrivateData> m_holder(method, xsink);
-   ReferenceHolder<QoreJniPrivateData> obj_holder(object, xsink);
-   try {
-      Env env;
-      SimpleRefHolder<Class> cls(new Class(env.callObjectMethod(method->getObject(), Globals::methodMethodGetDeclaringClass, nullptr).as<jclass>()));
-      BaseMethod m(method->getObject(), *cls);
-      return object
-         ? m.invoke(object->getObject(), args, 2)
-         : m.invokeStatic(args, 2);
-   } catch (jni::Exception& e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
+    ReferenceHolder<QoreJniPrivateData> m_holder(method, xsink);
+    ReferenceHolder<QoreJniPrivateData> obj_holder(object, xsink);
+    try {
+        Env env;
+        SimpleRefHolder<Class> cls(new Class(env.callObjectMethod(method->getObject(), Globals::methodMethodGetDeclaringClass, nullptr).as<jclass>()));
+        BaseMethod m(method->getObject(), *cls);
+        return object
+            ? m.invoke(object->getObject(), args, 2)
+            : m.invokeStatic(args, 2);
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        return QoreValue();
+    }
 }
 
 //! Invokes a method with the given arguments in a non-virtual way; meaning that even if the object provided is a child class, the method given in the first argument is executed
@@ -107,19 +107,19 @@ Jni::java::lang::Object invoke(Jni::java::lang::reflect::Method[QoreJniPrivateDa
     - for static method invocations, this function is identical to @ref invoke()
  */
 Jni::java::lang::Object invoke_nonvirtual(Jni::java::lang::reflect::Method[QoreJniPrivateData] method, *Jni::java::lang::Object[QoreJniPrivateData] object, ...) {
-   ReferenceHolder<QoreJniPrivateData> m_holder(method, xsink);
-   ReferenceHolder<QoreJniPrivateData> obj_holder(object, xsink);
-   try {
-      Env env;
-      SimpleRefHolder<Class> cls(new Class(env.callObjectMethod(method->getObject(), Globals::methodMethodGetDeclaringClass, nullptr).as<jclass>()));
-      BaseMethod m(method->getObject(), *cls);
-      return object
-         ? m.invokeNonvirtual(object->getObject(), args, 2)
-         : m.invokeStatic(args, 2);
-   } catch (jni::Exception& e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
+    ReferenceHolder<QoreJniPrivateData> m_holder(method, xsink);
+    ReferenceHolder<QoreJniPrivateData> obj_holder(object, xsink);
+    try {
+        Env env;
+        SimpleRefHolder<Class> cls(new Class(env.callObjectMethod(method->getObject(), Globals::methodMethodGetDeclaringClass, nullptr).as<jclass>()));
+        BaseMethod m(method->getObject(), *cls);
+        return object
+            ? m.invokeNonvirtual(object->getObject(), args, 2)
+            : m.invokeStatic(args, 2);
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        return QoreValue();
+    }
 }
 
 //! Creates a Java object that implements given interface using an invocation handler.
@@ -137,24 +137,24 @@ Jni::java::lang::Object invoke_nonvirtual(Jni::java::lang::reflect::Method[QoreJ
     @endcode
  */
 Jni::java::lang::Object implement_interface(Jni::org::qore::jni::QoreInvocationHandler[jni::InvocationHandler] invocationHandler, Jni::java::lang::Class[QoreJniPrivateData] cls) {
-   SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
-   SimpleRefHolder<QoreJniPrivateData> classHolder(cls);
+    SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
+    SimpleRefHolder<QoreJniPrivateData> classHolder(cls);
 
-   // get Qore class for Class object
-   jni::Env env;
-   jni::LocalReference<jstring> clsName = env.callObjectMethod(cls->getObject(), jni::Globals::methodClassGetName, nullptr).as<jstring>();
-   jni::Env::GetStringUtfChars cname(env, clsName);
-   QoreString jcname(cname.c_str());
-   jcname.replaceAll(".", "/");
-   LocalReference<jclass> jc = cls->makeLocal().as<jclass>();
-   QoreClass* qc = qjcm.findCreateQoreClass(jc);
+    // get Qore class for Class object
+    jni::Env env;
+    jni::LocalReference<jstring> clsName = env.callObjectMethod(cls->getObject(), jni::Globals::methodClassGetName, nullptr).as<jstring>();
+    jni::Env::GetStringUtfChars cname(env, clsName);
+    QoreString jcname(cname.c_str());
+    jcname.replaceAll(".", "/");
+    LocalReference<jclass> jc = cls->makeLocal().as<jclass>();
+    QoreClass* qc = qjcm.findCreateQoreClass(jc);
 
-   try {
-      return new QoreObject(qc, getProgram(), new QoreJniPrivateData(jni::Functions::implementInterface(nullptr, invocationHandler, jc)));
-   } catch (jni::Exception& e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
+    try {
+        return new QoreObject(qc, getProgram(), new QoreJniPrivateData(jni::Functions::implementInterface(nullptr, invocationHandler, jc)));
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        return QoreValue();
+    }
 }
 
 //! Creates a Java object that implements given interface using an invocation handler using an explicit class loader.
@@ -174,25 +174,25 @@ Jni::java::lang::Object implement_interface(Jni::org::qore::jni::QoreInvocationH
     @endcode
  */
 Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJniPrivateData] classLoader, Jni::org::qore::jni::QoreInvocationHandler[jni::InvocationHandler] invocationHandler, Jni::java::lang::Class[QoreJniPrivateData] cls) {
-   SimpleRefHolder<QoreJniPrivateData> classLoaderHolder(classLoader);
-   SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
-   SimpleRefHolder<QoreJniPrivateData> classHolder(cls);
+    SimpleRefHolder<QoreJniPrivateData> classLoaderHolder(classLoader);
+    SimpleRefHolder<jni::InvocationHandler> invocationHandlerHolder(invocationHandler);
+    SimpleRefHolder<QoreJniPrivateData> classHolder(cls);
 
-   // get Qore class for Class object
-   jni::Env env;
-   jni::LocalReference<jstring> clsName = env.callObjectMethod(cls->getObject(), jni::Globals::methodClassGetName, nullptr).as<jstring>();
-   jni::Env::GetStringUtfChars cname(env, clsName);
-   QoreString jcname(cname.c_str());
-   jcname.replaceAll(".", "/");
-   LocalReference<jclass> jc = cls->makeLocal().as<jclass>();
-   QoreClass* qc = qjcm.findCreateQoreClass(jc);
+    // get Qore class for Class object
+    jni::Env env;
+    jni::LocalReference<jstring> clsName = env.callObjectMethod(cls->getObject(), jni::Globals::methodClassGetName, nullptr).as<jstring>();
+    jni::Env::GetStringUtfChars cname(env, clsName);
+    QoreString jcname(cname.c_str());
+    jcname.replaceAll(".", "/");
+    LocalReference<jclass> jc = cls->makeLocal().as<jclass>();
+    QoreClass* qc = qjcm.findCreateQoreClass(jc);
 
-   try {
-      return new QoreObject(qc, getProgram(), new QoreJniPrivateData(jni::Functions::implementInterface(classLoader->getObject(), invocationHandler, jc)));
-   } catch (jni::Exception& e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
+    try {
+        return new QoreObject(qc, getProgram(), new QoreJniPrivateData(jni::Functions::implementInterface(classLoader->getObject(), invocationHandler, jc)));
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        return QoreValue();
+    }
 }
 
 //! Allocates a new Java array
@@ -202,11 +202,38 @@ Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJni
     @return the allocated array
  */
 Jni::org::qore::jni::JavaArray new_array(Jni::java::lang::Class[QoreJniPrivateData] cls, int size) {
-   try {
-      return new QoreObject(QC_JAVAARRAY, getProgram(), new Array(cls->makeLocal().as<jclass>(), size));
-   } catch (jni::Exception& e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
+    try {
+        return new QoreObject(QC_JAVAARRAY, getProgram(), new Array(cls->makeLocal().as<jclass>(), size));
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        return QoreValue();
+    }
+}
+
+//! Creates a class object from bytecode data
+/** @par Example:
+    @code{.py}
+java::lang::Class cls = define_class(name, bytecode);
+    @endcode
+
+    @param name the name of the class (ex: \c "org/qore/my_package/ClassName")
+    @param bytecode the byte code of the class
+
+    @note the class will be created using the classloader for the containing %Prorgam object
+
+    @since %jni 1.1
+*/
+Jni::org::qore::jni::Class define_class(string name, binary bytecode) {
+    try {
+        ModifiedUtf8String utf8_name(name);
+        jni::Env env;
+        JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
+        LocalReference<jclass> jcls = env.defineClass(utf8_name.c_str(), jpc->getClassLoader(),
+            static_cast<const unsigned char*>(bytecode->getPtr()), bytecode->size());
+        return new QoreObject(QC_CLASS, getProgram(), new QoreJniPrivateData(jcls));
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        return QoreValue();
+    }
 }
 //@}

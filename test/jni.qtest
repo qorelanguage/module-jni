@@ -34,7 +34,12 @@ class MyFields inherits Fields {
 }
 
 public class Main inherits QUnit::Test {
+    public {
+        const TestClassByteCode = <cafebabe0000003400110a0004000d08000e07000f0700100100063c696e69743e010003282956010004436f646501000f4c696e654e756d6265725461626c6501000367657401001428294c6a6176612f6c616e672f537472696e673b01000a536f7572636546696c65010009546573742e6a6176610c0005000601000474657374010004546573740100106a6176612f6c616e672f4f626a656374002000030004000000000002000000050006000100070000001d00010001000000052ab70001b10000000100080000000600010000000100000009000a000100070000001b00010001000000031202b0000000010008000000060001000000030001000b00000002000c>;
+    }
+
     constructor() : Test("jni test", "1.0") {
+        addTestCase("defineClass", \defineClassTest());
         addTestCase("issue 2950", \issue2950());
         addTestCase("class test", \testJniClasses());
         addTestCase("static method invocation test", \testStaticMethods());
@@ -53,6 +58,18 @@ public class Main inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    defineClassTest() {
+        assertThrows("JNI-ERROR", \jni::define_class(), ("test", <abcd>));
+
+        # issue #3023: create class from bytecode
+        lang::Class jcls = define_class("Test", TestClassByteCode);
+        assertEq("Test", jcls.getName());
+        # create object from dynamically-created class
+        object obj = jcls.newInstance();
+        # test method call
+        assertEq("test", obj.get());
     }
 
     issue2950() {
