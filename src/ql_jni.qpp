@@ -227,10 +227,12 @@ Jni::org::qore::jni::Class define_class(string name, binary bytecode) {
     try {
         ModifiedUtf8String utf8_name(name);
         jni::Env env;
-        JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
+        QoreProgram* pgm = qore_get_call_program_context();
+        JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+        assert(jpc);
         LocalReference<jclass> jcls = env.defineClass(utf8_name.c_str(), jpc->getClassLoader(),
             static_cast<const unsigned char*>(bytecode->getPtr()), bytecode->size());
-        return new QoreObject(QC_CLASS, getProgram(), new QoreJniPrivateData(jcls));
+        return new QoreObject(QC_CLASS, pgm, new QoreJniPrivateData(jcls));
     } catch (jni::Exception& e) {
         e.convert(xsink);
         return QoreValue();
