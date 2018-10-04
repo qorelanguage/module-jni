@@ -828,13 +828,17 @@ static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, 
 }
 
 static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObject* self, QoreJniPrivateData* jd, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
-   try {
-      return m->invokeNonvirtual(jd->getObject(), args);
-   }
-   catch (jni::Exception& e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
+    // set Program context
+    assert(self->getProgram());
+    QoreProgramContextHelper pch(self->getProgram());
+
+    try {
+        return m->invokeNonvirtual(jd->getObject(), args);
+    }
+    catch (jni::Exception& e) {
+        e.convert(xsink);
+        return QoreValue();
+    }
 }
 
 static const char* access_str(ClassAccess a) {
