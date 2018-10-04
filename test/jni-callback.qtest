@@ -1,0 +1,31 @@
+#!/usr/bin/env qore
+
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+
+%requires jni
+%requires QUnit
+
+%module-cmd(jni) add-relative-classpath qore-jni-test.jar
+%module-cmd(jni) import org.qore.jni.test.QoreCallback
+
+%exec-class Main
+
+string sub test_func() {
+    return "test";
+}
+
+public class Main inherits QUnit::Test {
+    constructor() : Test("jni callback test", "1.0") {
+        addTestCase("callback test", \callbackTest());
+
+        # execute tests and set program return value
+        set_return_value(main());
+    }
+
+    callbackTest() {
+        assertEq(1, QoreCallback::callFunctionTest());
+    }
+}
