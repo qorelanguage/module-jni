@@ -51,6 +51,17 @@ jobject QoreToJava::toAnyObject(const QoreValue& value) {
          Env env;
          return env.newString(str.c_str()).release();
       }
+      case NT_DATE: {
+          const DateTimeNode* d = value.get<const DateTimeNode>();
+          if (d->isAbsolute()) {
+              QoreString str;
+              d->format(str, "YYYY-MM-DDTHH:mm:SS.xxZ");
+              LocalReference<jobject> obj = env.newObject(Globals::classZonedDateTime, Globals::ctorZonedDateTime, nullptr);
+              return obj;
+          } else {
+              assert(false);
+          }
+      }
       case NT_OBJECT: {
          const QoreObject* o = value.get<QoreObject>();
 

@@ -134,6 +134,14 @@ GlobalReference<jclass> Globals::classHashMap;
 jmethodID Globals::ctorHashMap;
 jmethodID Globals::methodHashMapPut;
 
+// java.time.ZonedDateTime
+GlobalReference<jclass> Globals::classZonedDateTime;
+jmethodID Globals::ctorZonedDateTime;
+jmethodID Globals::methodZonedDateTimeParse;
+
+// java.time.Period
+GlobalReference<jclass> Globals::classPeriod;
+
 GlobalReference<jclass> Globals::classBoolean;
 jmethodID Globals::ctorBoolean;
 jmethodID Globals::methodBooleanBooleanValue;
@@ -301,175 +309,183 @@ static GlobalReference<jclass> getPrimitiveClass(Env &env, const char *wrapperNa
 #include "JavaClassQoreJavaApi.inc"
 
 void Globals::init() {
-   Env env;
+    Env env;
 
-   // get exception info first
-   classThrowable = env.findClass("java/lang/Throwable").makeGlobal();
-   methodThrowableGetMessage = env.getMethod(classThrowable, "getMessage", "()Ljava/lang/String;");
-   methodThrowableGetStackTrace = env.getMethod(classThrowable, "getStackTrace", "()[Ljava/lang/StackTraceElement;");
+    // get exception info first
+    classThrowable = env.findClass("java/lang/Throwable").makeGlobal();
+    methodThrowableGetMessage = env.getMethod(classThrowable, "getMessage", "()Ljava/lang/String;");
+    methodThrowableGetStackTrace = env.getMethod(classThrowable, "getStackTrace", "()[Ljava/lang/StackTraceElement;");
 
-   classStackTraceElement = env.findClass("java/lang/StackTraceElement").makeGlobal();
-   methodStackTraceElementGetClassName = env.getMethod(classStackTraceElement, "getClassName", "()Ljava/lang/String;");
-   methodStackTraceElementGetFileName = env.getMethod(classStackTraceElement, "getFileName", "()Ljava/lang/String;");
-   methodStackTraceElementGetLineNumber = env.getMethod(classStackTraceElement, "getLineNumber", "()I");
-   methodStackTraceElementGetMethodName = env.getMethod(classStackTraceElement, "getMethodName", "()Ljava/lang/String;");
-   methodStackTraceElementIsNativeMethod = env.getMethod(classStackTraceElement, "isNativeMethod", "()Z");
+    classStackTraceElement = env.findClass("java/lang/StackTraceElement").makeGlobal();
+    methodStackTraceElementGetClassName = env.getMethod(classStackTraceElement, "getClassName", "()Ljava/lang/String;");
+    methodStackTraceElementGetFileName = env.getMethod(classStackTraceElement, "getFileName", "()Ljava/lang/String;");
+    methodStackTraceElementGetLineNumber = env.getMethod(classStackTraceElement, "getLineNumber", "()I");
+    methodStackTraceElementGetMethodName = env.getMethod(classStackTraceElement, "getMethodName", "()Ljava/lang/String;");
+    methodStackTraceElementIsNativeMethod = env.getMethod(classStackTraceElement, "isNativeMethod", "()Z");
 
-   classQoreExceptionWrapper = env.defineClass("org/qore/jni/QoreExceptionWrapper", nullptr, java_org_qore_jni_QoreExceptionWrapper_class, java_org_qore_jni_QoreExceptionWrapper_class_len).makeGlobal();
-   env.registerNatives(classQoreExceptionWrapper, qoreExceptionWrapperNativeMethods, 2);
-   ctorQoreExceptionWrapper = env.getMethod(classQoreExceptionWrapper, "<init>", "(J)V");
-   methodQoreExceptionWrapperGet = env.getMethod(classQoreExceptionWrapper, "get", "()J");
+    classQoreExceptionWrapper = env.defineClass("org/qore/jni/QoreExceptionWrapper", nullptr, java_org_qore_jni_QoreExceptionWrapper_class, java_org_qore_jni_QoreExceptionWrapper_class_len).makeGlobal();
+    env.registerNatives(classQoreExceptionWrapper, qoreExceptionWrapperNativeMethods, 2);
+    ctorQoreExceptionWrapper = env.getMethod(classQoreExceptionWrapper, "<init>", "(J)V");
+    methodQoreExceptionWrapperGet = env.getMethod(classQoreExceptionWrapper, "get", "()J");
 
-   classPrimitiveVoid = getPrimitiveClass(env, "java/lang/Void");
-   classPrimitiveBoolean = getPrimitiveClass(env, "java/lang/Boolean");
-   classPrimitiveByte = getPrimitiveClass(env, "java/lang/Byte");
-   classPrimitiveChar = getPrimitiveClass(env, "java/lang/Character");
-   classPrimitiveShort = getPrimitiveClass(env, "java/lang/Short");
-   classPrimitiveInt = getPrimitiveClass(env, "java/lang/Integer");
-   classPrimitiveLong = getPrimitiveClass(env, "java/lang/Long");
-   classPrimitiveFloat = getPrimitiveClass(env, "java/lang/Float");
-   classPrimitiveDouble = getPrimitiveClass(env, "java/lang/Double");
+    classPrimitiveVoid = getPrimitiveClass(env, "java/lang/Void");
+    classPrimitiveBoolean = getPrimitiveClass(env, "java/lang/Boolean");
+    classPrimitiveByte = getPrimitiveClass(env, "java/lang/Byte");
+    classPrimitiveChar = getPrimitiveClass(env, "java/lang/Character");
+    classPrimitiveShort = getPrimitiveClass(env, "java/lang/Short");
+    classPrimitiveInt = getPrimitiveClass(env, "java/lang/Integer");
+    classPrimitiveLong = getPrimitiveClass(env, "java/lang/Long");
+    classPrimitiveFloat = getPrimitiveClass(env, "java/lang/Float");
+    classPrimitiveDouble = getPrimitiveClass(env, "java/lang/Double");
 
-   classObject = env.findClass("java/lang/Object").makeGlobal();
-   methodObjectGetClass = env.getMethod(classObject, "getClass", "()Ljava/lang/Class;");
+    classObject = env.findClass("java/lang/Object").makeGlobal();
+    methodObjectGetClass = env.getMethod(classObject, "getClass", "()Ljava/lang/Class;");
 
-   classClass = env.findClass("java/lang/Class").makeGlobal();
-   methodClassIsArray = env.getMethod(classClass, "isArray", "()Z");
-   methodClassGetComponentType = env.getMethod(classClass, "getComponentType", "()Ljava/lang/Class;");
-   methodClassGetClassLoader = env.getMethod(classClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
-   methodClassGetName = env.getMethod(classClass, "getName", "()Ljava/lang/String;");
-   methodClassGetDeclaredFields = env.getMethod(classClass, "getDeclaredFields", "()[Ljava/lang/reflect/Field;");
-   methodClassGetSuperClass = env.getMethod(classClass, "getSuperclass", "()Ljava/lang/Class;");
-   methodClassGetInterfaces = env.getMethod(classClass, "getInterfaces", "()[Ljava/lang/Class;");
-   methodClassGetDeclaredConstructors = env.getMethod(classClass, "getDeclaredConstructors", "()[Ljava/lang/reflect/Constructor;");
-   methodClassGetModifiers = env.getMethod(classClass, "getModifiers", "()I");
-   methodClassIsPrimitive = env.getMethod(classClass, "isPrimitive", "()Z");
-   methodClassGetDeclaredMethods = env.getMethod(classClass, "getDeclaredMethods", "()[Ljava/lang/reflect/Method;");
-   methodClassGetCanonicalName = env.getMethod(classClass, "getCanonicalName", "()Ljava/lang/String;");
-   methodClassGetDeclaredField = env.getMethod(classClass, "getDeclaredField", "(Ljava/lang/String;)Ljava/lang/reflect/Field;");
+    classClass = env.findClass("java/lang/Class").makeGlobal();
+    methodClassIsArray = env.getMethod(classClass, "isArray", "()Z");
+    methodClassGetComponentType = env.getMethod(classClass, "getComponentType", "()Ljava/lang/Class;");
+    methodClassGetClassLoader = env.getMethod(classClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
+    methodClassGetName = env.getMethod(classClass, "getName", "()Ljava/lang/String;");
+    methodClassGetDeclaredFields = env.getMethod(classClass, "getDeclaredFields", "()[Ljava/lang/reflect/Field;");
+    methodClassGetSuperClass = env.getMethod(classClass, "getSuperclass", "()Ljava/lang/Class;");
+    methodClassGetInterfaces = env.getMethod(classClass, "getInterfaces", "()[Ljava/lang/Class;");
+    methodClassGetDeclaredConstructors = env.getMethod(classClass, "getDeclaredConstructors", "()[Ljava/lang/reflect/Constructor;");
+    methodClassGetModifiers = env.getMethod(classClass, "getModifiers", "()I");
+    methodClassIsPrimitive = env.getMethod(classClass, "isPrimitive", "()Z");
+    methodClassGetDeclaredMethods = env.getMethod(classClass, "getDeclaredMethods", "()[Ljava/lang/reflect/Method;");
+    methodClassGetCanonicalName = env.getMethod(classClass, "getCanonicalName", "()Ljava/lang/String;");
+    methodClassGetDeclaredField = env.getMethod(classClass, "getDeclaredField", "(Ljava/lang/String;)Ljava/lang/reflect/Field;");
 
-   classString = env.findClass("java/lang/String").makeGlobal();
+    classString = env.findClass("java/lang/String").makeGlobal();
 
-   classField = env.findClass("java/lang/reflect/Field").makeGlobal();
-   methodFieldGetType = env.getMethod(classField, "getType", "()Ljava/lang/Class;");
-   methodFieldGetDeclaringClass = env.getMethod(classField, "getDeclaringClass", "()Ljava/lang/Class;");
-   methodFieldGetModifiers = env.getMethod(classField, "getModifiers", "()I");
-   methodFieldGetName = env.getMethod(classField, "getName", "()Ljava/lang/String;");
-   methodFieldGet = env.getMethod(classField, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+    classField = env.findClass("java/lang/reflect/Field").makeGlobal();
+    methodFieldGetType = env.getMethod(classField, "getType", "()Ljava/lang/Class;");
+    methodFieldGetDeclaringClass = env.getMethod(classField, "getDeclaringClass", "()Ljava/lang/Class;");
+    methodFieldGetModifiers = env.getMethod(classField, "getModifiers", "()I");
+    methodFieldGetName = env.getMethod(classField, "getName", "()Ljava/lang/String;");
+    methodFieldGet = env.getMethod(classField, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
 
-   classMethod = env.findClass("java/lang/reflect/Method").makeGlobal();
-   methodMethodGetReturnType = env.getMethod(classMethod, "getReturnType", "()Ljava/lang/Class;");
-   methodMethodGetParameterTypes = env.getMethod(classMethod, "getParameterTypes", "()[Ljava/lang/Class;");
-   methodMethodGetDeclaringClass = env.getMethod(classMethod, "getDeclaringClass", "()Ljava/lang/Class;");
-   methodMethodGetModifiers = env.getMethod(classMethod, "getModifiers", "()I");
-   methodMethodIsVarArgs = env.getMethod(classMethod, "isVarArgs", "()Z");
-   methodMethodGetName = env.getMethod(classMethod, "getName", "()Ljava/lang/String;");
-   methodMethodToGenericString = env.getMethod(classMethod, "toGenericString", "()Ljava/lang/String;");
+    classMethod = env.findClass("java/lang/reflect/Method").makeGlobal();
+    methodMethodGetReturnType = env.getMethod(classMethod, "getReturnType", "()Ljava/lang/Class;");
+    methodMethodGetParameterTypes = env.getMethod(classMethod, "getParameterTypes", "()[Ljava/lang/Class;");
+    methodMethodGetDeclaringClass = env.getMethod(classMethod, "getDeclaringClass", "()Ljava/lang/Class;");
+    methodMethodGetModifiers = env.getMethod(classMethod, "getModifiers", "()I");
+    methodMethodIsVarArgs = env.getMethod(classMethod, "isVarArgs", "()Z");
+    methodMethodGetName = env.getMethod(classMethod, "getName", "()Ljava/lang/String;");
+    methodMethodToGenericString = env.getMethod(classMethod, "toGenericString", "()Ljava/lang/String;");
 
-   classConstructor = env.findClass("java/lang/reflect/Constructor").makeGlobal();
-   methodConstructorGetParameterTypes = env.getMethod(classConstructor, "getParameterTypes", "()[Ljava/lang/Class;");
-   methodConstructorToString = env.getMethod(classConstructor, "toString", "()Ljava/lang/String;");
-   methodConstructorGetModifiers = env.getMethod(classConstructor, "getModifiers", "()I");
-   methodConstructorIsVarArgs = env.getMethod(classConstructor, "isVarArgs", "()Z");
+    classConstructor = env.findClass("java/lang/reflect/Constructor").makeGlobal();
+    methodConstructorGetParameterTypes = env.getMethod(classConstructor, "getParameterTypes", "()[Ljava/lang/Class;");
+    methodConstructorToString = env.getMethod(classConstructor, "toString", "()Ljava/lang/String;");
+    methodConstructorGetModifiers = env.getMethod(classConstructor, "getModifiers", "()I");
+    methodConstructorIsVarArgs = env.getMethod(classConstructor, "isVarArgs", "()Z");
 
-   classQoreInvocationHandler = env.defineClass("org/qore/jni/QoreInvocationHandler", nullptr, java_org_qore_jni_QoreInvocationHandler_class, java_org_qore_jni_QoreInvocationHandler_class_len).makeGlobal();
-   env.registerNatives(classQoreInvocationHandler, invocationHandlerNativeMethods, 2);
-   ctorQoreInvocationHandler = env.getMethod(classQoreInvocationHandler, "<init>", "(J)V");
-   methodQoreInvocationHandlerDestroy = env.getMethod(classQoreInvocationHandler, "destroy", "()V");
+    classQoreInvocationHandler = env.defineClass("org/qore/jni/QoreInvocationHandler", nullptr, java_org_qore_jni_QoreInvocationHandler_class, java_org_qore_jni_QoreInvocationHandler_class_len).makeGlobal();
+    env.registerNatives(classQoreInvocationHandler, invocationHandlerNativeMethods, 2);
+    ctorQoreInvocationHandler = env.getMethod(classQoreInvocationHandler, "<init>", "(J)V");
+    methodQoreInvocationHandlerDestroy = env.getMethod(classQoreInvocationHandler, "destroy", "()V");
 
-   classQoreJavaApi = env.defineClass("org/qore/jni/QoreJavaApi", nullptr, java_org_qore_jni_QoreJavaApi_class, java_org_qore_jni_QoreJavaApi_class_len).makeGlobal();
-   env.registerNatives(classQoreJavaApi, qoreJavaApiNativeMethods, 1);
+    classQoreJavaApi = env.defineClass("org/qore/jni/QoreJavaApi", nullptr, java_org_qore_jni_QoreJavaApi_class, java_org_qore_jni_QoreJavaApi_class_len).makeGlobal();
+    env.registerNatives(classQoreJavaApi, qoreJavaApiNativeMethods, 1);
 
-   classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
-   methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance", "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
+    classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
+    methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance", "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
 
-   classClassLoader = env.findClass("java/lang/ClassLoader").makeGlobal();
-   methodClassLoaderLoadClass = env.getMethod(classClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
+    classClassLoader = env.findClass("java/lang/ClassLoader").makeGlobal();
+    methodClassLoaderLoadClass = env.getMethod(classClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
 
-   classQoreURLClassLoader = env.defineClass("org/qore/jni/QoreURLClassLoader", nullptr, java_org_qore_jni_QoreURLClassLoader_class, java_org_qore_jni_QoreURLClassLoader_class_len).makeGlobal();
-   ctorQoreURLClassLoader = env.getMethod(classQoreURLClassLoader, "<init>", "(J)V");
-   methodQoreURLClassLoaderAddPath = env.getMethod(classQoreURLClassLoader, "addPath", "(Ljava/lang/String;)V");
-   methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
-   methodQoreURLClassLoaderSetContext = env.getMethod(classQoreURLClassLoader, "setContext", "()V");
-   methodQoreURLClassLoaderGetProgramPtr = env.getStaticMethod(classQoreURLClassLoader, "getProgramPtr", "()J");
+    classQoreURLClassLoader = env.defineClass("org/qore/jni/QoreURLClassLoader", nullptr, java_org_qore_jni_QoreURLClassLoader_class, java_org_qore_jni_QoreURLClassLoader_class_len).makeGlobal();
+    ctorQoreURLClassLoader = env.getMethod(classQoreURLClassLoader, "<init>", "(J)V");
+    methodQoreURLClassLoaderAddPath = env.getMethod(classQoreURLClassLoader, "addPath", "(Ljava/lang/String;)V");
+    methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
+    methodQoreURLClassLoaderSetContext = env.getMethod(classQoreURLClassLoader, "setContext", "()V");
+    methodQoreURLClassLoaderGetProgramPtr = env.getStaticMethod(classQoreURLClassLoader, "getProgramPtr", "()J");
 
-   env.defineClass("org/qore/jni/QoreURLClassLoader$1", nullptr, java_org_qore_jni_QoreURLClassLoader_1_class, java_org_qore_jni_QoreURLClassLoader_1_class_len);
+    env.defineClass("org/qore/jni/QoreURLClassLoader$1", nullptr, java_org_qore_jni_QoreURLClassLoader_1_class, java_org_qore_jni_QoreURLClassLoader_1_class_len);
 
-   classThread = env.findClass("java/lang/Thread").makeGlobal();
-   methodThreadCurrentThread = env.getStaticMethod(classThread, "currentThread", "()Ljava/lang/Thread;");
-   methodThreadGetContextClassLoader = env.getMethod(classThread, "getContextClassLoader", "()Ljava/lang/ClassLoader;");
+    classThread = env.findClass("java/lang/Thread").makeGlobal();
+    methodThreadCurrentThread = env.getStaticMethod(classThread, "currentThread", "()Ljava/lang/Thread;");
+    methodThreadGetContextClassLoader = env.getMethod(classThread, "getContextClassLoader", "()Ljava/lang/ClassLoader;");
 
-   classHashMap = env.findClass("java/util/HashMap").makeGlobal();
-   ctorHashMap = env.getMethod(classHashMap, "<init>", "()V");
-   methodHashMapPut = env.getMethod(classHashMap, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+    classHashMap = env.findClass("java/util/HashMap").makeGlobal();
+    ctorHashMap = env.getMethod(classHashMap, "<init>", "()V");
+    methodHashMapPut = env.getMethod(classHashMap, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 
-   classBoolean = env.findClass("java/lang/Boolean").makeGlobal();
-   ctorBoolean = env.getMethod(classBoolean, "<init>", "(Z)V");
-   methodBooleanBooleanValue = env.getMethod(classBoolean, "booleanValue", "()Z");
+    classZonedDateTime = env.findClass("java/time/ZonedDateTime").makeGlobal();
+    ctorZonedDateTime = env.getMethod(classZonedDateTime, "<init>", "()V");
+    methodZonedDateTimeParse = env.getMethod(classZonedDateTime, "parse", "(Ljava/lang/CharSequence");
 
-   classInteger = env.findClass("java/lang/Integer").makeGlobal();
-   ctorInteger = env.getMethod(classInteger, "<init>", "(I)V");
-   methodIntegerIntValue = env.getMethod(classInteger, "intValue", "()I");
+    classPeriod = env.findClass("java/time/Period").makeGlobal();
 
-   classDouble = env.findClass("java/lang/Double").makeGlobal();
-   ctorDouble = env.getMethod(classDouble, "<init>", "(D)V");
-   methodDoubleDoubleValue = env.getMethod(classDouble, "doubleValue", "()D");
+    classBoolean = env.findClass("java/lang/Boolean").makeGlobal();
+    ctorBoolean = env.getMethod(classBoolean, "<init>", "(Z)V");
+    methodBooleanBooleanValue = env.getMethod(classBoolean, "booleanValue", "()Z");
 
-   classLong = env.findClass("java/lang/Long").makeGlobal();
-   ctorLong = env.getMethod(classLong, "<init>", "(J)V");
-   methodLongLongValue = env.getMethod(classLong, "longValue", "()J");
+    classInteger = env.findClass("java/lang/Integer").makeGlobal();
+    ctorInteger = env.getMethod(classInteger, "<init>", "(I)V");
+    methodIntegerIntValue = env.getMethod(classInteger, "intValue", "()I");
 
-   classShort = env.findClass("java/lang/Short").makeGlobal();
-   ctorShort = env.getMethod(classShort, "<init>", "(S)V");
-   methodShortShortValue = env.getMethod(classShort, "shortValue", "()S");
+    classDouble = env.findClass("java/lang/Double").makeGlobal();
+    ctorDouble = env.getMethod(classDouble, "<init>", "(D)V");
+    methodDoubleDoubleValue = env.getMethod(classDouble, "doubleValue", "()D");
 
-   classByte = env.findClass("java/lang/Byte").makeGlobal();
-   ctorByte = env.getMethod(classByte, "<init>", "(B)V");
-   methodByteByteValue = env.getMethod(classByte, "byteValue", "()B");
+    classLong = env.findClass("java/lang/Long").makeGlobal();
+    ctorLong = env.getMethod(classLong, "<init>", "(J)V");
+    methodLongLongValue = env.getMethod(classLong, "longValue", "()J");
 
-   classFloat = env.findClass("java/lang/Float").makeGlobal();
-   ctorFloat = env.getMethod(classFloat, "<init>", "(F)V");
-   methodFloatFloatValue = env.getMethod(classFloat, "floatValue", "()F");
+    classShort = env.findClass("java/lang/Short").makeGlobal();
+    ctorShort = env.getMethod(classShort, "<init>", "(S)V");
+    methodShortShortValue = env.getMethod(classShort, "shortValue", "()S");
 
-   classCharacter = env.findClass("java/lang/Character").makeGlobal();
-   ctorCharacter = env.getMethod(classCharacter, "<init>", "(C)V");
-   methodCharacterCharValue = env.getMethod(classCharacter, "charValue", "()C");
+    classByte = env.findClass("java/lang/Byte").makeGlobal();
+    ctorByte = env.getMethod(classByte, "<init>", "(B)V");
+    methodByteByteValue = env.getMethod(classByte, "byteValue", "()B");
+
+    classFloat = env.findClass("java/lang/Float").makeGlobal();
+    ctorFloat = env.getMethod(classFloat, "<init>", "(F)V");
+    methodFloatFloatValue = env.getMethod(classFloat, "floatValue", "()F");
+
+    classCharacter = env.findClass("java/lang/Character").makeGlobal();
+    ctorCharacter = env.getMethod(classCharacter, "<init>", "(C)V");
+    methodCharacterCharValue = env.getMethod(classCharacter, "charValue", "()C");
 }
 
 void Globals::cleanup() {
-   classThrowable = nullptr;
-   classStackTraceElement = nullptr;
-   classPrimitiveVoid = nullptr;
-   classPrimitiveBoolean = nullptr;
-   classPrimitiveByte = nullptr;
-   classPrimitiveChar = nullptr;
-   classPrimitiveShort = nullptr;
-   classPrimitiveInt = nullptr;
-   classPrimitiveLong = nullptr;
-   classPrimitiveFloat = nullptr;
-   classPrimitiveDouble = nullptr;
-   classObject = nullptr;
-   classClass = nullptr;
-   classString = nullptr;
-   classField = nullptr;
-   classMethod = nullptr;
-   classConstructor = nullptr;
-   classQoreInvocationHandler = nullptr;
-   classQoreExceptionWrapper = nullptr;
-   classQoreJavaApi = nullptr;
-   classProxy = nullptr;
-   classClassLoader = nullptr;
-   classQoreURLClassLoader = nullptr;
-   classThread = nullptr;
-   classHashMap = nullptr;
-   classBoolean = nullptr;
-   classInteger = nullptr;
-   classLong = nullptr;
-   classShort = nullptr;
-   classByte = nullptr;
-   classDouble = nullptr;
-   classFloat = nullptr;
-   classCharacter = nullptr;
+    classThrowable = nullptr;
+    classStackTraceElement = nullptr;
+    classPrimitiveVoid = nullptr;
+    classPrimitiveBoolean = nullptr;
+    classPrimitiveByte = nullptr;
+    classPrimitiveChar = nullptr;
+    classPrimitiveShort = nullptr;
+    classPrimitiveInt = nullptr;
+    classPrimitiveLong = nullptr;
+    classPrimitiveFloat = nullptr;
+    classPrimitiveDouble = nullptr;
+    classObject = nullptr;
+    classClass = nullptr;
+    classString = nullptr;
+    classField = nullptr;
+    classMethod = nullptr;
+    classConstructor = nullptr;
+    classQoreInvocationHandler = nullptr;
+    classQoreExceptionWrapper = nullptr;
+    classQoreJavaApi = nullptr;
+    classProxy = nullptr;
+    classClassLoader = nullptr;
+    classQoreURLClassLoader = nullptr;
+    classThread = nullptr;
+    classHashMap = nullptr;
+    classZonedDateTime = nullptr;
+    classPeriod = nullptr;
+    classBoolean = nullptr;
+    classInteger = nullptr;
+    classLong = nullptr;
+    classShort = nullptr;
+    classByte = nullptr;
+    classDouble = nullptr;
+    classFloat = nullptr;
+    classCharacter = nullptr;
 }
 
 Type Globals::getType(jclass cls) {
