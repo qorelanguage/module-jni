@@ -101,7 +101,19 @@ static void jni_thread_cleanup(void*) {
 static QoreStringNode* jni_module_init() {
     printd(LogLevel, "jni_module_init()\n");
 
-    QoreStringNode* err = jni::Jvm::createVM();
+    QoreStringNode* err = nullptr;
+    try {
+        err = jni::Jvm::createVM();
+    } catch (jni::Exception& e) {
+        ExceptionSink xsink;
+        e.convert(&xsink);
+        const QoreValue desc = xsink.getExceptionDesc();
+        if (desc.getType() == NT_STRING) {
+            err = new QoreStringNode(*desc.get<const QoreStringNode>());
+        } else {
+            err = new QoreStringNode("unknown exception calling Jvm::createVM()");
+        }
+    }
     if (err) {
         err->prepend("Could not create the Java Virtual Machine: ");
         return err;

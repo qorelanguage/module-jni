@@ -117,6 +117,10 @@ public:
    static jmethodID ctorQoreExceptionWrapper;                           // QoreExceptionWrapper(long)
    static jmethodID methodQoreExceptionWrapperGet;                      // long QoreExceptionWrapper.get()
 
+   static GlobalReference<jclass> classQoreObject;                      // org.qore.jni.QoreObject
+   static jmethodID ctorQoreObject;                                     // QoreObject(long)
+   static jmethodID methodQoreObjectGet;                                // long QoreObject.get()
+
    static GlobalReference<jclass> classProxy;                           // java.lang.reflect.Proxy
    static jmethodID methodProxyNewProxyInstance;                        // Object Proxy.newProxyInstance(ClassLoader, Class[], InvocationHandler)
 

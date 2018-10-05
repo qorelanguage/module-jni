@@ -163,13 +163,16 @@ jclass Array::getClassForValue(QoreValue v) {
         case NT_FLOAT: return Globals::classPrimitiveDouble.toLocal();
         case NT_BOOLEAN: return Globals::classPrimitiveBoolean.toLocal();
         case NT_STRING: return Globals::classString.toLocal();
+        case NT_DATE: return Globals::classZonedDateTime.toLocal();
+        case NT_HASH: return Globals::classHashMap.toLocal();
         case NT_OBJECT: {
             QoreObject* o = v.get<QoreObject>();
             ExceptionSink xsink;
             SimpleRefHolder<QoreJniPrivateData> obj(static_cast<QoreJniPrivateData*>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
             if (!obj) {
-                if (xsink)
-                throw XsinkException(xsink);
+                if (xsink) {
+                    throw XsinkException(xsink);
+                }
                 QoreStringMaker desc("cannot create a Java array from an object of class '%s'", o->getClassName());
                 throw BasicException(desc.c_str());
             }

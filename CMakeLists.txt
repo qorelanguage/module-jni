@@ -70,6 +70,7 @@ ENDMACRO(GENERATE_JAVA)
 # each file in qore-jni.jar is listed here, along with an indication of inner classes if present
 generate_java(org/qore/jni/QoreJavaApi.java)
 generate_java(org/qore/jni/QoreExceptionWrapper.java)
+generate_java(org/qore/jni/QoreObject.java)
 generate_java(org/qore/jni/QoreHashMap.java)
 generate_java(org/qore/jni/QoreInvocationHandler.java)
 generate_java(org/qore/jni/QoreURLClassLoader.java 1)
