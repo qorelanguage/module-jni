@@ -146,7 +146,9 @@ public:
    static jmethodID methodZonedDateTimeParse;                           // ZonedDateTime.parse()
    static jmethodID methodZonedDateTimeToString;                        // ZonedDateTime.toString()
 
-   static GlobalReference<jclass> classPeriod;                          // java.time.Period
+   static GlobalReference<jclass> classArrays;                          // java.util.Arrays
+   static jmethodID methodArraysToString;                               // Arrays.toString()
+   static jmethodID methodArraysDeepToString;                           // Arrays.deepToString()
 
    static GlobalReference<jclass> classBoolean;                         // java.lang.Boolean
    static jmethodID ctorBoolean;                                        // Boolean(boolean)

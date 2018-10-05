@@ -123,6 +123,20 @@ void Array::set(int64 index, const QoreValue &value) {
     set(jobj.cast<jarray>(), elementType, elementClass, index, value);
 }
 
+QoreStringNode* Array::deepToString() const {
+    Env env;
+    return deepToString(env, jobj.cast<jarray>());
+}
+
+QoreStringNode* Array::deepToString(Env& env, jarray array) {
+    jvalue jarg;
+    jarg.l = array;
+    LocalReference<jstring> str = env.callStaticObjectMethod(Globals::classArrays, Globals::methodArraysDeepToString, &jarg).as<jstring>();
+
+    Env::GetStringUtfChars chars(env, str);
+    return new QoreStringNode(chars.c_str(), QCS_UTF8);
+}
+
 void Array::set(jarray array, Type elementType, jclass elementClass, int64 index, const QoreValue &value) {
     Env env;
     switch (elementType) {

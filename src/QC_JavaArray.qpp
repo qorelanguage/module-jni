@@ -102,3 +102,42 @@ nothing JavaArray::set(int index, any value) {
    }
    return QoreValue();
 }
+
+//! Returns a string representation of the array
+/** @par Example:
+    @code{.py}
+string str = a.toString();
+    @endcode
+
+    @return a string representation of the array by calling java.util.Arrays.toString()
+
+    @since jni 1.1
+*/
+string JavaArray::toString() [flags=CONSTANT] {
+    try {
+        return array->deepToString();
+    } catch (jni::Exception &e) {
+      e.convert(xsink);
+   }
+   return QoreValue();
+}
+
+
+//! Returns a "deep" string representation of the array
+/** @par Example:
+    @code{.py}
+string str = a.deepToString();
+    @endcode
+
+    @return a "deep" string representation of the array by calling java.util.Arrays.deepToString()
+
+    @since jni 1.1
+*/
+string JavaArray::deepToString() [flags=CONSTANT] {
+    try {
+        return array->deepToString();
+    } catch (jni::Exception &e) {
+      e.convert(xsink);
+   }
+   return QoreValue();
+}

@@ -138,13 +138,13 @@ GlobalReference<jclass> Globals::classHashMap;
 jmethodID Globals::ctorHashMap;
 jmethodID Globals::methodHashMapPut;
 
-// java.time.ZonedDateTime
 GlobalReference<jclass> Globals::classZonedDateTime;
 jmethodID Globals::methodZonedDateTimeParse;
 jmethodID Globals::methodZonedDateTimeToString;
 
-// java.time.Period
-GlobalReference<jclass> Globals::classPeriod;
+GlobalReference<jclass> Globals::classArrays;
+jmethodID Globals::methodArraysToString;
+jmethodID Globals::methodArraysDeepToString;
 
 GlobalReference<jclass> Globals::classBoolean;
 jmethodID Globals::ctorBoolean;
@@ -519,7 +519,9 @@ void Globals::init() {
     methodZonedDateTimeParse = env.getStaticMethod(classZonedDateTime, "parse", "(Ljava/lang/CharSequence;)Ljava/time/ZonedDateTime;");
     methodZonedDateTimeToString = env.getMethod(classZonedDateTime, "toString", "()Ljava/lang/String;");
 
-    classPeriod = env.findClass("java/time/Period").makeGlobal();
+    classArrays = env.findClass("java/util/Arrays").makeGlobal();
+    methodArraysToString = env.getStaticMethod(classArrays, "toString", "([Ljava/lang/Object;)Ljava/lang/String;");
+    methodArraysDeepToString = env.getStaticMethod(classArrays, "deepToString", "([Ljava/lang/Object;)Ljava/lang/String;");
 
     classBoolean = env.findClass("java/lang/Boolean").makeGlobal();
     ctorBoolean = env.getMethod(classBoolean, "<init>", "(Z)V");
@@ -582,7 +584,7 @@ void Globals::cleanup() {
     classThread = nullptr;
     classHashMap = nullptr;
     classZonedDateTime = nullptr;
-    classPeriod = nullptr;
+    classArrays = nullptr;
     classBoolean = nullptr;
     classInteger = nullptr;
     classLong = nullptr;
