@@ -52,6 +52,11 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
         return QoreValue(new DateTimeNode(chars.c_str()));
     }
 
+    if (env.isInstanceOf(v, Globals::classQoreObject)) {
+        return reinterpret_cast<QoreObject*>(env.callLongMethod(v,
+            Globals::methodQoreObjectGet, nullptr));
+    }
+
     return qjcm.getValue(v);
 }
 

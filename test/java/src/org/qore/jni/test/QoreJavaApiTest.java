@@ -2,6 +2,7 @@ package org.qore.jni.test;
 
 import org.qore.jni.*;
 import java.util.HashMap;
+import java.time.ZonedDateTime;
 
 class ThreadTest implements Runnable {
     public void run() {
@@ -40,5 +41,29 @@ public class QoreJavaApiTest {
 
     static void threadTest(Runnable runme1, Runnable runme2) {
         (new Thread(new ThreadTest2(runme1, runme2))).start();
+    }
+
+    static ZonedDateTime dateTest(ZonedDateTime dt) {
+        return dt.minusDays(2);
+    }
+
+    static String testObject1(QoreObject obj, String str) {
+        try {
+            return (String)obj.callMethod("getString", str);
+        } finally {
+            obj.release();
+        }
+    }
+
+    static Object testObject2(QoreObject obj) {
+        try {
+            return obj.getMemberValue("member");
+        } finally {
+            obj.release();
+        }
+    }
+
+    static QoreObject testObject3(QoreObject obj) {
+        return obj;
     }
 }

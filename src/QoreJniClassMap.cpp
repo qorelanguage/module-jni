@@ -87,6 +87,7 @@ QoreJniClassMap::jtmap_t QoreJniClassMap::jtmap = {
     {"java.lang.Long", bigIntTypeInfo},
     {"java.lang.Void", nothingTypeInfo},
     {"java.time.ZonedDateTime", dateTypeInfo},
+    {"org.qore.jni.QoreObject", objectOrNothingTypeInfo}
 };
 
 QoreJniClassMap::jpmap_t QoreJniClassMap::jpmap = {
@@ -785,11 +786,26 @@ void QoreJniClassMap::doMethods(QoreBuiltinClass& qc, jni::Class* jc) {
 }
 
 jobject QoreJniClassMap::getJavaObject(const QoreObject* o) {
-   if (!o->isValid())
-      return nullptr;
-   ExceptionSink xsink;
-   TryPrivateDataRefHolder<QoreJniPrivateData> jo(o, CID_OBJECT, &xsink);
-   return jo ? jo->makeLocal().release() : nullptr;
+    if (!o->isValid()) {
+        return nullptr;
+    }
+    ExceptionSink xsink;
+    TryPrivateDataRefHolder<QoreJniPrivateData> jo(o, CID_OBJECT, &xsink);
+    if (jo) {
+        return jo->makeLocal().release();
+    }
+
+    // return a new Java QoreObject with a weak reference to the actual Qore object
+    o->tRef();
+    jvalue arg;
+    arg.j = reinterpret_cast<jlong>(o);
+    try {
+        Env env;
+        return env.newObject(Globals::classQoreObject, Globals::ctorQoreObject, &arg).release();
+    } catch (jni::Exception& e) {
+        const_cast<QoreObject*>(o)->tDeref();
+        throw;
+    }
 }
 
 jarray QoreJniClassMap::getJavaArray(const QoreListNode* l, jclass cls) {

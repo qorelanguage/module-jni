@@ -34,12 +34,23 @@ class MyFields inherits Fields {
     }
 }
 
+class TestClass {
+    public {
+        string member = "mem";
+    }
+
+    string getString(string str) {
+        return str + "-x";
+    }
+}
+
 public class Main inherits QUnit::Test {
     public {
         const TestClassByteCode = <cafebabe0000003400110a0004000d08000e07000f0700100100063c696e69743e010003282956010004436f646501000f4c696e654e756d6265725461626c6501000367657401001428294c6a6176612f6c616e672f537472696e673b01000a536f7572636546696c65010009546573742e6a6176610c0005000601000474657374010004546573740100106a6176612f6c616e672f4f626a656374002000030004000000000002000000050006000100070000001d00010001000000052ab70001b10000000100080000000600010000000100000009000a000100070000001b00010001000000031202b0000000010008000000060001000000030001000b00000002000c>;
     }
 
     constructor() : Test("jni test", "1.0") {
+        addTestCase("object test", \objectTest());
         addTestCase("date test", \dateTest());
         addTestCase("defineClass", \defineClassTest());
         addTestCase("issue 2950", \issue2950());
@@ -62,11 +73,21 @@ public class Main inherits QUnit::Test {
         set_return_value(main());
     }
 
+    objectTest() {
+        TestClass t();
+        assertEq("test-x", QoreJavaApiTest::testObject1(t, "test"));
+        assertEq("mem", QoreJavaApiTest::testObject2(t));
+        assertEq(t, QoreJavaApiTest::testObject3(t));
+    }
+
     dateTest() {
         date now = now_us();
         string date_str = now.format("YYYY-MM-DDTHH:mm:SS.xxZ");
         date d = ZonedDateTime::parse(new String(date_str));
         assertEq(now, d);
+
+        d = QoreJavaApiTest::dateTest(now);
+        assertEq(now - 2D, d);
     }
 
     defineClassTest() {

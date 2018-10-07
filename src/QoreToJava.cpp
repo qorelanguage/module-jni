@@ -74,14 +74,12 @@ jobject QoreToJava::toAnyObject(const QoreValue& value) {
             return jni_date_to_jobject(*value.get<const DateTimeNode>());
         }
         case NT_OBJECT: {
-            const QoreObject* o = value.get<QoreObject>();
+            QoreObject* o = const_cast<QoreObject*>(value.get<const QoreObject>());
 
             jobject javaObjectRef = qjcm.getJavaObject(o);
             if (javaObjectRef) {
                 return javaObjectRef;
             }
-            QoreStringMaker desc("don't know how to convert an object of class '%s' to a Java object (expecting 'java.lang.Object')", o->getClassName());
-            throw BasicException(desc.c_str());
         }
         case NT_HASH: {
             return makeHashMap(*value.get<QoreHashNode>());

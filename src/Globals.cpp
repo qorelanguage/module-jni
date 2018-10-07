@@ -318,7 +318,7 @@ static jobject JNICALL qore_object_get_member_value(JNIEnv*, jclass, jlong ptr, 
     Env::GetStringUtfChars member_name(env, mname);
 
     ExceptionSink xsink;
-    ValueHolder val(obj->getReferencedMemberNoMethod(member_name.c_str(), nullptr, &xsink), &xsink);
+    ValueHolder val(obj->getReferencedMemberNoMethod(member_name.c_str(), &xsink), &xsink);
     if (xsink) {
         throw XsinkException(xsink);
     }
@@ -326,7 +326,19 @@ static jobject JNICALL qore_object_get_member_value(JNIEnv*, jclass, jlong ptr, 
     return QoreToJava::toAnyObject(*val);
 }
 
-static void JNICALL qore_object_finalize(JNIEnv *, jclass, jlong ptr) {
+static void JNICALL qore_object_release(JNIEnv*, jclass, jlong ptr) {
+    reinterpret_cast<QoreObject*>(ptr)->tDeref();
+}
+
+static void JNICALL qore_object_destroy(JNIEnv*, jclass, jlong ptr) {
+    ExceptionSink xsink;
+    reinterpret_cast<QoreObject*>(ptr)->doDelete(&xsink);
+    if (xsink) {
+        throw XsinkException(xsink);
+    }
+}
+
+static void JNICALL qore_object_finalize(JNIEnv*, jclass, jlong ptr) {
     reinterpret_cast<QoreObject*>(ptr)->tDeref();
 }
 
@@ -386,6 +398,16 @@ static JNINativeMethod qoreObjectNativeMethods[] = {
         reinterpret_cast<void*>(qore_object_get_member_value)
     },
     {
+        const_cast<char*>("release0"),
+        const_cast<char*>("(J)V"),
+        reinterpret_cast<void*>(qore_object_release)
+    },
+    {
+        const_cast<char*>("destroy0"),
+        const_cast<char*>("(J)V"),
+        reinterpret_cast<void*>(qore_object_destroy)
+    },
+    {
         const_cast<char*>("finalize0"),
         const_cast<char*>("(J)V"),
         reinterpret_cast<void*>(qore_object_finalize)
@@ -394,7 +416,7 @@ static JNINativeMethod qoreObjectNativeMethods[] = {
 
 #define NUM_QORE_OBJECT_NATIVE_METHODS (sizeof(qoreObjectNativeMethods) / sizeof(JNINativeMethod))
 
-static GlobalReference<jclass> getPrimitiveClass(Env &env, const char *wrapperName) {
+static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperName) {
    LocalReference<jclass> wrapperClass = env.findClass(wrapperName);
    jfieldID typeFieldId = env.getStaticField(wrapperClass, "TYPE", "Ljava/lang/Class;");
    return std::move(env.getStaticObjectField(wrapperClass, typeFieldId).as<jclass>().makeGlobal());
