@@ -266,7 +266,8 @@ static jstring JNICALL qore_exception_wrapper_get_message(JNIEnv*, jclass, jlong
     return env.newString(str.c_str()).release();
 }
 
-static jstring JNICALL qore_object_get_class_name(JNIEnv*, jclass, jlong ptr) {
+static jstring JNICALL qore_object_class_name(JNIEnv*, jclass, jlong ptr) {
+    assert(ptr);
     QoreObject* obj = reinterpret_cast<QoreObject*>(ptr);
 
     Env env;
@@ -274,7 +275,26 @@ static jstring JNICALL qore_object_get_class_name(JNIEnv*, jclass, jlong ptr) {
     return env.newString(str.c_str()).release();
 }
 
+static jboolean JNICALL qore_object_instance_of(JNIEnv*, jclass, jlong ptr, jstring cname) {
+    assert(ptr);
+    QoreObject* obj = reinterpret_cast<QoreObject*>(ptr);
+
+    Env env;
+    Env::GetStringUtfChars class_name(env, cname);
+
+    ExceptionSink xsink;
+    const QoreClass* cls = getProgram()->findClass(class_name.c_str(), &xsink);
+    //printd(5, "qore_object_instance_of() cls: %p (%s) xsink: %d\n", cls, class_name.c_str(), (bool)xsink);
+    if (!cls) {
+        xsink.clear();
+        return false;
+    }
+    assert(!xsink);
+    return obj->validInstanceOf(*cls);
+}
+
 static jobject JNICALL qore_object_call_method(JNIEnv*, jclass, jlong ptr, jstring mname) {
+    assert(ptr);
     QoreObject* obj = reinterpret_cast<QoreObject*>(ptr);
 
     Env env;
@@ -290,6 +310,7 @@ static jobject JNICALL qore_object_call_method(JNIEnv*, jclass, jlong ptr, jstri
 }
 
 static jobject JNICALL qore_object_call_method_args(JNIEnv*, jclass, jlong ptr, jstring mname, jobjectArray args) {
+    assert(ptr);
     QoreObject* obj = reinterpret_cast<QoreObject*>(ptr);
 
     ExceptionSink xsink;
@@ -312,6 +333,7 @@ static jobject JNICALL qore_object_call_method_args(JNIEnv*, jclass, jlong ptr, 
 }
 
 static jobject JNICALL qore_object_get_member_value(JNIEnv*, jclass, jlong ptr, jstring mname) {
+    assert(ptr);
     QoreObject* obj = reinterpret_cast<QoreObject*>(ptr);
 
     Env env;
@@ -327,18 +349,22 @@ static jobject JNICALL qore_object_get_member_value(JNIEnv*, jclass, jlong ptr, 
 }
 
 static void JNICALL qore_object_release(JNIEnv*, jclass, jlong ptr) {
+    assert(ptr);
     reinterpret_cast<QoreObject*>(ptr)->tDeref();
 }
 
 static void JNICALL qore_object_destroy(JNIEnv*, jclass, jlong ptr) {
+    assert(ptr);
     ExceptionSink xsink;
     reinterpret_cast<QoreObject*>(ptr)->doDelete(&xsink);
+    reinterpret_cast<QoreObject*>(ptr)->tDeref();
     if (xsink) {
         throw XsinkException(xsink);
     }
 }
 
 static void JNICALL qore_object_finalize(JNIEnv*, jclass, jlong ptr) {
+    assert(ptr);
     reinterpret_cast<QoreObject*>(ptr)->tDeref();
 }
 
@@ -378,9 +404,14 @@ static JNINativeMethod qoreExceptionWrapperNativeMethods[2] = {
 
 static JNINativeMethod qoreObjectNativeMethods[] = {
     {
-        const_cast<char*>("getClassName0"),
+        const_cast<char*>("className0"),
         const_cast<char*>("(J)Ljava/lang/String;"),
-        reinterpret_cast<void*>(qore_object_get_class_name)
+        reinterpret_cast<void*>(qore_object_class_name)
+    },
+    {
+        const_cast<char*>("instanceOf0"),
+        const_cast<char*>("(JLjava/lang/String;)Z"),
+        reinterpret_cast<void*>(qore_object_instance_of)
     },
     {
         const_cast<char*>("callMethod0"),

@@ -47,7 +47,7 @@ public class QoreJavaApiTest {
         return dt.minusDays(2);
     }
 
-    static String testObject1(QoreObject obj, String str) {
+    static String testObject1(QoreObject obj, String str) throws Throwable {
         try {
             return (String)obj.callMethod("getString", str);
         } finally {
@@ -55,7 +55,7 @@ public class QoreJavaApiTest {
         }
     }
 
-    static Object testObject2(QoreObject obj) {
+    static Object testObject2(QoreObject obj) throws Throwable {
         try {
             return obj.getMemberValue("member");
         } finally {
@@ -64,6 +64,18 @@ public class QoreJavaApiTest {
     }
 
     static QoreObject testObject3(QoreObject obj) {
-        return obj;
+        //try {
+            return obj;
+        //} finally {
+        //    obj.release();
+        //}
+    }
+
+    static boolean testObject4(QoreObject obj, String cls) {
+        try {
+            return obj.instanceOf(cls);
+        } finally {
+            obj.release();
+        }
     }
 }

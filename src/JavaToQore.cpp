@@ -53,8 +53,9 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
     }
 
     if (env.isInstanceOf(v, Globals::classQoreObject)) {
-        return reinterpret_cast<QoreObject*>(env.callLongMethod(v,
+        QoreObject* obj = reinterpret_cast<QoreObject*>(env.callLongMethod(v,
             Globals::methodQoreObjectGet, nullptr));
+        return obj->refSelf();
     }
 
     return qjcm.getValue(v);
