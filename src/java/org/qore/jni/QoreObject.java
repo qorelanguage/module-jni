@@ -44,6 +44,9 @@ public class QoreObject {
     }
 
     //! releases the Qore object without destroying it
+    /** @note if the object is returned to Qore, do not release it; allow the weak reference
+        to be released when finalized
+     */
     public void release() {
         long x = releasePointer();
         if (x != 0) {

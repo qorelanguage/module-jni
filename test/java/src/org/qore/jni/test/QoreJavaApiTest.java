@@ -6,7 +6,11 @@ import java.time.ZonedDateTime;
 
 class ThreadTest implements Runnable {
     public void run() {
-        HashMap hm = (HashMap)QoreJavaApi.callFunction("get_qore_library_info");
+        try {
+            HashMap hm = (HashMap)QoreJavaApi.callFunction("get_qore_library_info");
+        } catch (Throwable e) {
+
+        }
     }
 }
 
@@ -32,7 +36,7 @@ class ThreadTest2 implements Runnable {
 }
 
 public class QoreJavaApiTest {
-    static HashMap callFunctionTest() {
+    static HashMap callFunctionTest() throws Throwable {
         HashMap hm = (HashMap)QoreJavaApi.callFunction("get_qore_library_info");
 
         (new Thread(new ThreadTest())).start();
@@ -63,12 +67,9 @@ public class QoreJavaApiTest {
         }
     }
 
+    // do not release the object when returning it
     static QoreObject testObject3(QoreObject obj) {
-        //try {
-            return obj;
-        //} finally {
-        //    obj.release();
-        //}
+        return obj;
     }
 
     static boolean testObject4(QoreObject obj, String cls) {
