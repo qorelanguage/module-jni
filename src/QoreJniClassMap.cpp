@@ -539,54 +539,54 @@ QoreBuiltinClass* QoreJniClassMap::findCreateQoreClassInBase(QoreString& name, c
 }
 
 QoreBuiltinClass* QoreJniClassMap::createClassInNamespace(QoreNamespace* ns, QoreNamespace& jns, const char* jpath, Class* jc, QoreBuiltinClass* qc, QoreJniClassMapBase& map) {
-   QoreClassHolder qc_holder(qc);
-   // save pointer to java class info in QoreBuiltinClass
-   qc->setManagedUserData(jc);
+    QoreClassHolder qc_holder(qc);
+    // save pointer to java class info in QoreBuiltinClass
+    qc->setManagedUserData(jc);
 
-   int mods = jc->getModifiers();
-   if (mods & JVM_ACC_FINAL)
-      qc->setFinal();
+    int mods = jc->getModifiers();
+    if (mods & JVM_ACC_FINAL)
+        qc->setFinal();
 
-   printd(LogLevel, "QoreJniClassMap::createClassInNamespace() qc: %p ns: %p '%s::%s'\n", qc, ns, ns->getName(), qc->getName());
+    printd(LogLevel, "QoreJniClassMap::createClassInNamespace() qc: %p ns: %p '%s::%s'\n", qc, ns, ns->getName(), qc->getName());
 
-   // add to class maps
-   map.add(jpath, static_cast<QoreBuiltinClass*>(qc_holder.release()));
+    // add to class maps
+    map.add(jpath, static_cast<QoreBuiltinClass*>(qc_holder.release()));
 
-   Class* parent = jc->getSuperClass();
+    Class* parent = jc->getSuperClass();
 
-   printd(LogLevel, "QoreJniClassMap::createClassInNamespace() '%s' parent: %p\n", jpath, parent);
+    printd(LogLevel, "QoreJniClassMap::createClassInNamespace() '%s' parent: %p\n", jpath, parent);
 
-   Env env;
+    Env env;
 
-   // add superclass
-   if (parent)
-      addSuperClass(*qc, parent, false);
-   else if (qc == QC_OBJECT) {
-      // set base class loader: the return value for Class.getClassLoader() with classes loaded by the bootstrap
-      // class loader is implementation-dependent; it's possible that this will be nullptr
-      LocalReference<jobject> cl = env.callObjectMethod(jc->getJavaObject(), Globals::methodClassGetClassLoader, nullptr);
-      if (cl)
-         baseClassLoader = cl.makeGlobal();
-   }
-   else // make interface classes at least inherit Object
-      qc->addBuiltinVirtualBaseClass(QC_OBJECT);
+    // add superclass
+    if (parent)
+        addSuperClass(*qc, parent, false);
+    else if (qc == QC_OBJECT) {
+        // set base class loader: the return value for Class.getClassLoader() with classes loaded by the bootstrap
+        // class loader is implementation-dependent; it's possible that this will be nullptr
+        LocalReference<jobject> cl = env.callObjectMethod(jc->getJavaObject(), Globals::methodClassGetClassLoader, nullptr);
+        if (cl)
+            baseClassLoader = cl.makeGlobal();
+    }
+    else // make interface classes at least inherit Object
+        qc->addBuiltinVirtualBaseClass(QC_OBJECT);
 
-   // get and process interfaces
-   LocalReference<jobjectArray> interfaceArray = jc->getInterfaces();
+    // get and process interfaces
+    LocalReference<jobjectArray> interfaceArray = jc->getInterfaces();
 
-   for (jsize i = 0, e = env.getArrayLength(interfaceArray); i < e; ++i) {
-      addSuperClass(*qc, new Class(env.getObjectArrayElement(interfaceArray, i).as<jclass>()), true);
-   }
+    for (jsize i = 0, e = env.getArrayLength(interfaceArray); i < e; ++i) {
+        addSuperClass(*qc, new Class(env.getObjectArrayElement(interfaceArray, i).as<jclass>()), true);
+    }
 
-   // add methods after parents
-   populateQoreClass(*qc, jc);
+    // add methods after parents
+    populateQoreClass(*qc, jc);
 
-   printd(LogLevel, "QoreJniClassMap::createClassInNamespace() '%s' returning qc: %p ns: %p -> '%s::%s'\n", jpath, qc, ns, ns->getName(), qc->getName());
+    printd(LogLevel, "QoreJniClassMap::createClassInNamespace() '%s' returning qc: %p ns: %p -> '%s::%s'\n", jpath, qc, ns, ns->getName(), qc->getName());
 
-   // save class in namespace
-   ns->addSystemClass(qc);
+    // save class in namespace
+    ns->addSystemClass(qc);
 
-   return qc;
+    return qc;
 }
 
 void QoreJniClassMap::addSuperClass(QoreBuiltinClass& qc, jni::Class* parent, bool interface) {
@@ -919,29 +919,37 @@ void QoreJniClassMap::doFields(QoreBuiltinClass& qc, jni::Class* jc) {
 }
 
 JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni) : jni(n_jni) {
-   assert(jni);
-   Env env(false);
+    assert(jni);
+    Env env(false);
 
-   // set up QoreURLClassLoader constructor args
-   jvalue jarg;
-   jarg.j = (long)getProgram();
-   assert(jarg.j);
+    // set up QoreURLClassLoader constructor args
+    jvalue jarg;
+    jarg.j = (long)getProgram();
+    assert(jarg.j);
 
-   // create our custom classloader
-   classLoader = env.newObject(Globals::classQoreURLClassLoader, Globals::ctorQoreURLClassLoader, &jarg).makeGlobal();
+    // create our custom classloader
+    classLoader = env.newObject(Globals::classQoreURLClassLoader, Globals::ctorQoreURLClassLoader, &jarg).makeGlobal();
 
-   // setup classpath
-   TempString classpath(SystemEnvironment::get("QORE_JNI_CLASSPATH"));
-   if (classpath)
-      addClasspath(classpath->c_str());
+    // setup classpath
+    TempString classpath(SystemEnvironment::get("QORE_JNI_CLASSPATH"));
+    if (classpath) {
+        addClasspath(classpath->c_str());
+    }
 }
 
-JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& parent) {
-   // reuse the same classLoader as the parent
-   classLoader = GlobalReference<jobject>::fromLocal(parent.classLoader.toLocal());
-
-   // copy the parent's class map to this one
-   jcmap = parent.jcmap;
+JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& parent, QoreProgram* pgm) :
+    // reuse the same classLoader as the parent
+    classLoader(GlobalReference<jobject>::fromLocal(parent.classLoader.toLocal())) {
+    // copy the parent's class map to this one
+    jcmap = parent.jcmap;
+    // find Jni namespace in new Program if present
+    const QoreNamespace* jnins = pgm->findNamespace("Jni");
+    if (jnins) {
+        jni = const_cast<QoreNamespace*>(jnins);
+    } else {
+        jni = qjcm.getJniNs().copy();
+        pgm->getRootNS()->addNamespace(jni);
+    }
 }
 
 void JniExternalProgramData::addClasspath(const char* path) {

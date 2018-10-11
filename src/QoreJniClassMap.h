@@ -129,6 +129,8 @@ public:
     DLLLOCAL QoreBuiltinClass* findCreateQoreClass(LocalReference<jclass>& jc);
     DLLLOCAL QoreBuiltinClass* findCreateQoreClass(const char* name);
 
+    DLLLOCAL QoreBuiltinClass* findCreateQoreClassInProgram(QoreString& name, const char* jpath, Class* c);
+
 protected:
     // map of java class names to const QoreTypeInfo ptrs
     typedef std::map<const char*, const QoreTypeInfo*, ltstr> jtmap_t;
@@ -164,7 +166,6 @@ protected:
 
     DLLLOCAL QoreBuiltinClass* createClassInNamespace(QoreNamespace* ns, QoreNamespace& jns, const char* jpath, Class* jc, QoreBuiltinClass* qc, QoreJniClassMapBase& map);
     DLLLOCAL QoreBuiltinClass* findCreateQoreClassInBase(QoreString& name, const char* jpath, Class* c);
-    DLLLOCAL QoreBuiltinClass* findCreateQoreClassInProgram(QoreString& name, const char* jpath, Class* c);
     DLLLOCAL Class* loadClass(const char* name, bool& base);
 
 private:
@@ -175,39 +176,42 @@ extern QoreJniClassMap qjcm;
 
 class JniExternalProgramData : public AbstractQoreProgramExternalData, public QoreJniClassMapBase {
 public:
-   DLLLOCAL JniExternalProgramData(QoreNamespace* n_jni);
+    DLLLOCAL JniExternalProgramData(QoreNamespace* n_jni);
 
-   DLLLOCAL JniExternalProgramData(const JniExternalProgramData& parent);
+    DLLLOCAL JniExternalProgramData(const JniExternalProgramData& parent, QoreProgram* pgm);
 
-   DLLLOCAL jobject getClassLoader() const {
-      return classLoader;
-   }
+    // delete the copy constructor
+    JniExternalProgramData(const JniExternalProgramData& parent) = delete;
 
-   DLLLOCAL virtual ~JniExternalProgramData() {
-      classLoader = nullptr;
-   }
+    DLLLOCAL jobject getClassLoader() const {
+        return classLoader;
+    }
 
-   DLLLOCAL QoreNamespace* getJniNamespace() const {
-      return jni;
-   }
+    DLLLOCAL virtual ~JniExternalProgramData() {
+        classLoader = nullptr;
+    }
 
-   DLLLOCAL void addClasspath(const char* path);
+    DLLLOCAL QoreNamespace* getJniNamespace() const {
+        return jni;
+    }
 
-   DLLLOCAL virtual AbstractQoreProgramExternalData* copy(QoreProgram* pgm) const {
-      return new JniExternalProgramData(*this);
-   }
+    DLLLOCAL void addClasspath(const char* path);
 
-   DLLLOCAL virtual void doDeref() {
-      delete this;
-   }
+    DLLLOCAL virtual AbstractQoreProgramExternalData* copy(QoreProgram* pgm) const {
+        return new JniExternalProgramData(*this, pgm);
+    }
 
-   DLLLOCAL static void setContext(Env& env);
+    DLLLOCAL virtual void doDeref() {
+        delete this;
+    }
+
+    DLLLOCAL static void setContext(Env& env);
 
 protected:
-   // Jni namespace pointer for the current Program
-   QoreNamespace* jni;
-   // class loader
-   GlobalReference<jobject> classLoader;
+    // Jni namespace pointer for the current Program
+    QoreNamespace* jni;
+    // class loader
+    GlobalReference<jobject> classLoader;
 };
 
 }

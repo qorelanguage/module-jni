@@ -85,6 +85,7 @@ typedef void (qore_jni_module_cmd_t)(const QoreString& arg);
 static void qore_jni_mc_import(const QoreString& arg);
 static void qore_jni_mc_add_classpath(const QoreString& arg);
 static void qore_jni_mc_add_relative_classpath(const QoreString& arg);
+static void qore_jni_mc_define_class(const QoreString& arg);
 
 // module cmds
 typedef std::map<std::string, std::function<qore_jni_module_cmd_t>> mcmap_t;
@@ -92,6 +93,7 @@ static mcmap_t mcmap = {
     {"import", qore_jni_mc_import},
     {"add-classpath", qore_jni_mc_add_classpath},
     {"add-relative-classpath", qore_jni_mc_add_relative_classpath},
+    {"define-class", qore_jni_mc_define_class},
 };
 
 static void jni_thread_cleanup(void*) {
@@ -211,7 +213,9 @@ static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
     }
 
     QoreProgram* pgm = getProgram();
-    if (!pgm->getExternalData("jni")) {
+    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+    //printd(5, "parse-cmd '%s' jpc: %p jnins: %p\n", arg.c_str(), jpc, jpc->getJniNamespace());
+    if (!jpc) {
         QoreNamespace* jnins = qjcm.getJniNs().copy();
         pgm->getRootNS()->addNamespace(jnins);
         pgm->setExternalData("jni", new JniExternalProgramData(jnins));
@@ -268,19 +272,7 @@ static void qore_jni_mc_import(const QoreString& cmd_arg) {
 
     QoreNamespace* ns = pgm->getRootNS();
 
-    printd(LogLevel, "jni_module_parse_cmd() feature '%s': %s (default_jns: %p)\n", QORE_JNI_MODULE_NAME, pgm->checkFeature(QORE_JNI_MODULE_NAME) ? "true" : "false", &qjcm.getJniNs());
-
-    if (!pgm->checkFeature(QORE_JNI_MODULE_NAME)) {
-        QoreNamespace* jns = qjcm.getJniNs().copy();
-        printd(LogLevel, "jns: %p '%s' ns: %p\n", jns, jns->getName(), ns);
-
-        assert(jns->findLocalNamespace("java"));
-
-        ns->addNamespace(jns);
-        pgm->addFeature(QORE_JNI_MODULE_NAME);
-
-        return;
-    }
+    printd(LogLevel, "jni_module_parse_cmd() default_jns: %p\n", &qjcm.getJniNs());
 
     if (!wc) {
         QoreString jpath(arg);
@@ -322,8 +314,37 @@ static void qore_jni_mc_add_relative_classpath(const QoreString& arg) {
 
     printd(LogLevel, "qore_jni_mc_add_relative_classpath() arg: '%s' cwd: '%s'\n", arg.c_str(), cwd_str->c_str());
 
-    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
+    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
     jpc->addClasspath(cwd_str->c_str());
+}
+
+static void qore_jni_mc_define_class(const QoreString& arg) {
+    QoreProgram* pgm = getProgram();
+    assert(pgm);
+    assert(pgm->checkFeature(QORE_JNI_MODULE_NAME));
+
+    // find end of name
+    qore_offset_t end = arg.find(' ');
+    if (end == -1) {
+        throw QoreJniException("JNI-DEFINE-CLASS-ERROR", "cannot find the end of the class name in the 'define-class' directive");
+    }
+    QoreString name(&arg, end);
+    QoreString base64(arg.c_str() + end + 1);
+    ExceptionSink xsink;
+    SimpleRefHolder<BinaryNode> byte_code(base64.parseBase64(&xsink));
+    if (xsink) {
+        throw XsinkException(xsink);
+    }
+    jni::Env env;
+    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+    assert(jpc);
+    LocalReference<jclass> jcls = env.defineClass(name.c_str(), jpc->getClassLoader(),
+        static_cast<const unsigned char*>(byte_code->getPtr()), byte_code->size());
+
+    // import the class immediately
+    QoreString dot_name(name);
+    dot_name.replaceAll("/", ".");
+    qjcm.findCreateQoreClassInProgram(dot_name, name.c_str(), new Class(jcls));
 }
 
 QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
