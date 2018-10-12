@@ -42,6 +42,19 @@ class TestClass {
     string getString(string str) {
         return str + "-x";
     }
+
+    list<hash<auto>> getListOfHashes() {
+        return (
+            {
+                "a": 1,
+                "b": "two",
+            },
+            {
+                "a": 3,
+                "b": "four",
+            },
+        );
+    }
 }
 
 public class Main inherits QUnit::Test {
@@ -52,6 +65,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("jni test", "1.0") {
+        addTestCase("hash map test", \hashMapTest());
         addTestCase("number test", \numberTest());
         addTestCase("object test", \objectTest());
         addTestCase("date test", \dateTest());
@@ -74,6 +88,43 @@ public class Main inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    hashMapTest() {
+        {
+            auto l = QoreJavaApiTest::testObject6();
+            assertEq(Type::Hash, l[0].type());
+        }
+
+        hash<auto> h0 = {
+            "a": 1,
+            "b": "two",
+        };
+
+        {
+            hash<auto> h1 = QoreJavaApiTest::testObject7(h0);
+            assertEq(1, h1.size());
+            assertEq(h0 - "a", h1);
+        }
+
+        {
+            list<hash<auto>> l0= (
+                h0,
+                h0,
+            );
+
+            auto l1 = QoreJavaApiTest::testObject8(l0);
+            assertEq(l0, l1);
+
+            l1 = QoreJavaApiTest::testObject9(l0);
+            assertEq(l0, l1);
+        }
+
+        {
+            TestClass test();
+            auto l = QoreJavaApiTest::testObject10(test);
+            assertEq(test.getListOfHashes(), l);
+        }
     }
 
     numberTest() {
@@ -147,8 +198,8 @@ public class Main inherits QUnit::Test {
     }
 
     testQoreJavaApi() {
-        HashMap hm = QoreJavaApiTest::callFunctionTest();
-        delete hm;
+        auto hm = QoreJavaApiTest::callFunctionTest();
+        assertEq("hash<auto>", hm.fullType());
     }
 
     testJniClasses() {

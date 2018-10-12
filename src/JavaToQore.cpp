@@ -65,6 +65,55 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
         return obj->refSelf();
     }
 
+    if (env.isInstanceOf(v, Globals::classQoreHashMap)) {
+        // create hash from QoreHashMap
+        LocalReference<jobject> set = env.callObjectMethod(v,
+            Globals::methodHashMapEntrySet, nullptr);
+        if (!set) {
+            return QoreValue();
+        }
+        LocalReference<jobject> i = env.callObjectMethod(set,
+            Globals::methodSetIterator, nullptr);
+        if (!i) {
+            return QoreValue();
+        }
+
+        ExceptionSink xsink;
+        ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), &xsink);
+        while (true) {
+            if (!env.callBooleanMethod(i, Globals::methodIteratorHasNext, nullptr)) {
+                break;
+            }
+
+            LocalReference<jobject> element = env.callObjectMethod(i,
+                Globals::methodIteratorNext, nullptr);
+            if (element) {
+                LocalReference<jstring> key = env.callObjectMethod(element,
+                    Globals::methodEntryGetKey, nullptr).as<jstring>();
+
+                LocalReference<jobject> value = env.callObjectMethod(element,
+                    Globals::methodEntryGetValue, nullptr);
+
+                ValueHolder val(convertToQore(value.release()), &xsink);
+                if (xsink) {
+                    break;
+                }
+
+                Env::GetStringUtfChars key_str(env, key);
+                rv->setKeyValue(key_str.c_str(), val.release(), &xsink);
+                if (xsink) {
+                    break;
+                }
+            }
+        }
+
+        if (xsink) {
+            throw XsinkException(xsink);
+        }
+
+        return rv.release();
+    }
+
     return qjcm.getValue(v);
 }
 

@@ -113,6 +113,8 @@ set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/QoreCallback.java
 )
 
+set(CMAKE_JAVA_COMPILE_FLAGS -Xlint:unchecked)
+
 add_jar(qore-jni-test ${JAVA_TEST_JAR_SRC}
     INCLUDE_JARS qore-jni.jar
 )

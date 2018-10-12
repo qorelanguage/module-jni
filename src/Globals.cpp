@@ -139,6 +139,21 @@ jmethodID Globals::methodThreadGetContextClassLoader;
 GlobalReference<jclass> Globals::classHashMap;
 jmethodID Globals::ctorHashMap;
 jmethodID Globals::methodHashMapPut;
+jmethodID Globals::methodHashMapEntrySet;
+
+GlobalReference<jclass> Globals::classQoreHashMap;
+jmethodID Globals::ctorQoreHashMap;
+
+GlobalReference<jclass> Globals::classSet;
+jmethodID Globals::methodSetIterator;
+
+GlobalReference<jclass> Globals::classEntry;
+jmethodID Globals::methodEntryGetKey;
+jmethodID Globals::methodEntryGetValue;
+
+GlobalReference<jclass> Globals::classIterator;
+jmethodID Globals::methodIteratorHasNext;
+jmethodID Globals::methodIteratorNext;
 
 GlobalReference<jclass> Globals::classZonedDateTime;
 jmethodID Globals::methodZonedDateTimeParse;
@@ -314,6 +329,7 @@ static jobject JNICALL qore_object_call_method(JNIEnv*, jclass, jlong ptr, jstri
             throw XsinkException(xsink);
         }
 
+        //printd(5, "qore_object_call_method() method: '%s::%s()' rv: %s\n", obj->getClassName(), method_name.c_str(), val->getFullTypeName());
         return QoreToJava::toAnyObject(*val);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
@@ -352,6 +368,7 @@ static jobject JNICALL qore_object_call_method_args(JNIEnv*, jclass, jlong ptr, 
             throw XsinkException(xsink);
         }
 
+        //printd(5, "qore_object_call_method_args() method: '%s::%s()' rv: %s\n", obj->getClassName(), method_name.c_str(), val->getFullTypeName());
         return QoreToJava::toAnyObject(*val);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
@@ -509,6 +526,7 @@ static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperNa
 #include "JavaClassQoreExceptionWrapper.inc"
 #include "JavaClassQoreObject.inc"
 #include "JavaClassQoreObjectWrapper.inc"
+#include "JavaClassQoreHashMap.inc"
 #include "JavaClassQoreURLClassLoader.inc"
 #include "JavaClassQoreURLClassLoader_1.inc"
 #include "JavaClassQoreJavaApi.inc"
@@ -622,6 +640,21 @@ void Globals::init() {
     classHashMap = env.findClass("java/util/HashMap").makeGlobal();
     ctorHashMap = env.getMethod(classHashMap, "<init>", "()V");
     methodHashMapPut = env.getMethod(classHashMap, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+    methodHashMapEntrySet = env.getMethod(classHashMap, "entrySet", "()Ljava/util/Set;");
+
+    classQoreHashMap = env.defineClass("org/qore/jni/QoreHashMap", nullptr, java_org_qore_jni_QoreHashMap_class,  java_org_qore_jni_QoreHashMap_class_len).makeGlobal();
+    ctorQoreHashMap = env.getMethod(classQoreHashMap, "<init>", "()V");
+
+    classSet = env.findClass("java/util/Set").makeGlobal();
+    methodSetIterator = env.getMethod(classSet, "iterator", "()Ljava/util/Iterator;");
+
+    classEntry = env.findClass("java/util/Map$Entry").makeGlobal();
+    methodEntryGetKey = env.getMethod(classEntry, "getKey", "()Ljava/lang/Object;");
+    methodEntryGetValue = env.getMethod(classEntry, "getValue", "()Ljava/lang/Object;");
+
+    classIterator = env.findClass("java/util/Iterator").makeGlobal();
+    methodIteratorHasNext = env.getMethod(classIterator, "hasNext", "()Z");
+    methodIteratorNext = env.getMethod(classIterator, "next", "()Ljava/lang/Object;");
 
     classZonedDateTime = env.findClass("java/time/ZonedDateTime").makeGlobal();
     methodZonedDateTimeParse = env.getStaticMethod(classZonedDateTime, "parse", "(Ljava/lang/CharSequence;)Ljava/time/ZonedDateTime;");
@@ -696,6 +729,10 @@ void Globals::cleanup() {
     classQoreURLClassLoader = nullptr;
     classThread = nullptr;
     classHashMap = nullptr;
+    classQoreHashMap = nullptr;
+    classSet = nullptr;
+    classEntry = nullptr;
+    classIterator = nullptr;
     classZonedDateTime = nullptr;
     classBigDecimal = nullptr;
     classArrays = nullptr;

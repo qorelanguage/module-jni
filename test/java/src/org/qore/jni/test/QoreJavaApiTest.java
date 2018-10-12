@@ -88,4 +88,35 @@ public class QoreJavaApiTest {
     static BigDecimal testObject5(BigDecimal num) {
         return num;
     }
+
+    static HashMap[] testObject6() {
+        QoreHashMap[] hm = new QoreHashMap[2];
+        hm[0] = new QoreHashMap();
+        hm[0].put("1", 1);
+        hm[1] = new QoreHashMap();
+        hm[1].put("2", 2);
+
+        return hm;
+    }
+
+    static HashMap testObject7(HashMap h) {
+        h.remove("a");
+        return h;
+    }
+
+    static Object testObject8(Object obj) {
+        return obj;
+    }
+
+    static HashMap[] testObject9(HashMap[] l) {
+        return l;
+    }
+
+    static HashMap[] testObject10(QoreObject obj) throws Throwable {
+        try {
+            return (HashMap[])obj.callMethod("getListOfHashes");
+        } finally {
+            obj.release();
+        }
+    }
 }

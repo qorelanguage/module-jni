@@ -121,6 +121,30 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
         if (env.isSameObject(cls, Globals::classObject)) {
             return toAnyObject(value);
         }
+
+        switch (value.getType()) {
+            // check compatible primitive types
+            case NT_BOOLEAN: {
+                if (env.isSameObject(cls, Globals::classBoolean)) {
+                    return toAnyObject(value);
+                }
+                break;
+            }
+
+            case NT_INT: {
+                if (env.isSameObject(cls, Globals::classInteger)) {
+                    return toAnyObject(value);
+                }
+                break;
+            }
+
+            case NT_FLOAT: {
+                if (env.isSameObject(cls, Globals::classDouble)) {
+                    return toAnyObject(value);
+                }
+                break;
+            }
+        }
     }
 
     LocalReference<jobject> javaObjectRef;
@@ -204,7 +228,7 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
 
 jobject QoreToJava::makeHashMap(const QoreHashNode& h) {
     Env env;
-    LocalReference<jobject> hm = env.newObject(Globals::classHashMap, Globals::ctorHashMap, nullptr);
+    LocalReference<jobject> hm = env.newObject(Globals::classQoreHashMap, Globals::ctorQoreHashMap, nullptr);
 
     ConstHashIterator i(h);
     while (i.next()) {
