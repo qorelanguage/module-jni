@@ -52,6 +52,13 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
         return QoreValue(new DateTimeNode(chars.c_str()));
     }
 
+    if (env.isInstanceOf(v, Globals::classBigDecimal)) {
+        LocalReference<jstring> num_str = env.callObjectMethod(v,
+            Globals::methodBigDecimalToString, nullptr).as<jstring>();
+        Env::GetStringUtfChars chars(env, num_str);
+        return QoreValue(new QoreNumberNode(chars.c_str()));
+    }
+
     if (env.isInstanceOf(v, Globals::classQoreObject)) {
         QoreObject* obj = reinterpret_cast<QoreObject*>(env.callLongMethod(v,
             Globals::methodQoreObjectGet, nullptr));

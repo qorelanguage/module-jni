@@ -1,7 +1,7 @@
 package org.qore.jni;
 
 //! wrapper class for a Qore object; this class holds a weak reference to the Qore object
-/** API usage errors such as with releasing / deleting the object and then calling methods
+/** @note API usage errors such as with releasing / deleting the object and then calling methods
     on the object will cause a crash
  */
 public class QoreObject {

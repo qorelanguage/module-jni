@@ -49,6 +49,17 @@ static jobject jni_date_to_jobject(const DateTimeNode& qdate) {
     throw BasicException(desc.c_str());
 }
 
+static jobject jni_number_to_jobject(const QoreNumberNode& num) {
+    QoreString str;
+    num.toString(str);
+
+    Env env;
+    LocalReference<jstring> num_str = env.newString(str.c_str());
+    std::vector<jvalue> jargs(1);
+    jargs[0].l = num_str;
+    return env.newObject(Globals::classBigDecimal, Globals::ctorBigDecimal, &jargs[0]).release();
+}
+
 jobject QoreToJava::toAnyObject(const QoreValue& value) {
     Env env;
     switch (value.getType()) {
@@ -72,6 +83,9 @@ jobject QoreToJava::toAnyObject(const QoreValue& value) {
         }
         case NT_DATE: {
             return jni_date_to_jobject(*value.get<const DateTimeNode>());
+        }
+        case NT_NUMBER: {
+            return jni_number_to_jobject(*value.get<const QoreNumberNode>());
         }
         case NT_OBJECT: {
             QoreObject* o = const_cast<QoreObject*>(value.get<const QoreObject>());
@@ -121,6 +135,10 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
         }
         case NT_DATE: {
             javaObjectRef = jni_date_to_jobject(*value.get<const DateTimeNode>());
+            break;
+        }
+        case NT_NUMBER: {
+            javaObjectRef = jni_number_to_jobject(*value.get<const QoreNumberNode>());
             break;
         }
         case NT_HASH: {

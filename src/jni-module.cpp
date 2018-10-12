@@ -328,7 +328,7 @@ static void qore_jni_mc_define_class(const QoreString& arg) {
     if (end == -1) {
         throw QoreJniException("JNI-DEFINE-CLASS-ERROR", "cannot find the end of the class name in the 'define-class' directive");
     }
-    QoreString name(&arg, end);
+    QoreString java_name(&arg, end);
     QoreString base64(arg.c_str() + end + 1);
     ExceptionSink xsink;
     SimpleRefHolder<BinaryNode> byte_code(base64.parseBase64(&xsink));
@@ -338,13 +338,14 @@ static void qore_jni_mc_define_class(const QoreString& arg) {
     jni::Env env;
     JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
     assert(jpc);
-    LocalReference<jclass> jcls = env.defineClass(name.c_str(), jpc->getClassLoader(),
+    LocalReference<jclass> jcls = env.defineClass(java_name.c_str(), jpc->getClassLoader(),
         static_cast<const unsigned char*>(byte_code->getPtr()), byte_code->size());
 
     // import the class immediately
-    QoreString dot_name(name);
+    QoreString dot_name(java_name);
     dot_name.replaceAll("/", ".");
-    qjcm.findCreateQoreClassInProgram(dot_name, name.c_str(), new Class(jcls));
+    //printd(5, "qore_jni_mc_define_class() dot name: '%s' jname: '%s' class size: %d\n", dot_name.c_str(), name.c_str(), byte_code->size());
+    qjcm.findCreateQoreClassInProgram(dot_name, java_name.c_str(), new Class(jcls));
 }
 
 QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {

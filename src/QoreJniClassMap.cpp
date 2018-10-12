@@ -87,6 +87,7 @@ QoreJniClassMap::jtmap_t QoreJniClassMap::jtmap = {
     {"java.lang.Long", bigIntTypeInfo},
     {"java.lang.Void", nothingTypeInfo},
     {"java.time.ZonedDateTime", dateTypeInfo},
+    {"java.math.BigDecimal", numberTypeInfo},
     {"org.qore.jni.QoreObject", objectOrNothingTypeInfo}
 };
 
@@ -850,13 +851,12 @@ static void exec_java_constructor(const QoreMethod& qmeth, BaseMethod* m, QoreOb
 }
 
 static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
-   try {
-      return m->invokeStatic(args);
-   }
-   catch (jni::Exception& e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
+    try {
+        return m->invokeStatic(args);
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        return QoreValue();
+    }
 }
 
 static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObject* self, QoreJniPrivateData* jd, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {

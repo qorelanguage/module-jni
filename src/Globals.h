@@ -121,6 +121,8 @@ public:
    static jmethodID ctorQoreObject;                                     // QoreObject(long)
    static jmethodID methodQoreObjectGet;                                // long QoreObject.get()
 
+   static GlobalReference<jclass> classQoreObjectWrapper;               // org.qore.jni.QoreObjectWrapper
+
    static GlobalReference<jclass> classProxy;                           // java.lang.reflect.Proxy
    static jmethodID methodProxyNewProxyInstance;                        // Object Proxy.newProxyInstance(ClassLoader, Class[], InvocationHandler)
 
@@ -145,6 +147,10 @@ public:
    static GlobalReference<jclass> classZonedDateTime;                   // java.time.ZonedDateTime
    static jmethodID methodZonedDateTimeParse;                           // ZonedDateTime.parse()
    static jmethodID methodZonedDateTimeToString;                        // ZonedDateTime.toString()
+
+   static GlobalReference<jclass> classBigDecimal;                      // java.math.BigDecimal
+   static jmethodID ctorBigDecimal;                                     // BigDecimal(String)
+   static jmethodID methodBigDecimalToString;                           // BigDecimal.toString()
 
    static GlobalReference<jclass> classArrays;                          // java.util.Arrays
    static jmethodID methodArraysToString;                               // Arrays.toString()

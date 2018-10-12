@@ -117,6 +117,8 @@ GlobalReference<jclass> Globals::classQoreObject;
 jmethodID Globals::ctorQoreObject;
 jmethodID Globals::methodQoreObjectGet;
 
+GlobalReference<jclass> Globals::classQoreObjectWrapper;
+
 GlobalReference<jclass> Globals::classProxy;
 jmethodID Globals::methodProxyNewProxyInstance;
 
@@ -141,6 +143,10 @@ jmethodID Globals::methodHashMapPut;
 GlobalReference<jclass> Globals::classZonedDateTime;
 jmethodID Globals::methodZonedDateTimeParse;
 jmethodID Globals::methodZonedDateTimeToString;
+
+GlobalReference<jclass> Globals::classBigDecimal;
+jmethodID Globals::ctorBigDecimal;
+jmethodID Globals::methodBigDecimalToString;
 
 GlobalReference<jclass> Globals::classArrays;
 jmethodID Globals::methodArraysToString;
@@ -300,13 +306,29 @@ static jobject JNICALL qore_object_call_method(JNIEnv*, jclass, jlong ptr, jstri
     Env env;
     Env::GetStringUtfChars method_name(env, mname);
 
+    // we have to catch C++ exception here and translate them to Java exceptions
     ExceptionSink xsink;
-    ValueHolder val(obj->evalMethod(method_name.c_str(), nullptr, &xsink), &xsink);
-    if (xsink) {
-        throw XsinkException(xsink);
-    }
+    try {
+        ValueHolder val(obj->evalMethod(method_name.c_str(), nullptr, &xsink), &xsink);
+        if (xsink) {
+            throw XsinkException(xsink);
+        }
 
-    return QoreToJava::toAnyObject(*val);
+        return QoreToJava::toAnyObject(*val);
+    } catch (jni::Exception& e) {
+        e.convert(&xsink);
+        QoreToJava::wrapException(xsink);
+    } catch (const std::bad_alloc& e) {
+        // translate OOM C++ exception to a Java exception
+        env.throwNew(env.findClass("java/lang/OutOfMemoryError"), e.what());
+    } catch (const std::exception& e) {
+        // translate unknown C++ exceptions to a Java exception
+        env.throwNew(env.findClass("java/lang/Error"), e.what());
+    } catch (...) {
+        // translate unknown C++ exception to a Java exception
+        env.throwNew(env.findClass("java/lang/Error"), "Unknown exception type");
+    }
+    return nullptr;
 }
 
 static jobject JNICALL qore_object_call_method_args(JNIEnv*, jclass, jlong ptr, jstring mname, jobjectArray args) {
@@ -324,12 +346,27 @@ static jobject JNICALL qore_object_call_method_args(JNIEnv*, jclass, jlong ptr, 
 
     Env::GetStringUtfChars method_name(env, mname);
 
-    ValueHolder val(obj->evalMethod(method_name.c_str(), *qore_args, &xsink), &xsink);
-    if (xsink) {
-        throw XsinkException(xsink);
-    }
+    try {
+        ValueHolder val(obj->evalMethod(method_name.c_str(), *qore_args, &xsink), &xsink);
+        if (xsink) {
+            throw XsinkException(xsink);
+        }
 
-    return QoreToJava::toAnyObject(*val);
+        return QoreToJava::toAnyObject(*val);
+    } catch (jni::Exception& e) {
+        e.convert(&xsink);
+        QoreToJava::wrapException(xsink);
+    } catch (const std::bad_alloc& e) {
+        // translate OOM C++ exception to a Java exception
+        env.throwNew(env.findClass("java/lang/OutOfMemoryError"), e.what());
+    } catch (const std::exception& e) {
+        // translate unknown C++ exceptions to a Java exception
+        env.throwNew(env.findClass("java/lang/Error"), e.what());
+    } catch (...) {
+        // translate unknown C++ exception to a Java exception
+        env.throwNew(env.findClass("java/lang/Error"), "Unknown exception type");
+    }
+    return nullptr;
 }
 
 static jobject JNICALL qore_object_get_member_value(JNIEnv*, jclass, jlong ptr, jstring mname) {
@@ -340,12 +377,27 @@ static jobject JNICALL qore_object_get_member_value(JNIEnv*, jclass, jlong ptr, 
     Env::GetStringUtfChars member_name(env, mname);
 
     ExceptionSink xsink;
-    ValueHolder val(obj->getReferencedMemberNoMethod(member_name.c_str(), &xsink), &xsink);
-    if (xsink) {
-        throw XsinkException(xsink);
-    }
+    try {
+        ValueHolder val(obj->getReferencedMemberNoMethod(member_name.c_str(), &xsink), &xsink);
+        if (xsink) {
+            throw XsinkException(xsink);
+        }
 
-    return QoreToJava::toAnyObject(*val);
+        return QoreToJava::toAnyObject(*val);
+    } catch (jni::Exception& e) {
+        e.convert(&xsink);
+        QoreToJava::wrapException(xsink);
+    } catch (const std::bad_alloc& e) {
+        // translate OOM C++ exception to a Java exception
+        env.throwNew(env.findClass("java/lang/OutOfMemoryError"), e.what());
+    } catch (const std::exception& e) {
+        // translate unknown C++ exceptions to a Java exception
+        env.throwNew(env.findClass("java/lang/Error"), e.what());
+    } catch (...) {
+        // translate unknown C++ exception to a Java exception
+        env.throwNew(env.findClass("java/lang/Error"), "Unknown exception type");
+    }
+    return nullptr;
 }
 
 static void JNICALL qore_object_release(JNIEnv*, jclass, jlong ptr) {
@@ -456,6 +508,7 @@ static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperNa
 #include "JavaClassQoreInvocationHandler.inc"
 #include "JavaClassQoreExceptionWrapper.inc"
 #include "JavaClassQoreObject.inc"
+#include "JavaClassQoreObjectWrapper.inc"
 #include "JavaClassQoreURLClassLoader.inc"
 #include "JavaClassQoreURLClassLoader_1.inc"
 #include "JavaClassQoreJavaApi.inc"
@@ -484,6 +537,8 @@ void Globals::init() {
     env.registerNatives(classQoreObject, qoreObjectNativeMethods, NUM_QORE_OBJECT_NATIVE_METHODS);
     ctorQoreObject = env.getMethod(classQoreObject, "<init>", "(J)V");
     methodQoreObjectGet = env.getMethod(classQoreObject, "get", "()J");
+
+    classQoreObjectWrapper = env.defineClass("org/qore/jni/QoreObjectWrapper", nullptr, java_org_qore_jni_QoreObjectWrapper_class, java_org_qore_jni_QoreObjectWrapper_class_len).makeGlobal();
 
     classPrimitiveVoid = getPrimitiveClass(env, "java/lang/Void");
     classPrimitiveBoolean = getPrimitiveClass(env, "java/lang/Boolean");
@@ -572,6 +627,10 @@ void Globals::init() {
     methodZonedDateTimeParse = env.getStaticMethod(classZonedDateTime, "parse", "(Ljava/lang/CharSequence;)Ljava/time/ZonedDateTime;");
     methodZonedDateTimeToString = env.getMethod(classZonedDateTime, "toString", "()Ljava/lang/String;");
 
+    classBigDecimal = env.findClass("java/math/BigDecimal").makeGlobal();
+    ctorBigDecimal = env.getMethod(classBigDecimal, "<init>", "(Ljava/lang/String;)V");
+    methodBigDecimalToString = env.getMethod(classBigDecimal, "toString", "()Ljava/lang/String;");
+
     classArrays = env.findClass("java/util/Arrays").makeGlobal();
     methodArraysToString = env.getStaticMethod(classArrays, "toString", "([Ljava/lang/Object;)Ljava/lang/String;");
     methodArraysDeepToString = env.getStaticMethod(classArrays, "deepToString", "([Ljava/lang/Object;)Ljava/lang/String;");
@@ -630,6 +689,7 @@ void Globals::cleanup() {
     classQoreInvocationHandler = nullptr;
     classQoreExceptionWrapper = nullptr;
     classQoreObject = nullptr;
+    classQoreObjectWrapper = nullptr;
     classQoreJavaApi = nullptr;
     classProxy = nullptr;
     classClassLoader = nullptr;
@@ -637,6 +697,7 @@ void Globals::cleanup() {
     classThread = nullptr;
     classHashMap = nullptr;
     classZonedDateTime = nullptr;
+    classBigDecimal = nullptr;
     classArrays = nullptr;
     classBoolean = nullptr;
     classInteger = nullptr;

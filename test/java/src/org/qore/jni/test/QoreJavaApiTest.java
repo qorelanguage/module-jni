@@ -3,6 +3,7 @@ package org.qore.jni.test;
 import org.qore.jni.*;
 import java.util.HashMap;
 import java.time.ZonedDateTime;
+import java.math.BigDecimal;
 
 class ThreadTest implements Runnable {
     public void run() {
@@ -78,5 +79,13 @@ public class QoreJavaApiTest {
         } finally {
             obj.release();
         }
+    }
+
+    static BigDecimal testObject5(String str) {
+        return new BigDecimal(str);
+    }
+
+    static BigDecimal testObject5(BigDecimal num) {
+        return num;
     }
 }
