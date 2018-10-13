@@ -89,6 +89,7 @@ public class QoreJavaApiTest {
         return num;
     }
 
+    @SuppressWarnings("unchecked")
     static HashMap[] testObject6() {
         QoreHashMap[] hm = new QoreHashMap[2];
         hm[0] = new QoreHashMap();
