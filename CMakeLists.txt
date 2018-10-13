@@ -47,6 +47,9 @@ MACRO(GENERATE_JAVA _input)
     SET(JAVA_JAR_SRC ${JAVA_JAR_SRC} ${CMAKE_SOURCE_DIR}/src/java/${_input})
     SET(QORE_INC_FILES ${QORE_INC_FILES} ${_inc_outfile})
 
+    # issue #3019: get list of source files for documentation
+    string (REPLACE ";" " " JAVA_JAR_SRC_STR "${JAVA_JAR_SRC}")
+
     # generate rules for include files for inner classes (if any)
     foreach (it ${ARGN})
         #message(STATUS "IT: ${it}")
@@ -96,8 +99,8 @@ add_custom_command(
     VERBATIM
 )
 
+# build but do not install this jar file
 add_custom_target(qore-jni ALL DEPENDS qore-jni.jar)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qore-jni.jar DESTINATION ${CMAKE_INSTALL_PREFIX}/share/qore/java8)
 
 set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/Callbacks.java
@@ -170,6 +173,9 @@ add_dependencies(${module_name} QORE_INC_FILES)
 
 target_link_libraries(${module_name} ${JNI_LIBRARIES})
 
+set(MODULE_DOX_INPUT ${JAVA_JAR_SRC_STR})
+message(STATUS mdi: ${MODULE_DOX_INPUT})
+
 qore_binary_module(${module_name} ${PROJECT_VERSION})
 
 qore_dist(${PROJECT_VERSION})
@@ -178,7 +184,7 @@ qore_config_info()
 
 FIND_PACKAGE(Doxygen)
 if (DOXYGEN_FOUND)
-  qore_wrap_dox(QORE_DOX_SRC ${QORE_DOX_TMPL_SRC})
-  add_custom_target(QORE_MOD_DOX_FILES DEPENDS ${QORE_DOX_SRC})
-  add_dependencies(docs QORE_MOD_DOX_FILES)
+    qore_wrap_dox(QORE_DOX_SRC ${QORE_DOX_TMPL_SRC})
+    add_custom_target(QORE_MOD_DOX_FILES DEPENDS ${QORE_DOX_SRC})
+    add_dependencies(docs QORE_MOD_DOX_FILES)
 endif()
