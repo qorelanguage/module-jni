@@ -2,7 +2,9 @@ package org.qore.jni;
 
 import org.qore.jni.QoreURLClassLoader;
 
-//! static API for Qore calls
+//! This class provides methods that allow Java to interface with Qore code
+/**
+ */
 public class QoreJavaApi {
     //! calls the given Qore function with the given arguments and returns the result
     public static Object callFunction(String name, Object... args) throws Throwable {
@@ -11,7 +13,7 @@ public class QoreJavaApi {
         return callFunction0(cl.getProgramPtr(), name, args);
     }
 
-    //! calls the given Qore function with the given arguments and returns the result
+    //! calls a Qore function and returns the result as a Java Object, takes a variable number of arguments
     public static Object callFunctionArgs(String name, Object[] args) throws Throwable {
         QoreURLClassLoader cl = QoreURLClassLoader.getCurrent();
         //System.out.println("cl: " + (cl != null ? cl.toString() : "null"));

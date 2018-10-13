@@ -1,7 +1,6 @@
 package org.qore.jni;
 
 public class QoreExceptionWrapper extends RuntimeException {
-
     private long xsink;
 
     QoreExceptionWrapper(long xsink) {
