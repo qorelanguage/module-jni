@@ -99,8 +99,9 @@ add_custom_command(
     VERBATIM
 )
 
-# build but do not install this jar file
+# build and install this jar file so that java code using native classes can be compiled
 add_custom_target(qore-jni ALL DEPENDS qore-jni.jar)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qore-jni.jar DESTINATION ${CMAKE_INSTALL_PREFIX}/share/qore/java8)
 
 set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/Callbacks.java
