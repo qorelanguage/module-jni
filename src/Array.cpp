@@ -173,11 +173,6 @@ void Array::set(jarray array, Type elementType, jclass elementClass, int64 index
 
 jclass Array::getClassForValue(QoreValue v) {
     switch (v.getType()) {
-        /*
-        case NT_INT: return Globals::classPrimitiveInt.toLocal();
-        case NT_FLOAT: return Globals::classPrimitiveDouble.toLocal();
-        case NT_BOOLEAN: return Globals::classPrimitiveBoolean.toLocal();
-        */
         case NT_INT: return Globals::classInteger.toLocal();
         case NT_FLOAT: return Globals::classDouble.toLocal();
         case NT_BOOLEAN: return Globals::classBoolean.toLocal();

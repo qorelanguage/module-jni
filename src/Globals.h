@@ -135,6 +135,7 @@ public:
     static jmethodID methodQoreURLClassLoaderLoadClass;                  // Class QoreURLClassLoader.loadClass(String)
     static jmethodID methodQoreURLClassLoaderSetContext;                 // Class QoreURLClassLoader.setContext()
     static jmethodID methodQoreURLClassLoaderGetProgramPtr;              // long QoreURLClassLoader.getProgramPtr()
+    static jmethodID methodQoreURLClassLoaderAddPendingClass;            // void QoreURLClassLoader.addPendingClass(String, byte[])
 
     static GlobalReference<jclass> classThread;                          // java.lang.Thread
     static jmethodID methodThreadCurrentThread;                          // Thread Thread.currentThread()

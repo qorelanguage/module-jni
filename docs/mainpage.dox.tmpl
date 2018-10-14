@@ -130,6 +130,16 @@
 
     @see @ref jni_class_mapping for more information
 
+    @section jni_define_class_parse_time Defining Classes at Parse Time
+
+    The jni module also supports defining classes at parse time with the following jni-module-specific parse directives:
+    - @code{.qore} %module-cmd(jni) define-class <name> <base 64 byte code> @endcode defines the given class with \c &lt;name&gt;
+      as the Java internal name for the class (ex: \c my/package/MyClassName)
+    - @code{.qore} %module-cmd(jni) define-pending-class <name> <base 64 byte code> @endcode adds the given class and
+      byte code as a pending class to be defined when required by a \c define-class directive; this should be used for
+      inner classes and has been implemented to allow circular dependencies in such classes to be resolved;
+      \c &lt;name&gt; is the Java internal name for the inner class (ex: \c my/package/MyClassName$1)
+
     @section jni_types Type Conversions Between Qore and Java
 
     The \c jni module uses reflection to automatically map Java classes to Qore classes.  This class mapping and Qore class creation happens at parse time (when @ref jniimport "importing Java APIs" into %Qore) and also at runtime (if a new class is encountered that has not already been mapped).
@@ -324,8 +334,8 @@ System::out.println("testing...");
     - added @ref Jni::org::qore::jni::define_class() "define_class()"
       (<a href="https://github.com/qorelanguage/qore/issues/3023">issue 3023</a>)
     - added the following new class methods:
-      - @ref Jni::org::qore::jni::QoreArray::toString() "QoreArray::toString()"
-      - @ref Jni::org::qore::jni::QoreArray::deepToString() "QoreArray::deepToString()"
+      - @ref Jni::org::qore::jni::JavaArray::toString() "JavaArray::toString()"
+      - @ref Jni::org::qore::jni::JavaArray::deepToString() "JavaArray::deepToString()"
     - added support for date <-> java.time.ZonedDateTime conversions
       (<a href="https://github.com/qorelanguage/qore/issues/3026">issue 3026</a>)
 

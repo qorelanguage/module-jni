@@ -131,6 +131,7 @@ jmethodID Globals::methodQoreURLClassLoaderAddPath;
 jmethodID Globals::methodQoreURLClassLoaderLoadClass;
 jmethodID Globals::methodQoreURLClassLoaderSetContext;
 jmethodID Globals::methodQoreURLClassLoaderGetProgramPtr;
+jmethodID Globals::methodQoreURLClassLoaderAddPendingClass;
 
 GlobalReference<jclass> Globals::classThread;
 jmethodID Globals::methodThreadCurrentThread;
@@ -629,6 +630,7 @@ void Globals::init() {
     methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
     methodQoreURLClassLoaderSetContext = env.getMethod(classQoreURLClassLoader, "setContext", "()V");
     methodQoreURLClassLoaderGetProgramPtr = env.getStaticMethod(classQoreURLClassLoader, "getProgramPtr", "()J");
+    methodQoreURLClassLoaderAddPendingClass = env.getMethod(classQoreURLClassLoader, "addPendingClass", "(Ljava/lang/String;[B)V");
 
     env.defineClass("org/qore/jni/QoreURLClassLoader$1", nullptr, java_org_qore_jni_QoreURLClassLoader_1_class, java_org_qore_jni_QoreURLClassLoader_1_class_len);
 

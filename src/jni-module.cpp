@@ -85,6 +85,8 @@ typedef void (qore_jni_module_cmd_t)(const QoreString& arg);
 static void qore_jni_mc_import(const QoreString& arg);
 static void qore_jni_mc_add_classpath(const QoreString& arg);
 static void qore_jni_mc_add_relative_classpath(const QoreString& arg);
+// define-pending-class: for resolving circular dependencies with inner classes
+static void qore_jni_mc_define_pending_class(const QoreString& arg);
 static void qore_jni_mc_define_class(const QoreString& arg);
 
 // module cmds
@@ -93,6 +95,7 @@ static mcmap_t mcmap = {
     {"import", qore_jni_mc_import},
     {"add-classpath", qore_jni_mc_add_classpath},
     {"add-relative-classpath", qore_jni_mc_add_relative_classpath},
+    {"define-pending-class", qore_jni_mc_define_pending_class},
     {"define-class", qore_jni_mc_define_class},
 };
 
@@ -316,6 +319,38 @@ static void qore_jni_mc_add_relative_classpath(const QoreString& arg) {
 
     JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
     jpc->addClasspath(cwd_str->c_str());
+}
+
+static void qore_jni_mc_define_pending_class(const QoreString& arg) {
+    QoreProgram* pgm = getProgram();
+    assert(pgm);
+    assert(pgm->checkFeature(QORE_JNI_MODULE_NAME));
+
+    // find end of name
+    qore_offset_t end = arg.find(' ');
+    if (end == -1) {
+        throw QoreJniException("JNI-DEFINE-CLASS-ERROR", "cannot find the end of the class name in the 'define-class' directive");
+    }
+    QoreString java_name(&arg, end);
+    QoreString base64(arg.c_str() + end + 1);
+    ExceptionSink xsink;
+    SimpleRefHolder<BinaryNode> byte_code(base64.parseBase64(&xsink));
+    if (xsink) {
+        throw XsinkException(xsink);
+    }
+    jni::Env env;
+    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+    assert(jpc);
+
+    // add the byte code as a pending class
+    LocalReference<jstring> jname = env.newString(java_name.c_str());
+    LocalReference<jbyteArray> jbyte_code = QoreToJava::makeByteArray(**byte_code);
+
+    std::vector<jvalue> jargs(2);
+    jargs[0].l = jname;
+    jargs[1].l = jbyte_code;
+
+    env.callObjectMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderAddPendingClass, &jargs[0]);
 }
 
 static void qore_jni_mc_define_class(const QoreString& arg) {

@@ -12,12 +12,15 @@ import java.nio.file.Files;
 import java.nio.file.FileSystems;
 import java.util.Hashtable;
 import java.io.FilenameFilter;
+import java.util.HashMap;
 
 public class QoreURLClassLoader extends URLClassLoader {
     private static InheritableThreadLocal<QoreURLClassLoader> current = new InheritableThreadLocal<QoreURLClassLoader>();
     private HashSet<String> classPathElements = new HashSet<String>();
     private String classPath = new String();
     private long pgm_ptr;
+    // cache of inner classes to resolve circular dependencies when injecting classes
+    private HashMap<String, byte[]> pendingClasses = new HashMap<String, byte[]>();
 
     public QoreURLClassLoader(long p_ptr) {
         super(((URLClassLoader)ClassLoader.getSystemClassLoader()).getURLs());
@@ -31,20 +34,39 @@ public class QoreURLClassLoader extends URLClassLoader {
         super.addURL(new URL("file", null, 0, path));
     }
 
-    /*
-    protected Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        debugLog("loadClass: " + name + " resolve: " + resolve);
+    // adds byte code for an inner class to the byte code cache
+    public void addPendingClass(String name, byte[] byte_code) {
+        pendingClasses.put(name, byte_code);
+    }
+
+    // for resolving circular dependencies when defining inner classes
+    private Class<?> tryGetPendingClass(String name) {
+        byte[] byte_code = pendingClasses.get(name);
+        if (byte_code == null) {
+            return null;
+        }
+        // remove from the cache
+        pendingClasses.remove(name);
+        // create the class and return it
+        return defineClass(name, byte_code, 0, byte_code.length);
+    }
+
+    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        //debugLog("loadClass: " + name + " resolve: " + resolve);
+        Class rv = tryGetPendingClass(name);
+        if (rv != null) {
+            return rv;
+        }
         try {
-            Class rv = super.loadClass(name, resolve);
-            debugLog("got: " + rv);
+            rv = super.loadClass(name, resolve);
+            //debugLog("loadClass: " + name + " got: " + rv);
             return rv;
         }
         catch (ClassNotFoundException e) {
-            debugLog("no class found");
+            //debugLog("loadClass: " + name + ": no class found");
             throw e;
         }
     }
-    */
 
     public static long getProgramPtr() {
         return current.get().pgm_ptr;
