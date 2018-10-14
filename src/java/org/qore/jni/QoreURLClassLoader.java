@@ -34,8 +34,9 @@ public class QoreURLClassLoader extends URLClassLoader {
         super.addURL(new URL("file", null, 0, path));
     }
 
-    // adds byte code for an inner class to the byte code cache
+    // adds byte code for an inner class to the byte code cache; requires a dot name (ex: \c my.package.MyClass$1)
     public void addPendingClass(String name, byte[] byte_code) {
+        //debugLog("addPendingClass: " + name + " len: " + byte_code.length);
         pendingClasses.put(name, byte_code);
     }
 

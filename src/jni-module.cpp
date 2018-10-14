@@ -342,6 +342,9 @@ static void qore_jni_mc_define_pending_class(const QoreString& arg) {
     JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
     assert(jpc);
 
+    // convert java name to dot name; QoreURLClassLoader.addPendingClass() requires the dot name
+    java_name.replaceAll("/", ".");
+
     // add the byte code as a pending class
     LocalReference<jstring> jname = env.newString(java_name.c_str());
     LocalReference<jbyteArray> jbyte_code = QoreToJava::makeByteArray(**byte_code);
