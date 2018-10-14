@@ -112,6 +112,8 @@ public:
     static GlobalReference<jclass> classQoreJavaApi;                     // org.qore.jni.QoreJavaApi
     static jmethodID methodQoreJavaApiCallFunction;                      // Object QoreJavaApi.callFunction(String name, Object...)
     static jmethodID methodQoreJavaApiCallFunctionArgs;                  // Object QoreJavaApi.callFunctionArgs(String name, Object[])
+    static jmethodID methodQoreJavaApiCallFunctionSave;                  // Object QoreJavaApi.callFunctionSave(String key, String name, Object...)
+    static jmethodID methodQoreJavaApiCallFunctionSaveArgs;              // Object QoreJavaApi.callFunctionSaveArgs(String key, String name, Object[])
 
     static GlobalReference<jclass> classQoreExceptionWrapper;            // org.qore.jni.QoreExceptionWrapper
     static jmethodID ctorQoreExceptionWrapper;                           // QoreExceptionWrapper(long)

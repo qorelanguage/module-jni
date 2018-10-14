@@ -124,4 +124,12 @@ public class QoreJavaApiTest {
     static String testObject11(QoreObject obj) {
         return obj.className();
     }
+
+    static Object testObject12() throws Throwable {
+        return QoreJavaApi.callFunction("get_object");
+    }
+
+    static Object testObject13() throws Throwable {
+        return QoreJavaApi.callFunctionSave("test", "get_object");
+    }
 }

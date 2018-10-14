@@ -108,6 +108,8 @@ jmethodID Globals::methodQoreInvocationHandlerDestroy;
 GlobalReference<jclass> Globals::classQoreJavaApi;
 jmethodID Globals::methodQoreJavaApiCallFunction;
 jmethodID Globals::methodQoreJavaApiCallFunctionArgs;
+jmethodID Globals::methodQoreJavaApiCallFunctionSave;
+jmethodID Globals::methodQoreJavaApiCallFunctionSaveArgs;
 
 GlobalReference<jclass> Globals::classQoreExceptionWrapper;
 jmethodID Globals::ctorQoreExceptionWrapper;
@@ -234,6 +236,79 @@ static jobject JNICALL java_api_call_function(JNIEnv* jenv, jobject obj, jlong p
     if (xsink) {
         QoreToJava::wrapException(xsink);
         return nullptr;
+    }
+
+    try {
+        return QoreToJava::toAnyObject(*rv);
+    }
+    catch (jni::Exception& e) {
+        e.convert(&xsink);
+        QoreToJava::wrapException(xsink);
+        return nullptr;
+    }
+}
+
+static jobject JNICALL java_api_call_function_save(JNIEnv* jenv, jobject obj, jlong ptr, jstring keyname, jstring name, jobjectArray args) {
+    QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
+    qoreThreadAttacher.attach();
+
+    Env env(jenv);
+
+    QoreProgramContextHelper pch(pgm);
+
+    ExceptionSink xsink;
+
+    jsize len = args ? env.getArrayLength(args) : 0;
+    ReferenceHolder<QoreListNode> qore_args(&xsink);
+
+    if (len)
+        qore_args = Array::getArgList(env, args);
+
+    Env::GetStringUtfChars fname(env, name);
+    //printd(LogLevel, "java_api_call_function() '%s()' args: %p %d\n", fname.c_str(), *qore_args, len);
+
+    ValueHolder rv(pgm->callFunction(fname.c_str(), *qore_args, &xsink), &xsink);
+
+    if (xsink) {
+        QoreToJava::wrapException(xsink);
+        return nullptr;
+    }
+
+    // save object in thread-local data if relevant
+    if (rv->getType() == NT_OBJECT) {
+        QoreHashNode* data = pgm->getThreadData();
+        assert(data);
+        const char* domain_name;
+        // get key name where to save the data if possible
+        QoreValue v = data->getKeyValue("_jni_save");
+        if (v.getType() != NT_STRING) {
+            domain_name = "_jni_save";
+        } else {
+            domain_name = v.get<const QoreStringNode>()->c_str();
+        }
+
+        QoreValue kv = data->getKeyValue(domain_name);
+        // ignore operation if domain exists but is not a hash
+        if (!kv || kv.getType() == NT_HASH) {
+            QoreHashNode* data2;
+            if (!kv) {
+                data2 = new QoreHashNode(autoTypeInfo);
+                data->setKeyValue(domain_name, data2, &xsink);
+                if (xsink) {
+                    QoreToJava::wrapException(xsink);
+                    return nullptr;
+                }
+            } else {
+                data2 = kv.get<QoreHashNode>();
+            }
+
+            Env::GetStringUtfChars kname(env, keyname);
+            data2->setKeyValue(kname.c_str(), rv->refSelf(), &xsink);
+            if (xsink) {
+                QoreToJava::wrapException(xsink);
+                return nullptr;
+            }
+        }
     }
 
     try {
@@ -450,13 +525,20 @@ static JNINativeMethod invocationHandlerNativeMethods[2] = {
     }
 };
 
-static JNINativeMethod qoreJavaApiNativeMethods[1] = {
+static JNINativeMethod qoreJavaApiNativeMethods[] = {
     {
         const_cast<char*>("callFunction0"),
         const_cast<char*>("(JLjava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;"),
         reinterpret_cast<void*>(java_api_call_function)
     },
+    {
+        const_cast<char*>("callFunctionSave0"),
+        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;"),
+        reinterpret_cast<void*>(java_api_call_function_save)
+    },
 };
+
+#define NUM_QORE_JAVA_API_NATIVE_METHODS (sizeof(qoreJavaApiNativeMethods) / sizeof(JNINativeMethod))
 
 static JNINativeMethod qoreExceptionWrapperNativeMethods[2] = {
     {
@@ -616,7 +698,7 @@ void Globals::init() {
     methodQoreInvocationHandlerDestroy = env.getMethod(classQoreInvocationHandler, "destroy", "()V");
 
     classQoreJavaApi = env.defineClass("org/qore/jni/QoreJavaApi", nullptr, java_org_qore_jni_QoreJavaApi_class, java_org_qore_jni_QoreJavaApi_class_len).makeGlobal();
-    env.registerNatives(classQoreJavaApi, qoreJavaApiNativeMethods, 1);
+    env.registerNatives(classQoreJavaApi, qoreJavaApiNativeMethods, NUM_QORE_JAVA_API_NATIVE_METHODS);
 
     classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
     methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance", "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
