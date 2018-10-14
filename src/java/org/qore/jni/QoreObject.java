@@ -78,11 +78,11 @@ public class QoreObject {
         return x;
     }
 
-    private native String className0(long obj);
-    private native boolean instanceOf0(long obj, String class_name);
-    private native Object callMethod0(long obj, String name);
-    private native Object callMethod0(long obj, String name, Object... args);
-    private native Object getMemberValue0(long obj, String name);
+    private native String className0(long ptr);
+    private native boolean instanceOf0(long ptr, String class_name);
+    private native Object callMethod0(long ptr, String name);
+    private native Object callMethod0(long ptr, String name, Object... args);
+    private native Object getMemberValue0(long ptr, String name);
     private native void release0(long ptr);
     private native void destroy0(long ptr);
     private native void finalize0(long ptr);

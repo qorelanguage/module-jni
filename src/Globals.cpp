@@ -292,8 +292,7 @@ static jstring JNICALL qore_object_class_name(JNIEnv*, jclass, jlong ptr) {
     QoreObject* obj = reinterpret_cast<QoreObject*>(ptr);
 
     Env env;
-    ModifiedUtf8String str(obj->getClassName());
-    return env.newString(str.c_str()).release();
+    return env.newString(obj->getClassName()).release();
 }
 
 static jboolean JNICALL qore_object_instance_of(JNIEnv*, jclass, jlong ptr, jstring cname) {

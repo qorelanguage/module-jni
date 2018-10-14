@@ -137,10 +137,11 @@ public class Main inherits QUnit::Test {
 
     objectTest() {
         TestClass t();
+        assertEq(True, QoreJavaApiTest::testObject4(t, "TestClass"));
         assertEq("test-x", QoreJavaApiTest::testObject1(t, "test"));
         assertEq("mem", QoreJavaApiTest::testObject2(t));
         assertEq(t, QoreJavaApiTest::testObject3(t));
-        assertEq(True, QoreJavaApiTest::testObject4(t, "TestClass"));
+        assertEq("TestClass", QoreJavaApiTest::testObject11(t));
     }
 
     dateTest() {

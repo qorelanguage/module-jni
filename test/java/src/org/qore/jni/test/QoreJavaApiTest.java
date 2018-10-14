@@ -120,4 +120,8 @@ public class QoreJavaApiTest {
             obj.release();
         }
     }
+
+    static String testObject11(QoreObject obj) {
+        return obj.className();
+    }
 }
