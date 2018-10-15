@@ -26,6 +26,6 @@ public class Main inherits QUnit::Test {
     }
 
     callbackTest() {
-        assertEq(1, QoreCallback::callFunctionTest());
+        assertEq("test", QoreCallback::callFunctionTest());
     }
 }
