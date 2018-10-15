@@ -213,7 +213,7 @@ static int save_object(Env& env, jstring keyname, const QoreValue& rv, QoreProgr
     if (rv.getType() != NT_OBJECT) {
         return 0;
     }
-    QoreHashNode* data = pgm->getThreadData();
+        QoreHashNode* data = pgm->getThreadData();
     assert(data);
     const char* domain_name;
     // get key name where to save the data if possible
@@ -227,11 +227,13 @@ static int save_object(Env& env, jstring keyname, const QoreValue& rv, QoreProgr
     QoreValue kv = data->getKeyValue(domain_name);
     // ignore operation if domain exists but is not a hash
     if (!kv || kv.getType() == NT_HASH) {
-        ReferenceHolder<QoreHashNode> data2(&xsink);
+        QoreHashNode* data2;
+        ReferenceHolder<QoreHashNode> data2_holder(&xsink);
         // we need to assign data2 in data after we assign the object in order to manage object counts
         bool set;
         if (!kv) {
             data2 = new QoreHashNode(autoTypeInfo);
+            data2_holder = data2;
             set = true;
         } else {
             set = false;
@@ -241,7 +243,7 @@ static int save_object(Env& env, jstring keyname, const QoreValue& rv, QoreProgr
         Env::GetStringUtfChars kname(env, keyname);
         data2->setKeyValue(kname.c_str(), rv.refSelf(), &xsink);
         if (!xsink && set) {
-            data->setKeyValue(domain_name, data2.release(), &xsink);
+            data->setKeyValue(domain_name, data2_holder.release(), &xsink);
             if (xsink) {
                 QoreToJava::wrapException(xsink);
                 return -1;
@@ -251,6 +253,9 @@ static int save_object(Env& env, jstring keyname, const QoreValue& rv, QoreProgr
             QoreToJava::wrapException(xsink);
             return -1;
         }
+        //printd(5, "save_object() domain: '%s' key: '%s' obj: %p %s\n", domain_name, kname.c_str(), rv.get<QoreObject>(), rv.get<QoreObject>()->getClassName());
+    } else {
+        //printd(5, "save_object() NOT SAVING domain: '%s' HAS KEY v: %s (kv: %s)\n", domain_name, rv.getFullTypeName(), kv.getFullTypeName());
     }
     return 0;
 }
@@ -304,7 +309,9 @@ static jobject JNICALL java_api_call_function_save(JNIEnv* jenv, jobject obj, jl
     return java_api_call_function_internal(jenv, obj, ptr, keyname, name, args);
 }
 
-static jobject JNICALL java_api_new_object_intern(JNIEnv* jenv, jobject obj, jlong ptr, jstring keyname, jstring cname, jobjectArray args) {
+// private native static QoreObject newObjectSave0(long pgm_ptr, String key, String class_name, Object...args);
+static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong ptr, jstring keyname, jstring cname, jobjectArray args) {
+    assert(ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
     qoreThreadAttacher.attach();
 
@@ -322,7 +329,7 @@ static jobject JNICALL java_api_new_object_intern(JNIEnv* jenv, jobject obj, jlo
     }
 
     Env::GetStringUtfChars clsname(env, cname);
-    //printd(LogLevel, "java_api_new_object() class '%s' args: %p %d\n", fname.c_str(), *qore_args, len);
+    //printd(LogLevel, "java_api_new_object() class '%s' args: %p %d\n", clsname.c_str(), *qore_args, len);
 
     const QoreClass* cls = pgm->findClass(clsname.c_str(), &xsink);
     if (cls && !xsink) {
@@ -355,14 +362,6 @@ static jobject JNICALL java_api_new_object_intern(JNIEnv* jenv, jobject obj, jlo
         QoreToJava::wrapException(xsink);
         return nullptr;
     }
-}
-
-static jobject JNICALL java_api_new_object(JNIEnv* jenv, jobject obj, jlong ptr, jstring cname, jobjectArray args) {
-    return java_api_new_object_intern(jenv, obj, ptr, nullptr, cname, args);
-}
-
-static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong ptr, jstring keyname, jstring cname, jobjectArray args) {
-    return java_api_new_object_intern(jenv, obj, ptr, keyname, cname, args);
 }
 
 static void JNICALL qore_exception_wrapper_finalize(JNIEnv*, jclass, jlong ptr) {
@@ -567,11 +566,7 @@ static JNINativeMethod qoreJavaApiNativeMethods[] = {
         reinterpret_cast<void*>(java_api_call_function_save)
     },
     {
-        const_cast<char*>("newObject0"),
-        const_cast<char*>("(JLjava/lang/String;[Ljava/lang/Object;)Lorg/qore/jni/QoreObject;"),
-        reinterpret_cast<void*>(java_api_new_object)
-    },
-    {
+        // private native static QoreObject newObjectSave0(long pgm_ptr, String key, String class_name, Object...args);
         const_cast<char*>("newObjectSave0"),
         const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)Lorg/qore/jni/QoreObject;"),
         reinterpret_cast<void*>(java_api_new_object_save)

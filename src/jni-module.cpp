@@ -353,7 +353,7 @@ static void qore_jni_mc_define_pending_class(const QoreString& arg) {
     jargs[0].l = jname;
     jargs[1].l = jbyte_code;
 
-    env.callObjectMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderAddPendingClass, &jargs[0]);
+    env.callVoidMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderAddPendingClass, &jargs[0]);
 }
 
 static void qore_jni_mc_define_class(const QoreString& arg) {
