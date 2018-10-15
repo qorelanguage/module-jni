@@ -39,7 +39,7 @@ class TestClass {
         string member = "mem";
     }
 
-    string getString(string str) {
+    string getString(string str = "default") {
         return str + "-x";
     }
 
@@ -54,6 +54,20 @@ class TestClass {
                 "b": "four",
             },
         );
+    }
+}
+
+class TestClass2 {
+    public {
+        static int cnt = 0;
+    }
+
+    destructor() {
+        ++cnt;
+    }
+
+    string getString(string str = "default") {
+        return str + "-y";
     }
 }
 
@@ -179,6 +193,16 @@ public class Main inherits QUnit::Test {
         remove v;
         v = QoreJavaApiTest::testObject12();
         assertThrows("OBJECT-ALREADY-DELETED", \v.getString(), "str");
+
+        t = new TestClass();
+        string val = QoreJavaApiTest::testObject14(t);
+        assertEq("default-x", val);
+
+        # test new object creation and saving a strong reference in a Java thread
+        assertEq("default-y", QoreJavaApiTest::testObject15());
+        # ensure that thread-local data created from Java threads is destroyed when
+        # the Java thread terminates
+        assertEq(1, TestClass2::cnt);
     }
 
     dateTest() {

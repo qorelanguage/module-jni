@@ -227,20 +227,26 @@ static int save_object(Env& env, jstring keyname, const QoreValue& rv, QoreProgr
     QoreValue kv = data->getKeyValue(domain_name);
     // ignore operation if domain exists but is not a hash
     if (!kv || kv.getType() == NT_HASH) {
-        QoreHashNode* data2;
+        ReferenceHolder<QoreHashNode> data2(&xsink);
+        // we need to assign data2 in data after we assign the object in order to manage object counts
+        bool set;
         if (!kv) {
             data2 = new QoreHashNode(autoTypeInfo);
-            data->setKeyValue(domain_name, data2, &xsink);
-            if (xsink) {
-                QoreToJava::wrapException(xsink);
-                return -1;
-            }
+            set = true;
         } else {
+            set = false;
             data2 = kv.get<QoreHashNode>();
         }
 
         Env::GetStringUtfChars kname(env, keyname);
         data2->setKeyValue(kname.c_str(), rv.refSelf(), &xsink);
+        if (!xsink && set) {
+            data->setKeyValue(domain_name, data2.release(), &xsink);
+            if (xsink) {
+                QoreToJava::wrapException(xsink);
+                return -1;
+            }
+        }
         if (xsink) {
             QoreToJava::wrapException(xsink);
             return -1;
@@ -430,6 +436,8 @@ static jboolean JNICALL qore_object_instance_of(JNIEnv* jenv, jclass, jlong ptr,
 static jobject qore_object_call_method_internal(JNIEnv* jenv, jclass, jlong ptr, jstring keyname, jstring mname, jobjectArray args) {
     assert(ptr);
     QoreObject* obj = reinterpret_cast<QoreObject*>(ptr);
+    // must ensure that the thread is attached before executing Qore code
+    qoreThreadAttacher.attach();
 
     ExceptionSink xsink;
     Env env(jenv);
@@ -482,6 +490,8 @@ static jobject JNICALL qore_object_call_method_save(JNIEnv* jenv, jclass jcls, j
 static jobject JNICALL qore_object_get_member_value(JNIEnv*, jclass, jlong ptr, jstring mname) {
     assert(ptr);
     QoreObject* obj = reinterpret_cast<QoreObject*>(ptr);
+    // must ensure that the thread is attached before calling QoreOBject::getReferencedMemberNoMethod()
+    qoreThreadAttacher.attach();
 
     Env env;
     Env::GetStringUtfChars member_name(env, mname);
@@ -517,6 +527,8 @@ static void JNICALL qore_object_release(JNIEnv*, jclass, jlong ptr) {
 
 static void JNICALL qore_object_destroy(JNIEnv*, jclass, jlong ptr) {
     assert(ptr);
+    // must ensure that the thread is attached before executing Qore code
+    qoreThreadAttacher.attach();
     ExceptionSink xsink;
     reinterpret_cast<QoreObject*>(ptr)->doDelete(&xsink);
     reinterpret_cast<QoreObject*>(ptr)->tDeref();

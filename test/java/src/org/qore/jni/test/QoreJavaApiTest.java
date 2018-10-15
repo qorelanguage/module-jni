@@ -28,11 +28,38 @@ class ThreadTest2 implements Runnable {
         try {
             // this will throw an exception
             runme1.run();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
         }
 
         runme2.run();
+    }
+}
+
+class ThreadTest3 implements Runnable {
+    static public String result;
+    public QoreObject obj;
+
+    ThreadTest3(QoreObject obj) {
+        this.obj = obj;
+    }
+
+    public void run() {
+        try {
+            result = (String)obj.callMethod("getString");
+        } catch (Throwable e) {
+        }
+    }
+}
+
+class ThreadTest4 implements Runnable {
+    static public String result;
+
+    public void run() {
+        try {
+            QoreObject obj = QoreJavaApi.newObjectSave("test", "TestClass2");
+            result = (String)obj.callMethod("getString");
+        } catch (Throwable e) {
+        }
     }
 }
 
@@ -131,5 +158,19 @@ public class QoreJavaApiTest {
 
     static Object testObject13() throws Throwable {
         return QoreJavaApi.callFunctionSave("test", "get_object");
+    }
+
+    static String testObject14(QoreObject obj) throws InterruptedException {
+        Thread mythread = new Thread(new ThreadTest3(obj));
+        mythread.start();
+        mythread.join();
+        return ThreadTest3.result;
+    }
+
+    static String testObject15() throws InterruptedException {
+        Thread mythread = new Thread(new ThreadTest4());
+        mythread.start();
+        mythread.join();
+        return ThreadTest4.result;
     }
 }
