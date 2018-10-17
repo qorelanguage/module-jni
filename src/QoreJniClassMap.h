@@ -36,6 +36,8 @@ DLLLOCAL QoreClass* initQoreInvocationHandlerClass(QoreNamespace& ns);
 DLLLOCAL void init_jni_functions(QoreNamespace& ns);
 DLLLOCAL QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname);
 
+DLLLOCAL extern bool jni_compat_types;
+
 namespace jni {
 
 // the QoreBuiltinClass for java::lang::Object

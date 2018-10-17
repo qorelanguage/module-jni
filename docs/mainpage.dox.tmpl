@@ -140,6 +140,15 @@
       inner classes and has been implemented to allow circular dependencies in such classes to be resolved;
       \c &lt;name&gt; is the Java internal name for the inner class (ex: \c my/package/MyClassName$1)
 
+    @section jni_compat JNI Module Compatibility Options
+
+    This module supports the following compatibility option: \c "compat-types" which, when enabled, will disable the following
+    type conversions:
+    - Java \c byte[] to \c binary; instead this will converted to \c list<int>
+
+    This option can be set with <tt>set_module_option("jni", "compat-type", True)</tt> or with the \c set-compat-type module
+    parse option like <tt>%module-cmd(jni) set-compat-type true</tt>
+
     @section jni_types Type Conversions Between Qore and Java
 
     The \c jni module uses reflection to automatically map Java classes to Qore classes.  This class mapping and Qore class creation happens at parse time (when @ref jniimport "importing Java APIs" into %Qore) and also at runtime (if a new class is encountered that has not already been mapped).
@@ -177,11 +186,12 @@
     |@ref string_type "string"|\c java.lang.String
     |@ref date_type "date"|\c java.time.ZonedDateTime
     |@ref number_type "number"|\c java.math.BigDecimal
+    |@ref binary_type "binary"|\c byte[]
     |@ref nothing_type "NOTHING" and @ref null_type "NULL"|\c void
-    |@ref list_type "list"|\c java.lang.Array
+    |@ref list_type "list"|java Arrays of the list type; if no list type can be found, then the Array type is \c java.lang.Object
     |@ref hash_type "hash"|\c java.util.HashMap
     |@ref Jni::org::qore::jni::JavaArray "JavaArray"|\c java.lang.Array
-    |@ref object_type "object"|to the JAva class if the Qore object is an instantiation of a Java object, otherwise \c org.qore.jni.QoreObject
+    |@ref object_type "object"|to the Java class if the Qore object is an instantiation of \c java.lang.Object, otherwise @ref  org.qore.jni.QoreObject
     |all \c jni objects|direct conversion
 
     @note
@@ -194,6 +204,7 @@
     |!Source Java Type|!Target %Qore Type
     |\c boolean|@ref bool_type "bool"
     |\c byte|@ref int_type "int"
+    |\c byte[]|@ref binary_type "binary" (see also @ref jni_compat)
     |\c char|@ref int_type "int"
     |\c short|@ref int_type "int"
     |\c int|@ref int_type "int"

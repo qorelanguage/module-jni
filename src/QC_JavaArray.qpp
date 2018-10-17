@@ -32,6 +32,7 @@
 
 #include "Array.h"
 #include "QoreJniClassMap.h"
+#include "QoreToJava.h"
 
 using namespace jni;
 
@@ -79,13 +80,13 @@ int JavaArray::length() {
     @return the value of the element
     @throws JNI-ERROR if the index is out of bounds
  */
-any JavaArray::get(int index) {
-   try {
-      return array->get(index);
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
+auto JavaArray::get(int index) {
+    try {
+        return array->get(index);
+    } catch (jni::Exception &e) {
+        e.convert(xsink);
+        return QoreValue();
+    }
 }
 
 //! Sets the value of a an element.
@@ -122,7 +123,6 @@ string JavaArray::toString() [flags=CONSTANT] {
    return QoreValue();
 }
 
-
 //! Returns a "deep" string representation of the array
 /** @par Example:
     @code{.py}
@@ -140,4 +140,18 @@ string JavaArray::deepToString() [flags=CONSTANT] {
       e.convert(xsink);
    }
    return QoreValue();
+}
+
+//! Returns a byte[] array for the binary object as an explicit conversion
+/** @par Example:
+    @code{.py}
+JavaArray a = JavaArray::get(bin);
+    @endcode
+
+    @return a byte[] array for the binary object as an explicit conversion
+
+    @since jni 1.1
+*/
+static JavaArray JavaArray::get(binary b) [flags=CONSTANT] {
+    return QoreToJava::makeByteArray(*b);
 }

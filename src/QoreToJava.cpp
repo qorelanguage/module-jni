@@ -45,8 +45,14 @@ static jobject jni_date_to_jobject(const DateTimeNode& qdate) {
         jargs[0].l = date_str;
         return env.callStaticObjectMethod(Globals::classZonedDateTime, Globals::methodZonedDateTimeParse, &jargs[0]).release();
     }
-    QoreStringMaker desc("cannot convert a relative date/time value to a Java object (expecting an absolute date/time value)");
-    throw BasicException(desc.c_str());
+
+    Env env;
+    jvalue arg;
+    arg.i = qdate.getRelativeMilliseconds();
+    return env.newObject(Globals::classInteger, Globals::ctorInteger, &arg).release();
+
+    //QoreStringMaker desc("cannot convert a relative date/time value to a Java object (expecting an absolute date/time value)");
+    //throw BasicException(desc.c_str());
 }
 
 static jobject jni_number_to_jobject(const QoreNumberNode& num) {

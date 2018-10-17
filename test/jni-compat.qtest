@@ -1,0 +1,93 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+
+%requires QUnit
+%requires Util
+
+%module-cmd(jni) set-compat-types true
+%module-cmd(jni) add-relative-classpath qore-jni-test.jar
+%module-cmd(jni) import java.lang.reflect.*
+%module-cmd(jni) import java.lang.invoke.*
+%module-cmd(jni) import org.qore.jni.test.Fields
+%module-cmd(jni) import org.qore.jni.test.QoreJavaApiTest
+
+%exec-class Main
+
+public class Main inherits QUnit::Test {
+    constructor() : Test("jni compat test", "1.0") {
+        addTestCase("jni compat test case 1", \jniCompatTest1());
+        addTestCase("jni compat test case 2", \jniCompatTest2());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    jniCompatTest1() {
+        lang::Class clazz = load_class("org/qore/jni/test/StaticFields");
+
+        Field o = clazz.getDeclaredField("o");
+        Field ba = clazz.getDeclaredField("ba");
+        Field oa = clazz.getDeclaredField("oa");
+        Field ia = clazz.getDeclaredField("ia");
+
+        list byteArray = ba.get();
+        list objectArray = oa.get();
+        list intArray = ia.get();
+
+        int myint = clazz.getDeclaredMethod("wrap", Integer::TYPE).invoke(NOTHING, (42, ));
+
+        o.set(NOTHING, byteArray);                                               # arrays in Java are Objects
+        # byte[] is not a subtype of Object[], but a list of ints is converted to int[]
+        oa.set(NOTHING, byteArray);
+        oa.set(NOTHING, intArray);                                               # arrays in Java are covariant
+        assertThrows("JNI-ERROR", sub() { ia.set(NOTHING, objectArray); });      # Object[] is not a subtype of Integer[]
+        assertThrows("JNI-ERROR", sub() { ba.set(NOTHING, myint); });            # Integer is not a byte[]
+
+        o.set(NOTHING, clazz);                                                   # classes are objects, too
+    }
+
+    jniCompatTest2() {
+        lang::Class clazz = load_class("org/qore/jni/test/Fields");
+
+        Object instance = clazz.getDeclaredField("instance").get();
+
+        Field z = clazz.getDeclaredField("z");
+        Field ba = clazz.getDeclaredField("ba");
+        Field o = clazz.getDeclaredField("o");
+        Field oa = clazz.getDeclaredField("oa");
+        Field ia = clazz.getDeclaredField("ia");
+
+        list byteArray = ba.get(instance);
+        list objectArray = oa.get(instance);
+        list intArray = ia.get(instance);
+
+        o.set(instance, byteArray);                                             # arrays in Java are Objects
+        # byte[] is not a subtype of Object[], but a list of ints is converted to int[]
+        oa.set(instance, byteArray);
+        oa.set(instance, intArray);                                             # arrays in Java are covariant
+        assertThrows("JNI-ERROR", sub() { ia.set(instance, objectArray); });    # Object[] is not a subtype of Integer[]
+
+        o.set(instance, clazz);                                                 # classes are objects, too
+
+        assertThrows("JNI-ERROR", sub() { z.set(byteArray, True); });
+
+        # test Qore explicit Field access
+        assertEq((0, 0, 0), instance.ba);
+        assertEq((NOTHING, NOTHING, NOTHING), instance.oa);
+        assertEq((NOTHING, NOTHING, NOTHING), instance.ia);
+
+        # Qore's access protection is triggered here
+        assertThrows("PRIVATE-MEMBER", sub () { delete instance.z;});
+        # here the builtin methodGate method is called
+        assertThrows("JNI-ACCESS-ERROR", sub () { any bl = instance.z; delete bl; });
+        # Qore's access protection is triggered here
+        assertThrows("PRIVATE-MEMBER", sub () { delete instance.pi;});
+        # here the builtin methodGate method is called
+        assertThrows("JNI-ACCESS-ERROR", sub () { any bl = instance.pi; delete bl; });
+    }
+}

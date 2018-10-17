@@ -75,9 +75,26 @@ LocalReference<jarray> Array::getNew(Type elementType, jclass elementClass, jsiz
     }
 }
 
-QoreListNode* Array::getList(Env& env, jarray array, jclass arrayClass) {
+BinaryNode* Array::getBinary(Env& env, jarray array) {
+    SimpleRefHolder<BinaryNode> rv(new BinaryNode);
+
+    jsize size = env.getArrayLength(array);
+    rv->preallocate(size);
+
+    for (jsize i = 0; i < size; ++i) {
+        jbyte byte = env.getByteArrayElement(static_cast<jbyteArray>(array), i);
+        reinterpret_cast<jbyte*>(const_cast<void*>(rv->getPtr()))[i] = byte;
+    }
+    return rv.release();
+}
+
+AbstractQoreNode* Array::getList(Env& env, jarray array, jclass arrayClass, bool force_list) {
     LocalReference<jclass> elementClass = env.callObjectMethod(arrayClass, Globals::methodClassGetComponentType, nullptr).as<jclass>();
     Type elementType = Globals::getType(elementClass);
+    // issue #3026: return a binary object for byte[] unless jni_compat_types is set
+    if (elementType == Type::Byte && !jni_compat_types && !force_list) {
+        return getBinary(env, array);
+    }
 
     ExceptionSink xsink;
     ReferenceHolder<QoreListNode> l(new QoreListNode(autoTypeInfo), &xsink);
@@ -247,7 +264,7 @@ LocalReference<jarray> Array::toJava(const QoreListNode* l) {
 
 QoreListNode* Array::getArgList(Env& env, jarray array) {
     LocalReference<jclass> arrayClass = env.getObjectClass(array);
-    return getList(env, array, arrayClass);
+    return reinterpret_cast<QoreListNode*>(getList(env, array, arrayClass, true));
 }
 
 } // namespace jni

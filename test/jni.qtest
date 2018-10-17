@@ -10,13 +10,11 @@
 %requires QUnit
 %requires Util
 
-#%module-cmd(jni) add-relative-classpath java/bin
 %module-cmd(jni) add-relative-classpath qore-jni-test.jar
 %module-cmd(jni) import java.lang.reflect.*
 %module-cmd(jni) import java.lang.invoke.*
 %module-cmd(jni) import org.qore.jni.test.Fields
 %module-cmd(jni) import org.qore.jni.test.QoreJavaApiTest
-#%module-cmd(jni) import java.time.ZonedDateTime
 
 %exec-class Main
 
@@ -479,13 +477,13 @@ public class Main inherits QUnit::Test {
         assertThrows("JNI-ERROR", sub(){ l.set(NOTHING, myint); });
         assertEq(NOTHING, l.get());
 
-        list byteArray = ba.get();
+        binary byteArray = ba.get();
         list objectArray = oa.get();
         list intArray = ia.get();
 
-        o.set(NOTHING, byteArray);                                               # arrays in Java are Objects
+        o.set(NOTHING, JavaArray::get(byteArray));                               # arrays in Java are Objects
         # byte[] is not a subtype of Object[], but a list of ints is converted to int[]
-        oa.set(NOTHING, byteArray);
+        assertThrows("JNI-ERROR", \oa.set(), (NOTHING, JavaArray::get(byteArray)));
         oa.set(NOTHING, intArray);                                               # arrays in Java are covariant
         assertThrows("JNI-ERROR", sub() { ia.set(NOTHING, objectArray); });      # Object[] is not a subtype of Integer[]
         assertThrows("JNI-ERROR", sub() { n.set(NOTHING, byteArray); });         # byte[] is not a Number
@@ -540,13 +538,13 @@ public class Main inherits QUnit::Test {
         d.set(instance, @Inf@);
         assertTrue(d.get(instance).infp());
 
-        list byteArray = ba.get(instance);
+        binary byteArray = ba.get(instance);
         list objectArray = oa.get(instance);
         list intArray = ia.get(instance);
 
         o.set(instance, byteArray);                                             # arrays in Java are Objects
         # byte[] is not a subtype of Object[], but a list of ints is converted to int[]
-        oa.set(instance, byteArray);
+        assertThrows("JNI-ERROR", \oa.set(), (instance, byteArray));
         oa.set(instance, intArray);                                             # arrays in Java are covariant
         assertThrows("JNI-ERROR", sub() { ia.set(instance, objectArray); });    # Object[] is not a subtype of Integer[]
 
@@ -555,7 +553,7 @@ public class Main inherits QUnit::Test {
         assertThrows("JNI-ERROR", sub() { z.set(byteArray, True); });
 
         # test Qore explicit Field access
-        assertEq((0, 0, 0), instance.ba);
+        assertEq(<000000>, instance.ba);
         assertEq((NOTHING, NOTHING, NOTHING), instance.oa);
         assertEq((NOTHING, NOTHING, NOTHING), instance.ia);
 

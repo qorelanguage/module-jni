@@ -80,6 +80,9 @@ DLLEXPORT qore_module_parse_cmd_t qore_module_parse_cmd = jni_module_parse_cmd;
 DLLEXPORT qore_license_t qore_module_license = QL_MIT;
 DLLEXPORT char qore_module_license_str[] = "MIT";
 
+// global type compatibility option
+DLLLOCAL bool jni_compat_types = false;
+
 // module cmd type
 typedef void (qore_jni_module_cmd_t)(const QoreString& arg);
 static void qore_jni_mc_import(const QoreString& arg);
@@ -88,6 +91,7 @@ static void qore_jni_mc_add_relative_classpath(const QoreString& arg);
 // define-pending-class: for resolving circular dependencies with inner classes
 static void qore_jni_mc_define_pending_class(const QoreString& arg);
 static void qore_jni_mc_define_class(const QoreString& arg);
+static void qore_jni_mc_set_compat_types(const QoreString& arg);
 
 // module cmds
 typedef std::map<std::string, std::function<qore_jni_module_cmd_t>> mcmap_t;
@@ -97,6 +101,7 @@ static mcmap_t mcmap = {
     {"add-relative-classpath", qore_jni_mc_add_relative_classpath},
     {"define-pending-class", qore_jni_mc_define_pending_class},
     {"define-class", qore_jni_mc_define_class},
+    {"set-compat-types", qore_jni_mc_set_compat_types},
 };
 
 static void jni_thread_cleanup(void*) {
@@ -160,6 +165,12 @@ static QoreStringNode* jni_module_init() {
         qore_release_signals(sig_vec, QORE_JNI_MODULE_NAME);
         jni::Jvm::destroyVM();
         return new QoreStringNode("ERR");
+    }
+
+    ExceptionSink xsink;
+    ValueHolder v(qore_get_module_option("jni", "compat-types"), &xsink);
+    if (v) {
+        jni_compat_types = true;
     }
 
     return nullptr;
@@ -384,6 +395,10 @@ static void qore_jni_mc_define_class(const QoreString& arg) {
     dot_name.replaceAll("/", ".");
     //printd(5, "qore_jni_mc_define_class() dot name: '%s' jname: '%s' class size: %d\n", dot_name.c_str(), name.c_str(), byte_code->size());
     qjcm.findCreateQoreClassInProgram(dot_name, java_name.c_str(), new Class(jcls));
+}
+
+static void qore_jni_mc_set_compat_types(const QoreString& arg) {
+    jni_compat_types = true;
 }
 
 QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
