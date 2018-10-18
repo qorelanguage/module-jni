@@ -144,9 +144,6 @@ public:
     static jmethodID methodHashMapPut;                                   // Object HashMap.put(Object K, Object V)
     static jmethodID methodHashMapEntrySet;                              // Set<Map.Entry<K,V>> HashMap.entrySet()
 
-    static GlobalReference<jclass> classQoreHashMap;                     // org.qore.jni.QoreHashMap
-    static jmethodID ctorQoreHashMap;                                    // QoreHashMap()
-
     static GlobalReference<jclass> classSet;                             // java.util.Set
     static jmethodID methodSetIterator;                                  // Set.iterator()
 

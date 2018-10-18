@@ -22,6 +22,7 @@ public class Main inherits QUnit::Test {
     constructor() : Test("jni compat test", "1.0") {
         addTestCase("jni compat test case 1", \jniCompatTest1());
         addTestCase("jni compat test case 2", \jniCompatTest2());
+        addTestCase("jni compat HashMap test case", \jniCompatHashMapTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -89,5 +90,14 @@ public class Main inherits QUnit::Test {
         assertThrows("PRIVATE-MEMBER", sub () { delete instance.pi;});
         # here the builtin methodGate method is called
         assertThrows("JNI-ACCESS-ERROR", sub () { any bl = instance.pi; delete bl; });
+    }
+
+    jniCompatHashMapTest() {
+        auto l = QoreJavaApiTest::testObject6();
+        assertEq("object<HashMap>", l[0].fullType());
+        assertEq("HashMap", l[0].className());
+
+        auto hm = QoreJavaApiTest::callFunctionTest();
+        assertEq("object<HashMap>", hm.fullType());
     }
 }

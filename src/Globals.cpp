@@ -140,9 +140,6 @@ jmethodID Globals::ctorHashMap;
 jmethodID Globals::methodHashMapPut;
 jmethodID Globals::methodHashMapEntrySet;
 
-GlobalReference<jclass> Globals::classQoreHashMap;
-jmethodID Globals::ctorQoreHashMap;
-
 GlobalReference<jclass> Globals::classSet;
 jmethodID Globals::methodSetIterator;
 
@@ -261,10 +258,14 @@ static int save_object(Env& env, jstring keyname, const QoreValue& rv, QoreProgr
 }
 
 static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong ptr, jstring keyname, jstring name, jobjectArray args) {
-    QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
-    qoreThreadAttacher.attach();
-
     Env env(jenv);
+    try {
+        qoreThreadAttacher.attach();
+    } catch (Exception& e) {
+        env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
+        return nullptr;
+    }
+    QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
 
     QoreProgramContextHelper pch(pgm);
 
@@ -313,9 +314,13 @@ static jobject JNICALL java_api_call_function_save(JNIEnv* jenv, jobject obj, jl
 static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong ptr, jstring keyname, jstring cname, jobjectArray args) {
     assert(ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
-    qoreThreadAttacher.attach();
-
     Env env(jenv);
+    try {
+        qoreThreadAttacher.attach();
+    } catch (Exception& e) {
+        env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
+        return nullptr;
+    }
 
     QoreProgramContextHelper pch(pgm);
 
@@ -432,24 +437,37 @@ static jboolean JNICALL qore_object_instance_of(JNIEnv* jenv, jclass, jlong ptr,
     return obj->validInstanceOf(*cls);
 }
 
-static jobject qore_object_call_method_internal(JNIEnv* jenv, jclass, jlong ptr, jstring keyname, jstring mname, jobjectArray args) {
-    assert(ptr);
-    QoreObject* obj = reinterpret_cast<QoreObject*>(ptr);
+static jobject qore_object_call_method_internal(JNIEnv* jenv, jclass, jlong pgm_ptr, jlong obj_ptr, jstring keyname, jstring mname, jobjectArray args) {
+    assert(pgm_ptr);
+    assert(obj_ptr);
+    QoreProgram* pgm = reinterpret_cast<QoreProgram*>(pgm_ptr);
+    QoreObject* obj = reinterpret_cast<QoreObject*>(obj_ptr);
     // must ensure that the thread is attached before executing Qore code
-    qoreThreadAttacher.attach();
-
-    ExceptionSink xsink;
     Env env(jenv);
-    jsize len = args ? env.getArrayLength(args) : 0;
-    ReferenceHolder<QoreListNode> qore_args(&xsink);
-
-    if (len) {
-        qore_args = Array::getArgList(env, args);
+    try {
+        qoreThreadAttacher.attach();
+    } catch (Exception& e) {
+        env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
+        return nullptr;
     }
 
-    Env::GetStringUtfChars method_name(env, mname);
-
+    ExceptionSink xsink;
     try {
+        // set program context before converting arguments
+        QoreExternalProgramContextHelper pch(&xsink, pgm);
+        if (xsink) {
+            throw XsinkException(xsink);
+        }
+
+        jsize len = args ? env.getArrayLength(args) : 0;
+        ReferenceHolder<QoreListNode> qore_args(&xsink);
+
+        if (len) {
+            qore_args = Array::getArgList(env, args);
+        }
+
+        Env::GetStringUtfChars method_name(env, mname);
+
         ValueHolder val(obj->evalMethod(method_name.c_str(), *qore_args, &xsink), &xsink);
         if (xsink) {
             throw XsinkException(xsink);
@@ -478,21 +496,26 @@ static jobject qore_object_call_method_internal(JNIEnv* jenv, jclass, jlong ptr,
     return nullptr;
 }
 
-static jobject JNICALL qore_object_call_method(JNIEnv* jenv, jclass jcls, jlong ptr, jstring mname, jobjectArray args) {
-    return qore_object_call_method_internal(jenv, jcls, ptr, nullptr, mname, args);
+static jobject JNICALL qore_object_call_method(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr, jstring mname, jobjectArray args) {
+    return qore_object_call_method_internal(jenv, jcls, pgm_ptr, obj_ptr, nullptr, mname, args);
 }
 
-static jobject JNICALL qore_object_call_method_save(JNIEnv* jenv, jclass jcls, jlong ptr, jstring keyname, jstring mname, jobjectArray args) {
-    return qore_object_call_method_internal(jenv, jcls, ptr, keyname, mname, args);
+static jobject JNICALL qore_object_call_method_save(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr, jstring keyname, jstring mname, jobjectArray args) {
+    return qore_object_call_method_internal(jenv, jcls, pgm_ptr, obj_ptr, keyname, mname, args);
 }
 
-static jobject JNICALL qore_object_get_member_value(JNIEnv*, jclass, jlong ptr, jstring mname) {
+static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jclass, jlong ptr, jstring mname) {
     assert(ptr);
     QoreObject* obj = reinterpret_cast<QoreObject*>(ptr);
     // must ensure that the thread is attached before calling QoreOBject::getReferencedMemberNoMethod()
-    qoreThreadAttacher.attach();
+    Env env(jenv);
+    try {
+        qoreThreadAttacher.attach();
+    } catch (Exception& e) {
+        env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
+        return nullptr;
+    }
 
-    Env env;
     Env::GetStringUtfChars member_name(env, mname);
 
     ExceptionSink xsink;
@@ -524,15 +547,37 @@ static void JNICALL qore_object_release(JNIEnv*, jclass, jlong ptr) {
     reinterpret_cast<QoreObject*>(ptr)->tDeref();
 }
 
-static void JNICALL qore_object_destroy(JNIEnv*, jclass, jlong ptr) {
+static void JNICALL qore_object_destroy(JNIEnv* jenv, jclass, jlong ptr) {
     assert(ptr);
     // must ensure that the thread is attached before executing Qore code
-    qoreThreadAttacher.attach();
+    Env env(jenv);
+    try {
+        qoreThreadAttacher.attach();
+    } catch (Exception& e) {
+        // NOTE: this results in a memory leak
+        env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
+        return;
+    }
+
     ExceptionSink xsink;
-    reinterpret_cast<QoreObject*>(ptr)->doDelete(&xsink);
-    reinterpret_cast<QoreObject*>(ptr)->tDeref();
-    if (xsink) {
-        throw XsinkException(xsink);
+    try {
+        reinterpret_cast<QoreObject*>(ptr)->doDelete(&xsink);
+        reinterpret_cast<QoreObject*>(ptr)->tDeref();
+        if (xsink) {
+            throw XsinkException(xsink);
+        }
+    } catch (jni::Exception& e) {
+        e.convert(&xsink);
+        QoreToJava::wrapException(xsink);
+    } catch (const std::bad_alloc& e) {
+        // translate OOM C++ exception to a Java exception
+        env.throwNew(env.findClass("java/lang/OutOfMemoryError"), e.what());
+    } catch (const std::exception& e) {
+        // translate unknown C++ exceptions to a Java exception
+        env.throwNew(env.findClass("java/lang/Error"), e.what());
+    } catch (...) {
+        // translate unknown C++ exception to a Java exception
+        env.throwNew(env.findClass("java/lang/Error"), "Unknown exception type");
     }
 }
 
@@ -601,12 +646,12 @@ static JNINativeMethod qoreObjectNativeMethods[] = {
     },
     {
         const_cast<char*>("callMethod0"),
-        const_cast<char*>("(JLjava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;"),
+        const_cast<char*>("(JJLjava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;"),
         reinterpret_cast<void*>(qore_object_call_method)
     },
     {
         const_cast<char*>("callMethodSave0"),
-        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;"),
+        const_cast<char*>("(JJLjava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;"),
         reinterpret_cast<void*>(qore_object_call_method_save)
     },
     {
@@ -643,7 +688,6 @@ static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperNa
 #include "JavaClassQoreExceptionWrapper.inc"
 #include "JavaClassQoreObject.inc"
 #include "JavaClassQoreObjectWrapper.inc"
-#include "JavaClassQoreHashMap.inc"
 #include "JavaClassQoreURLClassLoader.inc"
 #include "JavaClassQoreURLClassLoader_1.inc"
 #include "JavaClassQoreJavaApi.inc"
@@ -760,9 +804,6 @@ void Globals::init() {
     methodHashMapPut = env.getMethod(classHashMap, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
     methodHashMapEntrySet = env.getMethod(classHashMap, "entrySet", "()Ljava/util/Set;");
 
-    classQoreHashMap = env.defineClass("org/qore/jni/QoreHashMap", nullptr, java_org_qore_jni_QoreHashMap_class,  java_org_qore_jni_QoreHashMap_class_len).makeGlobal();
-    ctorQoreHashMap = env.getMethod(classQoreHashMap, "<init>", "()V");
-
     classSet = env.findClass("java/util/Set").makeGlobal();
     methodSetIterator = env.getMethod(classSet, "iterator", "()Ljava/util/Iterator;");
 
@@ -847,7 +888,6 @@ void Globals::cleanup() {
     classQoreURLClassLoader = nullptr;
     classThread = nullptr;
     classHashMap = nullptr;
-    classQoreHashMap = nullptr;
     classSet = nullptr;
     classEntry = nullptr;
     classIterator = nullptr;

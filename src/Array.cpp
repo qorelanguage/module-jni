@@ -92,7 +92,7 @@ AbstractQoreNode* Array::getList(Env& env, jarray array, jclass arrayClass, bool
     LocalReference<jclass> elementClass = env.callObjectMethod(arrayClass, Globals::methodClassGetComponentType, nullptr).as<jclass>();
     Type elementType = Globals::getType(elementClass);
     // issue #3026: return a binary object for byte[] unless jni_compat_types is set
-    if (elementType == Type::Byte && !jni_compat_types && !force_list) {
+    if (elementType == Type::Byte && !JniExternalProgramData::compatTypes() && !force_list) {
         return getBinary(env, array);
     }
 
@@ -193,11 +193,10 @@ jclass Array::getClassForValue(QoreValue v) {
         case NT_INT: return Globals::classInteger.toLocal();
         case NT_FLOAT: return Globals::classDouble.toLocal();
         case NT_BOOLEAN: return Globals::classBoolean.toLocal();
-
         case NT_STRING: return Globals::classString.toLocal();
         case NT_DATE: return Globals::classZonedDateTime.toLocal();
         case NT_NUMBER: return Globals::classBigDecimal.toLocal();
-        case NT_HASH: return Globals::classQoreHashMap.toLocal();
+        case NT_HASH: return Globals::classHashMap.toLocal();
         case NT_OBJECT: {
             QoreObject* o = v.get<QoreObject>();
             ExceptionSink xsink;

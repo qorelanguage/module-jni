@@ -1,5 +1,7 @@
 package org.qore.jni;
 
+import org.qore.jni.QoreURLClassLoader;
+
 //! wrapper class for a Qore object; this class holds a weak reference to the Qore object
 /** @note API usage errors such as with releasing / deleting the object and then calling methods
     on the object will cause a crash
@@ -30,12 +32,12 @@ public class QoreObject {
 
     //! calls the given method with the given arguments and returns the result
     public Object callMethod(String name, Object... args) throws Throwable {
-        return callMethod0(obj, name, args);
+        return callMethod0(QoreURLClassLoader.getProgramPtr(), obj, name, args);
     }
 
     //! calls the given method with the given arguments and returns the result
     public Object callMethodArgs(String name, Object[] args) throws Throwable {
-        return callMethod0(obj, name, args);
+        return callMethod0(QoreURLClassLoader.getProgramPtr(), obj, name, args);
     }
 
     //! Calls the given method with the given arguments and returns the result; if an object is returned, then a strong reference to the object is stored in thread-local data under the given key
@@ -50,7 +52,7 @@ public class QoreObject {
      * @throws Throwable any Qore-language exception is rethrown here
      */
     public Object callMethodSave(String key, String name, Object... args) throws Throwable {
-        return callMethodSave0(obj, key, name, args);
+        return callMethodSave0(QoreURLClassLoader.getProgramPtr(), obj, key, name, args);
     }
 
     //! Calls the given method with the given arguments and returns the result; if an object is returned, then a strong reference to the object is stored in thread-local data under the given key
@@ -65,7 +67,7 @@ public class QoreObject {
      * @throws Throwable any Qore-language exception is rethrown here
      */
     public Object callMethodArgsSave(String key, String name, Object[] args) throws Throwable {
-        return callMethodSave0(obj, key, name, args);
+        return callMethodSave0(QoreURLClassLoader.getProgramPtr(), obj, key, name, args);
     }
 
     //! returns the value of the given member
@@ -110,8 +112,8 @@ public class QoreObject {
 
     private native String className0(long obj_ptr);
     private native boolean instanceOf0(long obj_ptr, String class_name);
-    private native Object callMethod0(long obj_ptr, String name, Object... args);
-    private native Object callMethodSave0(long obj_ptr, String key, String name, Object... args);
+    private native Object callMethod0(long pgm_ptr, long obj_ptr, String name, Object... args);
+    private native Object callMethodSave0(long pgm_ptr, long obj_ptr, String key, String name, Object... args);
     private native Object getMemberValue0(long obj_ptr, String name);
     private native void release0(long obj_ptr);
     private native void destroy0(long obj_ptr);

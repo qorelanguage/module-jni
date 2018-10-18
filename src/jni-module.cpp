@@ -398,7 +398,14 @@ static void qore_jni_mc_define_class(const QoreString& arg) {
 }
 
 static void qore_jni_mc_set_compat_types(const QoreString& arg) {
-    jni_compat_types = true;
+    QoreProgram* pgm = getProgram();
+    assert(pgm);
+    assert(pgm->checkFeature(QORE_JNI_MODULE_NAME));
+    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+    assert(jpc);
+
+    bool compat_types = q_parse_bool(arg.c_str());
+    jpc->overrideCompatTypes(compat_types);
 }
 
 QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {

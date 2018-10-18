@@ -48,17 +48,17 @@ namespace jni {
 class Array : public QoreJniPrivateData {
     public:
     /**
-        * \brief Constructor.
-        * \param array a local reference to a Java array instance
-        * \throws JavaException if a global reference cannot be created
-        */
+     * \brief Constructor.
+     * \param array a local reference to a Java array instance
+     * \throws JavaException if a global reference cannot be created
+     */
     DLLLOCAL Array(jarray array);
 
     /**
-        * \brief Constructor
-        * \param elementClass a local reference to the component class
-        * \param size the size of the array
-        */
+     * \brief Constructor
+     * \param elementClass a local reference to the component class
+     * \param size the size of the array
+     */
     DLLLOCAL Array(jclass elementClass, int size);
 
     DLLLOCAL ~Array() {

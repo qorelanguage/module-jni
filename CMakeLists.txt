@@ -75,7 +75,6 @@ generate_java(org/qore/jni/QoreJavaApi.java)
 generate_java(org/qore/jni/QoreExceptionWrapper.java)
 generate_java(org/qore/jni/QoreObject.java)
 generate_java(org/qore/jni/QoreObjectWrapper.java)
-generate_java(org/qore/jni/QoreHashMap.java)
 generate_java(org/qore/jni/QoreInvocationHandler.java)
 generate_java(org/qore/jni/QoreURLClassLoader.java 1)
 

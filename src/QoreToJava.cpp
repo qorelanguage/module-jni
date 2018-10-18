@@ -234,7 +234,7 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
 
 jobject QoreToJava::makeHashMap(const QoreHashNode& h) {
     Env env;
-    LocalReference<jobject> hm = env.newObject(Globals::classQoreHashMap, Globals::ctorQoreHashMap, nullptr);
+    LocalReference<jobject> hm = env.newObject(Globals::classHashMap, Globals::ctorHashMap, nullptr);
 
     ConstHashIterator i(h);
     while (i.next()) {

@@ -118,10 +118,10 @@ public class QoreJavaApiTest {
 
     @SuppressWarnings("unchecked")
     static HashMap[] testObject6() {
-        QoreHashMap[] hm = new QoreHashMap[2];
-        hm[0] = new QoreHashMap();
+        HashMap[] hm = new HashMap[2];
+        hm[0] = new HashMap();
         hm[0].put("1", 1);
-        hm[1] = new QoreHashMap();
+        hm[1] = new HashMap();
         hm[1].put("2", 2);
 
         return hm;

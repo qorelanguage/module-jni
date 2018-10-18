@@ -18,7 +18,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     private static InheritableThreadLocal<QoreURLClassLoader> current = new InheritableThreadLocal<QoreURLClassLoader>();
     private HashSet<String> classPathElements = new HashSet<String>();
     private String classPath = new String();
-    private long pgm_ptr;
+    private long pgm_ptr = 0;
     // cache of inner classes to resolve circular dependencies when injecting classes
     private HashMap<String, byte[]> pendingClasses = new HashMap<String, byte[]>();
 

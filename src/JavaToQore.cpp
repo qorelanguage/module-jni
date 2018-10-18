@@ -65,8 +65,8 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
         return obj->refSelf();
     }
 
-    if (env.isInstanceOf(v, Globals::classQoreHashMap)) {
-        // create hash from QoreHashMap
+    if (env.isInstanceOf(v, Globals::classHashMap) && !JniExternalProgramData::compatTypes()) {
+        // create hash from HashMap
         LocalReference<jobject> set = env.callObjectMethod(v,
             Globals::methodHashMapEntrySet, nullptr);
         if (!set) {
