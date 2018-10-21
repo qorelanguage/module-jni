@@ -159,6 +159,16 @@ public:
     static jmethodID methodZonedDateTimeParse;                           // ZonedDateTime.parse()
     static jmethodID methodZonedDateTimeToString;                        // ZonedDateTime.toString()
 
+    static GlobalReference<jclass> classQoreRelativeTime;                // org.qore.jni.QoreRelativeTime
+    static jmethodID ctorQoreRelativeTime;                               // QoreRelativeTime(int, int, int, int, int, int, int)
+    static jfieldID fieldQoreRelativeTimeYear;                           // QoreRelativeTime.year
+    static jfieldID fieldQoreRelativeTimeMonth;                          // QoreRelativeTime.month
+    static jfieldID fieldQoreRelativeTimeDay;                            // QoreRelativeTime.day
+    static jfieldID fieldQoreRelativeTimeHour;                           // QoreRelativeTime.hour
+    static jfieldID fieldQoreRelativeTimeMinute;                         // QoreRelativeTime.minute
+    static jfieldID fieldQoreRelativeTimeSecond;                         // QoreRelativeTime.second
+    static jfieldID fieldQoreRelativeTimeUs;                             // QoreRelativeTime.us
+
     static GlobalReference<jclass> classBigDecimal;                      // java.math.BigDecimal
     static jmethodID ctorBigDecimal;                                     // BigDecimal(String)
     static jmethodID methodBigDecimalToString;                           // BigDecimal.toString()

@@ -114,6 +114,19 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
         return rv.release();
     }
 
+    // for relative date/time values
+    if (env.isInstanceOf(v, Globals::classQoreRelativeTime)) {
+        int year = env.getIntField(v, Globals::fieldQoreRelativeTimeYear),
+            month = env.getIntField(v, Globals::fieldQoreRelativeTimeMonth),
+            day = env.getIntField(v, Globals::fieldQoreRelativeTimeDay),
+            hour = env.getIntField(v, Globals::fieldQoreRelativeTimeHour),
+            minute = env.getIntField(v, Globals::fieldQoreRelativeTimeMinute),
+            second = env.getIntField(v, Globals::fieldQoreRelativeTimeSecond),
+            us = env.getIntField(v, Globals::fieldQoreRelativeTimeUs);
+
+        return QoreValue(DateTimeNode::makeRelative(year, month, day, hour, minute, second, us));
+    }
+
     return qjcm.getValue(v);
 }
 

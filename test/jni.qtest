@@ -211,6 +211,11 @@ public class Main inherits QUnit::Test {
 
         d = QoreJavaApiTest::dateTest(now);
         assertEq(now - 2D, d);
+
+        date rt = P1Y2M3DT1H2M3S4u;
+        list<int> l = QoreJavaApiTest::testDate1(rt);
+        assertEq((1,2,3,1,2,3,4), l);
+        assertEq(rt, QoreJavaApiTest::testDate2(rt));
     }
 
     defineClassTest() {

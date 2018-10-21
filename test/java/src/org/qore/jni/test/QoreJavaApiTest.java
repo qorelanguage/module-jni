@@ -173,4 +173,20 @@ public class QoreJavaApiTest {
         mythread.join();
         return ThreadTest4.result;
     }
+
+    static int[] testDate1(QoreRelativeTime dt) {
+        int[] rv = new int[7];
+        rv[0] = dt.year;
+        rv[1] = dt.month;
+        rv[2] = dt.day;
+        rv[3] = dt.hour;
+        rv[4] = dt.minute;
+        rv[5] = dt.second;
+        rv[6] = dt.us;
+        return rv;
+    }
+
+    static QoreRelativeTime testDate2(QoreRelativeTime dt) {
+        return dt;
+    }
 }

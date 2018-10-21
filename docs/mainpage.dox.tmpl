@@ -187,7 +187,7 @@
     |@ref int_type "int"|\c int (note: precision is lost here)
     |@ref float_type "float"|\c double
     |@ref string_type "string"|\c java.lang.String
-    |@ref date_type "date"|\c java.time.ZonedDateTime
+    |@ref date_type "date"|\c java.time.ZonedDateTime or @ref org.qore.jni.QoreRelativeTime
     |@ref number_type "number"|\c java.math.BigDecimal
     |@ref binary_type "binary"|\c byte[]
     |@ref nothing_type "NOTHING" and @ref null_type "NULL"|\c void
@@ -215,7 +215,8 @@
     |\c float|@ref float_type "float"
     |\c double|@ref float_type "double"
     |\c java.lang.String|@ref string_type "string"
-    |\c java.time.ZonedDateTime|@ref date_type "date"
+    |\c java.time.ZonedDateTime|@ref date_type "date" (@ref absolute_dates "absolute date")
+    |\c @ref org.qore.jni.QoreRelativeTime|@ref date_type "date" (@ref relative_dates "relative date")
     |\c java.math.BigDecimal|@ref number_type "number"
     |\c java.lang.Array|@ref list_type "list"
     |\c javq.util.HashMap|@ref hash_type "hash" (see also @ref jni_compat)

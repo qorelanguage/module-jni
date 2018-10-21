@@ -155,6 +155,16 @@ GlobalReference<jclass> Globals::classZonedDateTime;
 jmethodID Globals::methodZonedDateTimeParse;
 jmethodID Globals::methodZonedDateTimeToString;
 
+GlobalReference<jclass> Globals::classQoreRelativeTime;
+jmethodID Globals::ctorQoreRelativeTime;
+jfieldID Globals::fieldQoreRelativeTimeYear;
+jfieldID Globals::fieldQoreRelativeTimeMonth;
+jfieldID Globals::fieldQoreRelativeTimeDay;
+jfieldID Globals::fieldQoreRelativeTimeHour;
+jfieldID Globals::fieldQoreRelativeTimeMinute;
+jfieldID Globals::fieldQoreRelativeTimeSecond;
+jfieldID Globals::fieldQoreRelativeTimeUs;
+
 GlobalReference<jclass> Globals::classBigDecimal;
 jmethodID Globals::ctorBigDecimal;
 jmethodID Globals::methodBigDecimalToString;
@@ -691,6 +701,7 @@ static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperNa
 #include "JavaClassQoreURLClassLoader.inc"
 #include "JavaClassQoreURLClassLoader_1.inc"
 #include "JavaClassQoreJavaApi.inc"
+#include "JavaClassQoreRelativeTime.inc"
 
 void Globals::init() {
     Env env;
@@ -819,6 +830,16 @@ void Globals::init() {
     methodZonedDateTimeParse = env.getStaticMethod(classZonedDateTime, "parse", "(Ljava/lang/CharSequence;)Ljava/time/ZonedDateTime;");
     methodZonedDateTimeToString = env.getMethod(classZonedDateTime, "toString", "()Ljava/lang/String;");
 
+    classQoreRelativeTime = env.defineClass("org/qore/jni/QoreRelativeTime", nullptr, java_org_qore_jni_QoreRelativeTime_class, java_org_qore_jni_QoreRelativeTime_class_len).makeGlobal();
+    ctorQoreRelativeTime = env.getMethod(classQoreRelativeTime, "<init>", "(IIIIIII)V");
+    fieldQoreRelativeTimeYear = env.getField(classQoreRelativeTime, "year", "I");
+    fieldQoreRelativeTimeMonth = env.getField(classQoreRelativeTime, "month", "I");
+    fieldQoreRelativeTimeDay = env.getField(classQoreRelativeTime, "day", "I");
+    fieldQoreRelativeTimeHour = env.getField(classQoreRelativeTime, "hour", "I");
+    fieldQoreRelativeTimeMinute = env.getField(classQoreRelativeTime, "minute", "I");
+    fieldQoreRelativeTimeSecond = env.getField(classQoreRelativeTime, "second", "I");
+    fieldQoreRelativeTimeUs = env.getField(classQoreRelativeTime, "us", "I");
+
     classBigDecimal = env.findClass("java/math/BigDecimal").makeGlobal();
     ctorBigDecimal = env.getMethod(classBigDecimal, "<init>", "(Ljava/lang/String;)V");
     methodBigDecimalToString = env.getMethod(classBigDecimal, "toString", "()Ljava/lang/String;");
@@ -892,6 +913,7 @@ void Globals::cleanup() {
     classEntry = nullptr;
     classIterator = nullptr;
     classZonedDateTime = nullptr;
+    classQoreRelativeTime = nullptr;
     classBigDecimal = nullptr;
     classArrays = nullptr;
     classBoolean = nullptr;

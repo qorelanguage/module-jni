@@ -35,24 +35,31 @@ static jstring jni_string_to_jstring(const QoreStringNode& qstr) {
 }
 
 static jobject jni_date_to_jobject(const DateTimeNode& qdate) {
+    Env env;
+
     if (qdate.isAbsolute()) {
         QoreString str;
         qdate.format(str, "YYYY-MM-DDTHH:mm:SS.xxZ");
 
-        Env env;
         LocalReference<jstring> date_str = env.newString(str.c_str());
         std::vector<jvalue> jargs(1);
         jargs[0].l = date_str;
         return env.callStaticObjectMethod(Globals::classZonedDateTime, Globals::methodZonedDateTimeParse, &jargs[0]).release();
     }
 
-    Env env;
-    jvalue arg;
-    arg.i = qdate.getRelativeMilliseconds();
-    return env.newObject(Globals::classInteger, Globals::ctorInteger, &arg).release();
+    // return QoreRelativeTime object
+    qore_tm info;
+    qdate.getInfo(info);
+    std::vector<jvalue> jargs(7);
+    jargs[0].i = info.year;
+    jargs[1].i = info.month;
+    jargs[2].i = info.day;
+    jargs[3].i = info.hour;
+    jargs[4].i = info.minute;
+    jargs[5].i = info.second;
+    jargs[6].i = info.us;
 
-    //QoreStringMaker desc("cannot convert a relative date/time value to a Java object (expecting an absolute date/time value)");
-    //throw BasicException(desc.c_str());
+    return env.newObject(Globals::classQoreRelativeTime, Globals::ctorQoreRelativeTime, &jargs[0]).release();
 }
 
 static jobject jni_number_to_jobject(const QoreNumberNode& num) {

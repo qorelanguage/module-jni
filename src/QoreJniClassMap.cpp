@@ -87,9 +87,10 @@ QoreJniClassMap::jtmap_t QoreJniClassMap::jtmap = {
     {"java.lang.Long", bigIntTypeInfo},
     {"java.lang.Void", nothingTypeInfo},
     {"java.time.ZonedDateTime", dateTypeInfo},
+    {"org.qore.jni.QoreRelativeTime", dateTypeInfo},
     {"java.math.BigDecimal", numberTypeInfo},
     {"java.util.HashMap", hashTypeInfo},
-    {"org.qore.jni.QoreObject", objectOrNothingTypeInfo}
+    {"org.qore.jni.QoreObject", objectOrNothingTypeInfo},
 };
 
 QoreJniClassMap::jpmap_t QoreJniClassMap::jpmap = {

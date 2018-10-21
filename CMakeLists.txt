@@ -77,6 +77,7 @@ generate_java(org/qore/jni/QoreObject.java)
 generate_java(org/qore/jni/QoreObjectWrapper.java)
 generate_java(org/qore/jni/QoreInvocationHandler.java)
 generate_java(org/qore/jni/QoreURLClassLoader.java 1)
+generate_java(org/qore/jni/QoreRelativeTime.java)
 
 #message(STATUS "MESSAGE Src: ${JAVA_JAR_SRC}")
 #message(STATUS "MESSAGE Classes: ${JAVA_JAR_CLASSES}")
