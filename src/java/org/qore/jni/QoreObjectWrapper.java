@@ -19,7 +19,7 @@ public class QoreObjectWrapper {
     }
 
     //! returns the Qore object
-    public QoreObject get() {
+    public QoreObject getQoreObject() {
         return obj;
     }
 
