@@ -81,14 +81,14 @@ DLLEXPORT qore_license_t qore_module_license = QL_MIT;
 DLLEXPORT char qore_module_license_str[] = "MIT";
 
 // module cmd type
-typedef void (qore_jni_module_cmd_t)(const QoreString& arg);
-static void qore_jni_mc_import(const QoreString& arg);
-static void qore_jni_mc_add_classpath(const QoreString& arg);
-static void qore_jni_mc_add_relative_classpath(const QoreString& arg);
-static void qore_jni_mc_define_class(const QoreString& arg);
+using qore_jni_module_cmd_t = void (*) (const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
+static void qore_jni_mc_import(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
+static void qore_jni_mc_add_classpath(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
+static void qore_jni_mc_add_relative_classpath(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
+static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 
 // module cmds
-typedef std::map<std::string, std::function<qore_jni_module_cmd_t>> mcmap_t;
+typedef std::map<std::string, qore_jni_module_cmd_t> mcmap_t;
 static mcmap_t mcmap = {
     {"import", qore_jni_mc_import},
     {"add-classpath", qore_jni_mc_add_classpath},
@@ -211,16 +211,15 @@ static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
     }
 
     try {
-        i->second(arg);
+        i->second(arg, pgm, jpc);
     }
     catch (jni::Exception& e) {
         e.convert(xsink);
     }
 }
 
-static void qore_jni_mc_import(const QoreString& cmd_arg) {
+static void qore_jni_mc_import(const QoreString& cmd_arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
     QoreString arg(cmd_arg);
-    QoreProgram* pgm = getProgram();
     assert(pgm);
     assert(pgm->checkFeature(QORE_JNI_MODULE_NAME));
 
@@ -269,19 +268,17 @@ static void qore_jni_mc_import(const QoreString& cmd_arg) {
     }
 }
 
-static void qore_jni_mc_add_classpath(const QoreString& cmd_arg) {
+static void qore_jni_mc_add_classpath(const QoreString& cmd_arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
     QoreString arg(cmd_arg);
     q_env_subst(arg);
     printd(LogLevel, "qore_jni_mc_add_classpath() arg: '%s'\n", arg.c_str());
 
-    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
     jpc->addClasspath(arg.c_str());
 }
 
-static void qore_jni_mc_add_relative_classpath(const QoreString& arg) {
+static void qore_jni_mc_add_relative_classpath(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
     SimpleRefHolder<QoreStringNode> cwd_str;
 
-    QoreProgram* pgm = getProgram();
     assert(pgm);
     cwd_str = pgm->getScriptDir();
 
@@ -302,12 +299,10 @@ static void qore_jni_mc_add_relative_classpath(const QoreString& arg) {
 
     printd(LogLevel, "qore_jni_mc_add_relative_classpath() arg: '%s' cwd: '%s'\n", arg.c_str(), cwd_str->c_str());
 
-    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
     jpc->addClasspath(cwd_str->c_str());
 }
 
-static void qore_jni_mc_define_class(const QoreString& arg) {
-    QoreProgram* pgm = getProgram();
+static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
     assert(pgm);
     assert(pgm->checkFeature(QORE_JNI_MODULE_NAME));
 
@@ -324,7 +319,6 @@ static void qore_jni_mc_define_class(const QoreString& arg) {
         throw XsinkException(xsink);
     }
     jni::Env env;
-    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
     assert(jpc);
     LocalReference<jclass> jcls = env.defineClass(name.c_str(), jpc->getClassLoader(),
         static_cast<const unsigned char*>(byte_code->getPtr()), byte_code->size());

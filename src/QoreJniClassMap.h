@@ -129,6 +129,13 @@ public:
     DLLLOCAL QoreBuiltinClass* findCreateQoreClass(LocalReference<jclass>& jc);
     DLLLOCAL QoreBuiltinClass* findCreateQoreClass(const char* name);
 
+    /** @param name an input/output variable, on input it is the java name for the class, which could
+        be an inner class (ex: MyClass$1), on output it is the Qore name for the class (ex: MyClass_1)
+        @param jpath the java path to the class
+        @param c the Java class object
+
+        @return the new builtin Qore class object wrapping the Java class
+    */
     DLLLOCAL QoreBuiltinClass* findCreateQoreClassInProgram(QoreString& name, const char* jpath, Class* c);
 
 protected:
