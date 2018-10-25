@@ -909,10 +909,8 @@ JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& par
     // copy the parent's class map to this one
     jcmap = parent.jcmap;
     // find Jni namespace in new Program if present
-    const QoreNamespace* jnins = pgm->findNamespace("Jni");
-    if (jnins) {
-        jni = const_cast<QoreNamespace*>(jnins);
-    } else {
+    jni = pgm->findNamespace("Jni");
+    if (!jni) {
         jni = qjcm.getJniNs().copy();
         pgm->getRootNS()->addNamespace(jni);
     }
