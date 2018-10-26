@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(qore-jni-module)
 
 set (VERSION_MAJOR 1)
-set (VERSION_MINOR 0)
+set (VERSION_MINOR 1)
 set (VERSION_PATCH 0)
 
 set(PROJECT_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
@@ -31,7 +31,7 @@ SET(_qore_jni_sentinel ${CMAKE_CURRENT_BINARY_DIR}/qore-jni.sentinel)
 MACRO(GENERATE_JAVA _input)
     GET_FILENAME_COMPONENT(_base ${_input} NAME_WE)
     GET_FILENAME_COMPONENT(_pkgdir ${_input} PATH)
-    SET(_class_file ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${_base}.class)
+    SET(_class_file ${_pkgdir}/${_base}.class)
 
     # generate rules to generate include files for primary classes
     SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${_base}.inc)
@@ -47,10 +47,14 @@ MACRO(GENERATE_JAVA _input)
     SET(JAVA_JAR_SRC ${JAVA_JAR_SRC} ${CMAKE_SOURCE_DIR}/src/java/${_input})
     SET(QORE_INC_FILES ${QORE_INC_FILES} ${_inc_outfile})
 
+    # issue #3019: get list of source files for documentation
+    string (REPLACE ";" " " JAVA_JAR_SRC_STR "${JAVA_JAR_SRC}")
+
     # generate rules for include files for inner classes (if any)
     foreach (it ${ARGN})
         #message(STATUS "IT: ${it}")
         SET(_inc_infile ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${_base}$${it}.class)
+        SET(_inc_relinfile ${_pkgdir}/${_base}$${it}.class)
         # we need cmake to replace the "$" signs in inner class filenames with "$$" so they will be valid Makefile targets
         SET(_inc_infile_target ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${_base}$$${it}.class)
         SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${_base}_${it}.inc)
@@ -61,7 +65,7 @@ MACRO(GENERATE_JAVA _input)
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             VERBATIM
         )
-        SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_inc_infile})
+        SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_inc_relinfile})
         SET(QORE_INC_FILES ${QORE_INC_FILES} ${_inc_outfile})
     endforeach()
 ENDMACRO(GENERATE_JAVA)
@@ -95,7 +99,9 @@ add_custom_command(
     VERBATIM
 )
 
+# build and install this jar file so that java code using native classes can be compiled
 add_custom_target(qore-jni ALL DEPENDS qore-jni.jar)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qore-jni.jar DESTINATION ${CMAKE_INSTALL_PREFIX}/share/qore/java8)
 
 set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/Callbacks.java
@@ -106,6 +112,7 @@ set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/StaticFields.java
     test/java/src/org/qore/jni/test/StaticMethods.java
     test/java/src/org/qore/jni/test/StringFactory.java
+    test/java/src/org/qore/jni/test/QoreCallback.java
 )
 
 add_jar(qore-jni-test ${JAVA_TEST_JAR_SRC}
@@ -167,6 +174,9 @@ add_dependencies(${module_name} QORE_INC_FILES)
 
 target_link_libraries(${module_name} ${JNI_LIBRARIES})
 
+set(MODULE_DOX_INPUT ${JAVA_JAR_SRC_STR})
+message(STATUS mdi: ${MODULE_DOX_INPUT})
+
 qore_binary_module(${module_name} ${PROJECT_VERSION})
 
 qore_dist(${PROJECT_VERSION})
@@ -175,7 +185,7 @@ qore_config_info()
 
 FIND_PACKAGE(Doxygen)
 if (DOXYGEN_FOUND)
-  qore_wrap_dox(QORE_DOX_SRC ${QORE_DOX_TMPL_SRC})
-  add_custom_target(QORE_MOD_DOX_FILES DEPENDS ${QORE_DOX_SRC})
-  add_dependencies(docs QORE_MOD_DOX_FILES)
+    qore_wrap_dox(QORE_DOX_SRC ${QORE_DOX_TMPL_SRC})
+    add_custom_target(QORE_MOD_DOX_FILES DEPENDS ${QORE_DOX_SRC})
+    add_dependencies(docs QORE_MOD_DOX_FILES)
 endif()
