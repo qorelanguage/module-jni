@@ -163,9 +163,9 @@ public class Main inherits QUnit::Test {
         assertThrows("OBJECT-ALREADY-DELETED", \v.getString(), "str");
         v = QoreJavaApiTest::testObject13();
         assertEq("str-x", v.getString("str"));
-        assertEq({"test": v}, get_thread_data("_jni_save"));
+        assertEq((v,), get_thread_data("_jni_save"));
         hash<auto> td = remove_thread_data("_jni_save");
-        assertEq({"test": v}, td._jni_save);
+        assertEq((v,), td._jni_save);
         remove td;
         remove v;
         v = QoreJavaApiTest::testObject12();
@@ -174,9 +174,9 @@ public class Main inherits QUnit::Test {
         save_thread_data("_jni_save", "my-key");
         v = QoreJavaApiTest::testObject13();
         assertEq("str-x", v.getString("str"));
-        assertEq({"test": v}, get_thread_data("my-key"));
+        assertEq((v,), get_thread_data("my-key"));
         td = remove_thread_data("my-key");
-        assertEq({"test": v}, td."my-key");
+        assertEq((v,), td."my-key");
         remove td;
         remove v;
         v = QoreJavaApiTest::testObject12();
@@ -184,9 +184,9 @@ public class Main inherits QUnit::Test {
 
         v = QoreJavaApiTest::testObject13();
         assertEq("str-x", v.getString("str"));
-        assertEq({"test": v}, get_thread_data("my-key"));
+        assertEq((v,), get_thread_data("my-key"));
         td = remove_thread_data("my-key");
-        assertEq({"test": v}, td."my-key");
+        assertEq((v,), td."my-key");
         remove td;
         remove v;
         v = QoreJavaApiTest::testObject12();

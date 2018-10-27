@@ -215,7 +215,7 @@ static jobject JNICALL invocation_handler_invoke(JNIEnv* jenv, jobject, jlong pt
    return dispatcher->dispatch(env, proxy, method, args);
 }
 
-static int save_object(Env& env, jstring keyname, const QoreValue& rv, QoreProgram* pgm, ExceptionSink& xsink) {
+static int save_object(Env& env, const QoreValue& rv, QoreProgram* pgm, ExceptionSink& xsink) {
     // save object in thread-local data if relevant
     if (rv.getType() != NT_OBJECT) {
         return 0;
@@ -232,42 +232,36 @@ static int save_object(Env& env, jstring keyname, const QoreValue& rv, QoreProgr
     }
 
     QoreValue kv = data->getKeyValue(domain_name);
-    // ignore operation if domain exists but is not a hash
-    if (!kv || kv.getType() == NT_HASH) {
-        QoreHashNode* data2;
-        ReferenceHolder<QoreHashNode> data2_holder(&xsink);
-        // we need to assign data2 in data after we assign the object in order to manage object counts
-        bool set;
+    // ignore operation if domain exists but is not a list
+    if (!kv || kv.getType() == NT_LIST) {
+        QoreListNode* list;
+        ReferenceHolder<QoreListNode> list_holder(&xsink);
         if (!kv) {
-            data2 = new QoreHashNode(autoTypeInfo);
-            data2_holder = data2;
-            set = true;
+            // we need to assign list in data *after* we prepend the object to the list
+            // in order to manage object counts
+            list = new QoreListNode(autoTypeInfo);
+            list_holder = list;
         } else {
-            set = false;
-            data2 = kv.get<QoreHashNode>();
+            list = kv.get<QoreListNode>();
         }
 
-        Env::GetStringUtfChars kname(env, keyname);
-        data2->setKeyValue(kname.c_str(), rv.refSelf(), &xsink);
-        if (!xsink && set) {
-            data->setKeyValue(domain_name, data2_holder.release(), &xsink);
-            if (xsink) {
-                QoreToJava::wrapException(xsink);
-                return -1;
-            }
+        // prepend to list to ensure FILO destruction order
+        list->splice(0, 0, rv, &xsink);
+        if (!xsink && list_holder) {
+             data->setKeyValue(domain_name, list_holder.release(), &xsink);
         }
         if (xsink) {
             QoreToJava::wrapException(xsink);
             return -1;
         }
-        //printd(5, "save_object() domain: '%s' key: '%s' obj: %p %s\n", domain_name, kname.c_str(), rv.get<QoreObject>(), rv.get<QoreObject>()->getClassName());
+        //printd(5, "save_object() domain: '%s' obj: %p %s\n", domain_name, rv.get<QoreObject>(), rv.get<QoreObject>()->getClassName());
     } else {
         //printd(5, "save_object() NOT SAVING domain: '%s' HAS KEY v: %s (kv: %s)\n", domain_name, rv.getFullTypeName(), kv.getFullTypeName());
     }
     return 0;
 }
 
-static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong ptr, jstring keyname, jstring name, jobjectArray args) {
+static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong ptr, jboolean save, jstring name, jobjectArray args) {
     Env env(jenv);
     try {
         qoreThreadAttacher.attach();
@@ -298,7 +292,7 @@ static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong 
         return nullptr;
     }
 
-    if (keyname && save_object(env, keyname, *rv, pgm, xsink)) {
+    if (save && save_object(env, *rv, pgm, xsink)) {
         return nullptr;
     }
 
@@ -313,15 +307,15 @@ static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong 
 }
 
 static jobject JNICALL java_api_call_function(JNIEnv* jenv, jobject obj, jlong ptr, jstring name, jobjectArray args) {
-    return java_api_call_function_internal(jenv, obj, ptr, nullptr, name, args);
+    return java_api_call_function_internal(jenv, obj, ptr, false, name, args);
 }
 
-static jobject JNICALL java_api_call_function_save(JNIEnv* jenv, jobject obj, jlong ptr, jstring keyname, jstring name, jobjectArray args) {
-    return java_api_call_function_internal(jenv, obj, ptr, keyname, name, args);
+static jobject JNICALL java_api_call_function_save(JNIEnv* jenv, jobject obj, jlong ptr, jstring name, jobjectArray args) {
+    return java_api_call_function_internal(jenv, obj, ptr, true, name, args);
 }
 
-// private native static QoreObject newObjectSave0(long pgm_ptr, String key, String class_name, Object...args);
-static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong ptr, jstring keyname, jstring cname, jobjectArray args) {
+// private native static QoreObject newObjectSave0(long pgm_ptr, String class_name, Object...args);
+static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong ptr, jstring cname, jobjectArray args) {
     assert(ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
     Env env(jenv);
@@ -366,7 +360,7 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
         return nullptr;
     }
 
-    if (keyname && save_object(env, keyname, *rv, pgm, xsink)) {
+    if (save_object(env, *rv, pgm, xsink)) {
         return nullptr;
     }
 
@@ -447,7 +441,7 @@ static jboolean JNICALL qore_object_instance_of(JNIEnv* jenv, jclass, jlong ptr,
     return obj->validInstanceOf(*cls);
 }
 
-static jobject qore_object_call_method_internal(JNIEnv* jenv, jclass, jlong pgm_ptr, jlong obj_ptr, jstring keyname, jstring mname, jobjectArray args) {
+static jobject qore_object_call_method_internal(JNIEnv* jenv, jclass, jlong pgm_ptr, jlong obj_ptr, jboolean save, jstring mname, jobjectArray args) {
     assert(pgm_ptr);
     assert(obj_ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(pgm_ptr);
@@ -485,7 +479,7 @@ static jobject qore_object_call_method_internal(JNIEnv* jenv, jclass, jlong pgm_
 
         //printd(5, "qore_object_call_method_internal() method: '%s::%s()' rv: %s\n", obj->getClassName(), method_name.c_str(), val->getFullTypeName());
 
-        if (keyname && save_object(env, keyname, *val, getProgram(), xsink)) {
+        if (save && save_object(env, *val, getProgram(), xsink)) {
             return nullptr;
         }
 
@@ -507,11 +501,11 @@ static jobject qore_object_call_method_internal(JNIEnv* jenv, jclass, jlong pgm_
 }
 
 static jobject JNICALL qore_object_call_method(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr, jstring mname, jobjectArray args) {
-    return qore_object_call_method_internal(jenv, jcls, pgm_ptr, obj_ptr, nullptr, mname, args);
+    return qore_object_call_method_internal(jenv, jcls, pgm_ptr, obj_ptr, false, mname, args);
 }
 
-static jobject JNICALL qore_object_call_method_save(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr, jstring keyname, jstring mname, jobjectArray args) {
-    return qore_object_call_method_internal(jenv, jcls, pgm_ptr, obj_ptr, keyname, mname, args);
+static jobject JNICALL qore_object_call_method_save(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr, jstring mname, jobjectArray args) {
+    return qore_object_call_method_internal(jenv, jcls, pgm_ptr, obj_ptr, true, mname, args);
 }
 
 static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jclass, jlong ptr, jstring mname) {
@@ -617,13 +611,13 @@ static JNINativeMethod qoreJavaApiNativeMethods[] = {
     },
     {
         const_cast<char*>("callFunctionSave0"),
-        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;"),
+        const_cast<char*>("(JLjava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;"),
         reinterpret_cast<void*>(java_api_call_function_save)
     },
     {
         // private native static QoreObject newObjectSave0(long pgm_ptr, String key, String class_name, Object...args);
         const_cast<char*>("newObjectSave0"),
-        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)Lorg/qore/jni/QoreObject;"),
+        const_cast<char*>("(JLjava/lang/String;[Ljava/lang/Object;)Lorg/qore/jni/QoreObject;"),
         reinterpret_cast<void*>(java_api_new_object_save)
     },
 };
@@ -661,7 +655,7 @@ static JNINativeMethod qoreObjectNativeMethods[] = {
     },
     {
         const_cast<char*>("callMethodSave0"),
-        const_cast<char*>("(JJLjava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;"),
+        const_cast<char*>("(JJLjava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;"),
         reinterpret_cast<void*>(qore_object_call_method_save)
     },
     {

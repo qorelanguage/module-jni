@@ -40,34 +40,32 @@ public class QoreObject {
         return callMethod0(QoreURLClassLoader.getProgramPtr(), obj, name, args);
     }
 
-    //! Calls the given method with the given arguments and returns the result; if an object is returned, then a strong reference to the object is stored in thread-local data under the given key
+    //! Calls the given method with the given arguments and returns the result; if an object is returned, then a strong reference to the object is stored in thread-local data
     /**
      * This method can be used to save objects in thread-local data that would otherwise go out of scope.
      * The top-level hash key is determined by the value of the \c "_jni_save" thread-local key, if set, if
      * not then \c "_jni_save" is used instead as a literal key
-     * @param key the second-level key for the thread-local data where the strong reference to the object will be stored
      * @param name the name of the method to call
      * @param args argument to the function call
      * @return the result of the call
      * @throws Throwable any Qore-language exception is rethrown here
      */
-    public Object callMethodSave(String key, String name, Object... args) throws Throwable {
-        return callMethodSave0(QoreURLClassLoader.getProgramPtr(), obj, key, name, args);
+    public Object callMethodSave(String name, Object... args) throws Throwable {
+        return callMethodSave0(QoreURLClassLoader.getProgramPtr(), obj, name, args);
     }
 
-    //! Calls the given method with the given arguments and returns the result; if an object is returned, then a strong reference to the object is stored in thread-local data under the given key
+    //! Calls the given method with the given arguments and returns the result; if an object is returned, then a strong reference to the object is stored in thread-local data
     /**
      * This method can be used to save objects in thread-local data that would otherwise go out of scope.
      * The top-level hash key is determined by the value of the \c "_jni_save" thread-local key, if set, if
      * not then \c "_jni_save" is used instead as a literal key
-     * @param key the second-level key for the thread-local data where the strong reference to the object will be stored
      * @param name the name of the method to call
      * @param args argument to the function call
      * @return the result of the call
      * @throws Throwable any Qore-language exception is rethrown here
      */
-    public Object callMethodArgsSave(String key, String name, Object[] args) throws Throwable {
-        return callMethodSave0(QoreURLClassLoader.getProgramPtr(), obj, key, name, args);
+    public Object callMethodArgsSave(String name, Object[] args) throws Throwable {
+        return callMethodSave0(QoreURLClassLoader.getProgramPtr(), obj, name, args);
     }
 
     //! returns the value of the given member
@@ -113,7 +111,7 @@ public class QoreObject {
     private native String className0(long obj_ptr);
     private native boolean instanceOf0(long obj_ptr, String class_name);
     private native Object callMethod0(long pgm_ptr, long obj_ptr, String name, Object... args);
-    private native Object callMethodSave0(long pgm_ptr, long obj_ptr, String key, String name, Object... args);
+    private native Object callMethodSave0(long pgm_ptr, long obj_ptr, String name, Object... args);
     private native Object getMemberValue0(long obj_ptr, String name);
     private native void release0(long obj_ptr);
     private native void destroy0(long obj_ptr);

@@ -56,7 +56,7 @@ class ThreadTest4 implements Runnable {
 
     public void run() {
         try {
-            QoreObject obj = QoreJavaApi.newObjectSave("test", "TestClass2");
+            QoreObject obj = QoreJavaApi.newObjectSave("TestClass2");
             result = (String)obj.callMethod("getString");
         } catch (Throwable e) {
         }
@@ -157,7 +157,7 @@ public class QoreJavaApiTest {
     }
 
     static Object testObject13() throws Throwable {
-        return QoreJavaApi.callFunctionSave("test", "get_object");
+        return QoreJavaApi.callFunctionSave("get_object");
     }
 
     static String testObject14(QoreObject obj) throws InterruptedException {
