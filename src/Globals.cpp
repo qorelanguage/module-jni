@@ -357,8 +357,8 @@ static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, j
 
     const QoreMethod* m = cls->findLocalStaticMethod(mname.c_str());
     if (!m) {
-        xsink.raiseException("UNKNOWN-METHOD", "cannot resolve static method '%s::%s()'",
-            mname.c_str(), cname.c_str());
+        xsink.raiseException("UNKNOWN-METHOD", "cannot resolve static method '%s::%s()'", cname.c_str(),
+            mname.c_str());
         QoreToJava::wrapException(xsink);
         return nullptr;
     }
