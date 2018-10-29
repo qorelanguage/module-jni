@@ -306,12 +306,90 @@ static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong 
     }
 }
 
-static jobject JNICALL java_api_call_function(JNIEnv* jenv, jobject obj, jlong ptr, jstring name, jobjectArray args) {
+static jobject JNICALL java_api_call_function(JNIEnv* jenv, jobject obj, jlong ptr, jstring name,
+    jobjectArray args) {
     return java_api_call_function_internal(jenv, obj, ptr, false, name, args);
 }
 
-static jobject JNICALL java_api_call_function_save(JNIEnv* jenv, jobject obj, jlong ptr, jstring name, jobjectArray args) {
+static jobject JNICALL java_api_call_function_save(JNIEnv* jenv, jobject obj, jlong ptr, jstring name,
+    jobjectArray args) {
     return java_api_call_function_internal(jenv, obj, ptr, true, name, args);
+}
+
+static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, jlong ptr, jboolean save,
+    jstring class_name, jstring method_name, jobjectArray args) {
+    Env env(jenv);
+    try {
+        qoreThreadAttacher.attach();
+    } catch (Exception& e) {
+        env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
+        return nullptr;
+    }
+    QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
+
+    ExceptionSink xsink;
+    // grab the current Program's parse lock before calling QoreProgram::findClass()
+    QoreExternalProgramContextHelper epch(&xsink, pgm);
+    if (xsink) {
+        QoreToJava::wrapException(xsink);
+        return nullptr;
+    }
+
+    jsize len = args ? env.getArrayLength(args) : 0;
+    ReferenceHolder<QoreListNode> qore_args(&xsink);
+
+    if (len) {
+        qore_args = Array::getArgList(env, args);
+    }
+
+    Env::GetStringUtfChars cname(env, class_name);
+    Env::GetStringUtfChars mname(env, method_name);
+    //printd(LogLevel, "java_api_call_function() '%s()' args: %p %d\n", fname.c_str(), *qore_args, len);
+
+    const QoreClass* cls = pgm->findClass(cname.c_str(), &xsink);
+    if (!cls) {
+        if (!xsink) {
+            xsink.raiseException("UNKNOWN-CLASS", "cannot resolve class '%s'", cname.c_str());
+        }
+        QoreToJava::wrapException(xsink);
+        return nullptr;
+    }
+
+    const QoreMethod* m = cls->findLocalStaticMethod(mname.c_str());
+    if (!m) {
+        xsink.raiseException("UNKNOWN-METHOD", "cannot resolve static method '%s::%s()'",
+            mname.c_str(), cname.c_str());
+        QoreToJava::wrapException(xsink);
+        return nullptr;
+    }
+
+    ValueHolder rv(QoreObject::evalStaticMethod(*m, m->getClass(), *qore_args, &xsink), &xsink);
+    if (xsink) {
+        QoreToJava::wrapException(xsink);
+        return nullptr;
+    }
+
+    if (save && save_object(env, *rv, pgm, xsink)) {
+        return nullptr;
+    }
+
+    try {
+        return QoreToJava::toAnyObject(*rv);
+    } catch (jni::Exception& e) {
+        e.convert(&xsink);
+        QoreToJava::wrapException(xsink);
+        return nullptr;
+    }
+}
+
+static jobject JNICALL java_api_call_static_method(JNIEnv* jenv, jobject obj, jlong ptr, jstring class_name,
+    jstring method_name, jobjectArray args) {
+    return java_api_call_static_method_internal(jenv, obj, ptr, false, class_name, method_name, args);
+}
+
+static jobject JNICALL java_api_call_static_method_save(JNIEnv* jenv, jobject obj, jlong ptr, jstring class_name,
+    jstring method_name, jobjectArray args) {
+    return java_api_call_static_method_internal(jenv, obj, ptr, true, class_name, method_name, args);
 }
 
 // private native static QoreObject newObjectSave0(long pgm_ptr, String class_name, Object...args);
@@ -613,6 +691,16 @@ static JNINativeMethod qoreJavaApiNativeMethods[] = {
         const_cast<char*>("callFunctionSave0"),
         const_cast<char*>("(JLjava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;"),
         reinterpret_cast<void*>(java_api_call_function_save)
+    },
+    {
+        const_cast<char*>("callStaticMethod0"),
+        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;"),
+        reinterpret_cast<void*>(java_api_call_static_method)
+    },
+    {
+        const_cast<char*>("callStaticMethodSave0"),
+        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;"),
+        reinterpret_cast<void*>(java_api_call_static_method_save)
     },
     {
         // private native static QoreObject newObjectSave0(long pgm_ptr, String key, String class_name, Object...args);

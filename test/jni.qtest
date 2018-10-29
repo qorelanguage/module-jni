@@ -81,6 +81,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("jni test", "1.0") {
+        addTestCase("call static method test", \callStaticMethodTest());
         addTestCase("hash map test", \hashMapTest());
         addTestCase("number test", \numberTest());
         addTestCase("object test", \objectTest());
@@ -104,6 +105,14 @@ public class Main inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    callStaticMethodTest() {
+        auto hm = QoreJavaApiTest::callStaticMethodTest();
+        assertEq("hash<auto>", hm.fullType());
+
+        hm = QoreJavaApiTest::callStaticMethodTest2();
+        assertEq("hash<auto>", hm.fullType());
     }
 
     hashMapTest() {
@@ -210,7 +219,8 @@ public class Main inherits QUnit::Test {
         assertEq(now, d);
 
         d = QoreJavaApiTest::dateTest(now);
-        assertEq(now - 2D, d);
+        # the java API returns a date with the same UTC offset, so we have to use 48h instead of 2D
+        assertEq(now - 48h, d);
 
         date rt = P1Y2M3DT1H2M3S4u;
         list<int> l = QoreJavaApiTest::testDate1(rt);

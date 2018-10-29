@@ -10,7 +10,6 @@ class ThreadTest implements Runnable {
         try {
             HashMap hm = (HashMap)QoreJavaApi.callFunction("get_qore_library_info");
         } catch (Throwable e) {
-
         }
     }
 }
@@ -63,12 +62,34 @@ class ThreadTest4 implements Runnable {
     }
 }
 
+class ThreadTest5 implements Runnable {
+    static public HashMap result;
+
+    public void run() {
+        try {
+            result = (HashMap)QoreJavaApi.callStaticMethod("Serializable", "serializeToData", 1);
+        } catch (Throwable e) {
+        }
+    }
+}
+
 public class QoreJavaApiTest {
     static HashMap callFunctionTest() throws Throwable {
         HashMap hm = (HashMap)QoreJavaApi.callFunction("get_qore_library_info");
 
         (new Thread(new ThreadTest())).start();
         return hm;
+    }
+
+    static HashMap callStaticMethodTest() throws Throwable {
+        return (HashMap)QoreJavaApi.callStaticMethod("Serializable", "serializeToData", 1);
+    }
+
+    static HashMap callStaticMethodTest2() throws InterruptedException {
+        Thread mythread = new Thread(new ThreadTest5());
+        mythread.start();
+        mythread.join();
+        return ThreadTest5.result;
     }
 
     static void threadTest(Runnable runme1, Runnable runme2) {
