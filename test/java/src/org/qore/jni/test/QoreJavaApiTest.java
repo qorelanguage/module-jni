@@ -74,6 +74,10 @@ class ThreadTest5 implements Runnable {
 }
 
 public class QoreJavaApiTest {
+    static void throwTest() throws Throwable {
+        throw new Throwable("test");
+    }
+
     static HashMap callFunctionTest() throws Throwable {
         HashMap hm = (HashMap)QoreJavaApi.callFunction("get_qore_library_info");
 

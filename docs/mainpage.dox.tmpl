@@ -349,6 +349,7 @@ System::out.println("testing...");
     @subsection jni_1_1 jni Module Version 1.1
     - added @ref Jni::org::qore::jni::define_class() "define_class()"
       (<a href="https://github.com/qorelanguage/qore/issues/3023">issue 3023</a>)
+<<<<<<< HEAD
     - added the following new class methods:
       - @ref Jni::org::qore::jni::JavaArray::toString() "JavaArray::toString()"
       - @ref Jni::org::qore::jni::JavaArray::deepToString() "JavaArray::deepToString()"
@@ -362,6 +363,10 @@ System::out.println("testing...");
       - @ref Jni::org::qore::jni::QoreJavaApi::newObjectSaveArgs() "QoreJavaApi::newObjectSaveArgs()"
     - added support for date <-> java.time.ZonedDateTime conversions
       (<a href="https://github.com/qorelanguage/qore/issues/3026">issue 3026</a>)
+=======
+    - fixed the %Qore exception location when a Java exception is propogated to %Qore
+      (<a href="https://github.com/qorelanguage/qore/issues/3077">issue 3077</a>)
+>>>>>>> bugfix/3077_exception_location_fix
 
     @subsection jni_1_0 jni Module Version 1.0
     - initial public release

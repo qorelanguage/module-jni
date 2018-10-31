@@ -275,6 +275,14 @@ public class Main inherits QUnit::Test {
     testQoreJavaApi() {
         auto hm = QoreJavaApiTest::callFunctionTest();
         assertEq("hash<auto>", hm.fullType());
+
+        try {
+            QoreJavaApiTest::throwTest();
+            assertTrue(False);
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("QoreJavaApiTest.java", ex.file);
+            assertEq(78, ex.line);
+        }
     }
 
     testJniClasses() {
