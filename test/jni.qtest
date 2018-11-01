@@ -109,6 +109,14 @@ public class Main inherits QUnit::Test {
     testQoreJavaApi() {
         HashMap hm = QoreJavaApiTest::callFunctionTest();
         delete hm;
+
+        try {
+            QoreJavaApiTest::throwTest();
+            assertTrue(False);
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("QoreJavaApiTest.java", ex.file);
+            assertEq(35, ex.line);
+        }
     }
 
     testJniClasses() {
