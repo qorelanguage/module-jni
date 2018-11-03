@@ -2,8 +2,12 @@ package org.qore.jni;
 
 import org.qore.jni.QoreURLClassLoader;
 
-//! wrapper class for a Qore object; this class holds a weak reference to the Qore object
-/** @note API usage errors such as with releasing / deleting the object and then calling methods
+//! wrapper class for a %Qore object; this class holds a weak reference to the %Qore object
+/** Due to the different in garbage collecting approaches (%Qore's garbage collector being
+    <a href="https://github.com/qorelanguage/qore/wiki/Prompt-Collection">deterministic</a> and Java's not),
+    strong references to %Qore objects must be managed outside of Java.
+
+    @note API usage errors such as with releasing / deleting the object and then calling methods
     on the object will cause a crash
  */
 public class QoreObject {
