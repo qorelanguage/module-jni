@@ -67,7 +67,7 @@ class ThreadTest5 implements Runnable {
 
     public void run() {
         try {
-            result = (HashMap)QoreJavaApi.callStaticMethod("Serializable", "serializeToData", 1);
+            result = (HashMap)QoreJavaApi.callStaticMethod("TestClass", "get", 1);
         } catch (Throwable e) {
         }
     }
@@ -86,7 +86,7 @@ public class QoreJavaApiTest {
     }
 
     static HashMap callStaticMethodTest() throws Throwable {
-        return (HashMap)QoreJavaApi.callStaticMethod("Serializable", "serializeToData", 1);
+        return (HashMap)QoreJavaApi.callStaticMethod("TestClass", "get", 1);
     }
 
     static HashMap callStaticMethodTest2() throws InterruptedException {

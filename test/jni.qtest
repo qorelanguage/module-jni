@@ -53,6 +53,10 @@ class TestClass {
             },
         );
     }
+
+    static hash<auto> get(int i) {
+        return {};
+    }
 }
 
 class TestClass2 {
