@@ -220,7 +220,8 @@ static int save_object(Env& env, const QoreValue& rv, QoreProgram* pgm, Exceptio
     if (rv.getType() != NT_OBJECT) {
         return 0;
     }
-        QoreHashNode* data = pgm->getThreadData();
+
+    QoreHashNode* data = pgm->getThreadData();
     assert(data);
     const char* domain_name;
     // get key name where to save the data if possible
@@ -263,8 +264,9 @@ static int save_object(Env& env, const QoreValue& rv, QoreProgram* pgm, Exceptio
 
 static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong ptr, jboolean save, jstring name, jobjectArray args) {
     Env env(jenv);
+    QoreThreadAttachHelper attach_helper;
     try {
-        qoreThreadAttacher.attach();
+        attach_helper.attach();
     } catch (Exception& e) {
         env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
         return nullptr;
@@ -319,8 +321,9 @@ static jobject JNICALL java_api_call_function_save(JNIEnv* jenv, jobject obj, jl
 static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, jlong ptr, jboolean save,
     jstring class_name, jstring method_name, jobjectArray args) {
     Env env(jenv);
+    QoreThreadAttachHelper attach_helper;
     try {
-        qoreThreadAttacher.attach();
+        attach_helper.attach();
     } catch (Exception& e) {
         env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
         return nullptr;
@@ -397,8 +400,9 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
     assert(ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
     Env env(jenv);
+    QoreThreadAttachHelper attach_helper;
     try {
-        qoreThreadAttacher.attach();
+        attach_helper.attach();
     } catch (Exception& e) {
         env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
         return nullptr;
@@ -526,8 +530,9 @@ static jobject qore_object_call_method_internal(JNIEnv* jenv, jclass, jlong pgm_
     QoreObject* obj = reinterpret_cast<QoreObject*>(obj_ptr);
     // must ensure that the thread is attached before executing Qore code
     Env env(jenv);
+    QoreThreadAttachHelper attach_helper;
     try {
-        qoreThreadAttacher.attach();
+        attach_helper.attach();
     } catch (Exception& e) {
         env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
         return nullptr;
@@ -591,8 +596,9 @@ static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jclass, jlong 
     QoreObject* obj = reinterpret_cast<QoreObject*>(ptr);
     // must ensure that the thread is attached before calling QoreOBject::getReferencedMemberNoMethod()
     Env env(jenv);
+    QoreThreadAttachHelper attach_helper;
     try {
-        qoreThreadAttacher.attach();
+        attach_helper.attach();
     } catch (Exception& e) {
         env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
         return nullptr;
@@ -633,8 +639,9 @@ static void JNICALL qore_object_destroy(JNIEnv* jenv, jclass, jlong ptr) {
     assert(ptr);
     // must ensure that the thread is attached before executing Qore code
     Env env(jenv);
+    QoreThreadAttachHelper attach_helper;
     try {
-        qoreThreadAttacher.attach();
+        attach_helper.attach();
     } catch (Exception& e) {
         // NOTE: this results in a memory leak
         env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");

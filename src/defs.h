@@ -221,32 +221,73 @@ private:
 
 class QoreThreadAttacher {
 public:
-   DLLLOCAL QoreThreadAttacher() : attached(false) {
-   }
+    DLLLOCAL QoreThreadAttacher() : attached(false) {
+    }
 
-   DLLLOCAL ~QoreThreadAttacher() {
-      if (attached) {
-         printd(LogLevel, "Detaching thread %ld from Qore\n", pthread_self());
-         q_deregister_foreign_thread();
-      }
-   }
+    DLLLOCAL ~QoreThreadAttacher() {
+        if (attached) {
+            detach();
+        }
+    }
 
-   DLLLOCAL void attach() {
-      int rc = q_register_foreign_thread();
-      if (rc == QFT_OK) {
-         attached = true;
-         printd(LogLevel, "Thread %ld attached to Qore\n", pthread_self());
-      } else if (rc != QFT_REGISTERED) {
-         throw UnableToRegisterException();
-      }
-   }
+    // returns 0 = attached, -1 = already attached
+    DLLLOCAL int attach() {
+        if (!attached) {
+            attachIntern();
+            return 0;
+        }
+        return -1;
+    }
 
-   DLLLOCAL operator bool() const {
-      return attached;
-   }
+    DLLLOCAL void detach() {
+        if (attached) {
+            detachIntern();
+        }
+    }
+
+    DLLLOCAL operator bool() const {
+        return attached;
+    }
 
 private:
-   bool attached;
+    bool attached;
+
+    DLLLOCAL void attachIntern() {
+        assert(!attached);
+        int rc = q_register_foreign_thread();
+        if (rc == QFT_OK) {
+            attached = true;
+            printd(LogLevel, "Thread %ld attached to Qore\n", pthread_self());
+        } else if (rc != QFT_REGISTERED) {
+            throw UnableToRegisterException();
+        }
+    }
+
+    DLLLOCAL void detachIntern() {
+        assert(attached);
+        printd(LogLevel, "Detaching thread %ld from Qore\n", pthread_self());
+        q_deregister_foreign_thread();
+        attached = false;
+    }
+};
+
+// class that serves to attach a thread to Qore if not already attached
+// if attached in the constructor, then it will detach in the destructor
+class QoreThreadAttachHelper {
+public:
+    DLLLOCAL void attach() {
+        attached = !attacher.attach();
+    }
+
+    DLLLOCAL ~QoreThreadAttachHelper() {
+        if (attached) {
+            attacher.detach();
+        }
+    }
+
+private:
+    QoreThreadAttacher attacher;
+    bool attached = false;
 };
 
 extern thread_local QoreThreadAttacher qoreThreadAttacher;
