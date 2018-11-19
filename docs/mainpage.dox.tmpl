@@ -349,17 +349,33 @@ System::out.println("testing...");
     @subsection jni_1_1 jni Module Version 1.1
     - added @ref Jni::org::qore::jni::define_class() "define_class()"
       (<a href="https://github.com/qorelanguage/qore/issues/3023">issue 3023</a>)
-    - added the following new class methods to the Java API:
+    - added the following new class methods to the Qore API:
       - @ref Jni::org::qore::jni::JavaArray::toString() "JavaArray::toString()"
       - @ref Jni::org::qore::jni::JavaArray::deepToString() "JavaArray::deepToString()"
-      - @ref Jni::org::qore::jni::QoreJavaApi::callFunctionSave() "QoreJavaApi::callFunctionSave()"
-      - @ref Jni::org::qore::jni::QoreJavaApi::callFunctionSaveArgs() "QoreJavaApi::callFunctionSaveArgs()"
-      - @ref Jni::org::qore::jni::QoreJavaApi::callStaticMethod() "QoreJavaApi::callStaticMethod()"
-      - @ref Jni::org::qore::jni::QoreJavaApi::callStaticMethodArgs() "QoreJavaApi::callStaticMethodArgs()"
-      - @ref Jni::org::qore::jni::QoreJavaApi::callStaticMethodSave() "QoreJavaApi::callStaticMethodSave()"
-      - @ref Jni::org::qore::jni::QoreJavaApi::callStaticMethodSaveArgs() "QoreJavaApi::callStaticMethodSave()"
-      - @ref Jni::org::qore::jni::QoreJavaApi::newObjectSave() "QoreJavaApi::newObjectSave()"
-      - @ref Jni::org::qore::jni::QoreJavaApi::newObjectSaveArgs() "QoreJavaApi::newObjectSaveArgs()"
+    - added the following new class methods to the Java API:
+      - @ref org.qore.jni.QoreJavaApi.callFunctionSave() "QoreJavaApi.callFunctionSave()"
+      - @ref org.qore.jni.QoreJavaApi.callFunctionSaveArgs() "QoreJavaApi.callFunctionSaveArgs()"
+      - @ref org.qore.jni.QoreJavaApi.callStaticMethod() "QoreJavaApi.callStaticMethod()"
+      - @ref org.qore.jni.QoreJavaApi.callStaticMethodArgs() "QoreJavaApi.callStaticMethodArgs()"
+      - @ref org.qore.jni.QoreJavaApi.callStaticMethodSave() "QoreJavaApi.callStaticMethodSave()"
+      - @ref org.qore.jni.QoreJavaApi.callStaticMethodSaveArgs() "QoreJavaApi.callStaticMethodSave()"
+      - @ref org.qore.jni.QoreJavaApi.newObjectSave() "QoreJavaApi.newObjectSave()"
+      - @ref org.qore.jni.QoreJavaApi.newObjectSaveArgs() "QoreJavaApi.newObjectSaveArgs()"
+    - added the following new classes to the Java API:
+      - @ref org.qore.lang.sqlutil.Table
+      - @ref org.qore.lang.sqlutil.AbstractTable
+      - @ref org.qore.lang.sqlutil.AbstractSqlUtilBase
+      - @ref org.qore.lang.AbstractDatasource
+      - @ref org.qore.lang.mapper.Mapper
+      - @ref org.qore.lang.mapper.RawSqlStatementOutboundMapper
+      - @ref org.qore.lang.tablemapper.RawSqlStatementOutboundMapper
+      - @ref org.qore.lang.tablemapper.InboundIdentityTableMapper
+      - @ref org.qore.lang.tablemapper.AbstractSqlStatementOutboundMapper
+      - @ref org.qore.lang.tablemapper.InboundTableMapper
+      - @ref org.qore.lang.tablemapper.SqlStatementOutboundMapper
+      - @ref org.qore.lang.DatasourcePool
+      - @ref org.qore.lang.AbstractSQLStatement
+      - @ref org.qore.lang.HTTPClient
     - added support for date <-> java.time.ZonedDateTime conversions
       (<a href="https://github.com/qorelanguage/qore/issues/3026">issue 3026</a>)
     - fixed the %Qore exception location when a Java exception is propogated to %Qore
