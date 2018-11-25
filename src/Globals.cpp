@@ -281,7 +281,7 @@ static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong 
     ReferenceHolder<QoreListNode> qore_args(&xsink);
 
     if (len) {
-        qore_args = Array::getArgList(env, args);
+        Array::getArgList(qore_args, env, args);
     }
 
     Env::GetStringUtfChars fname(env, name);
@@ -342,7 +342,7 @@ static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, j
     ReferenceHolder<QoreListNode> qore_args(&xsink);
 
     if (len) {
-        qore_args = Array::getArgList(env, args);
+        Array::getArgList(qore_args, env, args);
     }
 
     Env::GetStringUtfChars cname(env, class_name);
@@ -416,7 +416,7 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
     ReferenceHolder<QoreListNode> qore_args(&xsink);
 
     if (len) {
-        qore_args = Array::getArgList(env, args);
+        Array::getArgList(qore_args, env, args);
     }
 
     Env::GetStringUtfChars clsname(env, cname);
@@ -550,7 +550,7 @@ static jobject qore_object_call_method_internal(JNIEnv* jenv, jclass, jlong pgm_
         ReferenceHolder<QoreListNode> qore_args(&xsink);
 
         if (len) {
-            qore_args = Array::getArgList(env, args);
+            Array::getArgList(qore_args, env, args);
         }
 
         Env::GetStringUtfChars method_name(env, mname);
@@ -717,7 +717,7 @@ static JNINativeMethod qoreJavaApiNativeMethods[] = {
     },
 };
 
-#define NUM_QORE_JAVA_API_NATIVE_METHODS (sizeof(qoreJavaApiNativeMethods) / sizeof(JNINativeMethod))
+static size_t num_qore_java_api_native_methods = sizeof(qoreJavaApiNativeMethods) / sizeof(JNINativeMethod);
 
 static JNINativeMethod qoreExceptionWrapperNativeMethods[2] = {
     {
@@ -775,7 +775,7 @@ static JNINativeMethod qoreObjectNativeMethods[] = {
     },
 };
 
-#define NUM_QORE_OBJECT_NATIVE_METHODS (sizeof(qoreObjectNativeMethods) / sizeof(JNINativeMethod))
+static size_t num_qore_object_native_methods = sizeof(qoreObjectNativeMethods) / sizeof(JNINativeMethod);
 
 static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperName) {
    LocalReference<jclass> wrapperClass = env.findClass(wrapperName);
@@ -813,7 +813,7 @@ void Globals::init() {
     methodQoreExceptionWrapperGet = env.getMethod(classQoreExceptionWrapper, "get", "()J");
 
     classQoreObject = env.defineClass("org/qore/jni/QoreObject", nullptr, java_org_qore_jni_QoreObject_class, java_org_qore_jni_QoreObject_class_len).makeGlobal();
-    env.registerNatives(classQoreObject, qoreObjectNativeMethods, NUM_QORE_OBJECT_NATIVE_METHODS);
+    env.registerNatives(classQoreObject, qoreObjectNativeMethods, num_qore_object_native_methods);
     ctorQoreObject = env.getMethod(classQoreObject, "<init>", "(J)V");
     methodQoreObjectGet = env.getMethod(classQoreObject, "get", "()J");
 
@@ -877,7 +877,7 @@ void Globals::init() {
     methodQoreInvocationHandlerDestroy = env.getMethod(classQoreInvocationHandler, "destroy", "()V");
 
     classQoreJavaApi = env.defineClass("org/qore/jni/QoreJavaApi", nullptr, java_org_qore_jni_QoreJavaApi_class, java_org_qore_jni_QoreJavaApi_class_len).makeGlobal();
-    env.registerNatives(classQoreJavaApi, qoreJavaApiNativeMethods, NUM_QORE_JAVA_API_NATIVE_METHODS);
+    env.registerNatives(classQoreJavaApi, qoreJavaApiNativeMethods, num_qore_java_api_native_methods);
 
     classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
     methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance", "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");

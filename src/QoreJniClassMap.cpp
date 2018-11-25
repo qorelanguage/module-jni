@@ -314,8 +314,11 @@ QoreValue QoreJniClassMap::getValue(LocalReference<jobject>& obj) {
     // see if object is an array
     LocalReference<jclass> jc = env.getObjectClass(obj);
 
-    if (env.callBooleanMethod(jc, Globals::methodClassIsArray, nullptr))
-        return Array::getList(env, obj.cast<jarray>(), jc);
+    if (env.callBooleanMethod(jc, Globals::methodClassIsArray, nullptr)) {
+        ReferenceHolder<> return_value(nullptr);
+        Array::getList(return_value, env, obj.cast<jarray>(), jc);
+        return return_value.release();
+    }
 
     if (env.isSameObject(jc, Globals::classInteger))
         return env.callIntMethod(obj, Globals::methodIntegerIntValue, nullptr);

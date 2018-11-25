@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,8 @@
 #include "GlobalReference.h"
 #include "defs.h"
 
+#include <utility>
+
 namespace jni {
 
 /**
@@ -45,7 +47,7 @@ namespace jni {
  */
 template<typename T>
 class LocalReference {
-
+    static_assert(std::is_pointer<T>::value, "Expected a pointer");
 public:
     /**
      * \brief Creates an instance.
@@ -62,14 +64,18 @@ public:
      * \brief Destroys the local reference represented by this instance.
      */
     DLLLOCAL ~LocalReference() {
-        del();
+        if (ref != nullptr) {
+            printd(LogLevel + 1, "LocalReference deleted: %p\n", ref);
+            Jvm::getEnv()->DeleteLocalRef(ref);
+            ref = nullptr;
+        }
     }
 
     /**
      * \brief Move constructor.
      * \param src the source local reference wrapper
      */
-    DLLLOCAL LocalReference(LocalReference &&src) : ref(src.ref) {
+    DLLLOCAL LocalReference(LocalReference &&src) : ref(std::move(src.ref)) {
         src.ref = nullptr;
     }
 
@@ -79,10 +85,19 @@ public:
      * \return *this
      */
     DLLLOCAL LocalReference &operator=(LocalReference &&src) {
-        del();
-        ref = src.ref;
-        src.ref = nullptr;
+        swap(*this, src);
         return *this;
+    }
+
+    /**
+     * \brief Swap function
+    */
+    DLLLOCAL friend void swap(LocalReference& first, LocalReference& second) {
+        // enable ADL (not necessary in our case, but good practice)
+        using std::swap;
+
+        // by swapping the members of two objects, the two objects are effectively swapped
+        swap(first.ref, second.ref);
     }
 
     /**
@@ -134,14 +149,6 @@ public:
 private:
     LocalReference(const LocalReference &) = delete;
     LocalReference &operator=(const LocalReference &) = delete;
-
-    DLLLOCAL void del() {
-        if (ref != nullptr) {
-            printd(LogLevel + 1, "LocalReference deleted: %p\n", ref);
-            Jvm::getEnv()->DeleteLocalRef(ref);
-            ref = nullptr;
-        }
-    }
 
     T ref;
 };

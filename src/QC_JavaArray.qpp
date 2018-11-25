@@ -116,7 +116,7 @@ string str = a.toString();
 */
 string JavaArray::toString() [flags=CONSTANT] {
     try {
-        return array->deepToString();
+        return array->deepToString().release();
     } catch (jni::Exception &e) {
       e.convert(xsink);
    }
@@ -135,7 +135,7 @@ string str = a.deepToString();
 */
 string JavaArray::deepToString() [flags=CONSTANT] {
     try {
-        return array->deepToString();
+        return array->deepToString().release();
     } catch (jni::Exception &e) {
       e.convert(xsink);
    }

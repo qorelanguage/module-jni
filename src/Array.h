@@ -68,15 +68,18 @@ class Array : public QoreJniPrivateData {
     DLLLOCAL int64 length() const;
     DLLLOCAL QoreValue get(int64 index) const;
     DLLLOCAL void set(int64 index, const QoreValue &value);
-    DLLLOCAL QoreStringNode* deepToString() const;
+    DLLLOCAL QoreStringNodeHolder deepToString() const;
 
-    DLLLOCAL static QoreListNode* getArgList(Env& env, jarray array);
+    DLLLOCAL static void getArgList(ReferenceHolder<QoreListNode>& return_value, Env& env, jarray array);
 
-    DLLLOCAL static void set(jarray array, Type elementType, jclass elementClass, int64 index, const QoreValue &value);
+    DLLLOCAL static void set(jarray array, Type elementType, jclass elementClass, int64 index,
+        const QoreValue &value);
 
-    DLLLOCAL static QoreStringNode* deepToString(Env& env, jarray array);
+    DLLLOCAL static QoreStringNodeHolder deepToString(Env& env, jarray array);
 
-    DLLLOCAL static AbstractQoreNode* getList(Env& env, jarray array, jclass arrayClass, bool force_list = false);
+    DLLLOCAL static void getList(ReferenceHolder<>& return_value, Env& env, jarray array,
+        jclass arrayClass, bool force_list = false);
+
     DLLLOCAL static QoreValue get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index);
 
     DLLLOCAL static LocalReference<jarray> getNew(Type elementType, jclass elementClass, jsize size);
@@ -86,7 +89,7 @@ class Array : public QoreJniPrivateData {
 
     DLLLOCAL static jclass getClassForValue(QoreValue v);
 
-    DLLLOCAL static BinaryNode* getBinary(Env& env, jarray array);
+    DLLLOCAL static SimpleRefHolder<BinaryNode> getBinary(Env& env, jarray array);
 
 private:
     GlobalReference<jclass> elementClass;

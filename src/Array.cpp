@@ -75,7 +75,7 @@ LocalReference<jarray> Array::getNew(Type elementType, jclass elementClass, jsiz
     }
 }
 
-BinaryNode* Array::getBinary(Env& env, jarray array) {
+SimpleRefHolder<BinaryNode> Array::getBinary(Env& env, jarray array) {
     SimpleRefHolder<BinaryNode> rv(new BinaryNode);
 
     jsize size = env.getArrayLength(array);
@@ -85,15 +85,16 @@ BinaryNode* Array::getBinary(Env& env, jarray array) {
         jbyte byte = env.getByteArrayElement(static_cast<jbyteArray>(array), i);
         reinterpret_cast<jbyte*>(const_cast<void*>(rv->getPtr()))[i] = byte;
     }
-    return rv.release();
+    return rv;
 }
 
-AbstractQoreNode* Array::getList(Env& env, jarray array, jclass arrayClass, bool force_list) {
+void Array::getList(ReferenceHolder<>& return_value, Env& env, jarray array, jclass arrayClass, bool force_list) {
     LocalReference<jclass> elementClass = env.callObjectMethod(arrayClass, Globals::methodClassGetComponentType, nullptr).as<jclass>();
     Type elementType = Globals::getType(elementClass);
     // issue #3026: return a binary object for byte[] unless jni_compat_types is set
     if (elementType == Type::Byte && !JniExternalProgramData::compatTypes() && !force_list) {
-        return getBinary(env, array);
+        return_value = getBinary(env, array).release();
+        return;
     }
 
     ExceptionSink xsink;
@@ -103,7 +104,7 @@ AbstractQoreNode* Array::getList(Env& env, jarray array, jclass arrayClass, bool
         l->push(get(env, array, elementType, elementClass, i), nullptr);
     }
 
-    return l.release();
+    return_value = l.release();
 }
 
 QoreValue Array::get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index) {
@@ -140,18 +141,18 @@ void Array::set(int64 index, const QoreValue &value) {
     set(jobj.cast<jarray>(), elementType, elementClass, index, value);
 }
 
-QoreStringNode* Array::deepToString() const {
+QoreStringNodeHolder Array::deepToString() const {
     Env env;
     return deepToString(env, jobj.cast<jarray>());
 }
 
-QoreStringNode* Array::deepToString(Env& env, jarray array) {
+QoreStringNodeHolder Array::deepToString(Env& env, jarray array) {
     jvalue jarg;
     jarg.l = array;
     LocalReference<jstring> str = env.callStaticObjectMethod(Globals::classArrays, Globals::methodArraysDeepToString, &jarg).as<jstring>();
 
     Env::GetStringUtfChars chars(env, str);
-    return new QoreStringNode(chars.c_str(), QCS_UTF8);
+    return QoreStringNodeHolder(new QoreStringNode(chars.c_str(), QCS_UTF8));
 }
 
 void Array::set(jarray array, Type elementType, jclass elementClass, int64 index, const QoreValue &value) {
@@ -261,9 +262,11 @@ LocalReference<jarray> Array::toJava(const QoreListNode* l) {
     return toObjectArray(l, elementClass).release();
 }
 
-QoreListNode* Array::getArgList(Env& env, jarray array) {
+void Array::getArgList(ReferenceHolder<QoreListNode>& return_value, Env& env, jarray array) {
     LocalReference<jclass> arrayClass = env.getObjectClass(array);
-    return reinterpret_cast<QoreListNode*>(getList(env, array, arrayClass, true));
+    ReferenceHolder<> list(nullptr);
+    getList(list, env, array, arrayClass, true);
+    return_value = reinterpret_cast<QoreListNode*>(list.release());
 }
 
 } // namespace jni
