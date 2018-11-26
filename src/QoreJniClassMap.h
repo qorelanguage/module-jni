@@ -36,6 +36,8 @@ DLLLOCAL QoreClass* initQoreInvocationHandlerClass(QoreNamespace& ns);
 DLLLOCAL void init_jni_functions(QoreNamespace& ns);
 DLLLOCAL QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname);
 
+DLLLOCAL extern bool jni_compat_types;
+
 namespace jni {
 
 // the QoreBuiltinClass for java::lang::Object
@@ -204,6 +206,15 @@ public:
 
     DLLLOCAL void addClasspath(const char* path);
 
+    DLLLOCAL void overrideCompatTypes(bool compat_types) {
+        override_compat_types = true;
+        this->compat_types = compat_types;
+    }
+
+    DLLLOCAL bool getCompatTypes() const {
+        return override_compat_types ? compat_types : jni_compat_types;
+    }
+
     DLLLOCAL virtual AbstractQoreProgramExternalData* copy(QoreProgram* pgm) const {
         return new JniExternalProgramData(*this, pgm);
     }
@@ -214,11 +225,17 @@ public:
 
     DLLLOCAL static void setContext(Env& env);
 
+    DLLLOCAL static bool compatTypes();
+
 protected:
     // Jni namespace pointer for the current Program
     QoreNamespace* jni;
     // class loader
     GlobalReference<jobject> classLoader;
+    // override compat-types
+    bool override_compat_types = false;
+    // compat-types values
+    bool compat_types = false;
 };
 
 }

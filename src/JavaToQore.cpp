@@ -33,18 +33,101 @@
 namespace jni {
 
 QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
-   if (!v)
-      return QoreValue();
+    if (!v) {
+        return QoreValue();
+    }
 
-   Env env;
+    Env env;
 
-   // convert to Qore value if possible
-   if (env.isInstanceOf(v, Globals::classString)) {
-      Env::GetStringUtfChars chars(env, v.as<jstring>());
-      return QoreValue(new QoreStringNode(chars.c_str(), QCS_UTF8));
-   }
+    // convert to Qore value if possible
+    if (env.isInstanceOf(v, Globals::classString)) {
+        Env::GetStringUtfChars chars(env, v.as<jstring>());
+        return QoreValue(new QoreStringNode(chars.c_str(), QCS_UTF8));
+    }
 
-   return qjcm.getValue(v);
+    if (env.isInstanceOf(v, Globals::classZonedDateTime)) {
+        LocalReference<jstring> date_str = env.callObjectMethod(v,
+            Globals::methodZonedDateTimeToString, nullptr).as<jstring>();
+        Env::GetStringUtfChars chars(env, date_str);
+        return QoreValue(new DateTimeNode(chars.c_str()));
+    }
+
+    if (env.isInstanceOf(v, Globals::classBigDecimal)) {
+        LocalReference<jstring> num_str = env.callObjectMethod(v,
+            Globals::methodBigDecimalToString, nullptr).as<jstring>();
+        Env::GetStringUtfChars chars(env, num_str);
+        return QoreValue(new QoreNumberNode(chars.c_str()));
+    }
+
+    if (env.isInstanceOf(v, Globals::classQoreObject)) {
+        QoreObject* obj = reinterpret_cast<QoreObject*>(env.callLongMethod(v,
+            Globals::methodQoreObjectGet, nullptr));
+        return obj->refSelf();
+    }
+
+    if (env.isInstanceOf(v, Globals::classHashMap) && !JniExternalProgramData::compatTypes()) {
+        // create hash from HashMap
+        LocalReference<jobject> set = env.callObjectMethod(v,
+            Globals::methodHashMapEntrySet, nullptr);
+        if (!set) {
+            return QoreValue();
+        }
+        LocalReference<jobject> i = env.callObjectMethod(set,
+            Globals::methodSetIterator, nullptr);
+        if (!i) {
+            return QoreValue();
+        }
+
+        ExceptionSink xsink;
+        ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), &xsink);
+        while (true) {
+            if (!env.callBooleanMethod(i, Globals::methodIteratorHasNext, nullptr)) {
+                break;
+            }
+
+            LocalReference<jobject> element = env.callObjectMethod(i,
+                Globals::methodIteratorNext, nullptr);
+            if (element) {
+                LocalReference<jstring> key = env.callObjectMethod(element,
+                    Globals::methodEntryGetKey, nullptr).as<jstring>();
+
+                LocalReference<jobject> value = env.callObjectMethod(element,
+                    Globals::methodEntryGetValue, nullptr);
+
+                ValueHolder val(convertToQore(value.release()), &xsink);
+                if (xsink) {
+                    break;
+                }
+
+                Env::GetStringUtfChars key_str(env, key);
+                rv->setKeyValue(key_str.c_str(), val.release(), &xsink);
+                if (xsink) {
+                    break;
+                }
+            }
+        }
+
+        if (xsink) {
+            throw XsinkException(xsink);
+        }
+
+        return rv.release();
+    }
+
+    // for relative date/time values
+    if (env.isInstanceOf(v, Globals::classQoreRelativeTime)) {
+        int year = env.getIntField(v, Globals::fieldQoreRelativeTimeYear),
+            month = env.getIntField(v, Globals::fieldQoreRelativeTimeMonth),
+            day = env.getIntField(v, Globals::fieldQoreRelativeTimeDay),
+            hour = env.getIntField(v, Globals::fieldQoreRelativeTimeHour),
+            minute = env.getIntField(v, Globals::fieldQoreRelativeTimeMinute),
+            second = env.getIntField(v, Globals::fieldQoreRelativeTimeSecond),
+            us = env.getIntField(v, Globals::fieldQoreRelativeTimeUs);
+
+        return QoreValue(DateTimeNode::makeRelative(year, month, day, hour, minute, second, us));
+    }
+
+    return qjcm.getValue(v);
 }
 
 } // namespace jni

@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -46,46 +46,54 @@ namespace jni {
  * \brief Represents a Java array instance.
  */
 class Array : public QoreJniPrivateData {
-public:
-   /**
-    * \brief Constructor.
-    * \param array a local reference to a Java array instance
-    * \throws JavaException if a global reference cannot be created
-    */
-   DLLLOCAL Array(jarray array);
+    public:
+    /**
+     * \brief Constructor.
+     * \param array a local reference to a Java array instance
+     * \throws JavaException if a global reference cannot be created
+     */
+    DLLLOCAL Array(jarray array);
 
-   /**
-    * \brief Constructor
-    * \param elementClass a local reference to the component class
-    * \param size the size of the array
-    */
-   DLLLOCAL Array(jclass elementClass, int size);
+    /**
+     * \brief Constructor
+     * \param elementClass a local reference to the component class
+     * \param size the size of the array
+     */
+    DLLLOCAL Array(jclass elementClass, int size);
 
-   DLLLOCAL ~Array() {
-      printd(LogLevel, "Array::~Array(), this: %p, object: %p\n", this, jobj.cast<jarray>());
-   }
+    DLLLOCAL ~Array() {
+        printd(LogLevel, "Array::~Array(), this: %p, object: %p\n", this, jobj.cast<jarray>());
+    }
 
-   DLLLOCAL int64 length() const;
-   DLLLOCAL QoreValue get(int64 index) const;
-   DLLLOCAL void set(int64 index, const QoreValue &value);
+    DLLLOCAL int64 length() const;
+    DLLLOCAL QoreValue get(int64 index) const;
+    DLLLOCAL void set(int64 index, const QoreValue &value);
+    DLLLOCAL QoreStringNodeHolder deepToString() const;
 
-   DLLLOCAL static QoreListNode* getArgList(Env& env, jarray array);
+    DLLLOCAL static void getArgList(ReferenceHolder<QoreListNode>& return_value, Env& env, jarray array);
 
-   DLLLOCAL static void set(jarray array, Type elementType, jclass elementClass, int64 index, const QoreValue &value);
+    DLLLOCAL static void set(jarray array, Type elementType, jclass elementClass, int64 index,
+        const QoreValue &value);
 
-   DLLLOCAL static QoreListNode* getList(Env& env, jarray array, jclass arrayClass);
-   DLLLOCAL static QoreValue get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index);
+    DLLLOCAL static QoreStringNodeHolder deepToString(Env& env, jarray array);
 
-   DLLLOCAL static LocalReference<jarray> getNew(Type elementType, jclass elementClass, jsize size);
+    DLLLOCAL static void getList(ReferenceHolder<>& return_value, Env& env, jarray array,
+        jclass arrayClass, bool force_list = false);
 
-   DLLLOCAL static LocalReference<jarray> toJava(const QoreListNode* l);
-   DLLLOCAL static LocalReference<jarray> toObjectArray(const QoreListNode* l, jclass elementClass);
+    DLLLOCAL static QoreValue get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index);
 
-   DLLLOCAL static jclass getClassForValue(QoreValue v);
+    DLLLOCAL static LocalReference<jarray> getNew(Type elementType, jclass elementClass, jsize size);
+
+    DLLLOCAL static LocalReference<jarray> toJava(const QoreListNode* l);
+    DLLLOCAL static LocalReference<jarray> toObjectArray(const QoreListNode* l, jclass elementClass);
+
+    DLLLOCAL static jclass getClassForValue(QoreValue v);
+
+    DLLLOCAL static SimpleRefHolder<BinaryNode> getBinary(Env& env, jarray array);
 
 private:
-   GlobalReference<jclass> elementClass;
-   Type elementType;
+    GlobalReference<jclass> elementClass;
+    Type elementType;
 };
 
 } // namespace jni

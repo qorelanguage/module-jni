@@ -130,6 +130,28 @@
 
     @see @ref jni_class_mapping for more information
 
+    @section jni_define_class_parse_time Defining Classes at Parse Time
+
+    The jni module also supports defining classes at parse time with the following jni-module-specific parse directives:
+    - @code{.qore} %module-cmd(jni) define-class <name> <base 64 byte code> @endcode defines the given class with \c &lt;name&gt;
+      as the Java internal name for the class (ex: \c my/package/MyClassName)
+    - @code{.qore} %module-cmd(jni) define-pending-class <name> <base 64 byte code> @endcode adds the given class and
+      byte code as a pending class to be defined when required by a \c define-class directive; this should be used for
+      inner classes and has been implemented to allow circular dependencies in such classes to be resolved;
+      \c &lt;name&gt; is the Java internal name for the inner class (ex: \c my/package/MyClassName$1)
+
+    @section jni_compat JNI Module Compatibility Options
+
+    This module supports the following compatibility option: \c "compat-types" which, when enabled, will disable the following
+    type conversions:
+    - Java \c byte[] to \c binary; instead this will converted to \c list<int>
+    - Java \c java.util.HashMap to \c hash; instead this will be converted directly
+
+    This option can be set globally for all Program objects with <tt>set_module_option("jni", "compat-type", True)</tt> or
+    locally for the current Program container with the \c set-compat-type module parse option like:
+    <tt>%module-cmd(jni) set-compat-type true</tt> or <tt>%module-cmd(jni) set-compat-type false</tt> to
+    override the global setting.
+
     @section jni_types Type Conversions Between Qore and Java
 
     The \c jni module uses reflection to automatically map Java classes to Qore classes.  This class mapping and Qore class creation happens at parse time (when @ref jniimport "importing Java APIs" into %Qore) and also at runtime (if a new class is encountered that has not already been mapped).
@@ -165,10 +187,14 @@
     |@ref int_type "int"|\c int (note: precision is lost here)
     |@ref float_type "float"|\c double
     |@ref string_type "string"|\c java.lang.String
+    |@ref date_type "date"|\c java.time.ZonedDateTime or @ref org.qore.jni.QoreRelativeTime
+    |@ref number_type "number"|\c java.math.BigDecimal
+    |@ref binary_type "binary"|\c byte[]
     |@ref nothing_type "NOTHING" and @ref null_type "NULL"|\c void
-    |@ref list_type "list"|\c java.lang.Array
+    |@ref list_type "list"|java Arrays of the list type; if no list type can be found, then the Array type is \c java.lang.Object
     |@ref hash_type "hash"|\c java.util.HashMap
     |@ref Jni::org::qore::jni::JavaArray "JavaArray"|\c java.lang.Array
+    |@ref object_type "object"|to the Java class if the Qore object is an instantiation of \c java.lang.Object, otherwise @ref  org.qore.jni.QoreObject
     |all \c jni objects|direct conversion
 
     @note
@@ -181,6 +207,7 @@
     |!Source Java Type|!Target %Qore Type
     |\c boolean|@ref bool_type "bool"
     |\c byte|@ref int_type "int"
+    |\c byte[]|@ref binary_type "binary" (see also @ref jni_compat)
     |\c char|@ref int_type "int"
     |\c short|@ref int_type "int"
     |\c int|@ref int_type "int"
@@ -188,7 +215,11 @@
     |\c float|@ref float_type "float"
     |\c double|@ref float_type "double"
     |\c java.lang.String|@ref string_type "string"
+    |\c java.time.ZonedDateTime|@ref date_type "date" (@ref absolute_dates "absolute date")
+    |\c @ref org.qore.jni.QoreRelativeTime|@ref date_type "date" (@ref relative_dates "relative date")
+    |\c java.math.BigDecimal|@ref number_type "number"
     |\c java.lang.Array|@ref list_type "list"
+    |\c javq.util.HashMap|@ref hash_type "hash" (see also @ref jni_compat)
     |all other objects|direct conversion
 
     @note see @ref jni_arrays for more information about conversions between %Qore lists and Java arrays
@@ -318,6 +349,35 @@ System::out.println("testing...");
     @subsection jni_1_1 jni Module Version 1.1
     - added @ref Jni::org::qore::jni::define_class() "define_class()"
       (<a href="https://github.com/qorelanguage/qore/issues/3023">issue 3023</a>)
+    - added the following new class methods to the Qore API:
+      - @ref Jni::org::qore::jni::JavaArray::toString() "JavaArray::toString()"
+      - @ref Jni::org::qore::jni::JavaArray::deepToString() "JavaArray::deepToString()"
+    - added the following new class methods to the Java API:
+      - @ref org.qore.jni.QoreJavaApi.callFunctionSave() "QoreJavaApi.callFunctionSave()"
+      - @ref org.qore.jni.QoreJavaApi.callFunctionSaveArgs() "QoreJavaApi.callFunctionSaveArgs()"
+      - @ref org.qore.jni.QoreJavaApi.callStaticMethod() "QoreJavaApi.callStaticMethod()"
+      - @ref org.qore.jni.QoreJavaApi.callStaticMethodArgs() "QoreJavaApi.callStaticMethodArgs()"
+      - @ref org.qore.jni.QoreJavaApi.callStaticMethodSave() "QoreJavaApi.callStaticMethodSave()"
+      - @ref org.qore.jni.QoreJavaApi.callStaticMethodSaveArgs() "QoreJavaApi.callStaticMethodSave()"
+      - @ref org.qore.jni.QoreJavaApi.newObjectSave() "QoreJavaApi.newObjectSave()"
+      - @ref org.qore.jni.QoreJavaApi.newObjectSaveArgs() "QoreJavaApi.newObjectSaveArgs()"
+    - added the following new classes to the Java API:
+      - @ref org.qore.lang.sqlutil.Table
+      - @ref org.qore.lang.sqlutil.AbstractTable
+      - @ref org.qore.lang.sqlutil.AbstractSqlUtilBase
+      - @ref org.qore.lang.AbstractDatasource
+      - @ref org.qore.lang.mapper.Mapper
+      - @ref org.qore.lang.mapper.RawSqlStatementOutboundMapper
+      - @ref org.qore.lang.tablemapper.RawSqlStatementOutboundMapper
+      - @ref org.qore.lang.tablemapper.InboundIdentityTableMapper
+      - @ref org.qore.lang.tablemapper.AbstractSqlStatementOutboundMapper
+      - @ref org.qore.lang.tablemapper.InboundTableMapper
+      - @ref org.qore.lang.tablemapper.SqlStatementOutboundMapper
+      - @ref org.qore.lang.DatasourcePool
+      - @ref org.qore.lang.AbstractSQLStatement
+      - @ref org.qore.lang.HTTPClient
+    - added support for date <-> java.time.ZonedDateTime conversions
+      (<a href="https://github.com/qorelanguage/qore/issues/3026">issue 3026</a>)
     - fixed the %Qore exception location when a Java exception is propogated to %Qore
       (<a href="https://github.com/qorelanguage/qore/issues/3077">issue 3077</a>)
 

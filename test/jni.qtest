@@ -10,7 +10,6 @@
 %requires QUnit
 %requires Util
 
-#%module-cmd(jni) add-relative-classpath java/bin
 %module-cmd(jni) add-relative-classpath qore-jni-test.jar
 %module-cmd(jni) import java.lang.reflect.*
 %module-cmd(jni) import java.lang.invoke.*
@@ -33,14 +32,64 @@ class MyFields inherits Fields {
     }
 }
 
+class TestClass {
+    public {
+        string member = "mem";
+    }
+
+    string getString(string str = "default") {
+        return str + "-x";
+    }
+
+    list<hash<auto>> getListOfHashes() {
+        return (
+            {
+                "a": 1,
+                "b": "two",
+            },
+            {
+                "a": 3,
+                "b": "four",
+            },
+        );
+    }
+
+    static hash<auto> get(int i) {
+        return {};
+    }
+}
+
+class TestClass2 {
+    public {
+        static int cnt = 0;
+    }
+
+    destructor() {
+        ++cnt;
+    }
+
+    string getString(string str = "default") {
+        return str + "-y";
+    }
+}
+
+TestClass sub get_object() {
+    return new TestClass();
+}
+
 public class Main inherits QUnit::Test {
     public {
         const TestClass1ByteCode = <cafebabe0000003400110a0004000d08000e07000f0700100100063c696e69743e010003282956010004436f646501000f4c696e654e756d6265725461626c6501000367657401001428294c6a6176612f6c616e672f537472696e673b01000a536f7572636546696c65010009546573742e6a6176610c0005000601000474657374010004546573740100106a6176612f6c616e672f4f626a656374002000030004000000000002000000050006000100070000001d00010001000000052ab70001b10000000100080000000600010000000100000009000a000100070000001b00010001000000031202b0000000010008000000060001000000030001000b00000002000c>;
 
-        const TestClass2ByteCode = <cafebabe0000003400100a0004000d08000e07000e07000f0100063c696e69743e010003282956010004436f646501000f4c696e654e756d6265725461626c6501000367657401001428294c6a6176612f6c616e672f537472696e673b01000a536f7572636546696c6501000a54657374322e6a6176610c0005000601000554657374320100106a6176612f6c616e672f4f626a656374002000030004000000000002000000050006000100070000001d00010001000000052ab70001b10000000100080000000600010000000100000009000a000100070000001b00010001000000031202b0000000010008000000060001000000030001000b00000002000c>;
+        const TestClass2ByteCode = <cafebabe0000003400110a0004000d08000e07000f0700100100063c696e69743e010003282956010004436f646501000f4c696e654e756d6265725461626c6501000367657401001428294c6a6176612f6c616e672f537472696e673b01000a536f7572636546696c6501000a54657374322e6a6176610c00050006010005546573743201000d6d792f746573742f54657374320100106a6176612f6c616e672f4f626a656374002000030004000000000002000000050006000100070000001d00010001000000052ab70001b10000000100080000000600010000000300000009000a000100070000001b00010001000000031202b0000000010008000000060001000000050001000b00000002000c>;
     }
 
     constructor() : Test("jni test", "1.0") {
+        addTestCase("call static method test", \callStaticMethodTest());
+        addTestCase("hash map test", \hashMapTest());
+        addTestCase("number test", \numberTest());
+        addTestCase("object test", \objectTest());
+        addTestCase("date test", \dateTest());
         addTestCase("defineClass", \defineClassTest());
         addTestCase("issue 2950", \issue2950());
         addTestCase("class test", \testJniClasses());
@@ -62,6 +111,127 @@ public class Main inherits QUnit::Test {
         set_return_value(main());
     }
 
+    callStaticMethodTest() {
+        auto hm = QoreJavaApiTest::callStaticMethodTest();
+        assertEq("hash<auto>", hm.fullType());
+
+        hm = QoreJavaApiTest::callStaticMethodTest2();
+        assertEq("hash<auto>", hm.fullType());
+    }
+
+    hashMapTest() {
+        {
+            auto l = QoreJavaApiTest::testObject6();
+            assertEq(Type::Hash, l[0].type());
+        }
+
+        hash<auto> h0 = {
+            "a": 1,
+            "b": "two",
+        };
+
+        {
+            hash<auto> h1 = QoreJavaApiTest::testObject7(h0);
+            assertEq(1, h1.size());
+            assertEq(h0 - "a", h1);
+        }
+
+        {
+            list<hash<auto>> l0= (
+                h0,
+                h0,
+            );
+
+            auto l1 = QoreJavaApiTest::testObject8(l0);
+            assertEq(l0, l1);
+
+            l1 = QoreJavaApiTest::testObject9(l0);
+            assertEq(l0, l1);
+        }
+
+        {
+            TestClass test();
+            auto l = QoreJavaApiTest::testObject10(test);
+            assertEq(test.getListOfHashes(), l);
+        }
+    }
+
+    numberTest() {
+        string num_str = M_PIn.toString();
+        number val = QoreJavaApiTest::testObject5(num_str);
+        # must convert to float
+        assertNumberEq(M_PIn, val);
+        assertNumberEq(M_PIn, QoreJavaApiTest::testObject5(M_PIn));
+    }
+
+    objectTest() {
+        TestClass t();
+        assertEq(True, QoreJavaApiTest::testObject4(t, "TestClass"));
+        assertEq("test-x", QoreJavaApiTest::testObject1(t, "test"));
+        assertEq("mem", QoreJavaApiTest::testObject2(t));
+        assertEq(t, QoreJavaApiTest::testObject3(t));
+        assertEq("TestClass", QoreJavaApiTest::testObject11(t));
+
+        auto v = QoreJavaApiTest::testObject12();
+        assertThrows("OBJECT-ALREADY-DELETED", \v.getString(), "str");
+        v = QoreJavaApiTest::testObject13();
+        assertEq("str-x", v.getString("str"));
+        assertEq((v,), get_thread_data("_jni_save"));
+        hash<auto> td = remove_thread_data("_jni_save");
+        assertEq((v,), td._jni_save);
+        remove td;
+        remove v;
+        v = QoreJavaApiTest::testObject12();
+        assertThrows("OBJECT-ALREADY-DELETED", \v.getString(), "str");
+
+        save_thread_data("_jni_save", "my-key");
+        v = QoreJavaApiTest::testObject13();
+        assertEq("str-x", v.getString("str"));
+        assertEq((v,), get_thread_data("my-key"));
+        td = remove_thread_data("my-key");
+        assertEq((v,), td."my-key");
+        remove td;
+        remove v;
+        v = QoreJavaApiTest::testObject12();
+        assertThrows("OBJECT-ALREADY-DELETED", \v.getString(), "str");
+
+        v = QoreJavaApiTest::testObject13();
+        assertEq("str-x", v.getString("str"));
+        assertEq((v,), get_thread_data("my-key"));
+        td = remove_thread_data("my-key");
+        assertEq((v,), td."my-key");
+        remove td;
+        remove v;
+        v = QoreJavaApiTest::testObject12();
+        assertThrows("OBJECT-ALREADY-DELETED", \v.getString(), "str");
+
+        t = new TestClass();
+        string val = QoreJavaApiTest::testObject14(t);
+        assertEq("default-x", val);
+
+        # test new object creation and saving a strong reference in a Java thread
+        assertEq("default-y", QoreJavaApiTest::testObject15());
+        # ensure that thread-local data created from Java threads is destroyed when
+        # the Java thread terminates
+        assertEq(1, TestClass2::cnt);
+    }
+
+    dateTest() {
+        date now = now_us();
+        string date_str = now.format("YYYY-MM-DDTHH:mm:SS.xxZ");
+        date d = ZonedDateTime::parse(new String(date_str));
+        assertEq(now, d);
+
+        d = QoreJavaApiTest::dateTest(now);
+        # the java API returns a date with the same UTC offset, so we have to use 48h instead of 2D
+        assertEq(now - 48h, d);
+
+        date rt = P1Y2M3DT1H2M3S4u;
+        list<int> l = QoreJavaApiTest::testDate1(rt);
+        assertEq((1,2,3,1,2,3,4), l);
+        assertEq(rt, QoreJavaApiTest::testDate2(rt));
+    }
+
     defineClassTest() {
         assertThrows("JNI-ERROR", \jni::define_class(), ("test", <abcd>));
 
@@ -75,7 +245,7 @@ public class Main inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE);
-            p.issueModuleCmd("jni", "define-class Test2 " + TestClass2ByteCode.toBase64());
+            p.issueModuleCmd("jni", "define-class my/test/Test2 " + TestClass2ByteCode.toBase64());
             #p.parse("%requires reflection\nlist<auto> sub test() { return Class::findAllRegex('Test2'); }", "");
             #map printf("%y\n", $1.getPathName()), p.callFunction("test");
             p.parse("Test2 sub test() { return new Test2(); }", "");
@@ -107,15 +277,15 @@ public class Main inherits QUnit::Test {
     }
 
     testQoreJavaApi() {
-        HashMap hm = QoreJavaApiTest::callFunctionTest();
-        delete hm;
+        auto hm = QoreJavaApiTest::callFunctionTest();
+        assertEq("hash<auto>", hm.fullType());
 
         try {
             QoreJavaApiTest::throwTest();
             assertTrue(False);
         } catch (hash<ExceptionInfo> ex) {
             assertEq("QoreJavaApiTest.java", ex.file);
-            assertEq(35, ex.line);
+            assertEq(78, ex.line);
         }
     }
 
@@ -334,13 +504,13 @@ public class Main inherits QUnit::Test {
         assertThrows("JNI-ERROR", sub(){ l.set(NOTHING, myint); });
         assertEq(NOTHING, l.get());
 
-        list byteArray = ba.get();
+        binary byteArray = ba.get();
         list objectArray = oa.get();
         list intArray = ia.get();
 
-        o.set(NOTHING, byteArray);                                               # arrays in Java are Objects
+        o.set(NOTHING, JavaArray::get(byteArray));                               # arrays in Java are Objects
         # byte[] is not a subtype of Object[], but a list of ints is converted to int[]
-        oa.set(NOTHING, byteArray);
+        assertThrows("JNI-ERROR", \oa.set(), (NOTHING, JavaArray::get(byteArray)));
         oa.set(NOTHING, intArray);                                               # arrays in Java are covariant
         assertThrows("JNI-ERROR", sub() { ia.set(NOTHING, objectArray); });      # Object[] is not a subtype of Integer[]
         assertThrows("JNI-ERROR", sub() { n.set(NOTHING, byteArray); });         # byte[] is not a Number
@@ -395,13 +565,13 @@ public class Main inherits QUnit::Test {
         d.set(instance, @Inf@);
         assertTrue(d.get(instance).infp());
 
-        list byteArray = ba.get(instance);
+        binary byteArray = ba.get(instance);
         list objectArray = oa.get(instance);
         list intArray = ia.get(instance);
 
         o.set(instance, byteArray);                                             # arrays in Java are Objects
         # byte[] is not a subtype of Object[], but a list of ints is converted to int[]
-        oa.set(instance, byteArray);
+        assertThrows("JNI-ERROR", \oa.set(), (instance, byteArray));
         oa.set(instance, intArray);                                             # arrays in Java are covariant
         assertThrows("JNI-ERROR", sub() { ia.set(instance, objectArray); });    # Object[] is not a subtype of Integer[]
 
@@ -410,7 +580,7 @@ public class Main inherits QUnit::Test {
         assertThrows("JNI-ERROR", sub() { z.set(byteArray, True); });
 
         # test Qore explicit Field access
-        assertEq((0, 0, 0), instance.ba);
+        assertEq(<000000>, instance.ba);
         assertEq((NOTHING, NOTHING, NOTHING), instance.oa);
         assertEq((NOTHING, NOTHING, NOTHING), instance.ia);
 

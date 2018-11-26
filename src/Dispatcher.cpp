@@ -75,7 +75,9 @@ jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jo
             // when creating arguments in case QoreClass
             // objects must be created from Java objects
             QoreProgramContextHelper pch(pgm);
-            args->push(Array::getList(env, jargs, env.getObjectClass(jargs)), &xsink);
+            ReferenceHolder<> val(&xsink);
+            Array::getList(val, env, jargs, env.getObjectClass(jargs));
+            args->push(val.release(), &xsink);
         }
 
         QoreValue qv = callback->execValue(*args, &xsink);

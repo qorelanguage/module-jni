@@ -28,53 +28,101 @@
 
 namespace jni {
 
+static jstring jni_string_to_jstring(const QoreStringNode& qstr) {
+    ModifiedUtf8String str(qstr);
+    Env env;
+    return env.newString(str.c_str()).release();
+}
+
+static jobject jni_date_to_jobject(const DateTimeNode& qdate) {
+    Env env;
+
+    if (qdate.isAbsolute()) {
+        QoreString str;
+        qdate.format(str, "YYYY-MM-DDTHH:mm:SS.xxZ");
+
+        LocalReference<jstring> date_str = env.newString(str.c_str());
+        std::vector<jvalue> jargs(1);
+        jargs[0].l = date_str;
+        return env.callStaticObjectMethod(Globals::classZonedDateTime, Globals::methodZonedDateTimeParse, &jargs[0]).release();
+    }
+
+    // return QoreRelativeTime object
+    qore_tm info;
+    qdate.getInfo(info);
+    std::vector<jvalue> jargs(7);
+    jargs[0].i = info.year;
+    jargs[1].i = info.month;
+    jargs[2].i = info.day;
+    jargs[3].i = info.hour;
+    jargs[4].i = info.minute;
+    jargs[5].i = info.second;
+    jargs[6].i = info.us;
+
+    return env.newObject(Globals::classQoreRelativeTime, Globals::ctorQoreRelativeTime, &jargs[0]).release();
+}
+
+static jobject jni_number_to_jobject(const QoreNumberNode& num) {
+    QoreString str;
+    num.toString(str);
+
+    Env env;
+    LocalReference<jstring> num_str = env.newString(str.c_str());
+    std::vector<jvalue> jargs(1);
+    jargs[0].l = num_str;
+    return env.newObject(Globals::classBigDecimal, Globals::ctorBigDecimal, &jargs[0]).release();
+}
+
 jobject QoreToJava::toAnyObject(const QoreValue& value) {
-   Env env;
-   switch (value.getType()) {
-      case NT_BOOLEAN: {
-         jvalue arg;
-         arg.z = value.getAsBool();
-         return env.newObject(Globals::classBoolean, Globals::ctorBoolean, &arg).release();
-      }
-      case NT_INT: {
-         jvalue arg;
-         arg.i = value.getAsBigInt();
-         return env.newObject(Globals::classInteger, Globals::ctorInteger, &arg).release();
-      }
-      case NT_FLOAT: {
-         jvalue arg;
-         arg.d = value.getAsFloat();
-         return env.newObject(Globals::classDouble, Globals::ctorDouble, &arg).release();
-      }
-      case NT_STRING: {
-         ModifiedUtf8String str(*value.get<QoreStringNode>());
-         Env env;
-         return env.newString(str.c_str()).release();
-      }
-      case NT_OBJECT: {
-         const QoreObject* o = value.get<QoreObject>();
+    Env env;
+    switch (value.getType()) {
+        case NT_BOOLEAN: {
+            jvalue arg;
+            arg.z = value.getAsBool();
+            return env.newObject(Globals::classBoolean, Globals::ctorBoolean, &arg).release();
+        }
+        case NT_INT: {
+            jvalue arg;
+            arg.i = value.getAsBigInt();
+            return env.newObject(Globals::classInteger, Globals::ctorInteger, &arg).release();
+        }
+        case NT_FLOAT: {
+            jvalue arg;
+            arg.d = value.getAsFloat();
+            return env.newObject(Globals::classDouble, Globals::ctorDouble, &arg).release();
+        }
+        case NT_STRING: {
+            return jni_string_to_jstring(*value.get<QoreStringNode>());
+        }
+        case NT_DATE: {
+            return jni_date_to_jobject(*value.get<const DateTimeNode>());
+        }
+        case NT_NUMBER: {
+            return jni_number_to_jobject(*value.get<const QoreNumberNode>());
+        }
+        case NT_OBJECT: {
+            QoreObject* o = const_cast<QoreObject*>(value.get<const QoreObject>());
 
-         jobject javaObjectRef = qjcm.getJavaObject(o);
-         if (javaObjectRef) {
-            return javaObjectRef;
-         }
-         break;
-      }
-      case NT_HASH: {
-         return makeHashMap(*value.get<QoreHashNode>());
-      }
-      case NT_BINARY: {
-         return makeByteArray(*value.get<BinaryNode>());
-      }
+            jobject javaObjectRef = qjcm.getJavaObject(o);
+            if (javaObjectRef) {
+                return javaObjectRef;
+            }
+        }
+        case NT_HASH: {
+            return makeHashMap(*value.get<QoreHashNode>());
+        }
+        case NT_BINARY: {
+            return makeByteArray(*value.get<BinaryNode>());
+        }
 
-      case NT_NOTHING:
-      case NT_NULL:
-         return nullptr;
-      case NT_LIST:
-         return Array::toJava(value.get<QoreListNode>()).release();
-   }
-   QoreStringMaker desc("don't know how to convert a value of type '%s' to a Java object (expecting 'java.lang.Object')", value.getTypeName());
-   throw BasicException(desc.c_str());
+        case NT_NOTHING:
+        case NT_NULL:
+            return nullptr;
+        case NT_LIST:
+            return Array::toJava(value.get<QoreListNode>()).release();
+    }
+    QoreStringMaker desc("don't know how to convert a value of type '%s' to a Java object (expecting 'java.lang.Object')", value.getTypeName());
+    throw BasicException(desc.c_str());
 }
 
 jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
@@ -83,21 +131,55 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
 
     if (cls) {
         Env env;
-        if (env.isSameObject(cls, Globals::classObject))
+        if (env.isSameObject(cls, Globals::classObject)) {
             return toAnyObject(value);
+        }
+
+        switch (value.getType()) {
+            // check compatible primitive types
+            case NT_BOOLEAN: {
+                if (env.isSameObject(cls, Globals::classBoolean)) {
+                    return toAnyObject(value);
+                }
+                break;
+            }
+
+            case NT_INT: {
+                if (env.isSameObject(cls, Globals::classInteger)) {
+                    return toAnyObject(value);
+                }
+                break;
+            }
+
+            case NT_FLOAT: {
+                if (env.isSameObject(cls, Globals::classDouble)) {
+                    return toAnyObject(value);
+                }
+                break;
+            }
+        }
     }
 
     LocalReference<jobject> javaObjectRef;
     switch (value.getType()) {
         case NT_STRING: {
-            ModifiedUtf8String str(*value.get<QoreStringNode>());
-            Env env;
-            javaObjectRef = env.newString(str.c_str()).release();
+            javaObjectRef = jni_string_to_jstring(*value.get<QoreStringNode>());
             break;
         }
         case NT_LIST: {
             javaObjectRef = static_cast<jobject>(qjcm.getJavaArray(value.get<QoreListNode>(), cls));
             break;
+        }
+        case NT_DATE: {
+            javaObjectRef = jni_date_to_jobject(*value.get<const DateTimeNode>());
+            break;
+        }
+        case NT_NUMBER: {
+            javaObjectRef = jni_number_to_jobject(*value.get<const QoreNumberNode>());
+            break;
+        }
+        case NT_HASH: {
+            return makeHashMap(*value.get<QoreHashNode>());
         }
         case NT_OBJECT: {
             const QoreObject* o = value.get<QoreObject>();

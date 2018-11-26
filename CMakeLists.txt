@@ -70,14 +70,54 @@ MACRO(GENERATE_JAVA _input)
     endforeach()
 ENDMACRO(GENERATE_JAVA)
 
-# each file in qore-jni.jar is listed here, along with an indication of inner classes if present
+# adds a make rule for java -> class generation annd class -> inc generation
+MACRO(ADD_JAVA_SOURCE_FILES)
+    foreach (it ${ARGN})
+        SET(JAVA_JAR_SRC ${JAVA_JAR_SRC} ${CMAKE_SOURCE_DIR}/src/java/${it})
+    endforeach()
+ENDMACRO(ADD_JAVA_SOURCE_FILES)
+
+MACRO(ADD_JAR_TARGETS)
+    foreach (it ${ARGN})
+        file(GLOB _files "${CMAKE_CURRENT_BINARY_DIR}/${it}/*.class")
+        foreach (_file ${_files})
+            string(REPLACE "${CMAKE_CURRENT_BINARY_DIR}/" "" _class_file ${_file})
+            set(_file ${_file} )
+            SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_class_file})
+            #message(STATUS "ADDED ${_class_file}")
+        endforeach()
+    endforeach()
+ENDMACRO(ADD_JAR_TARGETS)
+
+# add Java sources without native methods
+add_java_source_files(
+    org/qore/lang/sqlutil/Table.java
+    org/qore/lang/sqlutil/AbstractTable.java
+    org/qore/lang/sqlutil/AbstractSqlUtilBase.java
+    org/qore/lang/AbstractDatasource.java
+    org/qore/lang/mapper/Mapper.java
+    org/qore/lang/mapper/RawSqlStatementOutboundMapper.java
+    org/qore/lang/tablemapper/RawSqlStatementOutboundMapper.java
+    org/qore/lang/tablemapper/InboundIdentityTableMapper.java
+    org/qore/lang/tablemapper/AbstractSqlStatementOutboundMapper.java
+    org/qore/lang/tablemapper/InboundTableMapper.java
+    org/qore/lang/tablemapper/SqlStatementOutboundMapper.java
+    org/qore/lang/DatasourcePool.java
+    org/qore/lang/AbstractSQLStatement.java
+    org/qore/lang/HTTPClient.java
+)
+
+# Java sources with native methods with an indication of inner classes, if any
 generate_java(org/qore/jni/QoreJavaApi.java)
 generate_java(org/qore/jni/QoreExceptionWrapper.java)
-generate_java(org/qore/jni/QoreHashMap.java)
+generate_java(org/qore/jni/QoreObject.java)
+generate_java(org/qore/jni/QoreObjectWrapper.java)
 generate_java(org/qore/jni/QoreInvocationHandler.java)
 generate_java(org/qore/jni/QoreURLClassLoader.java 1)
+generate_java(org/qore/jni/QoreRelativeTime.java)
 
 #message(STATUS "MESSAGE Src: ${JAVA_JAR_SRC}")
+#message(STATUS "STR: ${JAVA_JAR_SRC_STR}")
 #message(STATUS "MESSAGE Classes: ${JAVA_JAR_CLASSES}")
 #message(STATUS "MESSAGE Inc: ${QORE_INC_FILES}")
 
@@ -89,6 +129,8 @@ add_custom_command(
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
 )
+
+add_jar_targets(org/qore/lang org/qore/lang/sqlutil org/qore/lang/mapper org/qore/lang/tablemapper)
 
 # generate jar manually
 add_custom_command(
@@ -114,6 +156,8 @@ set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/StringFactory.java
     test/java/src/org/qore/jni/test/QoreCallback.java
 )
+
+set(CMAKE_JAVA_COMPILE_FLAGS -Xlint:unchecked)
 
 add_jar(qore-jni-test ${JAVA_TEST_JAR_SRC}
     INCLUDE_JARS qore-jni.jar
@@ -175,7 +219,7 @@ add_dependencies(${module_name} QORE_INC_FILES)
 target_link_libraries(${module_name} ${JNI_LIBRARIES})
 
 set(MODULE_DOX_INPUT ${JAVA_JAR_SRC_STR})
-message(STATUS mdi: ${MODULE_DOX_INPUT})
+#message(STATUS mdi: ${MODULE_DOX_INPUT})
 
 qore_binary_module(${module_name} ${PROJECT_VERSION})
 

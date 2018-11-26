@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,8 @@
 #include "GlobalReference.h"
 #include "defs.h"
 
+#include <utility>
+
 namespace jni {
 
 /**
@@ -45,106 +47,110 @@ namespace jni {
  */
 template<typename T>
 class LocalReference {
-
+    static_assert(std::is_pointer<T>::value, "Expected a pointer");
 public:
-   /**
-    * \brief Creates an instance.
-    * \param ref the local reference
+    /**
+     * \brief Creates an instance.
+     * \param ref the local reference
+     */
+    DLLLOCAL LocalReference(T ref = nullptr) : ref(ref) {
+        assert(ref == nullptr || Jvm::getEnv()->GetObjectRefType(ref) == JNILocalRefType);
+        if (ref != nullptr) {
+            printd(LogLevel + 1, "LocalReference created: %p\n", ref);
+        }
+    }
+
+    /**
+     * \brief Destroys the local reference represented by this instance.
+     */
+    DLLLOCAL ~LocalReference() {
+        if (ref != nullptr) {
+            printd(LogLevel + 1, "LocalReference deleted: %p\n", ref);
+            Jvm::getEnv()->DeleteLocalRef(ref);
+            ref = nullptr;
+        }
+    }
+
+    /**
+     * \brief Move constructor.
+     * \param src the source local reference wrapper
+     */
+    DLLLOCAL LocalReference(LocalReference &&src) : ref(std::move(src.ref)) {
+        src.ref = nullptr;
+    }
+
+    /**
+     * \brief Move assignment.
+     * \param src the source local reference wrapper
+     * \return *this
+     */
+    DLLLOCAL LocalReference &operator=(LocalReference &&src) {
+        swap(*this, src);
+        return *this;
+    }
+
+    /**
+     * \brief Swap function
     */
-   DLLLOCAL LocalReference(T ref = nullptr) : ref(ref) {
-      assert(ref == nullptr || Jvm::getEnv()->GetObjectRefType(ref) == JNILocalRefType);
-      if (ref != nullptr) {
-         printd(LogLevel + 1, "LocalReference created: %p\n", ref);
-      }
-   }
+    DLLLOCAL friend void swap(LocalReference& first, LocalReference& second) {
+        // enable ADL (not necessary in our case, but good practice)
+        using std::swap;
 
-   /**
-    * \brief Destroys the local reference represented by this instance.
-    */
-   DLLLOCAL ~LocalReference() {
-      del();
-   }
+        // by swapping the members of two objects, the two objects are effectively swapped
+        swap(first.ref, second.ref);
+    }
 
-   /**
-    * \brief Move constructor.
-    * \param src the source local reference wrapper
-    */
-   DLLLOCAL LocalReference(LocalReference &&src) : ref(src.ref) {
-      src.ref = nullptr;
-   }
+    /**
+     * \brief Implicit conversion to the reference type.
+     */
+    DLLLOCAL operator T() const {
+        return ref;
+    }
 
-   /**
-    * \brief Move assignment.
-    * \param src the source local reference wrapper
-    * \return *this
-    */
-   DLLLOCAL LocalReference &operator=(LocalReference &&src) {
-      del();
-      ref = src.ref;
-      src.ref = nullptr;
-      return *this;
-   }
+    /**
+     * \brief Creates a corresponding GlobalReference.
+     * \return a global reference representing the same object
+     * \throws JavaException if the global reference cannot be created
+     */
+    DLLLOCAL GlobalReference<T> makeGlobal() const {
+        assert(ref != nullptr);
+        T global = static_cast<T>(Jvm::getEnv()->NewGlobalRef(ref));
+        if (global == nullptr) {
+            throw JavaException();
+        }
+        return global;
+    }
 
-   /**
-    * \brief Implicit conversion to the reference type.
-    */
-   DLLLOCAL operator T() const {
-      return ref;
-   }
+    /**
+     * \brief Converts the reference to another type.
+     *
+     * This object becomes empty - the reference it contains is moved to the new object.
+     * \tparam T2 the type of the resulting reference
+     * \return a local reference of type T2
+     */
+    template<typename T2>
+    DLLLOCAL LocalReference<T2> as() {
+        T2 r = static_cast<T2>(ref);
+        ref = nullptr;
+        return r;
+    }
 
-   /**
-    * \brief Creates a corresponding GlobalReference.
-    * \return a global reference representing the same object
-    * \throws JavaException if the global reference cannot be created
-    */
-   DLLLOCAL GlobalReference<T> makeGlobal() const {
-      assert(ref != nullptr);
-      T global = static_cast<T>(Jvm::getEnv()->NewGlobalRef(ref));
-      if (global == nullptr) {
-         throw JavaException();
-      }
-      return global;
-   }
+    template<typename T2>
+    DLLLOCAL T2 cast() {
+        return static_cast<T2>(ref);
+    }
 
-   /**
-    * \brief Converts the reference to another type.
-    *
-    * This object becomes empty - the reference it contains is moved to the new object.
-    * \tparam T2 the type of the resulting reference
-    * \return a local reference of type T2
-    */
-   template<typename T2>
-   DLLLOCAL LocalReference<T2> as() {
-      T2 r = static_cast<T2>(ref);
-      ref = nullptr;
-      return r;
-   }
-
-   template<typename T2>
-   DLLLOCAL T2 cast() {
-      return static_cast<T2>(ref);
-   }
-
-   DLLLOCAL T release() {
-      T r = ref;
-      ref = nullptr;
-      return r;
-   }
+    DLLLOCAL T release() {
+        T r = ref;
+        ref = nullptr;
+        return r;
+    }
 
 private:
-   LocalReference(const LocalReference &) = delete;
-   LocalReference &operator=(const LocalReference &) = delete;
+    LocalReference(const LocalReference &) = delete;
+    LocalReference &operator=(const LocalReference &) = delete;
 
-   DLLLOCAL void del() {
-      if (ref != nullptr) {
-         printd(LogLevel + 1, "LocalReference deleted: %p\n", ref);
-         Jvm::getEnv()->DeleteLocalRef(ref);
-         ref = nullptr;
-      }
-   }
-
-private:
-   T ref;
+    T ref;
 };
 
 } // namespace jni

@@ -80,12 +80,18 @@ DLLEXPORT qore_module_parse_cmd_t qore_module_parse_cmd = jni_module_parse_cmd;
 DLLEXPORT qore_license_t qore_module_license = QL_MIT;
 DLLEXPORT char qore_module_license_str[] = "MIT";
 
+// global type compatibility option
+DLLLOCAL bool jni_compat_types = false;
+
 // module cmd type
 using qore_jni_module_cmd_t = void (*) (const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 static void qore_jni_mc_import(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 static void qore_jni_mc_add_classpath(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 static void qore_jni_mc_add_relative_classpath(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
+// define-pending-class: for resolving circular dependencies with inner classes
+static void qore_jni_mc_define_pending_class(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
+static void qore_jni_mc_set_compat_types(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 
 // module cmds
 typedef std::map<std::string, qore_jni_module_cmd_t> mcmap_t;
@@ -93,7 +99,9 @@ static mcmap_t mcmap = {
     {"import", qore_jni_mc_import},
     {"add-classpath", qore_jni_mc_add_classpath},
     {"add-relative-classpath", qore_jni_mc_add_relative_classpath},
+    {"define-pending-class", qore_jni_mc_define_pending_class},
     {"define-class", qore_jni_mc_define_class},
+    {"set-compat-types", qore_jni_mc_set_compat_types},
 };
 
 static void jni_thread_cleanup(void*) {
@@ -103,7 +111,19 @@ static void jni_thread_cleanup(void*) {
 static QoreStringNode* jni_module_init() {
     printd(LogLevel, "jni_module_init()\n");
 
-    QoreStringNode* err = jni::Jvm::createVM();
+    QoreStringNode* err = nullptr;
+    try {
+        err = jni::Jvm::createVM();
+    } catch (jni::Exception& e) {
+        ExceptionSink xsink;
+        e.convert(&xsink);
+        const QoreValue desc = xsink.getExceptionDesc();
+        if (desc.getType() == NT_STRING) {
+            err = new QoreStringNode(*desc.get<const QoreStringNode>());
+        } else {
+            err = new QoreStringNode("unknown exception calling Jvm::createVM()");
+        }
+    }
     if (err) {
         err->prepend("Could not create the Java Virtual Machine: ");
         return err;
@@ -147,17 +167,23 @@ static QoreStringNode* jni_module_init() {
         return new QoreStringNode("ERR");
     }
 
+    ExceptionSink xsink;
+    ValueHolder v(qore_get_module_option("jni", "compat-types"), &xsink);
+    if (v) {
+        jni_compat_types = true;
+    }
+
     return nullptr;
 }
 
 static void jni_module_ns_init(QoreNamespace* rns, QoreNamespace* qns) {
-   QoreProgram* pgm = getProgram();
-   assert(pgm->getRootNS() == rns);
-   if (!pgm->getExternalData("jni")) {
-      QoreNamespace* jnins = qjcm.getJniNs().copy();
-      rns->addNamespace(jnins);
-      pgm->setExternalData("jni", new JniExternalProgramData(jnins));
-   }
+    QoreProgram* pgm = getProgram();
+    assert(pgm->getRootNS() == rns);
+    if (!pgm->getExternalData("jni")) {
+        QoreNamespace* jnins = qjcm.getJniNs().copy();
+        rns->addNamespace(jnins);
+        pgm->setExternalData("jni", new JniExternalProgramData(jnins));
+    }
 }
 
 static void jni_module_delete() {
@@ -302,6 +328,39 @@ static void qore_jni_mc_add_relative_classpath(const QoreString& arg, QoreProgra
     jpc->addClasspath(cwd_str->c_str());
 }
 
+static void qore_jni_mc_define_pending_class(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
+    assert(pgm);
+    assert(pgm->checkFeature(QORE_JNI_MODULE_NAME));
+
+    // find end of name
+    qore_offset_t end = arg.find(' ');
+    if (end == -1) {
+        throw QoreJniException("JNI-DEFINE-CLASS-ERROR", "cannot find the end of the class name in the 'define-class' directive");
+    }
+    QoreString java_name(&arg, end);
+    QoreString base64(arg.c_str() + end + 1);
+    ExceptionSink xsink;
+    SimpleRefHolder<BinaryNode> byte_code(base64.parseBase64(&xsink));
+    if (xsink) {
+        throw XsinkException(xsink);
+    }
+    jni::Env env;
+    assert(jpc);
+
+    // convert java name to dot name; QoreURLClassLoader.addPendingClass() requires the dot name
+    java_name.replaceAll("/", ".");
+
+    // add the byte code as a pending class
+    LocalReference<jstring> jname = env.newString(java_name.c_str());
+    LocalReference<jbyteArray> jbyte_code = QoreToJava::makeByteArray(**byte_code);
+
+    std::vector<jvalue> jargs(2);
+    jargs[0].l = jname;
+    jargs[1].l = jbyte_code;
+
+    env.callVoidMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderAddPendingClass, &jargs[0]);
+}
+
 static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
     assert(pgm);
     assert(pgm->checkFeature(QORE_JNI_MODULE_NAME));
@@ -311,7 +370,7 @@ static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, Jn
     if (end == -1) {
         throw QoreJniException("JNI-DEFINE-CLASS-ERROR", "cannot find the end of the class name in the 'define-class' directive");
     }
-    QoreString name(&arg, end);
+    QoreString java_name(&arg, end);
     QoreString base64(arg.c_str() + end + 1);
     ExceptionSink xsink;
     SimpleRefHolder<BinaryNode> byte_code(base64.parseBase64(&xsink));
@@ -320,13 +379,23 @@ static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, Jn
     }
     jni::Env env;
     assert(jpc);
-    LocalReference<jclass> jcls = env.defineClass(name.c_str(), jpc->getClassLoader(),
+    LocalReference<jclass> jcls = env.defineClass(java_name.c_str(), jpc->getClassLoader(),
         static_cast<const unsigned char*>(byte_code->getPtr()), byte_code->size());
 
     // import the class immediately
-    QoreString dot_name(name);
+    QoreString dot_name(java_name);
     dot_name.replaceAll("/", ".");
-    qjcm.findCreateQoreClassInProgram(dot_name, name.c_str(), new Class(jcls));
+    //printd(5, "qore_jni_mc_define_class() dot name: '%s' jname: '%s' class size: %d\n", dot_name.c_str(), name.c_str(), byte_code->size());
+    qjcm.findCreateQoreClassInProgram(dot_name, java_name.c_str(), new Class(jcls));
+}
+
+static void qore_jni_mc_set_compat_types(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
+    assert(pgm);
+    assert(pgm->checkFeature(QORE_JNI_MODULE_NAME));
+    assert(jpc);
+
+    bool compat_types = q_parse_bool(arg.c_str());
+    jpc->overrideCompatTypes(compat_types);
 }
 
 QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
