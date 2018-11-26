@@ -717,9 +717,9 @@ static JNINativeMethod qoreJavaApiNativeMethods[] = {
     },
 };
 
-static size_t num_qore_java_api_native_methods = sizeof(qoreJavaApiNativeMethods) / sizeof(JNINativeMethod);
+static const size_t num_qore_java_api_native_methods = sizeof(qoreJavaApiNativeMethods) / sizeof(JNINativeMethod);
 
-static JNINativeMethod qoreExceptionWrapperNativeMethods[2] = {
+static JNINativeMethod qoreExceptionWrapperNativeMethods[] = {
     {
         const_cast<char*>("finalize0"),
         const_cast<char*>("(J)V"),
@@ -775,7 +775,7 @@ static JNINativeMethod qoreObjectNativeMethods[] = {
     },
 };
 
-static size_t num_qore_object_native_methods = sizeof(qoreObjectNativeMethods) / sizeof(JNINativeMethod);
+static const size_t num_qore_object_native_methods = sizeof(qoreObjectNativeMethods) / sizeof(JNINativeMethod);
 
 static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperName) {
    LocalReference<jclass> wrapperClass = env.findClass(wrapperName);
