@@ -274,30 +274,17 @@ static void qore_jni_mc_import(const QoreString& cmd_arg, QoreProgram* pgm, JniE
         printd(LogLevel, "jni_module_parse_cmd() nsp: '%s' ns: %p '%s'\n", arg.c_str(), ns, ns->getName());
         ns->setClassHandler(jni_class_handler);
         wc = true;
-    }
-    else {
+    } else {
         printd(LogLevel, "jni_module_parse_cmd() non wc lcc arg: '%s'\n", arg.c_str());
+        // the following call adds the class to the current program as well
         qjcm.findCreateQoreClass(arg.c_str());
-    }
-
-    // now try to add to current program
-    printd(LogLevel, "jni_module_parse_cmd() pgm: %p arg: '%s'\n", pgm, arg.c_str());
-
-    QoreNamespace* ns = pgm->getRootNS();
-
-    printd(LogLevel, "jni_module_parse_cmd() default_jns: %p\n", &qjcm.getJniNs());
-
-    if (!wc) {
-        QoreString jpath(arg);
-        jpath.replaceAll(".", "/");
-        qjcm.findLoadClass(jpath.c_str());
     }
 }
 
 static void qore_jni_mc_add_classpath(const QoreString& cmd_arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
     QoreString arg(cmd_arg);
     q_env_subst(arg);
-    printd(LogLevel, "qore_jni_mc_add_classpath() arg: '%s'\n", arg.c_str());
+    printd(LogLevel, "qore_jni_mc_add_classpath() jpc: %p arg: '%s'\n", jpc, arg.c_str());
 
     jpc->addClasspath(arg.c_str());
 }
@@ -379,13 +366,14 @@ static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, Jn
     }
     jni::Env env;
     assert(jpc);
+
+    //printd(5, "qore_jni_mc_define_class() jpc: %p name: '%s' class size: %d\n", jpc, java_name.c_str(), byte_code->size());
     LocalReference<jclass> jcls = env.defineClass(java_name.c_str(), jpc->getClassLoader(),
         static_cast<const unsigned char*>(byte_code->getPtr()), byte_code->size());
 
     // import the class immediately
     QoreString dot_name(java_name);
     dot_name.replaceAll("/", ".");
-    //printd(5, "qore_jni_mc_define_class() dot name: '%s' jname: '%s' class size: %d\n", dot_name.c_str(), name.c_str(), byte_code->size());
     qjcm.findCreateQoreClassInProgram(dot_name, java_name.c_str(), new Class(jcls));
 }
 
