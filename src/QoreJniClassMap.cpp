@@ -353,8 +353,7 @@ Class* QoreJniClassMap::loadClass(const char* name, bool& base) {
     try {
         // first we try to load with the builtin classloader
         return Functions::loadClass(name);
-    }
-    catch (jni::JavaException& e) {
+    } catch (jni::JavaException& e) {
         Env env;
         // if this fails, then we try our classloader that supports dynamic classpaths
         e.ignore();
@@ -372,8 +371,7 @@ Class* QoreJniClassMap::loadClass(const char* name, bool& base) {
             LocalReference<jclass> c = env.callObjectMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderLoadClass, &jarg).as<jclass>();
             //printd(LogLevel, "QoreJniClassMap::loadClass() program-specific '%s': %p\n", nname.c_str(), *c);
             return new Class(c.release());
-        }
-        catch (jni::JavaException& e) {
+        } catch (jni::JavaException& e) {
             LocalReference<jthrowable> je = e.save();
             // try to load from any thread context class loader
             LocalReference<jobject> thread = env.callStaticObjectMethod(Globals::classThread, Globals::methodThreadCurrentThread, nullptr);
@@ -971,14 +969,15 @@ void JniExternalProgramData::addClasspath(const char* path) {
 }
 
 void JniExternalProgramData::setContext(Env& env) {
-   QoreProgram* pgm = getProgram();
-   assert(pgm);
-   JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
-   assert(jpc);
-
-   // set classloader context in new thread
-   env.callVoidMethod(jpc->classLoader, Globals::methodQoreURLClassLoaderSetContext, nullptr);
-   //printd(LogLevel, "JniExternalProgramData::setContext() pgm: %p jpc: %p\n", pgm, jpc);
+    QoreProgram* pgm = getProgram();
+    assert(pgm);
+    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+    // issue #3153: no context is available when called from a static method
+    if (jpc) {
+        // set classloader context in new thread
+        env.callVoidMethod(jpc->classLoader, Globals::methodQoreURLClassLoaderSetContext, nullptr);
+        //printd(LogLevel, "JniExternalProgramData::setContext() pgm: %p jpc: %p\n", pgm, jpc);
+    }
 }
 
 bool JniExternalProgramData::compatTypes() {
