@@ -989,15 +989,4 @@ bool JniExternalProgramData::compatTypes() {
    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
    return jpc ? jpc->getCompatTypes() : jni_compat_types;
 }
-
-bool JniExternalProgramData::compatTypes() {
-   QoreProgram* pgm = getProgram();
-   // no program context when called from the cmd-line
-   if (!pgm) {
-       return jni_compat_types;
-   }
-   JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
-   return jpc ? jpc->getCompatTypes() : jni_compat_types;
-}
-
 }
