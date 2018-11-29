@@ -71,9 +71,17 @@ MACRO(GENERATE_JAVA _input)
 ENDMACRO(GENERATE_JAVA)
 
 # adds a make rule for java -> class generation annd class -> inc generation
-MACRO(ADD_JAVA_SOURCE_FILES)
+MACRO(ADD_JAVA_SOURCE _input)
+    GET_FILENAME_COMPONENT(_base ${_input} NAME_WE)
+    GET_FILENAME_COMPONENT(_pkgdir ${_input} PATH)
+    SET(_class_file ${_pkgdir}/${_base}.class)
+    SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_class_file})
+    SET(JAVA_JAR_SRC ${JAVA_JAR_SRC} ${CMAKE_SOURCE_DIR}/src/java/${_input})
+
+    # generate rules for inner classes (if any)
     foreach (it ${ARGN})
-        SET(JAVA_JAR_SRC ${JAVA_JAR_SRC} ${CMAKE_SOURCE_DIR}/src/java/${it})
+        SET(_inc_relinfile ${_pkgdir}/${_base}$${it}.class)
+        SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_inc_relinfile})
     endforeach()
 ENDMACRO(ADD_JAVA_SOURCE_FILES)
 
@@ -89,24 +97,6 @@ MACRO(ADD_JAR_TARGETS)
     endforeach()
 ENDMACRO(ADD_JAR_TARGETS)
 
-# add Java sources without native methods
-add_java_source_files(
-    org/qore/lang/sqlutil/Table.java
-    org/qore/lang/sqlutil/AbstractTable.java
-    org/qore/lang/sqlutil/AbstractSqlUtilBase.java
-    org/qore/lang/AbstractDatasource.java
-    org/qore/lang/mapper/Mapper.java
-    org/qore/lang/mapper/RawSqlStatementOutboundMapper.java
-    org/qore/lang/tablemapper/RawSqlStatementOutboundMapper.java
-    org/qore/lang/tablemapper/InboundIdentityTableMapper.java
-    org/qore/lang/tablemapper/AbstractSqlStatementOutboundMapper.java
-    org/qore/lang/tablemapper/InboundTableMapper.java
-    org/qore/lang/tablemapper/SqlStatementOutboundMapper.java
-    org/qore/lang/DatasourcePool.java
-    org/qore/lang/AbstractSQLStatement.java
-    org/qore/lang/HTTPClient.java
-)
-
 # Java sources with native methods with an indication of inner classes, if any
 generate_java(org/qore/jni/QoreJavaApi.java)
 generate_java(org/qore/jni/QoreExceptionWrapper.java)
@@ -115,6 +105,22 @@ generate_java(org/qore/jni/QoreObjectWrapper.java)
 generate_java(org/qore/jni/QoreInvocationHandler.java)
 generate_java(org/qore/jni/QoreURLClassLoader.java 1)
 generate_java(org/qore/jni/QoreRelativeTime.java)
+
+# add Java sources without native methods
+add_java_source(org/qore/lang/sqlutil/Table.java)
+add_java_source(org/qore/lang/sqlutil/AbstractTable.java 1 2 3 4 5)
+add_java_source(org/qore/lang/sqlutil/AbstractSqlUtilBase.java)
+add_java_source(org/qore/lang/AbstractDatasource.java)
+add_java_source(org/qore/lang/mapper/Mapper.java)
+add_java_source(org/qore/lang/mapper/RawSqlStatementOutboundMapper.java)
+add_java_source(org/qore/lang/tablemapper/RawSqlStatementOutboundMapper.java)
+add_java_source(org/qore/lang/tablemapper/InboundIdentityTableMapper.java)
+add_java_source(org/qore/lang/tablemapper/AbstractSqlStatementOutboundMapper.java)
+add_java_source(org/qore/lang/tablemapper/InboundTableMapper.java)
+add_java_source(org/qore/lang/tablemapper/SqlStatementOutboundMapper.java)
+add_java_source(org/qore/lang/DatasourcePool.java)
+add_java_source(org/qore/lang/AbstractSQLStatement.java)
+add_java_source(org/qore/lang/HTTPClient.java)
 
 #message(STATUS "MESSAGE Src: ${JAVA_JAR_SRC}")
 #message(STATUS "STR: ${JAVA_JAR_SRC_STR}")
