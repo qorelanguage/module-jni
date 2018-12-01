@@ -78,6 +78,9 @@ MACRO(ADD_JAVA_SOURCE _input)
     SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_class_file})
     SET(JAVA_JAR_SRC ${JAVA_JAR_SRC} ${CMAKE_SOURCE_DIR}/src/java/${_input})
 
+    # issue #3158: get list of source files for documentation
+    string (REPLACE ";" " " JAVA_JAR_SRC_STR "${JAVA_JAR_SRC}")
+
     # generate rules for inner classes (if any)
     foreach (it ${ARGN})
         SET(_inc_relinfile ${_pkgdir}/${_base}$${it}.class)
