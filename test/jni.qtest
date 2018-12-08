@@ -9,12 +9,19 @@
 %requires jni
 %requires QUnit
 %requires Util
+%requires SqlUtil
 
 %module-cmd(jni) add-relative-classpath qore-jni-test.jar
+# warning: hardcoded build directory
+%module-cmd(jni) add-relative-classpath ../build/qore-jni.jar
 %module-cmd(jni) import java.lang.reflect.*
 %module-cmd(jni) import java.lang.invoke.*
 %module-cmd(jni) import org.qore.jni.test.Fields
 %module-cmd(jni) import org.qore.jni.test.QoreJavaApiTest
+%module-cmd(jni) import org.qore.lang.*
+%module-cmd(jni) import org.qore.lang.sqlutil.*
+%module-cmd(jni) import org.qore.lang.mapper.*
+%module-cmd(jni) import org.qore.lang.tablemapper.*
 
 %exec-class Main
 
@@ -85,6 +92,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("jni test", "1.0") {
+        addTestCase("Qore Java API test", \qoreJavaApiTest());
         addTestCase("call static method test", \callStaticMethodTest());
         addTestCase("hash map test", \hashMapTest());
         addTestCase("number test", \numberTest());
@@ -109,6 +117,73 @@ public class Main inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    qoreJavaApiTest() {
+        DatasourcePool dsp = getDatasourcePool();
+        on_exit remove_thread_data("_jni_save");
+        lang::DatasourcePool jdsp(dsp);
+
+        {
+            sqlutil::Table table(jdsp, "test_table_1");
+            hash<auto> column = {
+                "qore_type": "integer",
+            };
+            table.addColumn("id", column, False);
+            column = {
+                "qore_type": "string",
+                "size": 50,
+            };
+            table.addColumn("string", column, False);
+            column = {
+                "qore_type": "date",
+            };
+            table.addColumn("modified", column, False);
+            table.create();
+            table.commit();
+            on_exit {
+                table.drop();
+                table.commit();
+            }
+
+            date now = now_us();
+            lang::AbstractSQLStatement stmt = jdsp.getSQLStatement();
+            stmt.prepare("insert into test_table_1 (id, string, modified) values(%v, %v, %v)");
+            stmt.bind((1, "hello", now));
+            stmt.exec();
+            stmt.commit();
+
+            assertEq(1, table.rowCount());
+
+            hash<auto> sh = {
+                "where": {
+                    "id": 1,
+                },
+            };
+            hash<auto> row = table.selectRow(sh);
+            assertEq(1, row.id);
+            assertEq("hello", row.string);
+            assertEq(now, row.modified);
+        }
+
+        assertTrue(QoreJavaApiTest::testTable(jdsp));
+    }
+
+    AbstractDatasource getDatasourcePool() {
+        *string connstr = m_options.connstr
+            ?? ENV.QORE_DB_CONNSTR
+            ?? ENV.QORE_DB_CONNSTR_PGSQL
+            ?? ENV.QORE_DB_CONNSTR_ORACLE
+            ?? ENV.QORE_DB_CONNSTR_MYSQL
+            ?? ENV.QORE_DB_CONNSTR_FREETDS;
+        if (!connstr) {
+            testSkip("no DB connection string available");
+        }
+        try {
+            return new DatasourcePool(connstr);
+        } catch (hash<ExceptionInfo> ex) {
+            testSkip(sprintf("failed to open %y: %s: %s", connstr, ex.err, ex.desc));
+        }
     }
 
     callStaticMethodTest() {
@@ -285,7 +360,7 @@ public class Main inherits QUnit::Test {
             assertTrue(False);
         } catch (hash<ExceptionInfo> ex) {
             assertEq("QoreJavaApiTest.java", ex.file);
-            assertEq(78, ex.line);
+            assertEq(83, ex.line);
         }
     }
 

@@ -130,7 +130,7 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
         @see bind(), bindPlaceholders(), bindPlaceholdersArgs(), bindValues(), and bindValuesArgs()
     */
     public void bindArgs(Object[] vargs) throws Throwable {
-        obj.callMethodArgs("bindArgs", vargs);
+        obj.callMethod("bindArgs", vargs);
     }
 
     //! Binds placeholder buffer specifications to buffers defined in prepare()

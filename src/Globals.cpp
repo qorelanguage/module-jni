@@ -431,6 +431,10 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
         }
     }
 
+    if (!cls && !xsink) {
+        xsink.raiseException("CREATE-OBJECT-ERROR", "class '%s' cannot be found", clsname.c_str());
+    }
+
     if (xsink) {
         QoreToJava::wrapException(xsink);
         return nullptr;

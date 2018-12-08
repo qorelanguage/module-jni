@@ -453,6 +453,12 @@ QoreBuiltinClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name
             name.insertch('_', ic_idx + 2, 1);
             sn = name.c_str() + (dot != -1 ? dot + 1 : 0);
         }
+    } else {
+        // check if class is already in the namespace
+        QoreBuiltinClass* nqc = static_cast<QoreBuiltinClass*>(ns->findLocalClass(sn));
+        if (nqc) {
+            return nqc;
+        }
     }
 
     qc = new JniQoreClass(sn);
