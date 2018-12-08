@@ -18,10 +18,12 @@
 %module-cmd(jni) import java.lang.invoke.*
 %module-cmd(jni) import org.qore.jni.test.Fields
 %module-cmd(jni) import org.qore.jni.test.QoreJavaApiTest
+
 %module-cmd(jni) import org.qore.lang.*
 %module-cmd(jni) import org.qore.lang.sqlutil.*
 %module-cmd(jni) import org.qore.lang.mapper.*
 %module-cmd(jni) import org.qore.lang.tablemapper.*
+%module-cmd(jni) import org.qore.lang.test.QoreJavaLangApiTest
 
 %exec-class Main
 
@@ -166,7 +168,7 @@ public class Main inherits QUnit::Test {
             assertEq(now, row.modified);
         }
 
-        assertTrue(QoreJavaApiTest::testTable(jdsp));
+        assertTrue(QoreJavaLangApiTest::testTable(jdsp));
     }
 
     AbstractDatasource getDatasourcePool() {

@@ -86,7 +86,7 @@ MACRO(ADD_JAVA_SOURCE _input)
         SET(_inc_relinfile ${_pkgdir}/${_base}$${it}.class)
         SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_inc_relinfile})
     endforeach()
-ENDMACRO(ADD_JAVA_SOURCE_FILES)
+ENDMACRO(ADD_JAVA_SOURCE)
 
 MACRO(ADD_JAR_TARGETS)
     foreach (it ${ARGN})
@@ -164,6 +164,7 @@ set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/StaticMethods.java
     test/java/src/org/qore/jni/test/StringFactory.java
     test/java/src/org/qore/jni/test/QoreCallback.java
+    test/java/src/org/qore/lang/test/QoreJavaLangApiTest.java
 )
 
 set(CMAKE_JAVA_COMPILE_FLAGS -Xlint:unchecked)
