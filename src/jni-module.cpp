@@ -374,7 +374,7 @@ static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, Jn
     // import the class immediately
     QoreString dot_name(java_name);
     dot_name.replaceAll("/", ".");
-    qjcm.findCreateQoreClassInProgram(dot_name, java_name.c_str(), new Class(jcls));
+    qjcm.findCreateQoreClass(dot_name, java_name.c_str(), new Class(jcls), false);
 }
 
 static void qore_jni_mc_set_compat_types(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
