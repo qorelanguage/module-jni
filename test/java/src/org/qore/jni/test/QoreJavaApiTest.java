@@ -1,8 +1,13 @@
 package org.qore.jni.test;
 
 import org.qore.jni.*;
+
+import org.qore.lang.*;
+import org.qore.lang.sqlutil.*;
+
 import java.util.HashMap;
 import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.math.BigDecimal;
 
 class ThreadTest implements Runnable {

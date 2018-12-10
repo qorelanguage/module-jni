@@ -55,7 +55,10 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
         @endcode
     */
     public void prepare(String sql, Object... args) throws Throwable {
-        obj.callMethod("prepare", sql, args);
+        Object[] new_args = new Object[args.length + 1];
+        new_args[0] = sql;
+        System.arraycopy(args, 0, new_args, 1, args.length);
+        obj.callMethodArgs("prepare", new_args);
     }
 
     //! Saves an SQL statement that will be prepared and executed later
@@ -99,7 +102,7 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
         @see bindArgs(), bindPlaceholders(), bindPlaceholdersArgs(), bindValues(), and bindValuesArgs()
     */
     public void bind(Object... args) throws Throwable {
-        obj.callMethod("bind", args);
+        obj.callMethodArgs("bind", args);
     }
 
     //! Binds placeholder buffer specifications and values given as a list in the single argument to the method to buffers defined in prepare()
@@ -156,7 +159,7 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
         @see bind(), bindArgs(), bindPlaceholdersArgs(), bindValues(), and bindValuesArgs()
     */
     public void bindPlaceholders(Object... args) throws Throwable {
-        obj.callMethod("bindPlaceholders", args);
+        obj.callMethodArgs("bindPlaceholders", args);
     }
 
     //! Binds placeholder buffer specifications given as a list in the single argument to the method to buffers defined in prepare()
@@ -213,7 +216,7 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
         @see bind(), bindArgs(), bindPlaceholders(), bindPlaceholdersArgs(), and bindValuesArgs().
     */
     public void bindValues(Object... args) throws Throwable {
-        obj.callMethod("bindValues", args);
+        obj.callMethodArgs("bindValues", args);
     }
 
     //! Binds values to value buffer specifications given as a list in the single argument to the method to value buffers defined in prepare()
@@ -268,7 +271,7 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
         @see execArgs()
     */
     public void exec(Object... args) throws Throwable {
-        obj.callMethod("exec", args);
+        obj.callMethodArgs("exec", args);
     }
 
     //! Executes the bound statement with any bound buffers, also optionally allows binding placeholder buffer specifications and values given as a list in the single argument to the method to buffers defined in prepare()

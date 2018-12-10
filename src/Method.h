@@ -171,9 +171,9 @@ protected:
    DLLLOCAL BaseMethod() {
    }
 
-   std::vector<jvalue> convertArgs(const QoreListNode* args, size_t base = 0);
+   DLLLOCAL std::vector<jvalue> convertArgs(const QoreListNode* args, size_t base = 0);
 
-   void init(Env &env) {
+   DLLLOCAL void init(Env &env) {
       retValClass = env.callObjectMethod(method, Globals::methodMethodGetReturnType, nullptr).as<jclass>().makeGlobal();
       retValType = Globals::getType(retValClass);
 

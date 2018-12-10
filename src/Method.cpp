@@ -38,7 +38,19 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t bas
     // missing arguments are treated as null
     size_t argCount = args == nullptr ? 0 : (args->size() - base);
     if (paramCount < argCount) {
-        throw BasicException("Too many arguments in a Java method invocation");
+        Env env;
+        // get class and method name for exception text
+        LocalReference<jstring> mcname = env.callObjectMethod(cls->getJavaObject(), Globals::methodClassGetName,
+            nullptr).as<jstring>();
+        Env::GetStringUtfChars mcn(env, mcname);
+
+        QoreString mname;
+        getName(mname);
+
+        QoreStringMaker err("Too many arguments (%d) in invocation to Java method %s.%s() (takes %d arg%s)",
+            static_cast<int>(argCount), mcn.c_str(), mname.c_str(), static_cast<int>(paramCount),
+            paramCount == 1 ? "" : "s");
+        throw BasicException(err.c_str());
     }
 
     std::vector<jvalue> jargs(paramCount);
