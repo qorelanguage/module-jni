@@ -59,9 +59,9 @@ public:
 
                     //printd(LogLevel, "JniCallStack::JniCallStack() adding %s\n", code.c_str());
                     if (!i) {
-                        loc.set(file.c_str(), line, line);
+                        loc.set(file.c_str(), line, line, nullptr, 0, "Java");
                     } else {
-                        add(native ? CT_BUILTIN : CT_USER, file.c_str(), line, line, code.c_str());
+                        add(native ? CT_BUILTIN : CT_USER, file.c_str(), line, line, code.c_str(), "Java");
                     }
                 }
             }

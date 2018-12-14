@@ -2,6 +2,8 @@ package org.qore.jni;
 
 import org.qore.jni.QoreURLClassLoader;
 
+import java.util.Arrays;
+
 //! This class provides methods that allow Java to interface with Qore code
 /**
  */
@@ -122,6 +124,12 @@ public class QoreJavaApi {
      */
     public static QoreObject newObjectSaveArgs(String class_name, Object[] args) throws Throwable {
         return newObjectSave0(QoreURLClassLoader.getProgramPtr(), class_name, args);
+    }
+
+    //! Returns the current stack trace, not including the call to this method
+    public static StackTraceElement[] getStackTrace() {
+        StackTraceElement[] stack = new Exception().getStackTrace();
+        return stack.length > 0 ? Arrays.copyOfRange(stack, 1, stack.length) : null;
     }
 
     private native static Object callFunction0(long pgm_ptr, String name, Object... args);
