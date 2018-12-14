@@ -106,6 +106,7 @@ jmethodID Globals::ctorQoreInvocationHandler;
 jmethodID Globals::methodQoreInvocationHandlerDestroy;
 
 GlobalReference<jclass> Globals::classQoreJavaApi;
+jmethodID Globals::methodQoreJavaApiGetStackTrace;
 
 GlobalReference<jclass> Globals::classQoreExceptionWrapper;
 jmethodID Globals::ctorQoreExceptionWrapper;
@@ -206,7 +207,7 @@ jmethodID Globals::ctorCharacter;
 jmethodID Globals::methodCharacterCharValue;
 
 static void JNICALL invocation_handler_finalize(JNIEnv *, jclass, jlong ptr) {
-   delete reinterpret_cast<Dispatcher *>(ptr);
+   delete reinterpret_cast<Dispatcher*>(ptr);
 }
 
 static jobject JNICALL invocation_handler_invoke(JNIEnv* jenv, jobject, jlong ptr, jobject proxy, jobject method, jobjectArray args) {
@@ -287,6 +288,8 @@ static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong 
     Env::GetStringUtfChars fname(env, name);
     //printd(LogLevel, "java_api_call_function() '%s()' args: %p %d\n", fname.c_str(), *qore_args, len);
 
+    QoreJniStackLocationHelper slh;
+
     ValueHolder rv(pgm->callFunction(fname.c_str(), *qore_args, &xsink), &xsink);
 
     if (xsink) {
@@ -329,6 +332,8 @@ static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, j
         return nullptr;
     }
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
+
+    QoreJniStackLocationHelper slh;
 
     ExceptionSink xsink;
     // grab the current Program's parse lock before calling QoreProgram::findClass()
@@ -409,6 +414,8 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
     }
 
     QoreProgramContextHelper pch(pgm);
+
+    QoreJniStackLocationHelper slh;
 
     ExceptionSink xsink;
 
@@ -882,6 +889,7 @@ void Globals::init() {
 
     classQoreJavaApi = env.defineClass("org/qore/jni/QoreJavaApi", nullptr, java_org_qore_jni_QoreJavaApi_class, java_org_qore_jni_QoreJavaApi_class_len).makeGlobal();
     env.registerNatives(classQoreJavaApi, qoreJavaApiNativeMethods, num_qore_java_api_native_methods);
+    methodQoreJavaApiGetStackTrace = env.getStaticMethod(classQoreJavaApi, "getStackTrace", "()[Ljava/lang/StackTraceElement;");
 
     classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
     methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance", "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
@@ -1049,6 +1057,93 @@ Type Globals::getType(jclass cls) {
       return Type::Double;
    }
    return Type::Reference;
+}
+
+QoreJniStackLocationHelper::QoreJniStackLocationHelper() {
+}
+
+const char* QoreJniStackLocationHelper::getCallName() const {
+    checkInit();
+    assert(current < size);
+    //printd(5, "QoreJniStackLocationHelper::getCallName() this: %p %d/%d '%s'\n", this, (int)current, (int)size,
+    //    stack_call[current].c_str());
+    return stack_call[current].c_str();
+}
+
+qore_call_t QoreJniStackLocationHelper::getCallType() const {
+    checkInit();
+    assert(current < size);
+    return stack_native[current] ? CT_BUILTIN : CT_USER;
+}
+
+const QoreProgramLocation& QoreJniStackLocationHelper::getLocation() const {
+    checkInit();
+    assert(current < size);
+    //printd(5, "QoreJniStackLocationHelper::getLocation() %s:%d (%s)\n", stack_loc[current].getFile(), stack_loc[current].getStartLine());
+    return stack_loc[current].get();
+}
+
+const QoreStackLocation* QoreJniStackLocationHelper::getNext() const {
+    checkInit();
+    assert(current < size);
+    return (++current < size) ? this : stack_next;
+}
+
+void QoreJniStackLocationHelper::checkInit() const {
+    if (init) {
+        return;
+    }
+    init = true;
+
+    Env env;
+
+    try {
+        LocalReference<jobjectArray> jstack = env.callStaticObjectMethod(Globals::classQoreJavaApi,
+            Globals::methodQoreJavaApiGetStackTrace, nullptr).as<jobjectArray>();
+
+        jsize len;
+        if (jstack) {
+            Type elementType = Globals::getType(Globals::classStackTraceElement);
+            len = env.getArrayLength(jstack);
+            stack_loc.reserve(len);
+            stack_native.reserve(len);
+            stack_call.reserve(len);
+            for (jsize i = 0; i < len; ++i) {
+                LocalReference<jobject> jste = env.getObjectArrayElement(jstack, i);
+
+                LocalReference<jstring> jcls = env.callObjectMethod(jste, Globals::methodStackTraceElementGetClassName, nullptr).as<jstring>();
+                jni::Env::GetStringUtfChars cname(env, jcls);
+                LocalReference<jstring> jmethod = env.callObjectMethod(jste, Globals::methodStackTraceElementGetMethodName, nullptr).as<jstring>();
+                jni::Env::GetStringUtfChars mname(env, jmethod);
+                LocalReference<jstring> jfilename = env.callObjectMethod(jste, Globals::methodStackTraceElementGetFileName, nullptr).as<jstring>();
+                jni::Env::GetStringUtfChars file(env, jfilename);
+                jint line = env.callIntMethod(jste, Globals::methodStackTraceElementGetLineNumber, nullptr);
+                jboolean native = env.callBooleanMethod(jste, Globals::methodStackTraceElementIsNativeMethod, nullptr);
+
+                QoreStringMaker code("%s.%s", cname.c_str(), mname.c_str());
+
+                QoreExternalProgramLocationWrapper loc(file.c_str(), line, line, nullptr, 0, "Java");
+                //printd(5, "QoreJniStackLocationHelper::checkInit() %d/%d %s:%d\n", (int)i, (int)len, loc.getFile(), line);
+                stack_loc.push_back(loc);
+                stack_call.push_back(code.c_str());
+                stack_native.push_back(native);
+            }
+        } else {
+            len = 0;
+        }
+
+        size = len;
+    } catch (jni::Exception& e) {
+        e.ignore();
+    }
+
+    if (!size) {
+        size = 1;
+        QoreExternalProgramLocationWrapper loc("<jni_module_unknown>", -1, -1);
+        stack_loc.push_back(loc);
+        stack_native.push_back(true);
+        stack_call.push_back("<jni_module_java_no_runtime_stack_info>");
+    }
 }
 
 } // namespace jni

@@ -110,6 +110,7 @@ public:
     static jmethodID methodQoreInvocationHandlerDestroy;                 // void QoreInvocationHandler.destroy()
 
     static GlobalReference<jclass> classQoreJavaApi;                     // org.qore.jni.QoreJavaApi
+    static jmethodID methodQoreJavaApiGetStackTrace;                     // StackTraceElement[] getStackTrace()
 
     static GlobalReference<jclass> classQoreExceptionWrapper;            // org.qore.jni.QoreExceptionWrapper
     static jmethodID ctorQoreExceptionWrapper;                           // QoreExceptionWrapper(long)
@@ -212,6 +213,35 @@ public:
     static void init();
     static void cleanup();
     static Type getType(jclass cls);
+};
+
+class QoreJniStackLocationHelper : public QoreExternalRuntimeStackLocationHelper {
+public:
+    DLLLOCAL QoreJniStackLocationHelper();
+
+    //! returns the name of the function or method call
+    DLLLOCAL virtual const char* getCallName() const;
+
+    //! returns the call type
+    DLLLOCAL virtual qore_call_t getCallType() const;
+
+    //! returns the source location of the element
+    DLLLOCAL virtual const QoreProgramLocation& getLocation() const;
+
+    //! returns the next location in the stack or nullptr if there is none
+    DLLLOCAL virtual const QoreStackLocation* getNext() const;
+
+private:
+    mutable jsize current = 0;
+    mutable jsize size = 0;
+
+    mutable std::vector<std::string> stack_call;
+    mutable std::vector<bool> stack_native;
+    mutable std::vector<QoreExternalProgramLocationWrapper> stack_loc;
+
+    mutable bool init = false;
+
+    DLLLOCAL void checkInit() const;
 };
 
 } // namespace jni

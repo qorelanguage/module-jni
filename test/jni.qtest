@@ -94,6 +94,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("jni test", "1.0") {
+        addTestCase("exception stack", \exceptionStackTest());
         addTestCase("Qore Java API test", \qoreJavaApiTest());
         addTestCase("call static method test", \callStaticMethodTest());
         addTestCase("hash map test", \hashMapTest());
@@ -119,6 +120,21 @@ public class Main inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    exceptionStackTest() {
+        try {
+            QoreJavaApiTest::callFunctionTest("does_not_exist");
+            assertTrue(False);
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("Qore", ex.lang);
+            assertEq("Java", ex.callstack[0].lang);
+            # Java native methods are "builtin"
+            assertEq("builtin", ex.callstack[0].type);
+            assertEq("Java", ex.callstack[1].lang);
+            # normal (non-native) Java methods are "user"
+            assertEq("user", ex.callstack[1].type);
+        }
     }
 
     qoreJavaApiTest() {
@@ -694,8 +710,7 @@ public class Main inherits QUnit::Test {
         try {
             callNow.invoke(NOTHING, o);
             assertEq(False, True);
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq(ex.err, "JNI-ERROR");
             assertEq(True, ex.desc =~ /java.lang.reflect.InvocationTargetException/);
             assertEq("CALLBACK-ERROR", ex.arg.getTargetException().getMessage());
@@ -705,8 +720,7 @@ public class Main inherits QUnit::Test {
         try {
             doThrow.invoke();
             assertEq(False, True);
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq(True, ex.callstack[0].file =~ /\.java$/);
         }
         h.destroy();

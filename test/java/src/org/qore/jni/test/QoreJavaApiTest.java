@@ -90,6 +90,10 @@ public class QoreJavaApiTest {
         return hm;
     }
 
+    static Object callFunctionTest(String name) throws Throwable {
+        return QoreJavaApi.callFunction(name);
+    }
+
     static HashMap callStaticMethodTest() throws Throwable {
         return (HashMap)QoreJavaApi.callStaticMethod("TestClass", "get", 1);
     }
