@@ -234,7 +234,6 @@ public:
 private:
     int tid = gettid();
     mutable jsize current = 0;
-    mutable jsize size = 0;
 
     mutable std::vector<std::string> stack_call;
     mutable std::vector<bool> stack_native;
@@ -244,6 +243,10 @@ private:
 
     static std::string jni_no_call_name;
     static QoreExternalProgramLocationWrapper jni_loc_builtin;
+
+    DLLLOCAL size_t size() const {
+        return stack_call.size();
+    }
 
     DLLLOCAL void checkInit() const;
 };
