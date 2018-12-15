@@ -1070,7 +1070,7 @@ const std::string& QoreJniStackLocationHelper::getCallName() const {
         return jni_no_call_name;
     }
     checkInit();
-    assert(current < size);
+    assert(current < size());
     //printd(5, "QoreJniStackLocationHelper::getCallName() this: %p %d/%d '%s'\n", this, (int)current, (int)size,
     //    stack_call[current].c_str());
     return stack_call[current];
@@ -1081,7 +1081,7 @@ qore_call_t QoreJniStackLocationHelper::getCallType() const {
         return CT_BUILTIN;
     }
     checkInit();
-    assert(current < size);
+    assert(current < size());
     return stack_native[current] ? CT_BUILTIN : CT_USER;
 }
 
@@ -1090,15 +1090,18 @@ const QoreProgramLocation& QoreJniStackLocationHelper::getLocation() const {
         return jni_loc_builtin.get();
     }
     checkInit();
-    assert(current < size);
+    assert(current < size());
     //printd(5, "QoreJniStackLocationHelper::getLocation() %s:%d (%s)\n", stack_loc[current].getFile(), stack_loc[current].getStartLine());
     return stack_loc[current].get();
 }
 
 const QoreStackLocation* QoreJniStackLocationHelper::getNext() const {
+    if (tid != gettid()) {
+        return stack_next;
+    }
     checkInit();
-    assert(current < size);
-    return (++current < size) ? this : stack_next;
+    assert(current < size());
+    return (++current < size()) ? this : stack_next;
 }
 
 void QoreJniStackLocationHelper::checkInit() const {
@@ -1114,10 +1117,9 @@ void QoreJniStackLocationHelper::checkInit() const {
         LocalReference<jobjectArray> jstack = env.callStaticObjectMethod(Globals::classQoreJavaApi,
             Globals::methodQoreJavaApiGetStackTrace, nullptr).as<jobjectArray>();
 
-        jsize len;
         if (jstack) {
             Type elementType = Globals::getType(Globals::classStackTraceElement);
-            len = env.getArrayLength(jstack);
+            jsize len = env.getArrayLength(jstack);
             stack_loc.reserve(len);
             stack_native.reserve(len);
             stack_call.reserve(len);
@@ -1141,13 +1143,15 @@ void QoreJniStackLocationHelper::checkInit() const {
                 stack_call.push_back(code.c_str());
                 stack_native.push_back(native);
             }
-        } else {
-            len = 0;
         }
-
-        size = len;
     } catch (jni::Exception& e) {
         e.ignore();
+    }
+
+    if (!size()) {
+        stack_call.push_back(jni_no_call_name);
+        stack_native.push_back(true);
+        stack_loc.push_back(jni_loc_builtin);
     }
 }
 
