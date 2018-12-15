@@ -206,6 +206,9 @@ GlobalReference<jclass> Globals::classCharacter;
 jmethodID Globals::ctorCharacter;
 jmethodID Globals::methodCharacterCharValue;
 
+std::string QoreJniStackLocationHelper::jni_no_call_name = "<jni_module_java_no_runtime_stack_info>";
+QoreExternalProgramLocationWrapper QoreJniStackLocationHelper::jni_loc_builtin("<jni_module_unknown>", -1, -1);
+
 static void JNICALL invocation_handler_finalize(JNIEnv *, jclass, jlong ptr) {
    delete reinterpret_cast<Dispatcher*>(ptr);
 }
@@ -1062,21 +1065,30 @@ Type Globals::getType(jclass cls) {
 QoreJniStackLocationHelper::QoreJniStackLocationHelper() {
 }
 
-const char* QoreJniStackLocationHelper::getCallName() const {
+const std::string& QoreJniStackLocationHelper::getCallName() const {
+    if (tid != gettid()) {
+        return jni_no_call_name;
+    }
     checkInit();
     assert(current < size);
     //printd(5, "QoreJniStackLocationHelper::getCallName() this: %p %d/%d '%s'\n", this, (int)current, (int)size,
     //    stack_call[current].c_str());
-    return stack_call[current].c_str();
+    return stack_call[current];
 }
 
 qore_call_t QoreJniStackLocationHelper::getCallType() const {
+    if (tid != gettid()) {
+        return CT_BUILTIN;
+    }
     checkInit();
     assert(current < size);
     return stack_native[current] ? CT_BUILTIN : CT_USER;
 }
 
 const QoreProgramLocation& QoreJniStackLocationHelper::getLocation() const {
+    if (tid != gettid()) {
+        return jni_loc_builtin.get();
+    }
     checkInit();
     assert(current < size);
     //printd(5, "QoreJniStackLocationHelper::getLocation() %s:%d (%s)\n", stack_loc[current].getFile(), stack_loc[current].getStartLine());
@@ -1090,6 +1102,7 @@ const QoreStackLocation* QoreJniStackLocationHelper::getNext() const {
 }
 
 void QoreJniStackLocationHelper::checkInit() const {
+    assert(tid == gettid());
     if (init) {
         return;
     }
@@ -1135,14 +1148,6 @@ void QoreJniStackLocationHelper::checkInit() const {
         size = len;
     } catch (jni::Exception& e) {
         e.ignore();
-    }
-
-    if (!size) {
-        size = 1;
-        QoreExternalProgramLocationWrapper loc("<jni_module_unknown>", -1, -1);
-        stack_loc.push_back(loc);
-        stack_native.push_back(true);
-        stack_call.push_back("<jni_module_java_no_runtime_stack_info>");
     }
 }
 
