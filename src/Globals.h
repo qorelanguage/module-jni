@@ -220,7 +220,7 @@ public:
     DLLLOCAL QoreJniStackLocationHelper();
 
     //! returns the name of the function or method call
-    DLLLOCAL virtual const char* getCallName() const;
+    DLLLOCAL virtual const std::string& getCallName() const;
 
     //! returns the call type
     DLLLOCAL virtual qore_call_t getCallType() const;
@@ -232,6 +232,7 @@ public:
     DLLLOCAL virtual const QoreStackLocation* getNext() const;
 
 private:
+    int tid = gettid();
     mutable jsize current = 0;
     mutable jsize size = 0;
 
@@ -240,6 +241,9 @@ private:
     mutable std::vector<QoreExternalProgramLocationWrapper> stack_loc;
 
     mutable bool init = false;
+
+    static std::string jni_no_call_name;
+    static QoreExternalProgramLocationWrapper jni_loc_builtin;
 
     DLLLOCAL void checkInit() const;
 };
