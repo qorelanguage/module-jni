@@ -2,13 +2,14 @@ package org.qore.lang.test;
 
 import org.qore.lang.*;
 import org.qore.lang.sqlutil.*;
+import org.qore.lang.bulksqlutil.*;
 
 import java.util.HashMap;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
 
 public class QoreJavaLangApiTest {
-    static boolean testTable(AbstractDatasource ds) throws Throwable {
+    static Table createTable(AbstractDatasource ds) throws Throwable {
         Table table = new Table(ds, "test_table_1");
         HashMap<String, Object> column = new HashMap<String, Object>() {
             {
@@ -36,7 +37,17 @@ public class QoreJavaLangApiTest {
             table.rollback();
             throw e;
         }
+        return table;
+    }
 
+    static boolean dropTable(Table table) throws Throwable {
+        table.drop();
+        table.commit();
+        return true;
+    }
+
+    static boolean testTable(Table table) throws Throwable {
+        AbstractDatasource ds = table.getDatasource();
         try {
             // dates retrieved from the DB will have their region info stripped
             ZoneId zone = ZoneId.of(ZonedDateTime.now().getOffset().toString());
@@ -72,13 +83,48 @@ public class QoreJavaLangApiTest {
             if (!row.get("modified").equals(now)) {
                 throw new Throwable("modified");
             }
+
             return true;
         } catch (Throwable e) {
             table.rollback();
             throw e;
         } finally {
-            table.drop();
             table.commit();
         }
+    }
+
+    static HashMap<String, Object> testBulkInsert(Table table) throws Throwable {
+        // dates retrieved from the DB will have their region info stripped
+        ZoneId zone = ZoneId.of(ZonedDateTime.now().getOffset().toString());
+        final ZonedDateTime now = ZonedDateTime.now(zone);
+        HashMap<String, Object> row = new HashMap<String, Object>() {
+            {
+                put("id", 2);
+                put("string", "str");
+                put("modified", now);
+            }
+        };
+
+        BulkInsertOperation insert = new BulkInsertOperation(table);
+        try {
+            insert.queueData(row);
+            insert.flush();
+            insert.commit();
+        } catch (Throwable e) {
+            table.rollback();
+            throw e;
+        }
+
+        HashMap<String, Object> wh = new HashMap<String, Object>() {
+            {
+                put("id", 2);
+            }
+        };
+        HashMap<String, Object> sh = new HashMap<String, Object>() {
+            {
+                put("where", wh);
+            }
+        };
+        return table.selectRow(sh);
     }
 }

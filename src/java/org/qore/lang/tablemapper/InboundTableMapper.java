@@ -6,6 +6,7 @@ package org.qore.lang.tablemapper;
 // qorus imports
 import org.qore.lang.mapper.Mapper;
 import org.qore.lang.AbstractDatasource;
+import org.qore.lang.sqlutil.AbstractTable;
 
 // java imports
 import java.util.HashMap;
@@ -366,15 +367,17 @@ public class InboundTableMapper extends Mapper {
         return (String)obj.callMethod("getTableName");
     }
 
-    /*
-    //! returns the underlying @ref org.qore.sqlutil.AbstractTable object
+    //! returns the underlying @ref org.qore.lang.sqlutil.AbstractTable object
     public AbstractTable getTable() throws Throwable {
+        // callMethodSave() is not needed here as the strong reference to the
+        // Qore object is stored in the current object
         return new AbstractTable((QoreObject)obj.callMethod("getTable"));
     }
-    */
 
-    //! returns the @ref org.qore.AbstractDatasource object associated with this object
+    //! returns the @ref org.qore.lang.AbstractDatasource object associated with this object
     public AbstractDatasource getDatasource() throws Throwable {
+        // callMethodSave() is not needed here as the strong reference to the
+        // Qore object is stored in the current object
         return new AbstractDatasource((QoreObject)obj.callMethod("getDatasource"));
     }
 }

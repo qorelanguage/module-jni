@@ -31,7 +31,7 @@
 
 namespace jni {
 
-std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t base) {
+std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t base) const {
     assert(base == 0 || (args != nullptr && args->size() >= base));
 
     size_t paramCount = paramTypes.size();
@@ -93,7 +93,7 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t bas
     return std::move(jargs);
 }
 
-void BaseMethod::doObjectException(Env& env, jobject object) {
+void BaseMethod::doObjectException(Env& env, jobject object) const {
     LocalReference<jclass> ocls = env.getObjectClass(object);
     LocalReference<jstring> ocname = env.callObjectMethod(ocls, Globals::methodClassGetName, nullptr).as<jstring>();
     Env::GetStringUtfChars ocn(env, ocname);
@@ -108,7 +108,7 @@ void BaseMethod::doObjectException(Env& env, jobject object) {
     throw BasicException(desc.c_str());
 }
 
-QoreValue BaseMethod::invoke(jobject object, const QoreListNode* args, int offset) {
+QoreValue BaseMethod::invoke(jobject object, const QoreListNode* args, int offset) const {
     std::vector<jvalue> jargs = convertArgs(args, offset);
 
     Env env;
@@ -142,7 +142,7 @@ QoreValue BaseMethod::invoke(jobject object, const QoreListNode* args, int offse
     }
 }
 
-QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreListNode* args, int offset) {
+QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreListNode* args, int offset) const {
     std::vector<jvalue> jargs = convertArgs(args, offset);
 
     Env env;
@@ -176,7 +176,7 @@ QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreListNode* args,
     }
 }
 
-QoreValue BaseMethod::invokeStatic(const QoreListNode* args, int offset) {
+QoreValue BaseMethod::invokeStatic(const QoreListNode* args, int offset) const {
     std::vector<jvalue> jargs = convertArgs(args, offset);
 
     Env env;

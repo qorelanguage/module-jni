@@ -12,11 +12,19 @@ import java.util.Collections;
 import org.qore.jni.QoreObject;
 import org.qore.jni.QoreObjectWrapper;
 
+// Qore Java imports
+import org.qore.lang.AbstractDatasource;
+
 //! Java wrapper for the @ref SqlUtil::AbstractSqlUtilBase class in %Qore
 public class AbstractSqlUtilBase extends QoreObjectWrapper {
     //! creates the object from a weak reference to the Qore object
     public AbstractSqlUtilBase(QoreObject obj) {
         super(obj);
+    }
+
+    //! gets the underlying AbstractDatasource
+    public AbstractDatasource getDatasource() throws Throwable {
+        return new AbstractDatasource((QoreObject)obj.callMethod("getDatasource"));
     }
 
     //! returns the database driver name

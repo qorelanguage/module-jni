@@ -5,9 +5,9 @@ package org.qore.lang.sqlutil;
 
 // jni module imports
 import org.qore.jni.QoreJavaApi;
-import org.qore.lang.AbstractDatasource;
 
 // Qore imports
+import org.qore.lang.AbstractDatasource;
 import org.qore.lang.sqlutil.AbstractTable;
 
 //! Java wrapper for the @ref SqlUtil::Table class in %Qore

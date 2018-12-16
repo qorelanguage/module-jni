@@ -122,6 +122,8 @@ public:
 
     static GlobalReference<jclass> classQoreObjectWrapper;               // org.qore.jni.QoreObjectWrapper
 
+    static GlobalReference<jclass> classQoreClosureMarker;              // org.qore.jni.QoreClosureMarker
+
     static GlobalReference<jclass> classProxy;                           // java.lang.reflect.Proxy
     static jmethodID methodProxyNewProxyInstance;                        // Object Proxy.newProxyInstance(ClassLoader, Class[], InvocationHandler)
 

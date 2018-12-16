@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 #include "QoreJniClassMap.h"
 #include "Globals.h"
 #include "JavaToQore.h"
+#include "QoreJniFunctionalInterface.h"
 
 namespace jni {
 
@@ -125,6 +126,11 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
             us = env.getIntField(v, Globals::fieldQoreRelativeTimeUs);
 
         return QoreValue(DateTimeNode::makeRelative(year, month, day, hour, minute, second, us));
+    }
+
+    // for Qore closure / call references
+    if (env.isInstanceOf(v, Globals::classQoreClosureMarker)) {
+        return new QoreJniFunctionalInterface(v);
     }
 
     return qjcm.getValue(v);

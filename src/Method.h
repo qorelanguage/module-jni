@@ -74,14 +74,14 @@ public:
       init(env);
    }
 
-   ~BaseMethod() {
+   DLLLOCAL ~BaseMethod() {
       printd(LogLevel, "BaseMethod::~BaseMethod(), this: %p, cls: %p, id: %p\n", this, cls, id);
    }
 
    /**
     * \brief throws a BasicException when the passed object's class does not match the expected class
     */
-   DLLLOCAL void doObjectException(Env& env, jobject object);
+   DLLLOCAL void doObjectException(Env& env, jobject object) const;
 
    /**
     * \brief Invokes an instance method.
@@ -91,7 +91,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invoke(jobject object, const QoreListNode* args, int offset = 0);
+   QoreValue invoke(jobject object, const QoreListNode* args, int offset = 0) const;
 
    /**
     * \brief Invokes an instance method non-virtually.
@@ -101,7 +101,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invokeNonvirtual(jobject object, const QoreListNode* args, int offset = 0);
+   QoreValue invokeNonvirtual(jobject object, const QoreListNode* args, int offset = 0) const;
 
    /**
     * \brief Invokes a static method.
@@ -110,7 +110,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invokeStatic(const QoreListNode* args, int offset = 0);
+   QoreValue invokeStatic(const QoreListNode* args, int offset = 0) const;
 
    /**
     * \brief Creates a new object by invoking a constructor.
@@ -171,7 +171,7 @@ protected:
    DLLLOCAL BaseMethod() {
    }
 
-   DLLLOCAL std::vector<jvalue> convertArgs(const QoreListNode* args, size_t base = 0);
+   DLLLOCAL std::vector<jvalue> convertArgs(const QoreListNode* args, size_t base = 0) const;
 
    DLLLOCAL void init(Env &env) {
       retValClass = env.callObjectMethod(method, Globals::methodMethodGetReturnType, nullptr).as<jclass>().makeGlobal();

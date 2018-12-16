@@ -100,7 +100,7 @@ MACRO(ADD_JAR_TARGETS)
     endforeach()
 ENDMACRO(ADD_JAR_TARGETS)
 
-# Java sources with native methods with an indication of inner classes, if any
+# Java sources built in to the binary module with an indication of inner classes, if any
 generate_java(org/qore/jni/QoreJavaApi.java)
 generate_java(org/qore/jni/QoreExceptionWrapper.java)
 generate_java(org/qore/jni/QoreObject.java)
@@ -108,6 +108,7 @@ generate_java(org/qore/jni/QoreObjectWrapper.java)
 generate_java(org/qore/jni/QoreInvocationHandler.java)
 generate_java(org/qore/jni/QoreURLClassLoader.java 1)
 generate_java(org/qore/jni/QoreRelativeTime.java)
+generate_java(org/qore/jni/QoreClosureMarker.java)
 
 # add Java sources without native methods
 add_java_source(org/qore/lang/sqlutil/Table.java)
@@ -121,6 +122,9 @@ add_java_source(org/qore/lang/tablemapper/InboundIdentityTableMapper.java)
 add_java_source(org/qore/lang/tablemapper/AbstractSqlStatementOutboundMapper.java)
 add_java_source(org/qore/lang/tablemapper/InboundTableMapper.java)
 add_java_source(org/qore/lang/tablemapper/SqlStatementOutboundMapper.java)
+add_java_source(org/qore/lang/bulksqlutil/AbstractBulkOperation.java)
+add_java_source(org/qore/lang/bulksqlutil/BulkRowCallback.java)
+add_java_source(org/qore/lang/bulksqlutil/BulkInsertOperation.java)
 add_java_source(org/qore/lang/DatasourcePool.java)
 add_java_source(org/qore/lang/AbstractSQLStatement.java)
 add_java_source(org/qore/lang/HTTPClient.java)
@@ -205,6 +209,7 @@ set(CPP_SRC
     src/Method.cpp
     src/JavaToQore.cpp
     src/QoreToJava.cpp
+    src/QoreJniFunctionalInterface.cpp
 )
 
 qore_wrap_qpp_value(QPP_SOURCES ${QPP_SRC})

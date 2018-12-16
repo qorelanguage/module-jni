@@ -91,6 +91,7 @@ QoreJniClassMap::jtmap_t QoreJniClassMap::jtmap = {
     {"java.math.BigDecimal", numberTypeInfo},
     {"java.util.HashMap", hashTypeInfo},
     {"org.qore.jni.QoreObject", objectOrNothingTypeInfo},
+    {"org.qore.jni.QoreClosureMarker", codeTypeInfo},
 };
 
 QoreJniClassMap::jpmap_t QoreJniClassMap::jpmap = {
