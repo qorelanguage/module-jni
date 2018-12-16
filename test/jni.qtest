@@ -203,6 +203,10 @@ public class Main inherits QUnit::Test {
         list<auto> l = QoreJavaLangApiTest::testBulkInsert(table);
         assertEq({"id": 2, "string": "str"}, l[0] - "modified");
         assertEq({"id": 2, "string": "str"}, l[1][0] - "modified");
+        assertEq(Type::String, l[2][0].type());
+
+        hash<auto> h = QoreJavaLangApiTest::testBulkUpsert(table);
+        assertEq({"id": 2, "string": "new-str"}, h - "modified");
     }
 
     AbstractDatasource getDatasourcePool() {

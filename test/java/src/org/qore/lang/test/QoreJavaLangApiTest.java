@@ -32,6 +32,10 @@ public class QoreJavaLangApiTest {
             }
         };
         table.addColumn("modified", column, false);
+
+        // add PK
+        table.addPrimaryKey("pk_test_table_1", new String[]{"id"});
+
         try {
             table.create();
             table.commit();
@@ -96,7 +100,7 @@ public class QoreJavaLangApiTest {
     }
 
     static Object[] testBulkInsert(Table table) throws Throwable {
-        Object[] rv = new Object[2];
+        Object[] rv = new Object[3];
         // dates retrieved from the DB will have their region info stripped
         ZoneId zone = ZoneId.of(ZonedDateTime.now().getOffset().toString());
         final ZonedDateTime now = ZonedDateTime.now(zone);
@@ -110,7 +114,15 @@ public class QoreJavaLangApiTest {
 
         ArrayList<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         BulkRowCallback rowCallback = (Map<String, Object> new_row) -> list.add(new_row);
-        BulkInsertOperation insert = new BulkInsertOperation(table);
+
+        ArrayList<String> infoList = new ArrayList<String>();
+        LogCallback logCallback = (String fmt, Object... args) -> infoList.add(String.format(fmt, args));
+        HashMap<String, Object> opts = new HashMap<String, Object>() {
+            {
+                put("info_log", logCallback);
+            }
+        };
+        BulkInsertOperation insert = new BulkInsertOperation(table, opts);
         insert.setRowCode(rowCallback);
         try {
             insert.queueData(row);
@@ -133,6 +145,44 @@ public class QoreJavaLangApiTest {
         };
         rv[0] = table.selectRow(sh);
         rv[1] = list;
+        rv[2] = infoList;
         return rv;
+    }
+
+    static Map<String, Object> testBulkUpsert(Table table) throws Throwable {
+        // dates retrieved from the DB will have their region info stripped
+        ZoneId zone = ZoneId.of(ZonedDateTime.now().getOffset().toString());
+        final ZonedDateTime now = ZonedDateTime.now(zone);
+        HashMap<String, Object> row = new HashMap<String, Object>() {
+            {
+                put("id", 2);
+                put("string", "new-str");
+                put("modified", now);
+            }
+        };
+
+        ArrayList<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        BulkRowCallback rowCallback = (Map<String, Object> new_row) -> list.add(new_row);
+        BulkUpsertOperation insert = new BulkUpsertOperation(table);
+        try {
+            insert.queueData(row);
+            insert.flush();
+            insert.commit();
+        } catch (Throwable e) {
+            table.rollback();
+            throw e;
+        }
+
+        HashMap<String, Object> wh = new HashMap<String, Object>() {
+            {
+                put("id", 2);
+            }
+        };
+        HashMap<String, Object> sh = new HashMap<String, Object>() {
+            {
+                put("where", wh);
+            }
+        };
+        return table.selectRow(sh);
     }
 }

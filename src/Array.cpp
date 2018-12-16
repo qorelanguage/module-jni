@@ -216,19 +216,20 @@ jclass Array::getClassForValue(QoreValue v) {
     throw BasicException(desc.c_str());
 }
 
-LocalReference<jarray> Array::toObjectArray(const QoreListNode* l, jclass elementClass) {
+LocalReference<jarray> Array::toObjectArray(const QoreListNode* l, jclass elementClass, size_t start) {
+    assert(start < l->size());
     Type elementType = Globals::getType(elementClass);
 
-    LocalReference<jarray> jarray = getNew(elementType, elementClass, l->size());
-    for (unsigned i = 0, e = l->size(); i != e; ++i) {
-        set(jarray, elementType, elementClass, i, l->retrieveEntry(i));
+    LocalReference<jarray> jarray = getNew(elementType, elementClass, l->size() - start);
+    for (unsigned i = start, e = l->size(); i != e; ++i) {
+        set(jarray, elementType, elementClass, i - start, l->retrieveEntry(i));
     }
 
     return jarray.release();
 }
 
-LocalReference<jarray> Array::toJava(const QoreListNode* l) {
-    if (l->empty())
+LocalReference<jarray> Array::toJava(const QoreListNode* l, size_t start) {
+    if (l->size() <= start)
         return nullptr;
 
     LocalReference<jclass> elementClass = nullptr;
@@ -237,7 +238,7 @@ LocalReference<jarray> Array::toJava(const QoreListNode* l) {
     const QoreTypeInfo* typeInfo = nullptr;
 
     // check list to see if we have a unique type
-    for (unsigned i = 0, e = l->size(); i != e; ++i) {
+    for (unsigned i = start, e = l->size(); i != e; ++i) {
         // get this element's target Java class
         QoreValue v = l->retrieveEntry(i);
         if (v.isNullOrNothing())
@@ -259,7 +260,7 @@ LocalReference<jarray> Array::toJava(const QoreListNode* l) {
         elementClass = Globals::classObject.toLocal();
     }
 
-    return toObjectArray(l, elementClass).release();
+    return toObjectArray(l, elementClass, start).release();
 }
 
 void Array::getArgList(ReferenceHolder<QoreListNode>& return_value, Env& env, jarray array) {

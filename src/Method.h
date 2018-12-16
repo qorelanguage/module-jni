@@ -168,35 +168,39 @@ public:
    DLLLOCAL void getSignature(QoreString& str) const;
 
 protected:
-   DLLLOCAL BaseMethod() {
-   }
+    DLLLOCAL BaseMethod() {
+    }
 
-   DLLLOCAL std::vector<jvalue> convertArgs(const QoreListNode* args, size_t base = 0) const;
+    DLLLOCAL std::vector<jvalue> convertArgs(const QoreListNode* args, size_t base = 0) const;
 
-   DLLLOCAL void init(Env &env) {
-      retValClass = env.callObjectMethod(method, Globals::methodMethodGetReturnType, nullptr).as<jclass>().makeGlobal();
-      retValType = Globals::getType(retValClass);
+    DLLLOCAL void init(Env &env) {
+        retValClass = env.callObjectMethod(method, Globals::methodMethodGetReturnType, nullptr).as<jclass>().makeGlobal();
+        retValType = Globals::getType(retValClass);
 
-      LocalReference<jobjectArray> paramTypesArray = env.callObjectMethod(method, Globals::methodMethodGetParameterTypes, nullptr).as<jobjectArray>();
-      jsize paramCount = env.getArrayLength(paramTypesArray);
-      paramTypes.reserve(paramCount);
-      for (jsize p = 0; p < paramCount; ++p) {
-         LocalReference<jclass> paramType = env.getObjectArrayElement(paramTypesArray, p).as<jclass>();
-         paramTypes.emplace_back(Globals::getType(paramType), paramType.makeGlobal());
-      }
+        LocalReference<jobjectArray> paramTypesArray = env.callObjectMethod(method, Globals::methodMethodGetParameterTypes, nullptr).as<jobjectArray>();
+        jsize paramCount = env.getArrayLength(paramTypesArray);
+        paramTypes.reserve(paramCount);
+        for (jsize p = 0; p < paramCount; ++p) {
+            LocalReference<jclass> paramType = env.getObjectArrayElement(paramTypesArray, p).as<jclass>();
+            if (p == (paramCount - 1) && env.callBooleanMethod(paramType, Globals::methodClassIsArray, nullptr)) {
+                doVarArgs = true;
+            }
+            paramTypes.emplace_back(Globals::getType(paramType), paramType.makeGlobal());
+        }
 
-      mods = env.callIntMethod(method, Globals::methodMethodGetModifiers, nullptr);
-   }
+        mods = env.callIntMethod(method, Globals::methodMethodGetModifiers, nullptr);
+    }
 
-protected:
-   Class* cls;
-   jmethodID id;
-   GlobalReference<jobject> method;             // the instance of java.lang.reflect.Method
-   GlobalReference<jclass> retValClass;
-   Type retValType;
-   std::vector<std::pair<Type, GlobalReference<jclass>>> paramTypes;
-   // method modifiers
-   int mods;
+    Class* cls;
+    jmethodID id;
+    GlobalReference<jobject> method;             // the instance of java.lang.reflect.Method
+    GlobalReference<jclass> retValClass;
+    Type retValType;
+    std::vector<std::pair<Type, GlobalReference<jclass>>> paramTypes;
+    // method modifiers
+    int mods;
+    // flag to collapse any trailing arguments into a final varargs argument (ex: String... args)
+    bool doVarArgs = false;
 };
 
 class Method : public BaseMethod {

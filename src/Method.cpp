@@ -37,7 +37,8 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t bas
     size_t paramCount = paramTypes.size();
     // missing arguments are treated as null
     size_t argCount = args == nullptr ? 0 : (args->size() - base);
-    if (paramCount < argCount) {
+
+    if (paramCount < argCount && !doVarArgs) {
         Env env;
         // get class and method name for exception text
         LocalReference<jstring> mcname = env.callObjectMethod(cls->getJavaObject(), Globals::methodClassGetName,
@@ -55,6 +56,16 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t bas
 
     std::vector<jvalue> jargs(paramCount);
     for (size_t index = 0; index < paramCount; ++index) {
+        // process varargs with remaining arguments if appropriate
+        if (doVarArgs && (argCount > paramCount) && (index == (paramCount - 1))) {
+            // get array component type
+            Env env;
+            LocalReference<jclass> ccls = env.callObjectMethod(paramTypes[index].second,
+                Globals::methodClassGetComponentType, nullptr).as<jclass>();
+            jargs[index].l = Array::toObjectArray(args, ccls, index).release();
+            break;
+        }
+        assert(index < argCount);
         QoreValue qv = args ? args->retrieveEntry(index + base) : QoreValue();
 
         switch (paramTypes[index].first) {

@@ -876,6 +876,45 @@ String sql = table.getRenameColumnSql("name", "family_name");
         return (String)obj.callMethod("getRenameColumnSql", old_name, new_name);
     }
 
+    //! adds a primary key to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+    /** @par Example:
+        @code{.java}
+table.addPrimaryKey("pk_mytable", "id");
+        @endcode
+
+        In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+        @param pkname the name of the new primary key constraint
+        @param cols a single column name or a list of columns that make up the primary key
+        @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ConstraintOptions
+
+        @throw PRIMARY-KEY-ERROR the table already has a primary key or invalid columns or options passed
+
+        @see inDb() for a method that tells if the table is already in the database or not
+    */
+    public void addPrimaryKey(String pkname, String[] columns, Map<String, Object> opt) throws Throwable {
+        obj.callMethod("addPrimaryKey", pkname, columns, opt);
+    }
+
+    //! adds a primary key to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+    /** @par Example:
+        @code{.java}
+table.addPrimaryKey("pk_mytable", "id");
+        @endcode
+
+        In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+        @param pkname the name of the new primary key constraint
+        @param cols a single column name or a list of columns that make up the primary key
+
+        @throw PRIMARY-KEY-ERROR the table already has a primary key or invalid columns or options passed
+
+        @see inDb() for a method that tells if the table is already in the database or not
+    */
+    public void addPrimaryKey(String pkname, String[] columns) throws Throwable {
+        obj.callMethod("addPrimaryKey", pkname, columns);
+    }
+
     //! returns the SQL that can be used to add a primary key to the table
     /** @par Example:
         @code{.py}
