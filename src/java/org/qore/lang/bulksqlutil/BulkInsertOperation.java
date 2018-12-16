@@ -12,7 +12,7 @@ import org.qore.lang.sqlutil.AbstractTable;
 import org.qore.lang.bulksqlutil.BulkRowCallback;
 
 // java imports
-import java.util.HashMap;
+import java.util.Map;
 
 //! Java wrapper for the Qore class for bulk DML insert operations
 /** This class assists with bulk inserts into a target @ref org.qore.lang.sqlutil.AbstractTable "table".
@@ -44,11 +44,14 @@ import java.util.HashMap;
     @code{.java}
 // single commit and rollback
 try {
+    BulkInsertOperation op1 = new BulkInsertOperation(table1);
+    BulkInsertOperation op2 = new BulkInsertOperation(table2);
+
     // data is queued and flushed automatically when the buffer is full
-    for (HashMap<String, Object> i : data1) {
+    for (Map<String, Object> i : data1) {
         op1.queueData(i);
     }
-    for (HashMap<String, Object> i : data2) {
+    for (Map<String, Object> i : data2) {
         op2.queueData(i);
     }
 
@@ -64,7 +67,7 @@ try {
 }
     @endcode
 
-    @note Wach bulk DML object must be manually flush()ed before committing or manually
+    @note Each bulk DML object must be manually flush()ed before committing or manually
     discard()ed before rolling back to ensure that all data is managed properly in the same
     transaction and to ensure that no exception is thrown in Qore destructor.
     See the example above for more information.
@@ -84,7 +87,7 @@ public class BulkInsertOperation extends AbstractBulkOperation {
 
         @see setRowCode()
     */
-    public BulkInsertOperation(AbstractTable target, HashMap<String, Object> opts) throws Throwable {
+    public BulkInsertOperation(AbstractTable target, Map<String, Object> opts) throws Throwable {
         super(QoreJavaApi.newObjectSave("BulkSqlUtil::BulkInsertOperation", target.getQoreObject(), opts));
     }
 
@@ -105,7 +108,7 @@ try {
     inserter.setRowCode(new MyRowCallback());
 
     // data is queued and flushed automatically when the buffer is full
-    for (HashMap<String, Object> i : data) {
+    for (Map<String, Object> i : data) {
         inserter.queueData(i);
     }
 
@@ -142,7 +145,7 @@ try {
     inserter.setRowCode();
 
     // data is queued and flushed automatically when the buffer is full
-    for (HashMap<String, Object> i : data) {
+    for (Map<String, Object> i : data) {
         inserter.queueData(i);
     }
 

@@ -130,7 +130,6 @@ public class Main inherits QUnit::Test {
         c = QoreJavaApiTest::getClosure2();
         assertNothing(c(2));
         assertThrows("JNI-ERROR", \QoreJavaApiTest::getClosure3());
-        assertThrows("JNI-ERROR", \QoreJavaApiTest::getClosure4());
     }
 
     exceptionStackTest() {
@@ -201,7 +200,9 @@ public class Main inherits QUnit::Test {
         }
         assertTrue(QoreJavaLangApiTest::testTable(table));
 
-        assertEq({"id": 2, "string": "str"}, QoreJavaLangApiTest::testBulkInsert(table) - "modified");
+        list<auto> l = QoreJavaLangApiTest::testBulkInsert(table);
+        assertEq({"id": 2, "string": "str"}, l[0] - "modified");
+        assertEq({"id": 2, "string": "str"}, l[1][0] - "modified");
     }
 
     AbstractDatasource getDatasourcePool() {
@@ -395,7 +396,7 @@ public class Main inherits QUnit::Test {
             assertTrue(False);
         } catch (hash<ExceptionInfo> ex) {
             assertEq("QoreJavaApiTest.java", ex.file);
-            assertEq(107, ex.line);
+            assertEq(99, ex.line);
         }
     }
 

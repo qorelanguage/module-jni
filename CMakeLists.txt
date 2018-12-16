@@ -125,6 +125,7 @@ add_java_source(org/qore/lang/tablemapper/SqlStatementOutboundMapper.java)
 add_java_source(org/qore/lang/bulksqlutil/AbstractBulkOperation.java)
 add_java_source(org/qore/lang/bulksqlutil/BulkRowCallback.java)
 add_java_source(org/qore/lang/bulksqlutil/BulkInsertOperation.java)
+add_java_source(org/qore/lang/bulksqlutil/BulkUpsertOperation.java)
 add_java_source(org/qore/lang/DatasourcePool.java)
 add_java_source(org/qore/lang/AbstractSQLStatement.java)
 add_java_source(org/qore/lang/HTTPClient.java)
@@ -210,6 +211,7 @@ set(CPP_SRC
     src/JavaToQore.cpp
     src/QoreToJava.cpp
     src/QoreJniFunctionalInterface.cpp
+    src/JniQoreClass.cpp
 )
 
 qore_wrap_qpp_value(QPP_SOURCES ${QPP_SRC})

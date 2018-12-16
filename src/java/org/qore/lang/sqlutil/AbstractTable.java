@@ -214,7 +214,7 @@ HashMap<String, Object> row = table.find(row);
         @note a table with a primary key with a single column can also be used with this method; just pass a hash with one key
     */
     @SuppressWarnings("unchecked")
-    HashMap<String, Object> find(HashMap<String, Object> row) throws Throwable {
+    HashMap<String, Object> find(Map<String, Object> row) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("find", row);
     }
 
@@ -233,7 +233,7 @@ HashMap<String, Object> row = table.findSingle(h);
         @note this is equivalent to calling selectRow() with \c where = \c cond and \c limit = 1
      */
     @SuppressWarnings("unchecked")
-    HashMap<String, Object> findSingle(HashMap<String, Object> cond) throws Throwable {
+    HashMap<String, Object> findSingle(Map<String, Object> cond) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("findSingle", cond);
     }
 
@@ -267,7 +267,7 @@ HashMap<String, Object>[] rows = table.findAll(h);
         @note this is equivalent to calling selectRows() with \c where = \c cond
     */
     @SuppressWarnings("unchecked")
-    HashMap<String, Object>[] findAll(HashMap<String, Object> cond) throws Throwable {
+    HashMap<String, Object>[] findAll(Map<String, Object> cond) throws Throwable {
         return (HashMap<String, Object>[])obj.callMethod("findAll", cond);
     }
 
@@ -432,7 +432,7 @@ list l = table.getDropSql();
 
         @throw OPTION-ERROR invalid or unknown callback option
     */
-    public String[] getDropSql(HashMap<String, Object> opt) throws Throwable {
+    public String[] getDropSql(Map<String, Object> opt) throws Throwable {
         return (String[])obj.callMethod("getDropSql", opt);
     }
 
@@ -478,7 +478,7 @@ String sql = table.getTruncateSql();
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is true in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
      */
-    public String getTruncateSql(HashMap<String, Object> opt) throws Throwable {
+    public String getTruncateSql(Map<String, Object> opt) throws Throwable {
         return (String)obj.callMethod("getTruncateSql", opt);
     }
 
@@ -512,7 +512,7 @@ table.create();
 
         @throw CREATE-TABLE-ERROR table has already been read from or created in the database
      */
-    public void create(HashMap<String, Object> opt) throws Throwable {
+    public void create(Map<String, Object> opt) throws Throwable {
         obj.callMethod("create", opt);
     }
 
@@ -567,7 +567,7 @@ boolean b = table.empty();
         @throw OPTION-ERROR invalid or unsupported option passed
         @throw DESCRIPTION-ERROR invalid or unsupported description hash value passed
     */
-    public void setupTable(HashMap<String, Object> desc, HashMap<String, Object> opt) throws Throwable {
+    public void setupTable(Map<String, Object> desc, Map<String, Object> opt) throws Throwable {
         obj.callMethod("setupTable", desc, opt);
     }
 
@@ -577,7 +577,7 @@ boolean b = table.empty();
         @throw OPTION-ERROR invalid or unsupported option passed
         @throw DESCRIPTION-ERROR invalid or unsupported description hash value passed
     */
-    public void setupTable(HashMap<String, Object> desc) throws Throwable {
+    public void setupTable(Map<String, Object> desc) throws Throwable {
         obj.callMethod("setupTable", desc);
     }
 
@@ -606,7 +606,7 @@ table.addColumn("name", column_hash, false, sql);
 
         @see inDb() for a method that tells if the table is already in the database or not
      */
-    public void addColumn(String cname, HashMap<String, Object> opt, boolean nullable) throws Throwable {
+    public void addColumn(String cname, Map<String, Object> opt, boolean nullable) throws Throwable {
         obj.callMethod("addColumn", cname, opt, nullable);
     }
 
@@ -634,7 +634,7 @@ table.addColumn("name", column_hash, false, sql);
 
         @see inDb() for a method that tells if the table is already in the database or not
      */
-    public void addColumn(String cname, HashMap<String, Object> opt) throws Throwable {
+    public void addColumn(String cname, Map<String, Object> opt) throws Throwable {
         obj.callMethod("addColumn", cname, opt);
     }
 
@@ -668,7 +668,7 @@ list l = table.getAddColumnSql("name", copt, false);
 
         @see inDb() for a method that tells if the table is already in the database or not
      */
-    public String[] getAddColumnSql(String cname, HashMap<String, Object> copt, boolean nullable, HashMap<String, Object> opt) throws Throwable {
+    public String[] getAddColumnSql(String cname, Map<String, Object> copt, boolean nullable, Map<String, Object> opt) throws Throwable {
         return (String[])obj.callMethod("getAddColumnSql", cname, copt, nullable, opt);
     }
 
@@ -701,7 +701,7 @@ list l = table.getAddColumnSql("name", copt, false);
 
         @see inDb() for a method that tells if the table is already in the database or not
      */
-    public String[] getAddColumnSql(String cname, HashMap<String, Object> copt, boolean nullable) throws Throwable {
+    public String[] getAddColumnSql(String cname, Map<String, Object> copt, boolean nullable) throws Throwable {
         return (String[])obj.callMethod("getAddColumnSql", cname, copt, nullable);
     }
 
@@ -733,7 +733,7 @@ String[] l = table.getAddColumnSql("name", copt);
 
         @see inDb() for a method that tells if the table is already in the database or not
      */
-    public String[] getAddColumnSql(String cname, HashMap<String, Object> copt) throws Throwable {
+    public String[] getAddColumnSql(String cname, Map<String, Object> copt) throws Throwable {
         return (String[])obj.callMethod("getAddColumnSql", cname, copt);
     }
 
@@ -765,7 +765,7 @@ String[] l = table.getModifyColumnSql("name", copt, false);
 
         @see inDb() for a method that tells if the table is already in the database or not
      */
-    public String[] getModifyColumnSql(String cname, HashMap<String, Object> copt, boolean nullable, HashMap<String, Object> opt) throws Throwable {
+    public String[] getModifyColumnSql(String cname, Map<String, Object> copt, boolean nullable, Map<String, Object> opt) throws Throwable {
         return (String[])obj.callMethod("getModifyColumnSql", cname, copt, nullable, opt);
     }
 
@@ -796,7 +796,7 @@ String[] l = table.getModifyColumnSql("name", copt, false);
 
         @see inDb() for a method that tells if the table is already in the database or not
      */
-    public String[] getModifyColumnSql(String cname, HashMap<String, Object> copt, boolean nullable) throws Throwable {
+    public String[] getModifyColumnSql(String cname, Map<String, Object> copt, boolean nullable) throws Throwable {
         return (String[])obj.callMethod("getModifyColumnSql", cname, copt, nullable);
     }
 
@@ -826,7 +826,7 @@ String[] l = table.getModifyColumnSql("name", copt, false);
 
         @see inDb() for a method that tells if the table is already in the database or not
      */
-    public String[] getModifyColumnSql(String cname, HashMap<String, Object> copt) throws Throwable {
+    public String[] getModifyColumnSql(String cname, Map<String, Object> copt) throws Throwable {
         return (String[])obj.callMethod("getModifyColumnSql", cname, copt);
     }
 
@@ -849,7 +849,7 @@ String sql = table.getRenameColumnSql("name", "family_name");
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is true in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
     */
-    public String getRenameColumnSql(String old_name, String new_name, HashMap<String, Object> opt) throws Throwable {
+    public String getRenameColumnSql(String old_name, String new_name, Map<String, Object> opt) throws Throwable {
         return (String)obj.callMethod("getRenameColumnSql", old_name, new_name, opt);
     }
 
@@ -898,7 +898,7 @@ String sql = table.getAddPrimaryKeySql("pk_mytable", "id", pkopt, opt);
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is true in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
      */
-    public String getAddPrimaryKeySql(String pkname, String[] cols, HashMap<String, Object> pkopt, HashMap<String, Object> opt) throws Throwable {
+    public String getAddPrimaryKeySql(String pkname, String[] cols, Map<String, Object> pkopt, Map<String, Object> opt) throws Throwable {
         return (String)obj.callMethod("getAddPrimaryKeySql", pkname, cols, pkopt, opt);
     }
 
@@ -923,7 +923,7 @@ String sql = table.getAddPrimaryKeySql("pk_mytable", "id", pkopt);
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is true in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
      */
-    public String getAddPrimaryKeySql(String pkname, String[] cols, HashMap<String, Object> pkopt) throws Throwable {
+    public String getAddPrimaryKeySql(String pkname, String[] cols, Map<String, Object> pkopt) throws Throwable {
         return (String)obj.callMethod("getAddPrimaryKeySql", pkname, cols, pkopt);
     }
 
@@ -968,7 +968,7 @@ String[] strlist = table.getDropAllConstraintsAndIndexesOnColumnSql("status");
 
         @see inDb() for a method that tells if the table is already in the database or not
     */
-    public String[] getDropAllConstraintsAndIndexesOnColumnSql(String cname, HashMap<String, Object> opt) throws Throwable {
+    public String[] getDropAllConstraintsAndIndexesOnColumnSql(String cname, Map<String, Object> opt) throws Throwable {
         return (String[])obj.callMethod("getDropAllConstraintsAndIndexesOnColumnSql", cname, opt);
     }
 
@@ -1012,7 +1012,7 @@ String[] l = table.getDropPrimaryKeySql();
 
         @see inDb() for a method that tells if the table is already in the database or not
      */
-    public String[] getDropPrimaryKeySql(HashMap<String, Object> opt) throws Throwable {
+    public String[] getDropPrimaryKeySql(Map<String, Object> opt) throws Throwable {
         return (String[])obj.callMethod("getDropPrimaryKeySql", opt);
     }
 
@@ -1058,7 +1058,7 @@ String sql = table.getAddUniqueConstraintSql("uk_mytable", "name", ukopt);
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is true in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
      */
-    public String getAddUniqueConstraintSql(String cname, String[] cols, HashMap<String, Object> ukopt, HashMap<String, Object> opt) throws Throwable {
+    public String getAddUniqueConstraintSql(String cname, String[] cols, Map<String, Object> ukopt, Map<String, Object> opt) throws Throwable {
         return (String)obj.callMethod("getAddUniqueConstraintSql", cname, cols, ukopt, opt);
     }
 
@@ -1081,7 +1081,7 @@ String sql = table.getAddUniqueConstraintSql("name", ukopt);
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is true in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
      */
-    public String getAddUniqueConstraintSql(String cname, String[] cols, HashMap<String, Object> ukopt) throws Throwable {
+    public String getAddUniqueConstraintSql(String cname, String[] cols, Map<String, Object> ukopt) throws Throwable {
         return (String)obj.callMethod("getAddUniqueConstraintSql", cname, cols, ukopt);
     }
 
@@ -1128,7 +1128,7 @@ String sql = table.getAddIndexSql("uk_mytable_name", true, "name", ixopt);
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is true in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
      */
-    public String getAddIndexSql(String iname, boolean unique, String[] cols, HashMap<String, Object> ixopt, HashMap<String, Object> opt) throws Throwable {
+    public String getAddIndexSql(String iname, boolean unique, String[] cols, Map<String, Object> ixopt, Map<String, Object> opt) throws Throwable {
         return (String)obj.callMethod("getAddIndexSql", iname, unique, cols, ixopt, opt);
     }
 
@@ -1152,7 +1152,7 @@ String sql = table.getAddIndexSql("uk_mytable_name", true, "name", ixopt);
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is true in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
      */
-    public String getAddIndexSql(String iname, boolean unique, String[] cols, HashMap<String, Object> ixopt) throws Throwable {
+    public String getAddIndexSql(String iname, boolean unique, String[] cols, Map<String, Object> ixopt) throws Throwable {
         return (String)obj.callMethod("getAddIndexSql", iname, unique, cols, ixopt);
     }
 
@@ -1199,7 +1199,7 @@ String sql = table.getDropIndexSql("uk_mytable_name");
 
         @see inDb() for a method that tells if the table is already in the database or not
      */
-    public String getDropIndexSql(String iname, HashMap<String, Object> opt) throws Throwable {
+    public String getDropIndexSql(String iname, Map<String, Object> opt) throws Throwable {
         return (String)obj.callMethod("getDropIndexSql", iname, opt);
     }
 
@@ -1248,7 +1248,7 @@ String sql = table.getAddForeignConstraintSql("fk_mytable_other_table", ("name",
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is true in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
      */
-    public String getAddForeignConstraintSql(String cname, String[] cols, String table, String[] tcols, HashMap<String, Object> fkopt, HashMap<String, Object> opt) throws Throwable {
+    public String getAddForeignConstraintSql(String cname, String[] cols, String table, String[] tcols, Map<String, Object> fkopt, Map<String, Object> opt) throws Throwable {
         return (String)obj.callMethod("getAddForeignConstraintSql", cname, cols, table, tcols, fkopt, opt);
     }
 
@@ -1273,7 +1273,7 @@ String sql = table.getAddForeignConstraintSql("fk_mytable_other_table", cols, "o
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is true in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
      */
-    public String getAddForeignConstraintSql(String cname, String[] cols, String table, String[] tcols, HashMap<String, Object> fkopt) throws Throwable {
+    public String getAddForeignConstraintSql(String cname, String[] cols, String table, String[] tcols, Map<String, Object> fkopt) throws Throwable {
         return (String)obj.callMethod("getAddForeignConstraintSql", cname, cols, table, tcols, fkopt);
     }
 
@@ -1346,7 +1346,7 @@ String sql = table.getAddCheckConstraintSql("check_mytable_id", "id > 10");
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is true in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
      */
-    public String getAddCheckConstraintSql(String cname, String src, HashMap<String, Object> copt, HashMap<String, Object> opt) throws Throwable {
+    public String getAddCheckConstraintSql(String cname, String src, Map<String, Object> copt, Map<String, Object> opt) throws Throwable {
         return (String)obj.callMethod("getAddForeignConstraintSql", cname, src, copt, opt);
     }
 
@@ -1372,7 +1372,7 @@ String sql = table.getAddCheckConstraintSql("check_mytable_id", "id > 10");
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is true in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
      */
-    public String getAddCheckConstraintSql(String cname, String src, HashMap<String, Object> copt) throws Throwable {
+    public String getAddCheckConstraintSql(String cname, String src, Map<String, Object> copt) throws Throwable {
         return (String)obj.callMethod("getAddCheckConstraintSql", cname, src, copt);
     }
 
@@ -1422,7 +1422,7 @@ String sql = table.getDropConstraintSql("uk_mytable_name");
 
         @see inDb() for a method that tells if the table is already in the database or not
      */
-    public String getDropConstraintSql(String cname, HashMap<String, Object> opt) throws Throwable {
+    public String getDropConstraintSql(String cname, Map<String, Object> opt) throws Throwable {
         return (String)obj.callMethod("getDropConstraintSql", cname, opt);
     }
 
@@ -1469,7 +1469,7 @@ String sql = table.getDropConstraintSql("uk_mytable_name");
 
         @see inDb() for a method that tells if the table is already in the database or not
      */
-    public String getDropConstraintIfExistsSql(String cname, HashMap<String, Object> opt) throws Throwable {
+    public String getDropConstraintIfExistsSql(String cname, Map<String, Object> opt) throws Throwable {
         return (String)obj.callMethod("getDropConstraintIfExistsSql", cname, opt);
     }
 
@@ -1517,7 +1517,7 @@ String sql = table.getAddTriggerSql("trig_mytable", trigger_src);
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is true in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
      */
-    public String[] getAddTriggerSql(String tname, String src, HashMap<String, Object> topt, HashMap<String, Object> opt) throws Throwable {
+    public String[] getAddTriggerSql(String tname, String src, Map<String, Object> topt, Map<String, Object> opt) throws Throwable {
         return (String[])obj.callMethod("getAddTriggerSql", tname, src, topt, opt);
     }
 
@@ -1542,7 +1542,7 @@ String sql = table.getAddTriggerSql("trig_mytable", trigger_src);
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is true in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
      */
-    public String[] getAddTriggerSql(String tname, String src, HashMap<String, Object> topt) throws Throwable {
+    public String[] getAddTriggerSql(String tname, String src, Map<String, Object> topt) throws Throwable {
         return (String[])obj.callMethod("getAddTriggerSql", tname, src, topt);
     }
 
@@ -1590,7 +1590,7 @@ String sql = table.getDropTriggerSql("trig_mytable");
 
         @see inDb() for a method that tells if the table is already in the database or not
      */
-    public String[] getDropTriggerSql(String tname, HashMap<String, Object> opt) throws Throwable {
+    public String[] getDropTriggerSql(String tname, Map<String, Object> opt) throws Throwable {
         return (String[])obj.callMethod("getDropTriggerSql", tname, opt);
     }
 
@@ -1637,7 +1637,7 @@ String sql = table.getDropColumnSql("notes_2");
 
         @see inDb() for a method that tells if the table is already in the database or not
      */
-    public String[] getDropColumnSql(String cname, HashMap<String, Object> opt) throws Throwable {
+    public String[] getDropColumnSql(String cname, Map<String, Object> opt) throws Throwable {
         return (String[])obj.callMethod("getDropColumnSql", cname, opt);
     }
 
@@ -1678,7 +1678,7 @@ table.insert(row);
         @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
      */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> insert(HashMap<String, Object> row) throws Throwable {
+    public HashMap<String, Object> insert(Map<String, Object> row) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("insert", row);
     }
 
@@ -1688,7 +1688,7 @@ table.insert(row);
         @param opt optional insert options; see @ref InsertOptions for more info
      */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> insert(HashMap<String, Object> row, HashMap<String, Object> opt) throws Throwable {
+    public HashMap<String, Object> insert(Map<String, Object> row, Map<String, Object> opt) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("insert", row, opt);
     }
 
@@ -1720,12 +1720,12 @@ int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("co
 
         @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorCommit() to insert arbitrary data with insert options
     */
-    public int insertFromSelect(String[] cols, AbstractTable source, HashMap<String, Object> sh, HashMap<String, Object> opt) throws Throwable {
+    public int insertFromSelect(String[] cols, AbstractTable source, Map<String, Object> sh, Map<String, Object> opt) throws Throwable {
         return (int)obj.callMethod("insertFromSelect", cols, source, sh, opt);
     }
 
     //! @ref insertFromSelectCommit() variant
-    public int insertFromSelect(String[] cols, AbstractTable source, HashMap<String, Object> sh) throws Throwable {
+    public int insertFromSelect(String[] cols, AbstractTable source, Map<String, Object> sh) throws Throwable {
         return (int)obj.callMethod("insertFromSelect", cols, source, sh);
     }
 
@@ -1751,7 +1751,7 @@ table.upsert(row);
 
         @note if upserting multiple rows; it's better to use getBulkUpsertClosure(), getUpsertClosure(), or getUpsertClosureWithValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
      */
-    public int upsert(HashMap<String, Object> row, int upsert_strategy, HashMap<String, Object> opt) throws Throwable {
+    public int upsert(Map<String, Object> row, int upsert_strategy, Map<String, Object> opt) throws Throwable {
         return (int)obj.callMethod("upsert", row, upsert_strategy, opt);
     }
 
@@ -1771,7 +1771,7 @@ table.upsert(row);
 
         @note if upserting multiple rows; it's better to use getBulkUpsertClosure(), getUpsertClosure(), or getUpsertClosureWithValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
      */
-    public int upsert(HashMap<String, Object> row, int upsert_strategy) throws Throwable {
+    public int upsert(Map<String, Object> row, int upsert_strategy) throws Throwable {
         return (int)obj.callMethod("upsert", row, upsert_strategy);
     }
 
@@ -1813,7 +1813,7 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
         - upsert()
     */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> upsertFromSelect(AbstractTable t, HashMap<String, Object> sh, int upsert_strategy, HashMap<String, Object> opt) throws Throwable {
+    public HashMap<String, Object> upsertFromSelect(AbstractTable t, Map<String, Object> sh, int upsert_strategy, Map<String, Object> opt) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("upsertFromSelect", t, sh, upsert_strategy, opt);
     }
 
@@ -1854,7 +1854,7 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
         - upsert()
     */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> upsertFromSelect(AbstractTable t, HashMap<String, Object> sh, int upsert_strategy) throws Throwable {
+    public HashMap<String, Object> upsertFromSelect(AbstractTable t, Map<String, Object> sh, int upsert_strategy) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("upsertFromSelect", t, sh, upsert_strategy);
     }
 
@@ -1894,7 +1894,7 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
         - upsert()
     */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> upsertFromSelect(AbstractTable t, HashMap<String, Object> sh) throws Throwable {
+    public HashMap<String, Object> upsertFromSelect(AbstractTable t, Map<String, Object> sh) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("upsertFromSelect", t, sh);
     }
 
@@ -1936,7 +1936,7 @@ AbstractSQLStatement i = table.getStatement(sh, opts);
 
         @since %SqlUtil 1.5
      */
-    public AbstractSQLStatement getStatement(HashMap<String, Object> sh, HashMap<String, Object> opt) throws Throwable {
+    public AbstractSQLStatement getStatement(Map<String, Object> sh, Map<String, Object> opt) throws Throwable {
         return new AbstractSQLStatement((QoreObject)obj.callMethodSave("getStatement", sh, opt));
     }
 
@@ -1960,7 +1960,7 @@ AbstractSQLStatement i = table.getStatement(sh);
 
         @since %SqlUtil 1.5
      */
-    public AbstractSQLStatement getStatement(HashMap<String, Object> sh) throws Throwable {
+    public AbstractSQLStatement getStatement(Map<String, Object> sh) throws Throwable {
         return new AbstractSQLStatement((QoreObject)obj.callMethodSave("getStatement", sh));
     }
 
@@ -2005,7 +2005,7 @@ AbstractSQLStatement i = table.getStatementNoExec(sh, opts);
 
         @since %SqlUtil 1.5
      */
-    public AbstractSQLStatement getStatementNoExec(HashMap<String, Object> sh, HashMap<String, Object> opt) throws Throwable {
+    public AbstractSQLStatement getStatementNoExec(Map<String, Object> sh, Map<String, Object> opt) throws Throwable {
         return new AbstractSQLStatement((QoreObject)obj.callMethodSave("getStatementNoExec", sh, opt));
     }
 
@@ -2029,7 +2029,7 @@ AbstractSQLStatement i = table.getStatementNoExec(sh);
 
         @since %SqlUtil 1.5
      */
-    public AbstractSQLStatement getStatementNoExec(HashMap<String, Object> sh) throws Throwable {
+    public AbstractSQLStatement getStatementNoExec(Map<String, Object> sh) throws Throwable {
         return new AbstractSQLStatement((QoreObject)obj.callMethodSave("getStatementNoExec", sh));
     }
 
@@ -2055,7 +2055,7 @@ AbstractSQLStatement i = table.getStatementNoExec();
     //! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
     /** @par Example:
         @code{.py}
-HashMap<String, Object> h = table.selectRow(sh);
+Map<String, Object> h = table.selectRow(sh);
         @endcode
 
         @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
@@ -2072,14 +2072,14 @@ HashMap<String, Object> h = table.selectRow(sh);
         - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
      */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> selectRow(HashMap<String, Object> sh, HashMap<String, Object> opt) throws Throwable {
+    public HashMap<String, Object> selectRow(Map<String, Object> sh, Map<String, Object> opt) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("selectRow", sh, opt);
     }
 
     //! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
     /** @par Example:
         @code{.py}
-HashMap<String, Object> h = table.selectRow(sh);
+Map<String, Object> h = table.selectRow(sh);
         @endcode
 
         @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
@@ -2095,14 +2095,14 @@ HashMap<String, Object> h = table.selectRow(sh);
         - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
      */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> selectRow(HashMap<String, Object> sh) throws Throwable {
+    public HashMap<String, Object> selectRow(Map<String, Object> sh) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("selectRow", sh);
     }
 
     //! returns a list of hashes representing the rows in the table that match the argument hash
     /** @par Example:
         @code{.py}
-HashMap<String, Object>[] l = table.selectRows(sh, opt);
+Map<String, Object>[] l = table.selectRows(sh, opt);
         @endcode
 
         @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
@@ -2118,14 +2118,14 @@ HashMap<String, Object>[] l = table.selectRows(sh, opt);
         - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
      */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object>[] selectRows(HashMap<String, Object> sh, HashMap<String, Object> opt) throws Throwable {
+    public HashMap<String, Object>[] selectRows(Map<String, Object> sh, Map<String, Object> opt) throws Throwable {
         return (HashMap<String, Object>[])obj.callMethod("selectRows", sh, opt);
     }
 
     //! returns a list of hashes representing the rows in the table that match the argument hash
     /** @par Example:
         @code{.py}
-HashMap<String, Object>[] l = table.selectRows(sh);
+Map<String, Object>[] l = table.selectRows(sh);
         @endcode
 
         @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
@@ -2140,14 +2140,14 @@ HashMap<String, Object>[] l = table.selectRows(sh);
         - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
      */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object>[] selectRows(HashMap<String, Object> sh) throws Throwable {
+    public HashMap<String, Object>[] selectRows(Map<String, Object> sh) throws Throwable {
         return (HashMap<String, Object>[])obj.callMethod("selectRows", sh);
     }
 
     //! returns a list of hashes representing the rows in the table that match the argument hash
     /** @par Example:
         @code{.py}
-HashMap<String, Object>[] l = table.selectRows();
+Map<String, Object>[] l = table.selectRows();
         @endcode
 
         @return a list of hashes representing the rows in the table that match the argument hash
@@ -2167,7 +2167,7 @@ HashMap<String, Object>[] l = table.selectRows();
     //! returns a hash of lists representing the columns and rows in the table that match the argument hahs
     /** @par Example:
         @code{.py}
-HashMap<String, Object> h = table.select(sh);
+Map<String, Object> h = table.select(sh);
         @endcode
 
         @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
@@ -2183,14 +2183,14 @@ HashMap<String, Object> h = table.select(sh);
         - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
      */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> select(HashMap<String, Object> sh, HashMap<String, Object> opt) throws Throwable {
+    public HashMap<String, Object> select(Map<String, Object> sh, Map<String, Object> opt) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("select", sh, opt);
     }
 
     //! returns a hash of lists representing the columns and rows in the table that match the argument hahs
     /** @par Example:
         @code{.py}
-HashMap<String, Object> h = table.select(sh);
+Map<String, Object> h = table.select(sh);
         @endcode
 
         @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
@@ -2205,14 +2205,14 @@ HashMap<String, Object> h = table.select(sh);
         - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
      */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> select(HashMap<String, Object> sh) throws Throwable {
+    public HashMap<String, Object> select(Map<String, Object> sh) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("select", sh);
     }
 
     //! returns a hash of lists representing the columns and rows in the table that match the argument hahs
     /** @par Example:
         @code{.py}
-HashMap<String, Object> h = table.select();
+Map<String, Object> h = table.select();
         @endcode
 
         @return a hash of lists representing the columns and rows in the table that match the argument hash

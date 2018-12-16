@@ -145,7 +145,13 @@ public:
     static GlobalReference<jclass> classHashMap;                         // java.util.HashMap
     static jmethodID ctorHashMap;                                        // HashMap()
     static jmethodID methodHashMapPut;                                   // Object HashMap.put(Object K, Object V)
-    static jmethodID methodHashMapEntrySet;                              // Set<Map.Entry<K,V>> HashMap.entrySet()
+
+    static GlobalReference<jclass> classMap;                             // java.util.Map
+    static jmethodID methodMapEntrySet;                                  // Set<Map.Entry<K,V>> Map.entrySet()
+
+    static GlobalReference<jclass> classAbstractList;                    // java.util.AbstractList
+    static jmethodID methodAbstractListSize;                             // int AbstractList.size()
+    static jmethodID methodAbstractListGet;                              // Object AbstractList.get(int index)
 
     static GlobalReference<jclass> classSet;                             // java.util.Set
     static jmethodID methodSetIterator;                                  // Set.iterator()

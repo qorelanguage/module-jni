@@ -4,9 +4,11 @@ import org.qore.lang.*;
 import org.qore.lang.sqlutil.*;
 import org.qore.lang.bulksqlutil.*;
 
+import java.util.Map;
 import java.util.HashMap;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 
 public class QoreJavaLangApiTest {
     static Table createTable(AbstractDatasource ds) throws Throwable {
@@ -93,7 +95,8 @@ public class QoreJavaLangApiTest {
         }
     }
 
-    static HashMap<String, Object> testBulkInsert(Table table) throws Throwable {
+    static Object[] testBulkInsert(Table table) throws Throwable {
+        Object[] rv = new Object[2];
         // dates retrieved from the DB will have their region info stripped
         ZoneId zone = ZoneId.of(ZonedDateTime.now().getOffset().toString());
         final ZonedDateTime now = ZonedDateTime.now(zone);
@@ -105,7 +108,10 @@ public class QoreJavaLangApiTest {
             }
         };
 
+        ArrayList<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        BulkRowCallback rowCallback = (Map<String, Object> new_row) -> list.add(new_row);
         BulkInsertOperation insert = new BulkInsertOperation(table);
+        insert.setRowCode(rowCallback);
         try {
             insert.queueData(row);
             insert.flush();
@@ -125,6 +131,8 @@ public class QoreJavaLangApiTest {
                 put("where", wh);
             }
         };
-        return table.selectRow(sh);
+        rv[0] = table.selectRow(sh);
+        rv[1] = list;
+        return rv;
     }
 }

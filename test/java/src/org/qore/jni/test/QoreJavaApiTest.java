@@ -94,14 +94,6 @@ class ClosureTest3 implements QoreClosureMarker {
     }
 }
 
-class ClosureTest4 implements QoreClosureMarker {
-    void call(int i) {
-    }
-
-    void anotherMethod() {
-    }
-}
-
 public class QoreJavaApiTest {
     static void throwTest() throws Throwable {
         throw new Throwable("test");
@@ -258,9 +250,5 @@ public class QoreJavaApiTest {
 
     static QoreClosureMarker getClosure3() {
         return new ClosureTest3();
-    }
-
-    static QoreClosureMarker getClosure4() {
-        return new ClosureTest4();
     }
 }

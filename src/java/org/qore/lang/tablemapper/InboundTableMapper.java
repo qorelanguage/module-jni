@@ -9,6 +9,7 @@ import org.qore.lang.AbstractDatasource;
 import org.qore.lang.sqlutil.AbstractTable;
 
 // java imports
+import java.util.Map;
 import java.util.HashMap;
 
 // jni module imports
@@ -33,11 +34,11 @@ public class InboundTableMapper extends Mapper {
         @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
     */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> insertRow(HashMap<String, Object> rec) throws Throwable {
+    public HashMap<String, Object> insertRow(Map<String, Object> rec) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("insertRow", rec);
     }
 
-    //! inserts/upserts a row (or a set of rows, in case a HashMap<String, Object> of lists is passed) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
+    //! inserts/upserts a row (or a set of rows, in case a Map<String, Object> of lists is passed) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
     /** @par Example:
         @code{.py}
 {
@@ -62,13 +63,13 @@ public class InboundTableMapper extends Mapper {
         in which case this method returns all the data inserted/upserted.  In case the mapped data is only inserted into
         the cache, no value is returned.
 
-        @param rec the input record or record set in case a HashMap<String, Object> of lists is passed
-        @param crec an optional simple HashMap<String, Object> (may be null) of data to be added to each input row before mapping
+        @param rec the input record or record set in case a Map<String, Object> of lists is passed
+        @param crec an optional simple Map<String, Object> (may be null) of data to be added to each input row before mapping
 
-        @return if batch data was inserted then a HashMap<String, Object> (columns) of lists (row data) of all data inserted
+        @return if batch data was inserted then a Map<String, Object> (columns) of lists (row data) of all data inserted
         and potentially returned (in case of sequences) from the database server is returned; if constant mappings
-        are used with batch data, then they are returned as single values assigned to the HashMap<String, Object> keys; always
-        returns a batch (HashMap<String, Object> of lists); in case no insert was made, null is returned
+        are used with batch data, then they are returned as single values assigned to the Map<String, Object> keys; always
+        returns a batch (Map<String, Object> of lists); in case no insert was made, null is returned
 
         @note
         - make sure to call flush() before committing the transaction or discard() before rolling back the transaction
@@ -78,12 +79,12 @@ public class InboundTableMapper extends Mapper {
         - this method and batched inserts/upserts in general cannot be used when the \c "unstable_input" option is
           given in the constructor
         - if the \c "insert_block" option is set to 1, then this method simply calls insertRow(); however please note
-          that in this case the return value is a HashMap<String, Object> of single value lists corresponding to a batch data insert
+          that in this case the return value is a Map<String, Object> of single value lists corresponding to a batch data insert
         - if an error occurs flushing data, the count is reset by calling
           @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
-        - using a HashMap<String, Object> of lists in \a rec; note that this provides very high performance with SQL drivers that
+        - using a Map<String, Object> of lists in \a rec; note that this provides very high performance with SQL drivers that
           support Bulk DML
-        - in case a HashMap<String, Object> of empty lists is passed, null is returned
+        - in case a Map<String, Object> of empty lists is passed, null is returned
         - 'crec' does not affect the number of output lines; in particular, if 'rec' is a batch with \c N rows of a
           column \c C and 'crec = ("C" : "mystring")' then the output will be as if there was 'N' rows with
           \c C = "mystring" on the input.
@@ -103,11 +104,11 @@ public class InboundTableMapper extends Mapper {
         @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
     */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> queueData(HashMap<String, Object> rec, HashMap<String, Object> crec) throws Throwable {
+    public HashMap<String, Object> queueData(Map<String, Object> rec, Map<String, Object> crec) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("queueData", rec, crec);
     }
 
-    //! inserts/upserts a row (or a set of rows, in case a HashMap<String, Object> of lists is passed) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
+    //! inserts/upserts a row (or a set of rows, in case a Map<String, Object> of lists is passed) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
     /** @par Example:
         @code{.java}
 {
@@ -132,12 +133,12 @@ public class InboundTableMapper extends Mapper {
         in which case this method returns all the data inserted/upserted.  In case the mapped data is only inserted into
         the cache, no value is returned.
 
-        @param rec the input record or record set in case a HashMap<String, Object> of lists is passed
+        @param rec the input record or record set in case a Map<String, Object> of lists is passed
 
-        @return if batch data was inserted then a HashMap<String, Object> (columns) of lists (row data) of all data inserted
+        @return if batch data was inserted then a Map<String, Object> (columns) of lists (row data) of all data inserted
         and potentially returned (in case of sequences) from the database server is returned; if constant mappings
-        are used with batch data, then they are returned as single values assigned to the HashMap<String, Object> keys; always
-        returns a batch (HashMap<String, Object> of lists); in case no insert was made, null is returned
+        are used with batch data, then they are returned as single values assigned to the Map<String, Object> keys; always
+        returns a batch (Map<String, Object> of lists); in case no insert was made, null is returned
 
         @note
         - make sure to call flush() before committing the transaction or discard() before rolling back the transaction
@@ -147,12 +148,12 @@ public class InboundTableMapper extends Mapper {
         - this method and batched inserts/upserts in general cannot be used when the \c "unstable_input" option is
           given in the constructor
         - if the \c "insert_block" option is set to 1, then this method simply calls insertRow(); however please note
-          that in this case the return value is a HashMap<String, Object> of single value lists corresponding to a batch data insert
+          that in this case the return value is a Map<String, Object> of single value lists corresponding to a batch data insert
         - if an error occurs flushing data, the count is reset by calling
           @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
-        - using a HashMap<String, Object> of lists in \a rec; note that this provides very high performance with SQL drivers that
+        - using a Map<String, Object> of lists in \a rec; note that this provides very high performance with SQL drivers that
           support Bulk DML
-        - in case a HashMap<String, Object> of empty lists is passed, null is returned
+        - in case a Map<String, Object> of empty lists is passed, null is returned
         - 'crec' does not affect the number of output lines; in particular, if 'rec' is a batch with \c N rows of a
           column \c C and 'crec = ("C" : "mystring")' then the output will be as if there was 'N' rows with
           \c C = "mystring" on the input.
@@ -172,7 +173,7 @@ public class InboundTableMapper extends Mapper {
         @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
     */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> queueData(HashMap<String, Object> rec) throws Throwable {
+    public HashMap<String, Object> queueData(Map<String, Object> rec) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("queueData", rec);
     }
 
@@ -200,9 +201,9 @@ public class InboundTableMapper extends Mapper {
         Data is only inserted/upserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted/upserted.  In case the mapped data is only inserted into the cache, no value is returned.
 
         @param l a list of hashes representing the input records
-        @param crec an optional simple HashMap<String, Object> of data to be added to each row
+        @param crec an optional simple Map<String, Object> of data to be added to each row
 
-        @return if batch data was inserted/upserted then a HashMap<String, Object> (columns) of lists (row data) of all data inserted/upserted and potentially returned (in case of sequences) from the database server is returned
+        @return if batch data was inserted/upserted then a Map<String, Object> (columns) of lists (row data) of all data inserted/upserted and potentially returned (in case of sequences) from the database server is returned
 
         @note
         - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
@@ -221,7 +222,7 @@ public class InboundTableMapper extends Mapper {
         @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
     */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> queueData(HashMap<String, Object>[] l, HashMap<String, Object> crec) throws Throwable {
+    public HashMap<String, Object> queueData(Map<String, Object>[] l, Map<String, Object> crec) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("queueData", (Object)l, crec);
     }
 
@@ -250,7 +251,7 @@ public class InboundTableMapper extends Mapper {
 
         @param l a list of hashes representing the input records
 
-        @return if batch data was inserted/upserted then a HashMap<String, Object> (columns) of lists (row data) of all data inserted/upserted and potentially returned (in case of sequences) from the database server is returned; returns null if no data was inserted
+        @return if batch data was inserted/upserted then a Map<String, Object> (columns) of lists (row data) of all data inserted/upserted and potentially returned (in case of sequences) from the database server is returned; returns null if no data was inserted
 
         @note
         - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
@@ -269,7 +270,7 @@ public class InboundTableMapper extends Mapper {
         @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
     */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> queueData(HashMap<String, Object>[] l) throws Throwable {
+    public HashMap<String, Object> queueData(Map<String, Object>[] l) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("queueData", (Object)l);
     }
 

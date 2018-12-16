@@ -5,7 +5,7 @@ package org.qore.lang.sqlutil;
 
 // java imports
 import java.util.Map;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Collections;
 
 // jni module imports

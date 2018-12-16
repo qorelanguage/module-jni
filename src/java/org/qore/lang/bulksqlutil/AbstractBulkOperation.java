@@ -13,7 +13,7 @@ import org.qore.lang.AbstractDatasource;
 import org.qore.lang.sqlutil.AbstractTable;
 
 // java imports
-import java.util.HashMap;
+import java.util.Map;
 
 //! Java wrapper for the base %Qore class for bulk DML operations
 /** This class provides the majority of the API support for bulk DML operations for the concrete child classes that
@@ -38,10 +38,10 @@ import java.util.HashMap;
 // single commit and rollback
 try {
     // data is queued and flushed automatically when the buffer is full
-    for (HashMap<String, Object> i : data1) {
+    for (Map<String, Object> i : data1) {
         op1.queueData(i);
     }
-    for (HashMap<String, Object> i : data2) {
+    for (Map<String, Object> i : data2) {
         op2.queueData(i);
     }
 
@@ -79,10 +79,10 @@ public class AbstractBulkOperation extends QoreObjectWrapper {
 // single commit and rollback
 try {
     // data is queued and flushed automatically when the buffer is full
-    for (HashMap<String, Object> i : data1) {
+    for (Map<String, Object> i : data1) {
         op1.queueData(i);
     }
-    for (HashMap<String, Object> i : data2) {
+    for (Map<String, Object> i : data2) {
         op2.queueData(i);
     }
 
@@ -110,7 +110,7 @@ try {
         - flush()
         - discard()
     */
-    public void queueData(HashMap<String, Object> data) throws Throwable {
+    public void queueData(Map<String, Object> data) throws Throwable {
         obj.callMethod("queueData", data);
     }
 
@@ -147,7 +147,7 @@ try {
         - flush()
         - discard()
     */
-    public void queueData(HashMap<String, Object>[] l) throws Throwable {
+    public void queueData(Map<String, Object>[] l) throws Throwable {
         obj.callMethod("queueData", (Object)l);
     }
 
@@ -157,10 +157,10 @@ try {
 // single commit and rollback
 try {
     // data is queued and flushed automatically when the buffer is full
-    for (HashMap<String, Object> i : data1) {
+    for (Map<String, Object> i : data1) {
         op1.queueData(i);
     }
-    for (HashMap<String, Object> i : data2) {
+    for (Map<String, Object> i : data2) {
         op2.queueData(i);
     }
 
@@ -194,10 +194,10 @@ try {
 // single commit and rollback
 try {
     // data is queued and flushed automatically when the buffer is full
-    for (HashMap<String, Object> i : data1) {
+    for (Map<String, Object> i : data1) {
         op1.queueData(i);
     }
-    for (HashMap<String, Object> i : data2) {
+    for (Map<String, Object> i : data2) {
         op2.queueData(i);
     }
 

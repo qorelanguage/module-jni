@@ -7,6 +7,7 @@ package org.qore.lang.tablemapper;
 import org.qore.lang.mapper.Mapper;
 
 // java imports
+import java.util.Map;
 import java.util.HashMap;
 
 // jni module imports

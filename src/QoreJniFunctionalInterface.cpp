@@ -34,27 +34,36 @@ QoreJniFunctionalInterface::QoreJniFunctionalInterface(jobject obj) : obj(Global
     cls = new Class(env.callObjectMethod(obj, Globals::methodObjectGetClass, nullptr).as<jclass>());
     LocalReference<jobjectArray> methods = cls->getDeclaredMethods();
 
-    jsize num_methods = env.getArrayLength(methods);
-    if (num_methods != 1) {
-        QoreStringMaker str("Java class for Java object to be used as a Qore closure has %d methods; must have 1 call() method to be used as a Qore closure", static_cast<int>(num_methods));
-        throw BasicException(str.c_str());
+    // find first "call" method in the class
+    for (jsize i = 0, num_methods = env.getArrayLength(methods); i < num_methods; ++i) {
+        // get Method object
+        LocalReference<jobject> m = env.getObjectArrayElement(methods, i);
+        LocalReference<jstring> mName = env.callObjectMethod(m, Globals::methodMethodGetName, nullptr).as<jstring>();
+        Env::GetStringUtfChars mcn(env, mName);
+        if (!strcmp(mcn.c_str(), "call")) {
+            method = new BaseMethod(m, *cls);
+            break;
+        }
     }
 
-    // get Method object
-    LocalReference<jobject> m = env.getObjectArrayElement(methods, 0);
-    method = new BaseMethod(m, *cls);
+    if (!method) {
+        LocalReference<jstring> clsName = env.callObjectMethod(cls->getJavaObject(), Globals::methodClassGetName,
+            nullptr).as<jstring>();
+        Env::GetStringUtfChars cName(env, clsName);
 
-    QoreString name;
-    method->getName(name);
-    if (name != "call") {
-        QoreStringMaker str("Java class for Java object to be used as a Qore closure has a single method named '%s()'; it must have a method named 'call()' instead", name.c_str());
+        QoreStringMaker str("Java class '%s' for Java object to be used as a Qore closure has no call() method to " \
+            "be used as a Qore closure", cName.c_str());
         throw BasicException(str.c_str());
     }
 }
 
 QoreValue QoreJniFunctionalInterface::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
     try {
-        return method->isStatic() ? method->invokeStatic(args) : method->invoke(obj, args);
+        ReferenceHolder<QoreListNode> evaluated_args(args ? args->evalList(xsink) : nullptr, xsink);
+        if (*xsink) {
+            return QoreValue();
+        }
+        return method->isStatic() ? method->invokeStatic(*evaluated_args) : method->invoke(obj, *evaluated_args);
     } catch (jni::Exception& e) {
         e.convert(xsink);
         QoreToJava::wrapException(*xsink);

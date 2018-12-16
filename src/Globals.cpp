@@ -141,7 +141,13 @@ jmethodID Globals::methodThreadGetContextClassLoader;
 GlobalReference<jclass> Globals::classHashMap;
 jmethodID Globals::ctorHashMap;
 jmethodID Globals::methodHashMapPut;
-jmethodID Globals::methodHashMapEntrySet;
+
+GlobalReference<jclass> Globals::classMap;
+jmethodID Globals::methodMapEntrySet;
+
+GlobalReference<jclass> Globals::classAbstractList;
+jmethodID Globals::methodAbstractListSize;
+jmethodID Globals::methodAbstractListGet;
 
 GlobalReference<jclass> Globals::classSet;
 jmethodID Globals::methodSetIterator;
@@ -924,7 +930,13 @@ void Globals::init() {
     classHashMap = env.findClass("java/util/HashMap").makeGlobal();
     ctorHashMap = env.getMethod(classHashMap, "<init>", "()V");
     methodHashMapPut = env.getMethod(classHashMap, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
-    methodHashMapEntrySet = env.getMethod(classHashMap, "entrySet", "()Ljava/util/Set;");
+
+    classMap = env.findClass("java/util/Map").makeGlobal();
+    methodMapEntrySet = env.getMethod(classMap, "entrySet", "()Ljava/util/Set;");
+
+    classAbstractList = env.findClass("java/util/AbstractList").makeGlobal();
+    methodAbstractListSize = env.getMethod(classAbstractList, "size", "()I");
+    methodAbstractListGet = env.getMethod(classAbstractList, "get", "(I)Ljava/lang/Object;");
 
     classSet = env.findClass("java/util/Set").makeGlobal();
     methodSetIterator = env.getMethod(classSet, "iterator", "()Ljava/util/Iterator;");
@@ -1021,6 +1033,8 @@ void Globals::cleanup() {
     classQoreURLClassLoader = nullptr;
     classThread = nullptr;
     classHashMap = nullptr;
+    classMap = nullptr;
+    classAbstractList = nullptr;
     classSet = nullptr;
     classEntry = nullptr;
     classIterator = nullptr;
