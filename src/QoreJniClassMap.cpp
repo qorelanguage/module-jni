@@ -315,8 +315,6 @@ Class* QoreJniClassMap::loadClass(const char* name, bool& base) {
 }
 
 JniQoreClass* QoreJniClassMap::findCreateQoreClass(LocalReference<jclass>& jc) {
-    JniQoreClass* qc;
-
     Env env;
     LocalReference<jstring> clsName = env.callObjectMethod(jc, Globals::methodClassGetName, nullptr).as<jstring>();
     Env::GetStringUtfChars tname(env, clsName);
@@ -776,7 +774,7 @@ jarray QoreJniClassMap::getJavaArrayIntern(Env& env, const QoreListNode* l, jcla
     LocalReference<jarray> array = Array::getNew(elementType, cls, l->size());
 
     // now populate array
-    for (jsize i = 0; i < l->size(); ++i) {
+    for (jsize i = 0; i < static_cast<jsize>(l->size()); ++i) {
         Array::set(array, elementType, cls, i, l->retrieveEntry(i));
     }
 

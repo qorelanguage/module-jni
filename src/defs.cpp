@@ -42,7 +42,6 @@ public:
         try {
             LocalReference<jobjectArray> jstack = env.callObjectMethod(throwable, Globals::methodThrowableGetStackTrace, nullptr).as<jobjectArray>();
             if (jstack) {
-                Type elementType = Globals::getType(Globals::classStackTraceElement);
                 for (jsize i = 0, e = env.getArrayLength(jstack); i < e; ++i) {
                     LocalReference<jobject> jste = env.getObjectArrayElement(jstack, i);
 

@@ -262,7 +262,7 @@ jobject QoreToJava::makeHashMap(const QoreHashNode& h) {
 jbyteArray QoreToJava::makeByteArray(const BinaryNode& b) {
     Env env;
     LocalReference<jbyteArray> array = env.newByteArray(b.size()).as<jbyteArray>();
-    for (jsize i = 0; i < b.size(); ++i) {
+    for (jsize i = 0; i < static_cast<jsize>(b.size()); ++i) {
         env.setByteArrayElement(array, i, ((const char*)b.getPtr())[i]);
     }
 
