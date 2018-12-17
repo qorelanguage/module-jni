@@ -17,7 +17,73 @@ import org.qore.lang.AbstractDatasource;
 import org.qore.lang.sqlutil.AbstractSqlUtilBase;
 import org.qore.lang.AbstractSQLStatement;
 
-//! Java wrapper for the @ref SqlUtil::AbstractTable class in %Qore
+//! Java wrapper for the @ref AbstractTable class in %Qore
+/**
+    @section CallbackOptions Callback Options
+    The following keys can be set for this option:
+    - \c info_callback: see @ref info_callback
+    - \c sql_callback: see @ref sql_callback
+    - \c sql_callback_executed: see @ref sql_callback_executed
+
+    @section CreationOptions Creation Options
+    This option is comprised of @ref CallbackOptions plus the following keys:
+    - \c replace: (coolean) if true and supported by the underlying db driver, \c "create or replace" text is used
+      when creating objects
+    - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and
+      foreign key relationships between tables
+    - \c data_tablespace: (String) a string giving the data tablespace to use for tables
+    - \c index_tablespace: (String) a string giving the index tablespace to use for indexes
+
+    @section IndexOptions Index Options
+    - \c index_tablespace: (String) a string giving the index tablespace to use for indexes
+    - \c replace: (boolean) if true and supported by the underlying db driver
+      "create or replace" text is used when creating objects
+
+    @section TableCreationOptions Table Creation Options
+    currently this option is a combination of @ref IndexOptions and @ref CreationOptions plus the following:
+    - \c omit: a list pf attributes to omit; possible values are: \c indexes, \c foreign_constraints, \c triggers
+
+    @section AlignTableOptions Align Table Options
+    Currently this option is a combination of @ref TableCreationOptions and the following options:
+    - \c column_map: (Map) a hash for automatically renaming columns; if the source name (key) exists and
+      the target name (value) does not exist, then the source column is automatically renamed
+    - \c index_map: (Map) a hash for automatically renaming indexes; if the source name (key) exists and
+      the target name (value) does not exist, then the source index is automatically renamed
+    - \c constraint_map: (Map) a hash for automatically renaming constraints; if the source name (key)
+      exists and the target name (value) does not exist, then the source constraint is automatically renamed
+    - \c trigger_map: (Map) a hash for automatically renaming triggers; if the source name (key) exists and
+      the target name (value) does not exist, then the source trigger is automatically renamed
+    - \c db_table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining tables in the
+      database and foreign key relationships between tables
+    - \c force: (boolean) if true and supported by the driver and object, any objects dropped will be
+      dropped with \c FORCE or \c CASCADE options
+
+    @section InsertOptions Insert Options
+    In addition to any @ref SqlDataCallbackOptions, the following keys can be set for this option:
+    - \c returning: a list having elements of one of the two following types:
+        - String: column names to return the value inserted
+        - Map: a hash having the following keys:
+        - \c "key": (required) the column name to return
+        - \c "type": (optional) the data type for the output placeholder buffer (ex: @ref Qore::Type::Number "number")
+
+    @note using \c "returning" with a database that does not support this clause will cause an exception to be thrown;
+    see @ref AbstractTable.hasReturning()
+
+    @section UpsertOptions Upsert Options
+    The following keys can be set for upsert options:
+    - \c commit_block: the number of changes made before an automatic commit is made for upsert methods that perform
+      commits
+    - \c delete_others: if this option is true, then a hash of primary key values in the input data
+      is built as the input data is iterated.  After iterating, if the row count of the table and the input data
+      matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary
+      key hash; if a row does not match a primary key value, then it is deleted.  This operation allows tables to be
+      completely synchronized by removing rows in the target table not present in the source table.  This operation is
+      expensive for large data sets.
+    - \c info_callback: see @ref upsert_info_callback
+    - \c omit_update: allows for an asymmetrical upsert where a set of column values is inserted, but a smaller set is
+      updated in case the unique key values are present in the target table; the value of this key should be set to
+      the columns to omit in the update clause
+ */
 public class AbstractTable extends AbstractSqlUtilBase {
     /** @defgroup upsert_options Upsert Strategy Codes
         These options are used with:
@@ -118,7 +184,7 @@ public class AbstractTable extends AbstractSqlUtilBase {
     //! row was unchanged (only possible with @ref UpsertSelectFirst, @ref UpsertInsertOnly, and @ref UpsertUpdateOnly)
     public static int UR_Unchanged = 4;
 
-    //! row was deleted (only possible with batch upsert methods such as @ref upsertFromIterator() where @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is true)
+    //! row was deleted (only possible with batch upsert methods such as @ref upsertFromIterator() where @ref UpsertOptions "upsert option" \c delete_others is true)
     public static int UR_Deleted = 5;
     //@}
 
@@ -319,19 +385,19 @@ HashMap<String, Object>[] rows = table.findAll();
         return (String[])obj.callMethod("getColumnSqlNames", (Object)cols);
     }
 
-    //! commits the current transaction on the underlying @ref Qore::SQL::AbstractDatasource
+    //! commits the current transaction on the underlying @ref org.qore.lang.AbstractDatasource
     public void commit() throws Throwable {
         obj.callMethod("commit");
     }
 
-    //! rolls back the current transaction on the underlying @ref Qore::SQL::AbstractDatasource
+    //! rolls back the current transaction on the underlying @ref org.qore.lang.AbstractDatasource
     public void rollback() throws Throwable {
         obj.callMethod("rollback");
     }
 
     //! returns true if the table has been read from or created in the database, false if not
     /** @par Example:
-        @code{.py}
+        @code{.java}
 boolean b = table.inDb();
         @endcode
 
@@ -345,15 +411,15 @@ boolean b = table.inDb();
 
     //! drops the table from the database without any transaction management
     /** @par Example:
-        @code{.py}
+        @code{.java}
 table.drop();
         @endcode
 
-        @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+        @param opt optional callback options; see @ref CallbackOptions for more info
 
         @throw OPTION-ERROR invalid or unknown callback option
 
-        @note Transaction management is normally not performed when dropping tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+        @note Transaction management is normally not performed when dropping tables, however this method uses the org.qore.lang.AbstractDatasource.exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
      */
     public void drop(HashMap<String, Object> opt) throws Throwable {
         obj.callMethod("drop", opt);
@@ -361,13 +427,13 @@ table.drop();
 
         //! drops the table from the database without any transaction management
     /** @par Example:
-        @code{.py}
+        @code{.java}
 table.drop();
         @endcode
 
         @throw OPTION-ERROR invalid or unknown callback option
 
-        @note Transaction management is normally not performed when dropping tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+        @note Transaction management is normally not performed when dropping tables, however this method uses the org.qore.lang.AbstractDatasource.exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
      */
     public void drop() throws Throwable {
         obj.callMethod("drop");
@@ -375,7 +441,7 @@ table.drop();
 
     //! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
     /** @par Example:
-        @code{.py}
+        @code{.java}
 t.tryExec("drop table tmp_table");
         @endcode
 
@@ -391,7 +457,7 @@ t.tryExec("drop table tmp_table");
 
     //! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
     /** @par Example:
-        @code{.py}
+        @code{.java}
 t.tryExec("delete from tmp_table where id = %v and name = %v", arglist);
         @endcode
 
@@ -406,7 +472,7 @@ t.tryExec("delete from tmp_table where id = %v and name = %v", arglist);
 
     //! executes some SQL so that if an error occurs the current transaction state is not lost
     /** @par Example:
-        @code{.py}
+        @code{.java}
 t.tryExecRaw("drop table tmp_table");
         @endcode
 
@@ -422,11 +488,11 @@ t.tryExecRaw("drop table tmp_table");
 
     //! returns the sql required to drop the table; reimplement in subclasses if necessary
     /** @par Example:
-        @code{.py}
+        @code{.java}
 list l = table.getDropSql();
         @endcode
 
-        @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+        @param opt optional callback options; see @ref CallbackOptions for more info
 
         @return a list of strings that can be used to drop the table and any other objects assocatied with the table (for example: PostgreSQL table trigger function(s))
 
@@ -438,8 +504,8 @@ list l = table.getDropSql();
 
     //! returns the sql required to drop the table; reimplement in subclasses if necessary
     /** @par Example:
-        @code{.py}
-list l = table.getDropSql();
+        @code{.java}
+String[] l = table.getDropSql();
         @endcode
 
         @return a list of strings that can be used to drop the table and any other objects assocatied with the table (for example: PostgreSQL table trigger function(s))
@@ -452,11 +518,11 @@ list l = table.getDropSql();
 
     //! truncates all the table data without any transaction management
     /** @par Example:
-        @code{.py}
+        @code{.java}
 table.truncate();
         @endcode
 
-        @note Transaction management may not be applied when truncating tables depending on the database driver (for example truncating tables in Oracle does not participate in transaction management), however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+        @note Transaction management may not be applied when truncating tables depending on the database driver (for example truncating tables in Oracle does not participate in transaction management), however this method uses the org.qore.lang.AbstractDatasource.exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
      */
     public void truncate() throws Throwable {
         obj.callMethod("truncate");
@@ -464,11 +530,11 @@ table.truncate();
 
     //! gets the SQL that can be used to truncate the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getTruncateSql();
         @endcode
 
-        @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable.AlignTableOptions for common options; each driver can support additional driver-specific options
+        @param opt a hash of options for the SQL string; see @ref AbstractTable.AlignTableOptions for common options; each driver can support additional driver-specific options
 
         @return the SQL that can be used to truncate the table
 
@@ -484,7 +550,7 @@ String sql = table.getTruncateSql();
 
     //! gets the SQL that can be used to truncate the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getTruncateSql();
         @endcode
 
@@ -502,13 +568,13 @@ String sql = table.getTruncateSql();
 
     //! creates the table with all associated properties (indexes, constraints, etc) without any transaction management
     /** @par Example:
-        @code{.py}
+        @code{.java}
 table.create();
         @endcode
 
         @param opt a hash of options for the SQL creation strings
 
-        @note Transaction management is normally not performed when creating tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+        @note Transaction management is normally not performed when creating tables, however this method uses the org.qore.lang.AbstractDatasource.exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
 
         @throw CREATE-TABLE-ERROR table has already been read from or created in the database
      */
@@ -518,11 +584,11 @@ table.create();
 
     //! creates the table with all associated properties (indexes, constraints, etc) without any transaction management
     /** @par Example:
-        @code{.py}
+        @code{.java}
 table.create();
         @endcode
 
-        @note Transaction management is normally not performed when creating tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+        @note Transaction management is normally not performed when creating tables, however this method uses the org.qore.lang.AbstractDatasource.exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
 
         @throw CREATE-TABLE-ERROR table has already been read from or created in the database
      */
@@ -532,7 +598,7 @@ table.create();
 
     //! returns true if the table has no data rows, false if not
     /** @par Example:
-        @code{.py}
+        @code{.java}
 boolean b = table.emptyData();
         @endcode
 
@@ -548,7 +614,7 @@ boolean b = table.emptyData();
 
     //! returns true if the table has no definitions, false if not
     /** @par Example:
-        @code{.py}
+        @code{.java}
 boolean b = table.empty();
         @endcode
 
@@ -584,8 +650,7 @@ boolean b = table.empty();
     //! adds a column to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
     /** @par Example:
         @code{.java}
-String sql;
-table.addColumn("name", column_hash, false, sql);
+table.addColumn("name", column_hash, false);
         @endcode
 
         In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
@@ -598,7 +663,7 @@ table.addColumn("name", column_hash, false, sql);
         - \c scale: for numeric data types, this value gives the scale
         - \c default_value: the default value for the column
         - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
-        @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
+        @param nullable if true then the column can hold NULL values; note that primary key columns cannot be nullable
 
         @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column already exists, invalid column data
 
@@ -613,8 +678,7 @@ table.addColumn("name", column_hash, false, sql);
     //! adds a nullable column to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
     /** @par Example:
         @code{.java}
-String sql;
-table.addColumn("name", column_hash, false, sql);
+table.addColumn("name", column_hash, false);
         @endcode
 
         In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
@@ -640,8 +704,8 @@ table.addColumn("name", column_hash, false, sql);
 
     //! returns a list of SQL strings that can be use to add a column to the table
     /** @par Example:
-        @code{.py}
-list l = table.getAddColumnSql("name", copt, false);
+        @code{.java}
+String[] l = table.getAddColumnSql("name", copt, false);
         @endcode
 
         In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
@@ -674,8 +738,8 @@ list l = table.getAddColumnSql("name", copt, false);
 
     //! returns a list of SQL strings that can be use to add a column to the table
     /** @par Example:
-        @code{.py}
-list l = table.getAddColumnSql("name", copt, false);
+        @code{.java}
+String[] l = table.getAddColumnSql("name", copt, false);
         @endcode
 
         In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
@@ -707,7 +771,7 @@ list l = table.getAddColumnSql("name", copt, false);
 
     //! returns a list of SQL strings that can be use to add a nullable column to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String[] l = table.getAddColumnSql("name", copt);
         @endcode
 
@@ -739,7 +803,7 @@ String[] l = table.getAddColumnSql("name", copt);
 
     //! gets a list of SQL strings that can be used to modify an existing column in the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String[] l = table.getModifyColumnSql("name", copt, false);
         @endcode
 
@@ -771,7 +835,7 @@ String[] l = table.getModifyColumnSql("name", copt, false);
 
     //! gets a list of SQL strings that can be used to modify an existing column in the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String[] l = table.getModifyColumnSql("name", copt, false);
         @endcode
 
@@ -802,7 +866,7 @@ String[] l = table.getModifyColumnSql("name", copt, false);
 
     //! gets a list of SQL strings that can be used to modify an existing column in the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String[] l = table.getModifyColumnSql("name", copt, false);
         @endcode
 
@@ -832,7 +896,7 @@ String[] l = table.getModifyColumnSql("name", copt, false);
 
     //! gets an SQL String that can be used to rename an existing column in the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getRenameColumnSql("name", "family_name");
         @endcode
 
@@ -855,7 +919,7 @@ String sql = table.getRenameColumnSql("name", "family_name");
 
     //! gets an SQL String that can be used to rename an existing column in the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getRenameColumnSql("name", "family_name");
         @endcode
 
@@ -885,8 +949,8 @@ table.addPrimaryKey("pk_mytable", "id");
         In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
 
         @param pkname the name of the new primary key constraint
-        @param cols a single column name or a list of columns that make up the primary key
-        @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref SqlUtil::AbstractTable::ConstraintOptions
+        @param columns a single column name or a list of columns that make up the primary key
+        @param opt a hash of options for the new primary key; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
 
         @throw PRIMARY-KEY-ERROR the table already has a primary key or invalid columns or options passed
 
@@ -905,7 +969,7 @@ table.addPrimaryKey("pk_mytable", "id");
         In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
 
         @param pkname the name of the new primary key constraint
-        @param cols a single column name or a list of columns that make up the primary key
+        @param columns a single column name or a list of columns that make up the primary key
 
         @throw PRIMARY-KEY-ERROR the table already has a primary key or invalid columns or options passed
 
@@ -917,7 +981,7 @@ table.addPrimaryKey("pk_mytable", "id");
 
     //! returns the SQL that can be used to add a primary key to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddPrimaryKeySql("pk_mytable", "id", pkopt, opt);
         @endcode
 
@@ -943,7 +1007,7 @@ String sql = table.getAddPrimaryKeySql("pk_mytable", "id", pkopt, opt);
 
     //! returns the SQL that can be used to add a primary key to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddPrimaryKeySql("pk_mytable", "id", pkopt);
         @endcode
 
@@ -968,7 +1032,7 @@ String sql = table.getAddPrimaryKeySql("pk_mytable", "id", pkopt);
 
     //! returns the SQL that can be used to add a primary key to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddPrimaryKeySql("pk_mytable", "id");
         @endcode
 
@@ -992,7 +1056,7 @@ String sql = table.getAddPrimaryKeySql("pk_mytable", "id");
 
     //! gets a list of SQL strings to drop all constraints and indexes with the given column name; if the column does not exist then an empty list is returned
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String[] strlist = table.getDropAllConstraintsAndIndexesOnColumnSql("status");
         @endcode
 
@@ -1013,7 +1077,7 @@ String[] strlist = table.getDropAllConstraintsAndIndexesOnColumnSql("status");
 
     //! gets a list of SQL strings to drop all constraints and indexes with the given column name; if the column does not exist then an empty list is returned
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String[] strlist = table.getDropAllConstraintsAndIndexesOnColumnSql("status");
         @endcode
 
@@ -1033,7 +1097,7 @@ String[] strlist = table.getDropAllConstraintsAndIndexesOnColumnSql("status");
 
     //! gets a list of SQL strings that can be used to drop the primary key from the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String[] l = table.getDropPrimaryKeySql();
         @endcode
 
@@ -1057,7 +1121,7 @@ String[] l = table.getDropPrimaryKeySql();
 
     //! gets a list of SQL strings that can be used to drop the primary key from the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String[] l = table.getDropPrimaryKeySql();
         @endcode
 
@@ -1077,9 +1141,32 @@ String[] l = table.getDropPrimaryKeySql();
         return (String[])obj.callMethod("getDropPrimaryKeySql");
     }
 
+    //! adds a unique constraint to the table; if the table is known to be in the database already, then the constraint is added to the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+    /** @par Example:
+        @code{.java}
+table.addUniqueConstraint("uk_mytable", "name", opt);
+        @endcode
+
+        In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+        @param cname the name of the new unique constraint
+        @param cols a single column name or a list of columns that make up the unique constraint
+        @param opt a hash of options for the new unique constraint; each driver may implement its own options; for common options, see @ref AbstractTable::ConstraintOptions
+
+        @return an AbstractUniqueConstraint object corresponding to the unique constraint created
+
+        @throw UNIQUE-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns passed
+        @throw OPTION-ERROR invalid or unsupported option passed
+
+        @see inDb() for a method that tells if the table is already in the database or not
+    */
+    public void addUniqueConstraint(String cname, String[] cols, Map<String, Object> opt) throws Throwable {
+        obj.callMethod("addUniqueConstraint", cname, cols, opt);
+    }
+
     //! returns an SQL String that can be used to add a unique constraint to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddUniqueConstraintSql("uk_mytable", "name", ukopt);
         @endcode
 
@@ -1103,7 +1190,7 @@ String sql = table.getAddUniqueConstraintSql("uk_mytable", "name", ukopt);
 
     //! returns an SQL String that can be used to add a unique constraint to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddUniqueConstraintSql("name", ukopt);
         @endcode
 
@@ -1126,7 +1213,7 @@ String sql = table.getAddUniqueConstraintSql("name", ukopt);
 
     //! returns an SQL String that can be used to add a unique constraint to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddUniqueConstraintSql("name", cols);
         @endcode
 
@@ -1146,9 +1233,50 @@ String sql = table.getAddUniqueConstraintSql("name", cols);
         return (String)obj.callMethod("getAddUniqueConstraintSql", cname, cols);
     }
 
+    //! adds an index to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+    /** @par Example:
+        @code{.java}
+table.addIndex("uk_mytable_name", true, new String[]{"name"}, opt);
+        @endcode
+
+        In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+        @param iname the name of the new index
+        @param unique a flag to tell if the new index should be unique or not
+        @param cols a single column name or a list of columns that make up the index
+        @param opt a hash of options for the new index; each driver may implement its own options; for common options, see @ref AbstractTable::IndexOptions
+
+        @throw INDEX-ERROR the table already has an index with the given name or invalid columns or options were passed
+
+        @see inDb() for a method that tells if the table is already in the database or not
+     */
+    public void addIndex(String iname, boolean unique, String[] cols, Map<String, Object> opt) throws Throwable {
+        obj.callMethod("addIndex", iname, unique, cols, opt);
+    }
+
+    //! adds an index to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
+    /** @par Example:
+        @code{.java}
+table.addIndex("uk_mytable_name", true, new String[]{"name"});
+        @endcode
+
+        In case the table is already in the database, this method commits the transaction on success and rolls back the transaction if there's an error.
+
+        @param iname the name of the new index
+        @param unique a flag to tell if the new index should be unique or not
+        @param cols a single column name or a list of columns that make up the index
+
+        @throw INDEX-ERROR the table already has an index with the given name or invalid columns or options were passed
+
+        @see inDb() for a method that tells if the table is already in the database or not
+     */
+    public void addIndex(String iname, boolean unique, String[] cols) throws Throwable {
+        obj.callMethod("addIndex", iname, unique, cols);
+    }
+
     //! returns an SQL String that can be used to add an index to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddIndexSql("uk_mytable_name", true, "name", ixopt);
         @endcode
 
@@ -1173,7 +1301,7 @@ String sql = table.getAddIndexSql("uk_mytable_name", true, "name", ixopt);
 
     //! returns an SQL String that can be used to add an index to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddIndexSql("uk_mytable_name", true, "name", ixopt);
         @endcode
 
@@ -1197,7 +1325,7 @@ String sql = table.getAddIndexSql("uk_mytable_name", true, "name", ixopt);
 
     //! returns an SQL String that can be used to add an index to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddIndexSql("uk_mytable_name", true, "name", ixopt);
         @endcode
 
@@ -1220,7 +1348,7 @@ String sql = table.getAddIndexSql("uk_mytable_name", true, "name", ixopt);
 
     //! gets the SQL that can be used to drop an index from the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getDropIndexSql("uk_mytable_name");
         @endcode
 
@@ -1244,7 +1372,7 @@ String sql = table.getDropIndexSql("uk_mytable_name");
 
     //! gets the SQL that can be used to drop an index from the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getDropIndexSql("uk_mytable_name");
         @endcode
 
@@ -1267,7 +1395,7 @@ String sql = table.getDropIndexSql("uk_mytable_name");
 
     //! returns an SQL String that can be used to add a foreign constraint to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddForeignConstraintSql("fk_mytable_other_table", ("name", "version"), "other_table");
         @endcode
 
@@ -1293,7 +1421,7 @@ String sql = table.getAddForeignConstraintSql("fk_mytable_other_table", ("name",
 
     //! returns an SQL String that can be used to add a foreign constraint to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddForeignConstraintSql("fk_mytable_other_table", cols, "other_table");
         @endcode
 
@@ -1318,7 +1446,7 @@ String sql = table.getAddForeignConstraintSql("fk_mytable_other_table", cols, "o
 
     //! returns an SQL String that can be used to add a foreign constraint to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddForeignConstraintSql("fk_mytable_other_table", cols, "other_table");
         @endcode
 
@@ -1342,7 +1470,7 @@ String sql = table.getAddForeignConstraintSql("fk_mytable_other_table", cols, "o
 
     //! returns an SQL String that can be used to add a foreign constraint to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddForeignConstraintSql("fk_mytable_other_table", cols, "other_table");
         @endcode
 
@@ -1365,7 +1493,7 @@ String sql = table.getAddForeignConstraintSql("fk_mytable_other_table", cols, "o
 
     //! returns an SQL String that can be used to add a check constraint to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddCheckConstraintSql("check_mytable_id", "id > 10");
         @endcode
 
@@ -1391,7 +1519,7 @@ String sql = table.getAddCheckConstraintSql("check_mytable_id", "id > 10");
 
     //! returns an SQL String that can be used to add a check constraint to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddCheckConstraintSql("check_mytable_id", "id > 10");
         @endcode
 
@@ -1417,7 +1545,7 @@ String sql = table.getAddCheckConstraintSql("check_mytable_id", "id > 10");
 
     //! returns an SQL String that can be used to add a check constraint to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddCheckConstraintSql("check_mytable_id", "id > 10");
         @endcode
 
@@ -1443,7 +1571,7 @@ String sql = table.getAddCheckConstraintSql("check_mytable_id", "id > 10");
 
     //! gets the SQL that can be used to drop a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getDropConstraintSql("uk_mytable_name");
         @endcode
 
@@ -1467,7 +1595,7 @@ String sql = table.getDropConstraintSql("uk_mytable_name");
 
     //! gets the SQL that can be used to drop a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getDropConstraintSql("uk_mytable_name");
         @endcode
 
@@ -1491,8 +1619,8 @@ String sql = table.getDropConstraintSql("uk_mytable_name");
 
     //! gets the SQL that can be used to drop a constraint from the table if it exists, otherwise returns null; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
     /** @par Example:
-        @code{.py}
-*String sql = table.getDropConstraintIfExistsSql("uk_mytable_name");
+        @code{.java}
+String sql = table.getDropConstraintIfExistsSql("uk_mytable_name");
         @endcode
 
         @param cname the name of the constraint to drop
@@ -1514,8 +1642,8 @@ String sql = table.getDropConstraintSql("uk_mytable_name");
 
     //! gets the SQL that can be used to drop a constraint from the table if it exists, otherwise returns null; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
     /** @par Example:
-        @code{.py}
-*String sql = table.getDropConstraintIfExistsSql("uk_mytable_name");
+        @code{.java}
+String sql = table.getDropConstraintIfExistsSql("uk_mytable_name");
         @endcode
 
         @param cname the name of the constraint to drop
@@ -1536,7 +1664,7 @@ String sql = table.getDropConstraintSql("uk_mytable_name");
 
     //! returns a list of SQL strings that can be used to add a trigger to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddTriggerSql("trig_mytable", trigger_src);
         @endcode
 
@@ -1562,7 +1690,7 @@ String sql = table.getAddTriggerSql("trig_mytable", trigger_src);
 
     //! returns a list of SQL strings that can be used to add a trigger to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddTriggerSql("trig_mytable", trigger_src);
         @endcode
 
@@ -1587,7 +1715,7 @@ String sql = table.getAddTriggerSql("trig_mytable", trigger_src);
 
     //! returns a list of SQL strings that can be used to add a trigger to the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getAddTriggerSql("trig_mytable", trigger_src);
         @endcode
 
@@ -1611,7 +1739,7 @@ String sql = table.getAddTriggerSql("trig_mytable", trigger_src);
 
     //! returns SQL that can be used to drop the given trigger from the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getDropTriggerSql("trig_mytable");
         @endcode
 
@@ -1635,7 +1763,7 @@ String sql = table.getDropTriggerSql("trig_mytable");
 
     //! returns SQL that can be used to drop the given trigger from the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getDropTriggerSql("trig_mytable");
         @endcode
 
@@ -1658,7 +1786,7 @@ String sql = table.getDropTriggerSql("trig_mytable");
 
     //! returns the SQL that can be used to drop a column from the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getDropColumnSql("notes_2");
         @endcode
 
@@ -1682,7 +1810,7 @@ String sql = table.getDropColumnSql("notes_2");
 
     //! returns the SQL that can be used to drop a column from the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 String sql = table.getDropColumnSql("notes_2");
         @endcode
 
@@ -1706,7 +1834,7 @@ String sql = table.getDropColumnSql("notes_2");
     //! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
     /** @ingroup inserts
         @par Example:
-        @code{.py}
+        @code{.java}
 table.insert(row);
         @endcode
 
@@ -1741,14 +1869,13 @@ table.insert(row);
 
     //! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
     /** @par Example:
-        @code{.py}
-int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER"))));
+        @code{.java}
+int rows = table.insertFromSelect(new String[]{"id", "name", "created"}, source_table, sh);
         @endcode
 
         @param cols the list of column names to use to insert in the current table
         @param source the source table for the select statement
         @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
-        @param sql an optional reference to a String to return the SQL generated for the select statement
         @param opt optional SQL data operation callback options; see @ref SqlDataCallbackOptions for more inf
 
         @return the number of rows inserted
@@ -1763,25 +1890,25 @@ int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("co
         return (int)obj.callMethod("insertFromSelect", cols, source, sh, opt);
     }
 
-    //! @ref insertFromSelectCommit() variant
+    //! @ref insertFromSelect() variant
     public int insertFromSelect(String[] cols, AbstractTable source, Map<String, Object> sh) throws Throwable {
         return (int)obj.callMethod("insertFromSelect", cols, source, sh);
     }
 
-    //! @ref insertFromSelectCommit() variant
+    //! @ref insertFromSelect() variant
     public int insertFromSelect(String[] cols, AbstractTable source) throws Throwable {
         return (int)obj.callMethod("insertFromSelect", cols, source);
     }
 
     //! update or insert the data in the table according to the hash argument; the table must have a unique key to do this
     /** @par Example:
-        @code{.py}
+        @code{.java}
 table.upsert(row);
         @endcode
 
         @param row a hash representing the row to insert or update
         @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-        @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
+        @param opt a hash of options for the upsert operation; see @ref UpsertOptions for common options; each driver can support additional driver-specific options
 
         @return an integer code giving the result of the update; see @ref upsert_results for more information
 
@@ -1796,7 +1923,7 @@ table.upsert(row);
 
     //! update or insert the data in the table according to the hash argument; the table must have a unique key to do this
     /** @par Example:
-        @code{.py}
+        @code{.java}
 table.upsert(row);
         @endcode
 
@@ -1816,10 +1943,16 @@ table.upsert(row);
 
     //! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; no transaction management is performed with this method
     /** @par Example:
-        @code{.py}
-on_success { table.commit(); table2.commit(); }
-on_error { table.rollback(); table2.rollback(); }
-hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertUpdateFirst);
+        @code{.java}
+Map<String, Object> h;
+try {
+    h = table.upsertFromSelect(table2, sh, AbstractTable.UpsertUpdateFirst);
+
+    ds.commit();
+} catch (Throwable e) {
+    ds.collback();
+    throw e;
+}
         @endcode
 
         The table argument does not need to be in the same database as the current table; it can also
@@ -1829,23 +1962,23 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
         @param t the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
         @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
         @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-        @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
+        @param opt a hash of options for the upsert operation; see @ref UpsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
 
         @return null if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref UpsertResultDescriptionMap keys):
         - \c "inserted": the number of rows inserted
         - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref UpsertSelectFirst instead of \c "updated"
         - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
         - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref UpsertSelectFirst, @ref UpsertInsertOnly, or @ref UpsertUpdateOnly
-        - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is true
+        - \c "deleted": the number of rows deleted; this can only be returned if @ref UpsertOptions "upsert option" \c delete_others is true
 
         @throw OPTION-ERROR invalid or unsupported option
         @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
         @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
         @note
-        - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is true, then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is true and is expensive for large data sets.
+        - if @ref UpsertOptions "upsert option" \c delete_others is true, then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is true and is expensive for large data sets.
        - this method uses an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
-        - unlike insertFromSelect() and insertFromSelectCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
+        - unlike insertFromSelect(), this method processes arbitrary input data and accepts @ref UpsertOptions "upsert options"
 
         @see
         - upsertFromSelect()
@@ -1858,10 +1991,17 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
 
     //! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; no transaction management is performed with this method
     /** @par Example:
-        @code{.py}
-on_success { table.commit(); table2.commit(); }
-on_error { table.rollback(); table2.rollback(); }
-hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertUpdateFirst);
+        @code{.java}
+Map<String, Object> h;
+try {
+    h = table.upsertFromSelect(table2, sh, AbstractTable.UpsertUpdateFirst);
+
+    ds.commit();
+} catch (Throwable e) {
+    ds.collback();
+    throw e;
+}
+        @endcode
         @endcode
 
         The table argument does not need to be in the same database as the current table; it can also
@@ -1877,16 +2017,16 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
         - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref UpsertSelectFirst instead of \c "updated"
         - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
         - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref UpsertSelectFirst, @ref UpsertInsertOnly, or @ref UpsertUpdateOnly
-        - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is true
+        - \c "deleted": the number of rows deleted; this can only be returned if @ref UpsertOptions "upsert option" \c delete_others is true
 
         @throw OPTION-ERROR invalid or unsupported option
         @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
         @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
         @note
-        - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is true, then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is true and is expensive for large data sets.
+        - if @ref UpsertOptions "upsert option" \c delete_others is true, then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is true and is expensive for large data sets.
        - this method uses an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
-        - unlike insertFromSelect() and insertFromSelectCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
+        - unlike insertFromSelect(), this method processes arbitrary input data and accepts @ref UpsertOptions "upsert options"
 
         @see
         - upsertFromSelect()
@@ -1899,10 +2039,17 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
 
     //! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; no transaction management is performed with this method
     /** @par Example:
-        @code{.py}
-on_success { table.commit(); table2.commit(); }
-on_error { table.rollback(); table2.rollback(); }
-hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertUpdateFirst);
+        @code{.java}
+Map<String, Object> h;
+try {
+    h = table.upsertFromSelect(table2, sh, AbstractTable.UpsertUpdateFirst);
+
+    ds.commit();
+} catch (Throwable e) {
+    ds.collback();
+    throw e;
+}
+        @endcode
         @endcode
 
         The table argument does not need to be in the same database as the current table; it can also
@@ -1917,16 +2064,16 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
         - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref UpsertSelectFirst instead of \c "updated"
         - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
         - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref UpsertSelectFirst, @ref UpsertInsertOnly, or @ref UpsertUpdateOnly
-        - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is true
+        - \c "deleted": the number of rows deleted; this can only be returned if @ref UpsertOptions "upsert option" \c delete_others is true
 
         @throw OPTION-ERROR invalid or unsupported option
         @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
         @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
         @note
-        - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is true, then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is true and is expensive for large data sets.
+        - if @ref UpsertOptions "upsert option" \c delete_others is true, then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is true and is expensive for large data sets.
        - this method uses an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
-        - unlike insertFromSelect() and insertFromSelectCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
+        - unlike insertFromSelect(), this method processes arbitrary input data and accepts @ref UpsertOptions "upsert options"
 
         @see
         - upsertFromSelect()
@@ -1939,7 +2086,7 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
 
     //! returns the number of rows in the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 int cnt = table.rowCount();
         @endcode
 
@@ -1953,23 +2100,23 @@ int cnt = table.rowCount();
         return (int)obj.callMethod("rowCount");
     }
 
-    //! returns an @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
+    //! returns an @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
     /** @par Example:
-        @code{.py}
+        @code{.java}
 AbstractSQLStatement i = table.getStatement(sh, opts);
         @endcode
 
         @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
         @param opt optional SQL data operation callback options; see @ref SqlDataCallbackOptions for more info
 
-        @return an @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
+        @return an @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
 
         @throw OPTION-ERROR invalid or unsupported select option
         @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
         @note
         - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
-        - the @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref org.qore.AbstractDatasource "AbstractDatasource" object that must be released by calling @ref org.qore.AbstractDatasource::commit() "commit()" or @ref org.qore.AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
+        - the @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref org.qore.lang.AbstractDatasource "AbstractDatasource" object that must be released by calling @ref org.qore.lang.AbstractDatasource.commit() "commit()" or @ref org.qore.lang.AbstractDatasource.rollback() "rollback()", even if the statement does not acquire any database locks
 
         @see getStatementNoExec()
 
@@ -1979,21 +2126,21 @@ AbstractSQLStatement i = table.getStatement(sh, opts);
         return new AbstractSQLStatement((QoreObject)obj.callMethodSave("getStatement", sh, opt));
     }
 
-    //! returns an @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
+    //! returns an @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
     /** @par Example:
-        @code{.py}
+        @code{.java}
 AbstractSQLStatement i = table.getStatement(sh);
         @endcode
 
         @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
 
-        @return an @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
+        @return an @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
 
         @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
         @note
         - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
-        - the @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref org.qore.AbstractDatasource "AbstractDatasource" object that must be released by calling @ref org.qore.AbstractDatasource::commit() "commit()" or @ref org.qore.AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
+        - the @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref org.qore.lang.AbstractDatasource "AbstractDatasource" object that must be released by calling @ref org.qore.lang.AbstractDatasource.commit() "commit()" or @ref org.qore.lang.AbstractDatasource.rollback() "rollback()", even if the statement does not acquire any database locks
 
         @see getStatementNoExec()
 
@@ -2003,16 +2150,16 @@ AbstractSQLStatement i = table.getStatement(sh);
         return new AbstractSQLStatement((QoreObject)obj.callMethodSave("getStatement", sh));
     }
 
-    //! returns an @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object that will iterate all the rows in the table
+    //! returns an @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object that will iterate all the rows in the table
     /** @par Example:
-        @code{.py}
+        @code{.java}
 AbstractSQLStatement i = table.getStatement();
         @endcode
 
-        @return an @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object that will iterate all the rows in the table
+        @return an @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object that will iterate all the rows in the table
 
         @note
-        - the @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref org.qore.AbstractDatasource "AbstractDatasource" object that must be released by calling @ref org.qore.AbstractDatasource::commit() "commit()" or @ref org.qore.AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
+        - the @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref org.qore.lang.AbstractDatasource "AbstractDatasource" object that must be released by calling @ref org.qore.lang.AbstractDatasource.commit() "commit()" or @ref org.qore.lang.AbstractDatasource.rollback() "rollback()", even if the statement does not acquire any database locks
 
         @see getStatementNoExec()
 
@@ -2022,23 +2169,23 @@ AbstractSQLStatement i = table.getStatement();
         return new AbstractSQLStatement((QoreObject)obj.callMethodSave("getStatement"));
     }
 
-    //! returns an @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments; the statement is only prepared and not executed
+    //! returns an @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments; the statement is only prepared and not executed
     /** @par Example:
-        @code{.py}
+        @code{.java}
 AbstractSQLStatement i = table.getStatementNoExec(sh, opts);
         @endcode
 
         @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
         @param opt optional SQL data operation callback options; see @ref SqlDataCallbackOptions for more info
 
-        @return an @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
+        @return an @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
 
         @throw OPTION-ERROR invalid or unsupported select option
         @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
         @note
         - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
-        - the @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref org.qore.AbstractDatasource "AbstractDatasource" object that must be released by calling @ref org.qore.AbstractDatasource::commit() "commit()" or @ref org.qore.AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
+        - the @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref org.qore.lang.AbstractDatasource "AbstractDatasource" object that must be released by calling @ref org.qore.lang.AbstractDatasource.commit() "commit()" or @ref org.qore.lang.AbstractDatasource.rollback() "rollback()", even if the statement does not acquire any database locks
 
         @see getStatement()
 
@@ -2048,21 +2195,21 @@ AbstractSQLStatement i = table.getStatementNoExec(sh, opts);
         return new AbstractSQLStatement((QoreObject)obj.callMethodSave("getStatementNoExec", sh, opt));
     }
 
-    //! returns an @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments; the statement is only prepared and not executed
+    //! returns an @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments; the statement is only prepared and not executed
     /** @par Example:
-        @code{.py}
+        @code{.java}
 AbstractSQLStatement i = table.getStatementNoExec(sh);
         @endcode
 
         @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
 
-        @return an @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
+        @return an @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
 
         @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
         @note
         - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
-        - the @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref org.qore.AbstractDatasource "AbstractDatasource" object that must be released by calling @ref org.qore.AbstractDatasource::commit() "commit()" or @ref org.qore.AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
+        - the @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref org.qore.lang.AbstractDatasource "AbstractDatasource" object that must be released by calling @ref org.qore.lang.AbstractDatasource.commit() "commit()" or @ref org.qore.lang.AbstractDatasource.rollback() "rollback()", even if the statement does not acquire any database locks
 
         @see getStatement()
 
@@ -2072,16 +2219,16 @@ AbstractSQLStatement i = table.getStatementNoExec(sh);
         return new AbstractSQLStatement((QoreObject)obj.callMethodSave("getStatementNoExec", sh));
     }
 
-    //! returns an @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object that will iterate all the rows in the table; the statement is only prepared and not executed
+    //! returns an @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object that will iterate all the rows in the table; the statement is only prepared and not executed
     /** @par Example:
-        @code{.py}
+        @code{.java}
 AbstractSQLStatement i = table.getStatementNoExec();
         @endcode
 
-        @return an @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object that will iterate all the rows in the table
+        @return an @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object that will iterate all the rows in the table
 
         @note
-        - the @ref org.qore.AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref org.qore.AbstractDatasource "AbstractDatasource" object that must be released by calling @ref org.qore.AbstractDatasource::commit() "commit()" or @ref org.qore.AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
+        - the @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref org.qore.lang.AbstractDatasource "AbstractDatasource" object that must be released by calling @ref org.qore.lang.AbstractDatasource.commit() "commit()" or @ref org.qore.lang.AbstractDatasource.rollback() "rollback()", even if the statement does not acquire any database locks
 
         @see getStatement()
 
@@ -2093,7 +2240,7 @@ AbstractSQLStatement i = table.getStatementNoExec();
 
     //! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
     /** @par Example:
-        @code{.py}
+        @code{.java}
 Map<String, Object> h = table.selectRow(sh);
         @endcode
 
@@ -2117,7 +2264,7 @@ Map<String, Object> h = table.selectRow(sh);
 
     //! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
     /** @par Example:
-        @code{.py}
+        @code{.java}
 Map<String, Object> h = table.selectRow(sh);
         @endcode
 
@@ -2140,7 +2287,7 @@ Map<String, Object> h = table.selectRow(sh);
 
     //! returns a list of hashes representing the rows in the table that match the argument hash
     /** @par Example:
-        @code{.py}
+        @code{.java}
 Map<String, Object>[] l = table.selectRows(sh, opt);
         @endcode
 
@@ -2163,7 +2310,7 @@ Map<String, Object>[] l = table.selectRows(sh, opt);
 
     //! returns a list of hashes representing the rows in the table that match the argument hash
     /** @par Example:
-        @code{.py}
+        @code{.java}
 Map<String, Object>[] l = table.selectRows(sh);
         @endcode
 
@@ -2185,7 +2332,7 @@ Map<String, Object>[] l = table.selectRows(sh);
 
     //! returns a list of hashes representing the rows in the table that match the argument hash
     /** @par Example:
-        @code{.py}
+        @code{.java}
 Map<String, Object>[] l = table.selectRows();
         @endcode
 
@@ -2205,7 +2352,7 @@ Map<String, Object>[] l = table.selectRows();
 
     //! returns a hash of lists representing the columns and rows in the table that match the argument hahs
     /** @par Example:
-        @code{.py}
+        @code{.java}
 Map<String, Object> h = table.select(sh);
         @endcode
 
@@ -2228,7 +2375,7 @@ Map<String, Object> h = table.select(sh);
 
     //! returns a hash of lists representing the columns and rows in the table that match the argument hahs
     /** @par Example:
-        @code{.py}
+        @code{.java}
 Map<String, Object> h = table.select(sh);
         @endcode
 
@@ -2250,7 +2397,7 @@ Map<String, Object> h = table.select(sh);
 
     //! returns a hash of lists representing the columns and rows in the table that match the argument hahs
     /** @par Example:
-        @code{.py}
+        @code{.java}
 Map<String, Object> h = table.select();
         @endcode
 

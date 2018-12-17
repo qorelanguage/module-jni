@@ -12,12 +12,12 @@
     To use the module in a %Qore script, use the \c %%requires directive as follows:
     @code %requires jni @endcode
 
-    Helper classes provided by this module:
+    Helper %Qore classes provided by this module:
     |!Class|!Description
     |@ref Jni::org::qore::jni::JavaArray "JavaArray"|a convenience class for using Java Arrays in %Qore
     |@ref Jni::org::qore::jni::QoreInvocationHandler "QoreInvocationHandler"|a convenience class for executing %Qore-language callbacks from Java
 
-    Helper functions provided by this module:
+    Helper %Qore functions provided by this module:
     |!Function|!Description
     |@ref get_version()|Returns the version of the JNI API
     |@ref implement_interface()|Creates a Java object that implements given interface using an invocation handler
@@ -179,7 +179,8 @@
 
     @subsection jni_qore2java_default Qore to Java Default Type Conversions
 
-    The following table describes type conversions for Java types when the \c jni module must convert a %Qore value to the declared type:
+    The following table describes type conversions for Java types when the \c jni module must convert a %Qore value to
+    the declared type:
 
     Qore to Java Default Type Conversions
     |!Source %Qore Type|!Target Java Type
@@ -218,8 +219,9 @@
     |\c java.time.ZonedDateTime|@ref date_type "date" (@ref absolute_dates "absolute date")
     |\c @ref org.qore.jni.QoreRelativeTime|@ref date_type "date" (@ref relative_dates "relative date")
     |\c java.math.BigDecimal|@ref number_type "number"
-    |\c java.lang.Array|@ref list_type "list"
-    |\c javq.util.HashMap|@ref hash_type "hash" (see also @ref jni_compat)
+    |\c java.lang.AbstractArray and arrays|@ref list_type "list"
+    |\c java.util.Map|@ref hash_type "hash" (see also @ref jni_compat)
+    |\c @ref org.qore.jni.QoreClosureMarker|@ref code_type "code"
     |all other objects|direct conversion
 
     @note see @ref jni_arrays for more information about conversions between %Qore lists and Java arrays
@@ -267,7 +269,7 @@
     printf("%y\n", stringBuilder.toString());
     @endcode
 
-    @subsection jniclassmapping  Java Inner Classes
+    @subsection jniclassmapping Java Inner Classes
 
     Java inner classes are mapped as %Qore classes by appending \c "__" to the outer class's name and then appending the
     name of the inner class.
@@ -362,23 +364,32 @@ System::out.println("testing...");
       - @ref org.qore.jni.QoreJavaApi.newObjectSave() "QoreJavaApi.newObjectSave()"
       - @ref org.qore.jni.QoreJavaApi.newObjectSaveArgs() "QoreJavaApi.newObjectSaveArgs()"
     - added the following new classes to the Java API:
+      - @ref org.qore.jni.QoreClosureMarker
+      - @ref org.qore.jni.QoreObject
+      - @ref org.qore.jni.QoreObjectWrapper
+      - @ref org.qore.jni.QoreRelativeTime
+      - @ref org.qore.lang.AbstractDatasource
+      - @ref org.qore.lang.AbstractSQLStatement
+      - @ref org.qore.lang.DatasourcePool
+      - @ref org.qore.lang.HTTPClient
+      - @ref org.qore.lang.LogCallback
+      - @ref org.qore.lang.bulksqlutil.AbstractBulkOperation
+      - @ref org.qore.lang.bulksqlutil.BulkInsertOperation
+      - @ref org.qore.lang.bulksqlutil.BulkRowCallback
+      - @ref org.qore.lang.bulksqlutil.BulkUpsertOperation
+      - @ref org.qore.lang.mapper.Mapper
+      - @ref org.qore.lang.mapper.RawSqlStatementOutboundMapper
       - @ref org.qore.lang.sqlutil.Table
       - @ref org.qore.lang.sqlutil.AbstractTable
       - @ref org.qore.lang.sqlutil.AbstractSqlUtilBase
-      - @ref org.qore.lang.AbstractDatasource
-      - @ref org.qore.lang.mapper.Mapper
-      - @ref org.qore.lang.mapper.RawSqlStatementOutboundMapper
       - @ref org.qore.lang.tablemapper.RawSqlStatementOutboundMapper
       - @ref org.qore.lang.tablemapper.InboundIdentityTableMapper
       - @ref org.qore.lang.tablemapper.AbstractSqlStatementOutboundMapper
       - @ref org.qore.lang.tablemapper.InboundTableMapper
       - @ref org.qore.lang.tablemapper.SqlStatementOutboundMapper
-      - @ref org.qore.lang.DatasourcePool
-      - @ref org.qore.lang.AbstractSQLStatement
-      - @ref org.qore.lang.HTTPClient
     - added support for date <-> java.time.ZonedDateTime conversions
       (<a href="https://github.com/qorelanguage/qore/issues/3026">issue 3026</a>)
-    - fixed the %Qore exception location when a Java exception is propogated to %Qore
+    - fixed the %Qore exception location when a Java exception is propagated to %Qore
       (<a href="https://github.com/qorelanguage/qore/issues/3077">issue 3077</a>)
     - fixed call stacks for exceptions to include Java call stack information in all cases
       (<a href="https://github.com/qorelanguage/qore/issues/3169">issue 3169</a>)
