@@ -76,8 +76,7 @@ public class BulkInsertOperation extends AbstractBulkOperation {
     //! creates the object from the supplied arguments
     /** @param target the target table object
         @param opts an optional hash of options for the object as follows:
-        - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style
-          arguments
+        - \c "info_log": an optional info logging callback of type @ref LogCallback
         - \c "block_size": the number of rows executed at once (default: 1000)
         - \c "rowcode": a per-row callback that must be an instance of
           @ref org.qore.lang.bulksqlutil.BulkRowCallback "BulkRowCallback"; the

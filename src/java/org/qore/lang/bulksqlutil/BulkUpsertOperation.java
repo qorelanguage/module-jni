@@ -68,8 +68,8 @@ public class BulkUpsertOperation extends AbstractBulkOperation {
     /** @param target the target table object
         @param opts an optional hash of options for the object as follows:
         - \c "block_size": the number of rows executed at once (default: 1000)
-        - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
-        - \c "upsert_strategy": the upsert strategy to use; default SqlUtil::AbstractTable::UpsertAuto; see @ref upsert_options for possible values for the upsert strategy
+        - \c "info_log": an optional info logging callback of type @ref LogCallback
+        - \c "upsert_strategy": the upsert strategy to use; default AbstractTable.UpsertAuto; see @ref upsert_options for possible values for the upsert strategy
     */
     public BulkUpsertOperation(AbstractTable target, Map<String, Object> opts) throws Throwable {
         super(QoreJavaApi.newObjectSave("BulkSqlUtil::BulkUpsertOperation", target.getQoreObject(), opts));
