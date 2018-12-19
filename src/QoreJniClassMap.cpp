@@ -89,9 +89,9 @@ QoreJniClassMap::jtmap_t QoreJniClassMap::jtmap = {
     {"java.time.ZonedDateTime", dateTypeInfo},
     {"org.qore.jni.QoreRelativeTime", dateTypeInfo},
     {"java.math.BigDecimal", numberTypeInfo},
-    {"java.util.Map", hashTypeInfo},
-    {"java.util.AbstractMap", hashTypeInfo},
-    {"java.util.AbstractArray", listTypeInfo},
+    {"java.util.Map", autoHashTypeInfo},
+    {"java.util.AbstractMap", autoHashTypeInfo},
+    {"java.util.AbstractArray", autoListTypeInfo},
     {"org.qore.jni.QoreObject", objectOrNothingTypeInfo},
     {"org.qore.jni.QoreClosureMarker", codeTypeInfo},
 };
@@ -612,7 +612,7 @@ const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls) {
 
     // process array types
     if (env.callBooleanMethod(cls, Globals::methodClassIsArray, nullptr)) {
-        return softListTypeInfo;
+        return softAutoListTypeInfo;
     }
 
     // do primitive types
