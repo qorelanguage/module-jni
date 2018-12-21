@@ -238,13 +238,31 @@ void BaseMethod::getName(QoreString& str) const {
     str.concat(mName.c_str());
 }
 
-int BaseMethod::getParamTypes(type_vec_t& paramTypeInfo, QoreJniClassMap& clsmap) {
+int BaseMethod::getParamTypes(type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo, QoreJniClassMap& clsmap) {
     unsigned len = paramTypes.size();
-    if (len)
+    if (len) {
         paramTypeInfo.reserve(len);
+    }
 
-    for (auto& i : paramTypes)
-        paramTypeInfo.push_back(clsmap.getQoreType(i.second));
+    for (auto& i : paramTypes) {
+        const QoreTypeInfo* altType = nullptr;
+        paramTypeInfo.push_back(clsmap.getQoreType(i.second, altType));
+        if (altType) {
+            if (altParamTypeInfo.empty()) {
+                altParamTypeInfo.reserve(len);
+            }
+            for (size_t i = altParamTypeInfo.size(), e = paramTypeInfo.size() - 1; i < e; ++i) {
+                altParamTypeInfo.push_back(paramTypeInfo[i]);
+            }
+            altParamTypeInfo.push_back(altType);
+        }
+    }
+
+    if (!altParamTypeInfo.empty()) {
+        for (size_t i = altParamTypeInfo.size(), e = paramTypeInfo.size(); i < e; ++i) {
+            altParamTypeInfo.push_back(paramTypeInfo[i]);
+        }
+    }
 
     return 0;
 }

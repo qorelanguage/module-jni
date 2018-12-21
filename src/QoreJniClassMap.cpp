@@ -161,10 +161,8 @@ void QoreJniClassMap::init() {
     QC_INVOCATIONHANDLER = findCreateQoreClass("java/lang/reflect/InvocationHandler");
     CID_INVOCATIONHANDLER = QC_INVOCATIONHANDLER->getID();
 
-    // load date class
-    QC_ZONEDDATETIME = new JniQoreClass("ZonedDateTime", "java.time.ZonedDateTime");
+    QC_ZONEDDATETIME = find("java/time/ZonedDateTime");
     CID_ZONEDDATETIME = QC_ZONEDDATETIME->getID();
-    createClassInNamespace(ns, *default_jns, "java/time/ZonedDateTime", Functions::loadClass("java/time/ZonedDateTime"), QC_ZONEDDATETIME, *this);
 
     // rescan all classes
     for (auto& i : jcmap)
@@ -571,31 +569,49 @@ void QoreJniClassMap::doConstructors(JniQoreClass& qc, jni::Class* jc) {
         SimpleRefHolder<BaseMethod> meth(new BaseMethod(c, jc));
 
 #ifdef DEBUG
-        LocalReference<jstring> conStr = env.callObjectMethod(c, Globals::methodConstructorToString, nullptr).as<jstring>();
+        LocalReference<jstring> conStr = env.callObjectMethod(c,
+            Globals::methodConstructorToString, nullptr).as<jstring>();
         Env::GetStringUtfChars chars(env, conStr);
         QoreString mstr(chars.c_str());
 #endif
 
         // get method's parameter types
         type_vec_t paramTypeInfo;
-        if (meth->getParamTypes(paramTypeInfo, *this)) {
-            printd(LogLevel, "+ skipping %s.constructor() (%s); unsupported parameter type for variant %d\n", qc.getName(), mstr.c_str(), i + 1);
+        type_vec_t altParamTypeInfo;
+        if (meth->getParamTypes(paramTypeInfo, altParamTypeInfo, *this)) {
+            printd(LogLevel, "+ skipping %s.constructor() (%s); unsupported parameter type for variant %d\n",
+                qc.getName(), mstr.c_str(), i + 1);
             continue;
         }
 
         // check for duplicate signature
         const QoreMethod* qm = qc.getConstructor();
         if (qm && qm->existsVariant(paramTypeInfo)) {
-            printd(LogLevel, "QoreJniClassMap::doConstructors() skipping already-created variant %s::constructor()\n", qc.getName());
+            printd(LogLevel, "QoreJniClassMap::doConstructors() skipping already-created variant %s::constructor()\n",
+                qc.getName());
             continue;
         }
 
-        qc.addConstructor((void*)*meth, (q_external_constructor_t)exec_java_constructor, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_API, paramTypeInfo);
+        qc.addConstructor((void*)*meth, (q_external_constructor_t)exec_java_constructor, meth->getAccess(),
+            meth->getFlags(), QDOM_UNCONTROLLED_API, paramTypeInfo);
+
+        // add native alternatives for hash and list arg types, if any
+        if (!altParamTypeInfo.empty()) {
+            if (qm && qm->existsVariant(altParamTypeInfo)) {
+                printd(LogLevel, "QoreJniClassMap::doConstructors() skipping already-created variant %s::constructor()\n",
+                    qc.getName());
+                continue;
+            }
+            qc.addConstructor((void*)*meth, (q_external_constructor_t)exec_java_constructor, meth->getAccess(),
+                meth->getFlags(), QDOM_UNCONTROLLED_API, altParamTypeInfo);
+        }
+
         jc->trackMethod(meth.release());
     }
 }
 
-const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls) {
+const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls, const QoreTypeInfo*& altType) {
+    assert(!altType);
     Env env;
 
     LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetName, nullptr).as<jstring>();
@@ -622,12 +638,6 @@ const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls) {
         return i->second.typeInfo;
     }
 
-    // find static mapping
-    jtmap_t::const_iterator i = jtmap.find(tname.c_str());
-    if (i != jtmap.end()) {
-        return i->second;
-    }
-
     // find or create a class for the type
     JniQoreClass* qc = find(jname.c_str());
     if (!qc) {
@@ -645,9 +655,15 @@ const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls) {
             printd(LogLevel, "QoreJniClassMap::getQoreType() creating cname: '%s' jname: '%s'\n", cname.c_str(), jname.c_str());
             bool base;
             SimpleRefHolder<Class> cls(loadClass(jname.c_str(), base));
-
             qc = findCreateQoreClass(cname, jname.c_str(), cls.release(), base);
         }
+    }
+
+    // find static mapping
+    jtmap_t::const_iterator i = jtmap.find(tname.c_str());
+    if (i != jtmap.end()) {
+        altType = qc->getOrNothingTypeInfo();
+        return i->second;
     }
 
     // try all parents to see if a static mapping matches
@@ -663,6 +679,7 @@ const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls) {
             // add to jtmap
             jtmap.insert(jtmap_t::value_type(tname.c_str(), i->second));
             //printd(LogLevel, "returning %s (%s) -> %s\n", tname.c_str(), jcname.c_str(), typeInfoGetName(i->second));
+            altType = qc->getOrNothingTypeInfo();
             return i->second;
         }
     }
@@ -671,59 +688,81 @@ const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls) {
 }
 
 void QoreJniClassMap::doMethods(JniQoreClass& qc, jni::Class* jc) {
-   Env env;
-   //printd(LogLevel, "QoreJniClassMap::doMethods() qc: %p jc: %p\n", qc, jc);
+    Env env;
+    //printd(LogLevel, "QoreJniClassMap::doMethods() qc: %p jc: %p\n", qc, jc);
 
-   LocalReference<jobjectArray> mArray = jc->getDeclaredMethods();
+    LocalReference<jobjectArray> mArray = jc->getDeclaredMethods();
 
-   for (jsize i = 0, e = env.getArrayLength(mArray); i < e; ++i) {
-      // get Method object
-      LocalReference<jobject> m = env.getObjectArrayElement(mArray, i);
+    for (jsize i = 0, e = env.getArrayLength(mArray); i < e; ++i) {
+        // get Method object
+        LocalReference<jobject> m = env.getObjectArrayElement(mArray, i);
 
-      SimpleRefHolder<BaseMethod> meth(new BaseMethod(m, jc));
+        SimpleRefHolder<BaseMethod> meth(new BaseMethod(m, jc));
 
-      QoreString mname;
-      meth->getName(mname);
+        QoreString mname;
+        meth->getName(mname);
 
-      printd(LogLevel, "+ adding method %s.%s()\n", qc.getName(), mname.c_str());
+        printd(LogLevel, "+ adding method %s.%s()\n", qc.getName(), mname.c_str());
 
-      // get method's parameter types
-      type_vec_t paramTypeInfo;
-      if (meth->getParamTypes(paramTypeInfo, *this)) {
-         printd(LogLevel, "+ skipping %s.%s(); unsupported parameter type for variant %d\n", qc.getName(), mname.c_str(), i + 1);
-         continue;
-      }
-
-      // get method's return type
-      const QoreTypeInfo* returnTypeInfo = meth->getReturnTypeInfo(*this);
-
-      if (meth->isStatic()) {
-         // check for duplicate signature
-         const QoreMethod* qm = qc.findLocalStaticMethod(mname.c_str());
-         if (qm && qm->existsVariant(paramTypeInfo)) {
-            printd(LogLevel, "QoreJniClassMap::doMethods() skipping already-created static variant %s::%s()\n", qc.getName(), mname.c_str());
+        // get method's parameter types
+        type_vec_t paramTypeInfo;
+        type_vec_t altParamTypeInfo;
+        if (meth->getParamTypes(paramTypeInfo, altParamTypeInfo, *this)) {
+            printd(LogLevel, "+ skipping %s.%s(); unsupported parameter type for variant %d\n", qc.getName(), mname.c_str(), i + 1);
             continue;
-         }
-         qc.addStaticMethod((void*)*meth, mname.c_str(), (q_external_static_method_t)exec_java_static_method, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_API, returnTypeInfo, paramTypeInfo);
-      }
-      else {
-         if (mname == "copy" || mname == "constructor" || mname == "destructor" || mname == "methodGate" || mname == "memberNotification" || mname == "memberGate")
-            mname.prepend("java_");
+        }
 
-         // check for duplicate signature
-         const QoreMethod* qm = qc.findLocalMethod(mname.c_str());
-         if (qm && qm->existsVariant(paramTypeInfo)) {
-            printd(LogLevel, "QoreJniClassMap::doMethods() skipping already-created variant %s::%s()\n", qc.getName(), mname.c_str());
-            continue;
-         }
+        // get method's return type
+        const QoreTypeInfo* returnTypeInfo = meth->getReturnTypeInfo(*this);
 
-         if (meth->isAbstract())
-            qc.addAbstractMethod(mname.c_str(), meth->getAccess(), meth->getFlags(), returnTypeInfo, paramTypeInfo);
-         else
-            qc.addMethod((void*)*meth, mname.c_str(), (q_external_method_t)exec_java_method, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_API, returnTypeInfo, paramTypeInfo);
-      }
-      jc->trackMethod(meth.release());
-   }
+        if (meth->isStatic()) {
+            // check for duplicate signature
+            const QoreMethod* qm = qc.findLocalStaticMethod(mname.c_str());
+            if (qm && qm->existsVariant(paramTypeInfo)) {
+                printd(LogLevel, "QoreJniClassMap::doMethods() skipping already-created static variant %s::%s()\n", qc.getName(), mname.c_str());
+                continue;
+            }
+            qc.addStaticMethod((void*)*meth, mname.c_str(), (q_external_static_method_t)exec_java_static_method, meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_API, returnTypeInfo, paramTypeInfo);
+
+            if (!altParamTypeInfo.empty()) {
+                if (qm && qm->existsVariant(altParamTypeInfo)) {
+                    printd(LogLevel, "QoreJniClassMap::doMethods() skipping already-created static variant %s::%s()\n",
+                        qc.getName(), mname.c_str());
+                    continue;
+                }
+                qc.addStaticMethod((void*)*meth, mname.c_str(), (q_external_static_method_t)exec_java_static_method,
+                    meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_API, returnTypeInfo, altParamTypeInfo);
+            }
+        } else {
+            if (mname == "copy" || mname == "constructor" || mname == "destructor" || mname == "methodGate" || mname == "memberNotification" || mname == "memberGate")
+                mname.prepend("java_");
+
+            // check for duplicate signature
+            const QoreMethod* qm = qc.findLocalMethod(mname.c_str());
+            if (qm && qm->existsVariant(paramTypeInfo)) {
+                printd(LogLevel, "QoreJniClassMap::doMethods() skipping already-created variant %s::%s()\n", qc.getName(), mname.c_str());
+                continue;
+            }
+
+            if (meth->isAbstract()) {
+                qc.addAbstractMethod(mname.c_str(), meth->getAccess(), meth->getFlags(), returnTypeInfo, paramTypeInfo);
+                // do not add additional abstract variants for alternate parameter types
+            } else {
+                qc.addMethod((void*)*meth, mname.c_str(), (q_external_method_t)exec_java_method, meth->getAccess(),
+                    meth->getFlags(), QDOM_UNCONTROLLED_API, returnTypeInfo, paramTypeInfo);
+                if (!altParamTypeInfo.empty()) {
+                    if (qm && qm->existsVariant(altParamTypeInfo)) {
+                        printd(LogLevel, "QoreJniClassMap::doMethods() skipping already-created variant %s::%s()\n",
+                            qc.getName(), mname.c_str());
+                        continue;
+                    }
+                    qc.addMethod((void*)*meth, mname.c_str(), (q_external_method_t)exec_java_method, meth->getAccess(),
+                        meth->getFlags(), QDOM_UNCONTROLLED_API, returnTypeInfo, altParamTypeInfo);
+                }
+            }
+        }
+        jc->trackMethod(meth.release());
+    }
 }
 
 jobject QoreJniClassMap::getJavaObject(const QoreObject* o) {

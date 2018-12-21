@@ -161,7 +161,7 @@ public:
       return flags;
    }
 
-   DLLLOCAL int getParamTypes(type_vec_t& paramTypeInfo, QoreJniClassMap& clsmap);
+   DLLLOCAL int getParamTypes(type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo, QoreJniClassMap& clsmap);
 
    DLLLOCAL const QoreTypeInfo* getReturnTypeInfo(QoreJniClassMap& clsmap);
 

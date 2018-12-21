@@ -31,6 +31,8 @@
 #include "Class.h"
 #include "JniQoreClass.h"
 
+#include <map>
+
 DLLLOCAL QoreClass* initJavaArrayClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initQoreInvocationHandlerClass(QoreNamespace& ns);
 
@@ -111,7 +113,12 @@ public:
 
     DLLLOCAL QoreValue getValue(LocalReference<jobject>& jobj);
 
-    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls);
+    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls, const QoreTypeInfo*& altType);
+
+    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls) {
+        const QoreTypeInfo* altType = nullptr;
+        return getQoreType(cls, altType);
+    }
 
     DLLLOCAL void initDone() {
         assert(!init_done);
@@ -141,6 +148,7 @@ public:
 protected:
     // map of java class names to const QoreTypeInfo ptrs
     typedef std::map<const std::string, const QoreTypeInfo*> jtmap_t;
+    // map for Qore types rom Java classes
     static jtmap_t jtmap;
 
     // struct of type info and primitive type descriptor strings

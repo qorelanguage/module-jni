@@ -193,7 +193,7 @@
     |@ref binary_type "binary"|\c byte[]
     |@ref nothing_type "NOTHING" and @ref null_type "NULL"|\c void
     |@ref list_type "list"|java Arrays of the list type; if no list type can be found, then the Array type is \c java.lang.Object
-    |@ref hash_type "hash"|\c java.util.HashMap
+    |@ref hash_type "hash"|\c java.util.HashMap, however any type implementing \c java.util.Map that has a constructor that takes no arguments will be constructed / converted automatically to the desired type
     |@ref Jni::org::qore::jni::JavaArray "JavaArray"|\c java.lang.Array
     |@ref object_type "object"|to the Java class if the Qore object is an instantiation of \c java.lang.Object, otherwise @ref  org.qore.jni.QoreObject
     |all \c jni objects|direct conversion
@@ -234,15 +234,31 @@
 
     @subsubsection jni_array_varargs Java Arrays as Variable Arguments
 
-    When a Java method declares variable arguments, such arguments must be given as a single array value (so a %Qore list or @ref Jni::org::qore::jni::JavaArray "JavaArray" object).  Consider the following example:
+    When a Java method declares variable arguments, such arguments must be generally given as a single array value (so
+    a %Qore list or @ref Jni::org::qore::jni::JavaArray "JavaArray" object).  Consider the following example:
     @code{.py}
     StringBuilder stringBuilder("");
+    lang::Class stringBuilderClass = lang::Class::forName("java.lang.StringBuilder");
     Method stringBuilderAppendLong = stringBuilderClass.getMethod("append", (Long::TYPE,));
     stringBuilderAppendLong.invoke(stringBuilder, (20,));
     printf("%y\n", stringBuilder.toString());
     @endcode
 
-    In the above example, the \c java.lang.Class.getMethod() and the \c java.lang.Method.invoke() methods both take a variable number of arguments after the first argument.  In the mapped Qore class, these must be given as a %Qore list (as in the above example) or a @ref Jni::org::qore::jni::JavaArray "JavaArray" object.
+    In the above example, the \c java.lang.Class.getMethod() and the \c java.lang.Method.invoke() methods both take a
+    variable number of arguments after the first argument.  In the mapped Qore class, these must be given as a %Qore
+    list (as in the above example) or a @ref Jni::org::qore::jni::JavaArray "JavaArray" object.
+
+    If the last argument of a Java method has an array type, then the arguments in Qore can also be given in the flat
+    argument list, and the final array argument will be created automatically for the call.
+
+    Because of this, the example above also works as follows:
+    @code{.py}
+    StringBuilder stringBuilder("");
+    lang::Class stringBuilderClass = lang::Class::forName("java.lang.StringBuilder");
+    Method stringBuilderAppendLong = stringBuilderClass.getMethod("append", Long::TYPE);
+    stringBuilderAppendLong.invoke(stringBuilder, (20,));
+    printf("%y\n", stringBuilder.toString());
+    @endcode
 
     @section jni_class_mapping Java Class and Package Mapping
 
