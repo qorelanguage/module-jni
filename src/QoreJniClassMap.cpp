@@ -279,6 +279,10 @@ Class* QoreJniClassMap::loadClass(const char* name, bool& base) {
         // first we try to load with the builtin classloader
         return Functions::loadClass(name);
     } catch (jni::JavaException& e) {
+        JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
+        if (!jpc) {
+            throw;
+        }
         Env env;
         // if this fails, then we try our classloader that supports dynamic classpaths
         e.ignore();
@@ -290,10 +294,6 @@ Class* QoreJniClassMap::loadClass(const char* name, bool& base) {
         jvalue jarg;
         jarg.l = jname;
 
-        JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
-        if (!jpc) {
-            throw;
-        }
         try {
             LocalReference<jclass> c = env.callObjectMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderLoadClass, &jarg).as<jclass>();
             //printd(LogLevel, "QoreJniClassMap::loadClass() program-specific '%s': %p\n", nname.c_str(), *c);
