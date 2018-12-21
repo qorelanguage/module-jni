@@ -253,7 +253,6 @@ static void qore_jni_mc_import(const QoreString& cmd_arg, QoreProgram* pgm, JniE
     printd(LogLevel, "jni_module_parse_cmd() pgm: %p arg: %s c: %c\n", pgm, arg.getBuffer(), arg[-1]);
 
     // see if there is a wildcard at the end
-    bool wc = false;
     if (arg[-1] == '*') {
         if (arg[-2] != '.' || arg.strlen() < 3) {
             throw QoreJniException("JNI-IMPORT-ERROR", "invalid import argument: '%s'", arg.getBuffer());
@@ -273,7 +272,6 @@ static void qore_jni_mc_import(const QoreString& cmd_arg, QoreProgram* pgm, JniE
         QoreNamespace* ns = jns->findCreateNamespacePath(arg.c_str());
         printd(LogLevel, "jni_module_parse_cmd() nsp: '%s' ns: %p '%s'\n", arg.c_str(), ns, ns->getName());
         ns->setClassHandler(jni_class_handler);
-        wc = true;
     } else {
         printd(LogLevel, "jni_module_parse_cmd() non wc lcc arg: '%s'\n", arg.c_str());
         // the following call adds the class to the current program as well

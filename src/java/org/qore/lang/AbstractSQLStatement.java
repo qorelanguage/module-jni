@@ -4,6 +4,7 @@
 package org.qore.lang;
 
 // java imports
+import java.util.Map;
 import java.util.HashMap;
 
 // jni module imports
@@ -21,7 +22,7 @@ import org.qore.jni.QoreObjectWrapper;
             stmt.define();
             // note that the next() would implicitly execute exec() and define()
             while (stmt.next()) {
-                HashMap<String, Object> row = stmt.fetchRow();
+                Map<String, Object> row = stmt.fetchRow();
                 process(row);
             }
             // release transaction lock on exit
@@ -320,11 +321,11 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
     }
 
     //! Retrieves output buffers as a hash; result sets will be returned as hashes of lists
-    /** @return Returns a HashMap<String, Object> of output buffers; result sets will be returned as hashes of lists. Each key in the HashMap<String, Object> is the same as the name given to the placeholder specification in the call to prepare() or prepareRaw()
+    /** @return Returns a Map<String, Object> of output buffers; result sets will be returned as hashes of lists. Each key in the Map<String, Object> is the same as the name given to the placeholder specification in the call to prepare() or prepareRaw()
 
         @par Example:
         @code{.java}
-    HashMap<String, Object> h = stmt.getOutput();
+    Map<String, Object> h = stmt.getOutput();
         @endcode
 
         @throw SQLSTATEMENT-ERROR No %SQL has been set with prepare() or prepareRaw()
@@ -337,11 +338,11 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
     }
 
     //! Retrieves output buffers as a hash; result sets will be returned as lists of hashes
-    /** @return Retrieves output buffers as a hash; result sets will be returned as lists of hashes. Each key in the HashMap<String, Object> is the same as the name given to the placeholder specification in the call to prepare() or prepareRaw()
+    /** @return Retrieves output buffers as a hash; result sets will be returned as lists of hashes. Each key in the Map<String, Object> is the same as the name given to the placeholder specification in the call to prepare() or prepareRaw()
 
         @par Example:
         @code{.java}
-    HashMap<String, Object> h = stmt.getOutputRows();
+    Map<String, Object> h = stmt.getOutputRows();
         @endcode
 
         @throw SQLSTATEMENT-ERROR No %SQL has been set with prepare() or prepareRaw()
@@ -366,7 +367,7 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
             stmt.define();
             // note that the next() would implicitly execute exec() and define()
             while (stmt.next()) {
-                HashMap<String, Object> row = stmt.fetchRow();
+                Map<String, Object> row = stmt.fetchRow();
                 process(row);
             }
             // release transaction lock on exit
@@ -440,7 +441,7 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
         @par Example:
         @code{.java}
     while (stmt.next()) {
-        HashMap<String, Object> h = stmt.fetchRow();
+        Map<String, Object> h = stmt.fetchRow();
         process(h);
     }
         @endcode
@@ -467,15 +468,15 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
         return (boolean)obj.callMethod("valid");
     }
 
-    //! Retrieves the current row as a HashMap<String, Object> where the keys are the column names and the values are the column values
+    //! Retrieves the current row as a Map<String, Object> where the keys are the column names and the values are the column values
     /** Use with next() to iterate through the results of a select statement one row at a time
 
-        @return the current row as a HashMap<String, Object> where the keys are the column names and the values are the column values
+        @return the current row as a Map<String, Object> where the keys are the column names and the values are the column values
 
         @par Example:
         @code{.java}
     while (stmt.next()) {
-        HashMap<String, Object> h = stmt.fetchRow();
+        Map<String, Object> h = stmt.fetchRow();
         process(h);
     }
         @endcode
@@ -489,15 +490,15 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
         return (HashMap<String, Object>)obj.callMethod("fetchRow");
     }
 
-    //! Retrieves the current row as a HashMap<String, Object> where the keys are the column names and the values are the column values
+    //! Retrieves the current row as a Map<String, Object> where the keys are the column names and the values are the column values
     /** Use with next() to iterate through the results of a select statement one row at a time
 
-        @return the current row as a HashMap<String, Object> where the keys are the column names and the values are the column values
+        @return the current row as a Map<String, Object> where the keys are the column names and the values are the column values
 
         @par Example:
         @code{.java}
     while (stmt.next()) {
-        HashMap<String, Object> h = stmt.getValue();
+        Map<String, Object> h = stmt.getValue();
         process(h);
     }
         @endcode
@@ -522,7 +523,7 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
 
         @par Example:
         @code{.java}
-    HashMap<String, Object>[] l = stmt.fetchRows(-1);
+    Map<String, Object>[] l = stmt.fetchRows(-1);
         @endcode
 
         @throw SQLSTATEMENT-ERROR No %SQL has been set with prepare() or prepareRaw()
@@ -539,7 +540,7 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
     //! Retrieves all available rows as a list of hashes; automatically advances the row pointer; with this call it is not necessary to call next()
     /** @par Example:
         @code{.java}
-    HashMap<String, Object>[] l = stmt.fetchRows();
+    Map<String, Object>[] l = stmt.fetchRows();
         @endcode
 
         If no more rows are available then an empty list is returned.
@@ -555,16 +556,16 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
         return (HashMap<String, Object>[])obj.callMethod("fetchRows");
     }
 
-    //! Retrieves a block of rows as a HashMap<String, Object> of lists with the maximum number of rows determined by the argument passed; automatically advances the row pointer; with this call it is not necessary to call next().
+    //! Retrieves a block of rows as a Map<String, Object> of lists with the maximum number of rows determined by the argument passed; automatically advances the row pointer; with this call it is not necessary to call next().
     /** If the argument passed is omitted or less than or equal to zero, then all available rows from the current row position are retrieved, also if fewer rows are available than requested then only the rows available are retrieved.
 
         @param rows The maximum number of rows to retrieve, if this argument is omitted, negative, or equal to zero, then all available rows from the current row position are retrieved
 
-        @return a HashMap<String, Object> (giving column names) of lists (giving row values for each column) of data returned; each list will have at most \a rows elements (unless \a rows is negative, in which case all available rows are returned).  If the total number of rows available is less than \a rows (if \a rows is positive), then the last data returned by this method may return short lists.  If no more rows are available, then an empty HashMap<String, Object> is returned
+        @return a Map<String, Object> (giving column names) of lists (giving row values for each column) of data returned; each list will have at most \a rows elements (unless \a rows is negative, in which case all available rows are returned).  If the total number of rows available is less than \a rows (if \a rows is positive), then the last data returned by this method may return short lists.  If no more rows are available, then an empty Map<String, Object> is returned
 
         @par Example:
         @code{.java}
-    HashMap<String, Object> h = stmt.fetchColumns(-1);
+    Map<String, Object> h = stmt.fetchColumns(-1);
         @endcode
 
         @throw SQLSTATEMENT-ERROR No %SQL has been set with prepare() or prepareRaw()
@@ -578,13 +579,13 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
         return (HashMap<String, Object>)obj.callMethod("fetchColumns", rows);
     }
 
-    //! Retrieves all available rows as a HashMap<String, Object> of lists; automatically advances the row pointer; with this call it is not necessary to call next().
+    //! Retrieves all available rows as a Map<String, Object> of lists; automatically advances the row pointer; with this call it is not necessary to call next().
     /** @par Example:
         @code{.java}
-    HashMap<String, Object> h = stmt.fetchColumns();
+    Map<String, Object> h = stmt.fetchColumns();
         @endcode
 
-        @return a HashMap<String, Object> (giving column names) of lists (giving row values for each column) of data returned; each list will have at most \a rows elements (unless \a rows is negative, in which case all available rows are returned).  If the total number of rows available is less than \a rows (if \a rows is positive), then the last data returned by this method may return short lists.  If no more rows are available, then an empty HashMap<String, Object> is returned
+        @return a Map<String, Object> (giving column names) of lists (giving row values for each column) of data returned; each list will have at most \a rows elements (unless \a rows is negative, in which case all available rows are returned).  If the total number of rows available is less than \a rows (if \a rows is positive), then the last data returned by this method may return short lists.  If no more rows are available, then an empty Map<String, Object> is returned
 
         @throw SQLSTATEMENT-ERROR No %SQL has been set with prepare() or prepareRaw()
 
@@ -599,7 +600,7 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
 
     //! Describes columns in the statement result.
     /**
-        @return a HashMap<String, Object> with (<i>column_name</i>: <i>description_hash</i>) format, where each <i>description_hash</i> has the following keys:
+        @return a Map<String, Object> with (<i>column_name</i>: <i>description_hash</i>) format, where each <i>description_hash</i> has the following keys:
         - \c "name": (string) the column name
         - \c "type": (integer) the column type code (%Qore type code)
         - \c "maxsize": (integer) the maximum size of the column

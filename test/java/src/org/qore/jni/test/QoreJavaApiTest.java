@@ -78,6 +78,22 @@ class ThreadTest5 implements Runnable {
     }
 }
 
+class ClosureTest1 implements QoreClosureMarker {
+    String call(int i) {
+        return "closure-" + String.valueOf(i);
+    }
+}
+
+class ClosureTest2 implements QoreClosureMarker {
+    void call(int i) {
+    }
+}
+
+class ClosureTest3 implements QoreClosureMarker {
+    void call2(int i) {
+    }
+}
+
 public class QoreJavaApiTest {
     static void throwTest() throws Throwable {
         throw new Throwable("test");
@@ -222,5 +238,17 @@ public class QoreJavaApiTest {
 
     static QoreRelativeTime testDate2(QoreRelativeTime dt) {
         return dt;
+    }
+
+    static QoreClosureMarker getClosure1() {
+        return new ClosureTest1();
+    }
+
+    static QoreClosureMarker getClosure2() {
+        return new ClosureTest2();
+    }
+
+    static QoreClosureMarker getClosure3() {
+        return new ClosureTest3();
     }
 }

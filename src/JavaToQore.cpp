@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 #include "QoreJniClassMap.h"
 #include "Globals.h"
 #include "JavaToQore.h"
+#include "QoreJniFunctionalInterface.h"
 
 namespace jni {
 
@@ -66,9 +67,9 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
     }
 
     if (env.isInstanceOf(v, Globals::classHashMap) && !JniExternalProgramData::compatTypes()) {
-        // create hash from HashMap
+        // create hash from Map
         LocalReference<jobject> set = env.callObjectMethod(v,
-            Globals::methodHashMapEntrySet, nullptr);
+            Globals::methodMapEntrySet, nullptr);
         if (!set) {
             return QoreValue();
         }
@@ -88,8 +89,13 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
             LocalReference<jobject> element = env.callObjectMethod(i,
                 Globals::methodIteratorNext, nullptr);
             if (element) {
-                LocalReference<jstring> key = env.callObjectMethod(element,
-                    Globals::methodEntryGetKey, nullptr).as<jstring>();
+                LocalReference<jobject> key = env.callObjectMethod(element,
+                    Globals::methodEntryGetKey, nullptr);
+
+                // if key is not a string, then we cannot convert it to Qore
+                if (!env.isInstanceOf(key, Globals::classString)) {
+                    return qjcm.getValue(v);
+                }
 
                 LocalReference<jobject> value = env.callObjectMethod(element,
                     Globals::methodEntryGetValue, nullptr);
@@ -99,12 +105,42 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
                     break;
                 }
 
-                Env::GetStringUtfChars key_str(env, key);
+                Env::GetStringUtfChars key_str(env, key.as<jstring>());
                 rv->setKeyValue(key_str.c_str(), val.release(), &xsink);
                 if (xsink) {
                     break;
                 }
             }
+        }
+
+        if (xsink) {
+            throw XsinkException(xsink);
+        }
+
+        return rv.release();
+    }
+
+    if (env.isInstanceOf(v, Globals::classAbstractList)) {
+        // create list from AbstractList
+        jint size = env.callIntMethod(v, Globals::methodAbstractListSize, nullptr);
+
+        ExceptionSink xsink;
+        ReferenceHolder<QoreListNode> rv(new QoreListNode(autoTypeInfo), &xsink);
+
+        jint pos = 0;
+        while (pos < size) {
+            std::vector<jvalue> jargs(1);
+            jargs[0].i = pos++;
+
+            LocalReference<jobject> value = env.callObjectMethod(v,
+                Globals::methodAbstractListGet, &jargs[0]);
+
+            ValueHolder val(convertToQore(value.release()), &xsink);
+            if (xsink) {
+                break;
+            }
+
+            rv->push(val.release(), &xsink);
         }
 
         if (xsink) {
@@ -125,6 +161,11 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
             us = env.getIntField(v, Globals::fieldQoreRelativeTimeUs);
 
         return QoreValue(DateTimeNode::makeRelative(year, month, day, hour, minute, second, us));
+    }
+
+    // for Qore closure / call references
+    if (env.isInstanceOf(v, Globals::classQoreClosureMarker)) {
+        return new QoreJniFunctionalInterface(v);
     }
 
     return qjcm.getValue(v);

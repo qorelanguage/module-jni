@@ -47,6 +47,7 @@ public class Main inherits QUnit::Test {
 
     testJms() {
         # these properties are the default; included here to provide an example for connecting to a remote server
+        # NOTE: the InitialContext constructor takes a Hashtable object, which can also be passed as a hash
         Properties props();
         props.setProperty("java.naming.factory.initial", "com.sun.enterprise.naming.SerialInitContextFactory");
         props.setProperty("org.omg.CORBA.ORBInitialHost", "localhost");

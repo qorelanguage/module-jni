@@ -10,6 +10,7 @@
 %requires QUnit
 %requires Util
 %requires SqlUtil
+%requires BulkSqlUtil
 
 %module-cmd(jni) add-relative-classpath qore-jni-test.jar
 # warning: hardcoded build directory
@@ -94,6 +95,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("jni test", "1.0") {
+        addTestCase("closure test", \closureTest());
         addTestCase("exception stack", \exceptionStackTest());
         addTestCase("Qore Java API test", \qoreJavaApiTest());
         addTestCase("call static method test", \callStaticMethodTest());
@@ -120,6 +122,14 @@ public class Main inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    closureTest() {
+        code c = QoreJavaApiTest::getClosure1();
+        assertEq("closure-1", c(1));
+        c = QoreJavaApiTest::getClosure2();
+        assertNothing(c(2));
+        assertThrows("JNI-ERROR", \QoreJavaApiTest::getClosure3());
     }
 
     exceptionStackTest() {
@@ -184,7 +194,19 @@ public class Main inherits QUnit::Test {
             assertEq(now, row.modified);
         }
 
-        assertTrue(QoreJavaLangApiTest::testTable(jdsp));
+        sqlutil::AbstractTable table = QoreJavaLangApiTest::createTable(jdsp);
+        on_exit {
+            QoreJavaLangApiTest::dropTable(table);
+        }
+        assertTrue(QoreJavaLangApiTest::testTable(table));
+
+        list<auto> l = QoreJavaLangApiTest::testBulkInsert(table);
+        assertEq({"id": 2, "string": "str"}, l[0] - "modified");
+        assertEq({"id": 2, "string": "str"}, l[1][0] - "modified");
+        assertEq(Type::String, l[2][0].type());
+
+        hash<auto> h = QoreJavaLangApiTest::testBulkUpsert(table);
+        assertEq({"id": 2, "string": "new-str"}, h - "modified");
     }
 
     AbstractDatasource getDatasourcePool() {
@@ -378,7 +400,7 @@ public class Main inherits QUnit::Test {
             assertTrue(False);
         } catch (hash<ExceptionInfo> ex) {
             assertEq("QoreJavaApiTest.java", ex.file);
-            assertEq(83, ex.line);
+            assertEq(99, ex.line);
         }
     }
 

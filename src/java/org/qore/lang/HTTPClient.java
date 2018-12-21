@@ -4,6 +4,7 @@
 package org.qore.lang;
 
 // java imports
+import java.util.Map;
 import java.util.HashMap;
 
 // jni module imports
@@ -62,7 +63,7 @@ public class HTTPClient extends QoreObjectWrapper {
         - \c ssl_key_password
         - \c ssl_verify_cert
     */
-    public HTTPClient(HashMap<String, Object> opts) throws Throwable {
+    public HTTPClient(Map<String, Object> opts) throws Throwable {
         super(QoreJavaApi.newObjectSave("Qore::HTTPClient", opts));
     }
 
@@ -184,7 +185,7 @@ public class HTTPClient extends QoreObjectWrapper {
         @see @ref httpclient_get_with_body
     */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> send(String body, String method, String path, HashMap<String, Object> headers, boolean getbody) throws Throwable {
+    public HashMap<String, Object> send(String body, String method, String path, Map<String, Object> headers, boolean getbody) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("send", body, method, path, headers, getbody);
     }
 
@@ -220,7 +221,7 @@ public class HTTPClient extends QoreObjectWrapper {
         @see @ref httpclient_get_with_body
     */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> send(String body, String method, String path, HashMap<String, Object> headers) throws Throwable {
+    public HashMap<String, Object> send(String body, String method, String path, Map<String, Object> headers) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("send", body, method, path, headers);
     }
 
@@ -325,7 +326,7 @@ public class HTTPClient extends QoreObjectWrapper {
         @see @ref httpclient_get_with_body
     */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> send(byte[] body, String method, String path, HashMap<String, Object> headers, boolean getbody) throws Throwable {
+    public HashMap<String, Object> send(byte[] body, String method, String path, Map<String, Object> headers, boolean getbody) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("send", body, method, path, headers, getbody);
     }
 
@@ -360,7 +361,7 @@ public class HTTPClient extends QoreObjectWrapper {
         @see @ref httpclient_get_with_body
     */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> send(byte[] body, String method, String path, HashMap<String, Object> headers) throws Throwable {
+    public HashMap<String, Object> send(byte[] body, String method, String path, Map<String, Object> headers) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("send", body, method, path, headers);
     }
 
@@ -465,7 +466,7 @@ public class HTTPClient extends QoreObjectWrapper {
 
         @see @ref httpclient_get_with_body
     */
-    public String get(String path, HashMap<String, Object> headers) throws Throwable {
+    public String get(String path, Map<String, Object> headers) throws Throwable {
         return (String)obj.callMethod("get", path, headers);
     }
 
@@ -534,7 +535,7 @@ public class HTTPClient extends QoreObjectWrapper {
 
         @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
     */
-    public String head(String path, HashMap<String, Object> headers) throws Throwable {
+    public String head(String path, Map<String, Object> headers) throws Throwable {
         return (String)obj.callMethod("head", path, headers);
     }
 
@@ -601,7 +602,7 @@ public class HTTPClient extends QoreObjectWrapper {
 
         @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
     */
-    public String post(String path, String body, HashMap<String, Object> headers) throws Throwable {
+    public String post(String path, String body, Map<String, Object> headers) throws Throwable {
         return (String)obj.callMethod("post", path, body, headers);
     }
 
@@ -705,7 +706,7 @@ public class HTTPClient extends QoreObjectWrapper {
 
         @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
     */
-    public String post(String path, byte[] body, HashMap<String, Object> headers) throws Throwable {
+    public String post(String path, byte[] body, Map<String, Object> headers) throws Throwable {
         return (String)obj.callMethod("post", path, body, headers);
     }
 
@@ -1123,7 +1124,7 @@ public class HTTPClient extends QoreObjectWrapper {
     //! Returns performance statistics for the socket
     /** @par Example:
          @code{.java}
-    HashMap<String, Object> h = httpclient.getUsageInfo();
+    Map<String, Object> h = httpclient.getUsageInfo();
         @endcode
 
         @return a hash with the following keys:

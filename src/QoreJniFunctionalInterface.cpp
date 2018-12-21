@@ -1,0 +1,83 @@
+//--------------------------------------------------------------------*- C++ -*-
+//
+//  Qore Programming Language
+//
+//  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//
+//------------------------------------------------------------------------------
+
+#include "QoreJniFunctionalInterface.h"
+#include "QoreToJava.h"
+
+namespace jni {
+QoreJniFunctionalInterface::QoreJniFunctionalInterface(jobject obj) : obj(GlobalReference<jobject>::fromLocal(obj)) {
+    Env env;
+
+    cls = new Class(env.callObjectMethod(obj, Globals::methodObjectGetClass, nullptr).as<jclass>());
+    LocalReference<jobjectArray> methods = cls->getDeclaredMethods();
+
+    // find first "call" method in the class
+    for (jsize i = 0, num_methods = env.getArrayLength(methods); i < num_methods; ++i) {
+        // get Method object
+        LocalReference<jobject> m = env.getObjectArrayElement(methods, i);
+        LocalReference<jstring> mName = env.callObjectMethod(m, Globals::methodMethodGetName, nullptr).as<jstring>();
+        Env::GetStringUtfChars mcn(env, mName);
+        if (!strcmp(mcn.c_str(), "call")) {
+            method = new BaseMethod(m, *cls);
+            break;
+        }
+    }
+
+    if (!method) {
+        LocalReference<jstring> clsName = env.callObjectMethod(cls->getJavaObject(), Globals::methodClassGetName,
+            nullptr).as<jstring>();
+        Env::GetStringUtfChars cName(env, clsName);
+
+        QoreStringMaker str("Java class '%s' for Java object to be used as a Qore closure has no call() method to " \
+            "be used as a Qore closure", cName.c_str());
+        throw BasicException(str.c_str());
+    }
+}
+
+QoreValue QoreJniFunctionalInterface::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
+    try {
+        ReferenceHolder<QoreListNode> evaluated_args(args ? args->evalList(xsink) : nullptr, xsink);
+        if (*xsink) {
+            return QoreValue();
+        }
+        return method->isStatic() ? method->invokeStatic(*evaluated_args) : method->invoke(obj, *evaluated_args);
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        QoreToJava::wrapException(*xsink);
+        return QoreValue();
+    }
+}
+
+int QoreJniFunctionalInterface::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
+    str.concat("java closure reference");
+    return 0;
+}
+
+QoreString* QoreJniFunctionalInterface::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+    del = true;
+    return new QoreString("java closure reference");
+}
+}

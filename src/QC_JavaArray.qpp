@@ -52,13 +52,13 @@ private:internal JavaArray::constructor() {
     @return the class of the object
  */
 Class JavaArray::getClass() {
-   try {
-      jni::Env env;
-      return new QoreObject(QC_CLASS, getProgram(), new QoreJniPrivateData(env.getObjectClass(array->getObject())));
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return QoreValue();
-   }
+    try {
+        jni::Env env;
+        return new QoreObject(QC_CLASS, getProgram(), new QoreJniPrivateData(env.getObjectClass(array->getObject())));
+    } catch (jni::Exception &e) {
+        e.convert(xsink);
+        return QoreValue();
+    }
 }
 
 //! Returns the length of the array.
@@ -66,12 +66,12 @@ Class JavaArray::getClass() {
     @return the length of the array
  */
 int JavaArray::length() {
-   try {
-      return array->length();
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-      return 0;
-   }
+    try {
+        return array->length();
+    } catch (jni::Exception &e) {
+        e.convert(xsink);
+        return 0;
+    }
 }
 
 //! Retrieves an element.
@@ -96,12 +96,12 @@ auto JavaArray::get(int index) {
     @throws JNI-ERROR if the index is out of bounds or if the value type is incompatible with the array type
  */
 nothing JavaArray::set(int index, any value) {
-   try {
-      array->set(index, value);
-   } catch (jni::Exception &e) {
-      e.convert(xsink);
-   }
-   return QoreValue();
+    try {
+        array->set(index, value);
+    } catch (jni::Exception &e) {
+        e.convert(xsink);
+    }
+    return QoreValue();
 }
 
 //! Returns a string representation of the array
@@ -153,5 +153,5 @@ JavaArray a = JavaArray::get(bin);
     @since jni 1.1
 */
 static JavaArray JavaArray::get(binary b) [flags=CONSTANT] {
-    return QoreToJava::makeByteArray(*b);
+    return new QoreObject(QC_JAVAARRAY, getProgram(), new Array(QoreToJava::makeByteArray(*b)));
 }

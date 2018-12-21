@@ -84,8 +84,8 @@ class Array : public QoreJniPrivateData {
 
     DLLLOCAL static LocalReference<jarray> getNew(Type elementType, jclass elementClass, jsize size);
 
-    DLLLOCAL static LocalReference<jarray> toJava(const QoreListNode* l);
-    DLLLOCAL static LocalReference<jarray> toObjectArray(const QoreListNode* l, jclass elementClass);
+    DLLLOCAL static LocalReference<jarray> toJava(const QoreListNode* l, size_t start = 0);
+    DLLLOCAL static LocalReference<jarray> toObjectArray(const QoreListNode* l, jclass elementClass, size_t start = 0);
 
     DLLLOCAL static jclass getClassForValue(QoreValue v);
 

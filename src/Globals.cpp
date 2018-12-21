@@ -118,6 +118,8 @@ jmethodID Globals::methodQoreObjectGet;
 
 GlobalReference<jclass> Globals::classQoreObjectWrapper;
 
+GlobalReference<jclass> Globals::classQoreClosureMarker;
+
 GlobalReference<jclass> Globals::classProxy;
 jmethodID Globals::methodProxyNewProxyInstance;
 
@@ -139,7 +141,13 @@ jmethodID Globals::methodThreadGetContextClassLoader;
 GlobalReference<jclass> Globals::classHashMap;
 jmethodID Globals::ctorHashMap;
 jmethodID Globals::methodHashMapPut;
-jmethodID Globals::methodHashMapEntrySet;
+
+GlobalReference<jclass> Globals::classMap;
+jmethodID Globals::methodMapEntrySet;
+
+GlobalReference<jclass> Globals::classAbstractList;
+jmethodID Globals::methodAbstractListSize;
+jmethodID Globals::methodAbstractListGet;
 
 GlobalReference<jclass> Globals::classSet;
 jmethodID Globals::methodSetIterator;
@@ -608,7 +616,7 @@ static jobject JNICALL qore_object_call_method_save(JNIEnv* jenv, jclass jcls, j
 static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jclass, jlong ptr, jstring mname) {
     assert(ptr);
     QoreObject* obj = reinterpret_cast<QoreObject*>(ptr);
-    // must ensure that the thread is attached before calling QoreOBject::getReferencedMemberNoMethod()
+    // must ensure that the thread is attached before calling QoreObject::getReferencedMemberNoMethod()
     Env env(jenv);
     QoreThreadAttachHelper attach_helper;
     try {
@@ -801,6 +809,7 @@ static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperNa
 #include "JavaClassQoreExceptionWrapper.inc"
 #include "JavaClassQoreObject.inc"
 #include "JavaClassQoreObjectWrapper.inc"
+#include "JavaClassQoreClosureMarker.inc"
 #include "JavaClassQoreURLClassLoader.inc"
 #include "JavaClassQoreURLClassLoader_1.inc"
 #include "JavaClassQoreJavaApi.inc"
@@ -831,7 +840,11 @@ void Globals::init() {
     ctorQoreObject = env.getMethod(classQoreObject, "<init>", "(J)V");
     methodQoreObjectGet = env.getMethod(classQoreObject, "get", "()J");
 
-    classQoreObjectWrapper = env.defineClass("org/qore/jni/QoreObjectWrapper", nullptr, java_org_qore_jni_QoreObjectWrapper_class, java_org_qore_jni_QoreObjectWrapper_class_len).makeGlobal();
+    classQoreObjectWrapper = env.defineClass("org/qore/jni/QoreObjectWrapper", nullptr,
+        java_org_qore_jni_QoreObjectWrapper_class, java_org_qore_jni_QoreObjectWrapper_class_len).makeGlobal();
+
+    classQoreClosureMarker = env.defineClass("org/qore/jni/QoreClosureMarker", nullptr,
+        java_org_qore_jni_QoreClosureMarker_class, java_org_qore_jni_QoreClosureMarker_class_len).makeGlobal();
 
     classPrimitiveVoid = getPrimitiveClass(env, "java/lang/Void");
     classPrimitiveBoolean = getPrimitiveClass(env, "java/lang/Boolean");
@@ -917,7 +930,13 @@ void Globals::init() {
     classHashMap = env.findClass("java/util/HashMap").makeGlobal();
     ctorHashMap = env.getMethod(classHashMap, "<init>", "()V");
     methodHashMapPut = env.getMethod(classHashMap, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
-    methodHashMapEntrySet = env.getMethod(classHashMap, "entrySet", "()Ljava/util/Set;");
+
+    classMap = env.findClass("java/util/Map").makeGlobal();
+    methodMapEntrySet = env.getMethod(classMap, "entrySet", "()Ljava/util/Set;");
+
+    classAbstractList = env.findClass("java/util/AbstractList").makeGlobal();
+    methodAbstractListSize = env.getMethod(classAbstractList, "size", "()I");
+    methodAbstractListGet = env.getMethod(classAbstractList, "get", "(I)Ljava/lang/Object;");
 
     classSet = env.findClass("java/util/Set").makeGlobal();
     methodSetIterator = env.getMethod(classSet, "iterator", "()Ljava/util/Iterator;");
@@ -1007,12 +1026,15 @@ void Globals::cleanup() {
     classQoreExceptionWrapper = nullptr;
     classQoreObject = nullptr;
     classQoreObjectWrapper = nullptr;
+    classQoreClosureMarker = nullptr;
     classQoreJavaApi = nullptr;
     classProxy = nullptr;
     classClassLoader = nullptr;
     classQoreURLClassLoader = nullptr;
     classThread = nullptr;
     classHashMap = nullptr;
+    classMap = nullptr;
+    classAbstractList = nullptr;
     classSet = nullptr;
     classEntry = nullptr;
     classIterator = nullptr;

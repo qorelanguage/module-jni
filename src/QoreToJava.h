@@ -88,7 +88,7 @@ public:
 
     static jobject toAnyObject(const QoreValue& value);
 
-    static jobject makeHashMap(const QoreHashNode& h);
+    static jobject makeMap(const QoreHashNode& h, jclass cls);
 
     static jbyteArray makeByteArray(const BinaryNode& b);
 

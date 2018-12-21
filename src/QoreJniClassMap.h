@@ -29,6 +29,9 @@
 #include "QoreJniThreads.h"
 #include "Env.h"
 #include "Class.h"
+#include "JniQoreClass.h"
+
+#include <map>
 
 DLLLOCAL QoreClass* initJavaArrayClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initQoreInvocationHandlerClass(QoreNamespace& ns);
@@ -40,28 +43,28 @@ DLLLOCAL extern bool jni_compat_types;
 
 namespace jni {
 
-// the QoreBuiltinClass for java::lang::Object
-extern QoreBuiltinClass* QC_OBJECT;
+// the JniQoreClass for java::lang::Object
+extern JniQoreClass* QC_OBJECT;
 // the Qore class ID for java::lang::Object
 extern qore_classid_t CID_OBJECT;
-// the QoreBuiltinClass for java::lang::Class
-extern QoreBuiltinClass* QC_CLASS;
+// the JniQoreClass for java::lang::Class
+extern JniQoreClass* QC_CLASS;
 // the Qore class ID for java::lang::Class
 extern qore_classid_t CID_CLASS;
-// the QoreBuiltinClass for java::lang::reflect::Method
-extern QoreBuiltinClass* QC_METHOD;
+// the JniQoreClass for java::lang::reflect::Method
+extern JniQoreClass* QC_METHOD;
 // the Qore class ID for java::reflect::Method
 extern qore_classid_t CID_METHOD;
-// the QoreBuiltinClass for java::lang::ClassLoader
-extern QoreBuiltinClass* QC_CLASSLOADER;
+// the JniQoreClass for java::lang::ClassLoader
+extern JniQoreClass* QC_CLASSLOADER;
 // the Qore class ID for java::lang::ClassLoader
 extern qore_classid_t CID_CLASSLOADER;
-// the QoreBuiltinClass for java::lang::Throwable
-extern QoreBuiltinClass* QC_THROWABLE;
+// the JniQoreClass for java::lang::Throwable
+extern JniQoreClass* QC_THROWABLE;
 // the Qore class ID for java::lang::Throwable
 extern qore_classid_t CID_THROWABLE;
-// the QoreBuiltinClass for java::lang::reflect::InvocationHandler
-extern QoreBuiltinClass* QC_INVOCATIONHANDLER;
+// the JniQoreClass for java::lang::reflect::InvocationHandler
+extern JniQoreClass* QC_INVOCATIONHANDLER;
 // the Qore class ID for java::lang::reflect::InvocationHandler
 extern qore_classid_t CID_INVOCATIONHANDLER;
 
@@ -70,34 +73,34 @@ class Class;
 
 class QoreJniClassMapBase {
 protected:
-   // map of java class names (ex 'java/lang/Object') to QoreBuiltinClass ptrs
-   typedef std::map<std::string, QoreBuiltinClass*> jcmap_t;
-   // map of java class names (ex 'java/lang/Object') to QoreBuiltinClass ptrs
-   jcmap_t jcmap;
+    // map of java class names (ex 'java/lang/Object') to JniQoreClass ptrs
+    typedef std::map<std::string, JniQoreClass*> jcmap_t;
+    // map of java class names (ex 'java/lang/Object') to JniQoreClass ptrs
+    jcmap_t jcmap;
 
 public:
-   DLLLOCAL void add(const char* name, QoreBuiltinClass* qc) {
-      printd(LogLevel, "QoreJniClassMapBase::add() name: %s qc: %p (%s)\n", name, qc, qc->getName());
+    DLLLOCAL void add(const char* name, JniQoreClass* qc) {
+        printd(LogLevel, "QoreJniClassMapBase::add() name: %s qc: %p (%s)\n", name, qc, qc->getName());
 
 #ifdef DEBUG
-      if (jcmap.find(name) != jcmap.end())
-         printd(0, "QoreJniClassMapBase::add() name: %s qc: %p (%s)\n", name, qc, qc->getName());
+        if (jcmap.find(name) != jcmap.end())
+            printd(0, "QoreJniClassMapBase::add() name: %s qc: %p (%s)\n", name, qc, qc->getName());
 #endif
 
-      assert(jcmap.find(name) == jcmap.end());
-      jcmap[name] = qc;
-   }
+        assert(jcmap.find(name) == jcmap.end());
+        jcmap[name] = qc;
+    }
 
-   DLLLOCAL QoreBuiltinClass* find(const char* jpath) const {
-      if (strchr(jpath, '.')) {
-         QoreString str(jpath);
-         str.replaceAll(".", "/");
-         jcmap_t::const_iterator i = jcmap.find(str.c_str());
-         return i == jcmap.end() ? 0 : i->second;
-      }
-      jcmap_t::const_iterator i = jcmap.find(jpath);
-      return i == jcmap.end() ? 0 : i->second;
-   }
+    DLLLOCAL JniQoreClass* find(const char* jpath) const {
+        if (strchr(jpath, '.')) {
+            QoreString str(jpath);
+            str.replaceAll(".", "/");
+            jcmap_t::const_iterator i = jcmap.find(str.c_str());
+            return i == jcmap.end() ? 0 : i->second;
+        }
+        jcmap_t::const_iterator i = jcmap.find(jpath);
+        return i == jcmap.end() ? 0 : i->second;
+    }
 };
 
 class QoreJniClassMap : public QoreJniClassMapBase {
@@ -110,7 +113,12 @@ public:
 
     DLLLOCAL QoreValue getValue(LocalReference<jobject>& jobj);
 
-    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls);
+    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls, const QoreTypeInfo*& altType);
+
+    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls) {
+        const QoreTypeInfo* altType = nullptr;
+        return getQoreType(cls, altType);
+    }
 
     DLLLOCAL void initDone() {
         assert(!init_done);
@@ -128,10 +136,10 @@ public:
     DLLLOCAL jclass findLoadClass(const char* name);
     DLLLOCAL jclass findLoadClass(const QoreString& name);
 
-    DLLLOCAL QoreBuiltinClass* findCreateQoreClass(LocalReference<jclass>& jc);
-    DLLLOCAL QoreBuiltinClass* findCreateQoreClass(const char* name);
+    DLLLOCAL JniQoreClass* findCreateQoreClass(LocalReference<jclass>& jc);
+    DLLLOCAL JniQoreClass* findCreateQoreClass(const char* name);
 
-    DLLLOCAL QoreBuiltinClass* findCreateQoreClass(QoreString& name, const char* jpath, Class* c, bool base) {
+    DLLLOCAL JniQoreClass* findCreateQoreClass(QoreString& name, const char* jpath, Class* c, bool base) {
         return base
             ? findCreateQoreClassInBase(name, jpath, c)
             : findCreateQoreClassInProgram(name, jpath, c);
@@ -139,7 +147,8 @@ public:
 
 protected:
     // map of java class names to const QoreTypeInfo ptrs
-    typedef std::map<const char*, const QoreTypeInfo*, ltstr> jtmap_t;
+    typedef std::map<const std::string, const QoreTypeInfo*> jtmap_t;
+    // map for Qore types rom Java classes
     static jtmap_t jtmap;
 
     // struct of type info and primitive type descriptor strings
@@ -158,20 +167,21 @@ protected:
     // class loader
     GlobalReference<jobject> baseClassLoader;
 
-    DLLLOCAL void doMethods(QoreBuiltinClass& qc, Class* jc);
+    DLLLOCAL void doMethods(JniQoreClass& qc, Class* jc);
 
-    DLLLOCAL void doFields(QoreBuiltinClass& qc, Class* jc);
+    DLLLOCAL void doFields(JniQoreClass& qc, Class* jc);
 
     DLLLOCAL int getParamTypes(type_vec_t& argTypeInfo, LocalReference<jobjectArray>& params, QoreString& desc);
 
-    DLLLOCAL void doConstructors(QoreBuiltinClass& qc, Class* jc);
+    DLLLOCAL void doConstructors(JniQoreClass& qc, Class* jc);
 
-    DLLLOCAL void populateQoreClass(QoreBuiltinClass& qc, Class* jc);
+    DLLLOCAL void populateQoreClass(JniQoreClass& qc, Class* jc);
 
-    DLLLOCAL void addSuperClass(QoreBuiltinClass& qc, Class* parent, bool interface);
+    DLLLOCAL void addSuperClass(JniQoreClass& qc, Class* parent, bool interface);
 
-    DLLLOCAL QoreBuiltinClass* createClassInNamespace(QoreNamespace* ns, QoreNamespace& jns, const char* jpath, Class* jc, QoreBuiltinClass* qc, QoreJniClassMapBase& map);
-    DLLLOCAL QoreBuiltinClass* findCreateQoreClassInBase(QoreString& name, const char* jpath, Class* c);
+    DLLLOCAL JniQoreClass* createClassInNamespace(QoreNamespace* ns, QoreNamespace& jns, const char* jpath,
+        Class* jc, JniQoreClass* qc, QoreJniClassMapBase& map);
+    DLLLOCAL JniQoreClass* findCreateQoreClassInBase(QoreString& name, const char* jpath, Class* c);
     DLLLOCAL Class* loadClass(const char* name, bool& base);
 
     /** @param name an input/output variable, on input it is the java name for the class, which could
@@ -181,7 +191,7 @@ protected:
 
         @return the new builtin Qore class object wrapping the Java class
     */
-    DLLLOCAL QoreBuiltinClass* findCreateQoreClassInProgram(QoreString& name, const char* jpath, Class* c);
+    DLLLOCAL JniQoreClass* findCreateQoreClassInProgram(QoreString& name, const char* jpath, Class* c);
 
 private:
     DLLLOCAL jarray getJavaArrayIntern(Env& env, const QoreListNode* l, jclass cls);

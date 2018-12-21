@@ -31,13 +31,14 @@
 
 namespace jni {
 
-std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t base) {
+std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t base) const {
     assert(base == 0 || (args != nullptr && args->size() >= base));
 
     size_t paramCount = paramTypes.size();
     // missing arguments are treated as null
     size_t argCount = args == nullptr ? 0 : (args->size() - base);
-    if (paramCount < argCount) {
+
+    if (paramCount < argCount && !doVarArgs) {
         Env env;
         // get class and method name for exception text
         LocalReference<jstring> mcname = env.callObjectMethod(cls->getJavaObject(), Globals::methodClassGetName,
@@ -55,6 +56,16 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t bas
 
     std::vector<jvalue> jargs(paramCount);
     for (size_t index = 0; index < paramCount; ++index) {
+        // process varargs with remaining arguments if appropriate
+        if (doVarArgs && (argCount > paramCount) && (index == (paramCount - 1))) {
+            // get array component type
+            Env env;
+            LocalReference<jclass> ccls = env.callObjectMethod(paramTypes[index].second,
+                Globals::methodClassGetComponentType, nullptr).as<jclass>();
+            jargs[index].l = Array::toObjectArray(args, ccls, index).release();
+            break;
+        }
+        assert(index < argCount);
         QoreValue qv = args ? args->retrieveEntry(index + base) : QoreValue();
 
         switch (paramTypes[index].first) {
@@ -93,7 +104,7 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t bas
     return std::move(jargs);
 }
 
-void BaseMethod::doObjectException(Env& env, jobject object) {
+void BaseMethod::doObjectException(Env& env, jobject object) const {
     LocalReference<jclass> ocls = env.getObjectClass(object);
     LocalReference<jstring> ocname = env.callObjectMethod(ocls, Globals::methodClassGetName, nullptr).as<jstring>();
     Env::GetStringUtfChars ocn(env, ocname);
@@ -108,7 +119,7 @@ void BaseMethod::doObjectException(Env& env, jobject object) {
     throw BasicException(desc.c_str());
 }
 
-QoreValue BaseMethod::invoke(jobject object, const QoreListNode* args, int offset) {
+QoreValue BaseMethod::invoke(jobject object, const QoreListNode* args, int offset) const {
     std::vector<jvalue> jargs = convertArgs(args, offset);
 
     Env env;
@@ -142,7 +153,7 @@ QoreValue BaseMethod::invoke(jobject object, const QoreListNode* args, int offse
     }
 }
 
-QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreListNode* args, int offset) {
+QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreListNode* args, int offset) const {
     std::vector<jvalue> jargs = convertArgs(args, offset);
 
     Env env;
@@ -176,7 +187,7 @@ QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreListNode* args,
     }
 }
 
-QoreValue BaseMethod::invokeStatic(const QoreListNode* args, int offset) {
+QoreValue BaseMethod::invokeStatic(const QoreListNode* args, int offset) const {
     std::vector<jvalue> jargs = convertArgs(args, offset);
 
     Env env;
@@ -227,13 +238,31 @@ void BaseMethod::getName(QoreString& str) const {
     str.concat(mName.c_str());
 }
 
-int BaseMethod::getParamTypes(type_vec_t& paramTypeInfo, QoreJniClassMap& clsmap) {
+int BaseMethod::getParamTypes(type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo, QoreJniClassMap& clsmap) {
     unsigned len = paramTypes.size();
-    if (len)
+    if (len) {
         paramTypeInfo.reserve(len);
+    }
 
-    for (auto& i : paramTypes)
-        paramTypeInfo.push_back(clsmap.getQoreType(i.second));
+    for (auto& i : paramTypes) {
+        const QoreTypeInfo* altType = nullptr;
+        paramTypeInfo.push_back(clsmap.getQoreType(i.second, altType));
+        if (altType) {
+            if (altParamTypeInfo.empty()) {
+                altParamTypeInfo.reserve(len);
+            }
+            for (size_t i = altParamTypeInfo.size(), e = paramTypeInfo.size() - 1; i < e; ++i) {
+                altParamTypeInfo.push_back(paramTypeInfo[i]);
+            }
+            altParamTypeInfo.push_back(altType);
+        }
+    }
+
+    if (!altParamTypeInfo.empty()) {
+        for (size_t i = altParamTypeInfo.size(), e = paramTypeInfo.size(); i < e; ++i) {
+            altParamTypeInfo.push_back(paramTypeInfo[i]);
+        }
+    }
 
     return 0;
 }

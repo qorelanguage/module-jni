@@ -109,7 +109,7 @@ jobject QoreToJava::toAnyObject(const QoreValue& value) {
             }
         }
         case NT_HASH: {
-            return makeHashMap(*value.get<QoreHashNode>());
+            return makeMap(*value.get<QoreHashNode>(), Globals::classHashMap);
         }
         case NT_BINARY: {
             return makeByteArray(*value.get<BinaryNode>());
@@ -179,7 +179,7 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
             break;
         }
         case NT_HASH: {
-            return makeHashMap(*value.get<QoreHashNode>());
+            return makeMap(*value.get<QoreHashNode>(), cls);
         }
         case NT_OBJECT: {
             const QoreObject* o = value.get<QoreObject>();
@@ -239,9 +239,21 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
     return javaObjectRef.release();
 }
 
-jobject QoreToJava::makeHashMap(const QoreHashNode& h) {
+jobject QoreToJava::makeMap(const QoreHashNode& h, jclass cls) {
     Env env;
-    LocalReference<jobject> hm = env.newObject(Globals::classHashMap, Globals::ctorHashMap, nullptr);
+
+    // get constructor for class
+    jmethodID ctor;
+    try {
+        ctor = env.getMethod(cls, "<init>", "()V");
+    } catch (jni::Exception& e) {
+        e.ignore();
+        // try HashMap
+        cls = Globals::classHashMap;
+        ctor = Globals::ctorHashMap;
+    }
+
+    LocalReference<jobject> hm = env.newObject(cls, ctor, nullptr);
 
     ConstHashIterator i(h);
     while (i.next()) {
@@ -262,7 +274,7 @@ jobject QoreToJava::makeHashMap(const QoreHashNode& h) {
 jbyteArray QoreToJava::makeByteArray(const BinaryNode& b) {
     Env env;
     LocalReference<jbyteArray> array = env.newByteArray(b.size()).as<jbyteArray>();
-    for (jsize i = 0; i < b.size(); ++i) {
+    for (jsize i = 0; i < static_cast<jsize>(b.size()); ++i) {
         env.setByteArrayElement(array, i, ((const char*)b.getPtr())[i]);
     }
 

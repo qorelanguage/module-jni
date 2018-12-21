@@ -5,6 +5,7 @@ package org.qore.lang.mapper;
 
 // java imports
 import java.util.HashMap;
+import java.util.Map;
 
 // jni module imports
 import org.qore.jni.QoreObject;
@@ -86,13 +87,13 @@ public class Mapper extends QoreObjectWrapper {
         @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
     */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object>[] mapAll(HashMap<String, Object>[] recs) throws Throwable {
+    public HashMap<String, Object>[] mapAll(Map<String, Object>[] recs) throws Throwable {
         return (HashMap<String, Object>[])obj.callMethod("mapAll", (Object)recs);
     }
 
     //! maps all input records and returns the mapped data as a list of output records
     /** this method applies the @ref mapData() method to all input records and returns the resulting list
-        @param recs a HashMap<String, Object> of lists of input records
+        @param recs a Map<String, Object> of lists of input records
 
         @return the mapped data as a list of output records
 
@@ -101,14 +102,14 @@ public class Mapper extends QoreObjectWrapper {
         @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
     */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object>[] mapAll(HashMap<String, Object> recs) throws Throwable {
+    public HashMap<String, Object>[] mapAll(Map<String, Object> recs) throws Throwable {
         return (HashMap<String, Object>[])obj.callMethod("mapAll", recs);
     }
 
-    //! processes the input record and returns a HashMap<String, Object> of the mapped values where the keys in the HashMap<String, Object> returned are the target field names; the order of the fields in the HashMap<String, Object> returned is the same order as the keys in the map hash.
+    //! processes the input record and returns a Map<String, Object> of the mapped values where the keys in the Map<String, Object> returned are the target field names; the order of the fields in the Map<String, Object> returned is the same order as the keys in the map hash.
     /** @param rec the record to translate
 
-        @return a HashMap<String, Object> of field values in the target format based on the input data and processed according to the logic in the map hash
+        @return a Map<String, Object> of field values in the target format based on the input data and processed according to the logic in the map hash
 
         @throw MISSING-INPUT a field marked mandatory is missing
         @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
@@ -119,7 +120,7 @@ public class Mapper extends QoreObjectWrapper {
         - uses @ref Mapper::Mapper::mapDataIntern() to map the data, then @ref Mapper::Mapper::logOutput() is called for each output row
     */
     @SuppressWarnings("unchecked")
-    public HashMap<String, Object> mapData(HashMap<String, Object> rec) throws Throwable {
+    public HashMap<String, Object> mapData(Map<String, Object> rec) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("mapData", rec);
     }
 }

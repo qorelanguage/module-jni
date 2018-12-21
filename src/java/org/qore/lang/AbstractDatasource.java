@@ -5,6 +5,7 @@ package org.qore.lang;
 
 // java imports
 import java.util.HashMap;
+import java.util.Map;
 
 // jni module imports
 import org.qore.jni.QoreObject;
@@ -121,7 +122,7 @@ public class AbstractDatasource extends QoreObjectWrapper {
 
         @par Example:
         @code{.java}
-    HashMap<String, Object> query = (HashMap<String, Object>)datasource.select("select * from table where varchar_column = 'col'");
+    Map<String, Object> query = (Map<String, Object>)datasource.select("select * from table where varchar_column = 'col'");
         @endcode
 
         @note This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
@@ -147,7 +148,7 @@ public class AbstractDatasource extends QoreObjectWrapper {
         @par Example:
         @code{.java}
     // bind a string and a date/time value by value in a query
-    HashMap<String, Object> query = (HashMap<String, Object>)datasource.select("select * from table where varchar_column = %v and timestamp_column > %v", string, ZonedDateTime::parse("2007-10-11T15:31:26.289+02:00");
+    Map<String, Object> query = (Map<String, Object>)datasource.select("select * from table where varchar_column = %v and timestamp_column > %v", string, ZonedDateTime::parse("2007-10-11T15:31:26.289+02:00");
         @endcode
 
         @note This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
@@ -170,7 +171,7 @@ public class AbstractDatasource extends QoreObjectWrapper {
 
         @par Example:
         @code{.java}
-    HashMap<String, Object> h = (HashMap<String, Object>)datasource.selectRow("select * from example_table where id = 1");
+    Map<String, Object> h = (Map<String, Object>)datasource.selectRow("select * from example_table where id = 1");
         @endcode
 
         @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
@@ -194,7 +195,7 @@ public class AbstractDatasource extends QoreObjectWrapper {
 
         @par Example:
         @code{.java}
-    HashMap<String, Object> h = (HashMap<String, Object>)datasource.selectRow("select * from example_table where id = 1");
+    Map<String, Object> h = (Map<String, Object>)datasource.selectRow("select * from example_table where id = 1");
         @endcode
 
         @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
@@ -272,7 +273,7 @@ public class AbstractDatasource extends QoreObjectWrapper {
 
         @par Example:
         @code{.java}
-    HashMap<String, Object> query = (HashMap<String, Object>)datasource.vselect("select * from example_table where id = %v and name = %v", arg_list);
+    Map<String, Object> query = (Map<String, Object>)datasource.vselect("select * from example_table where id = %v and name = %v", arg_list);
         @endcode
 
         @see select()
@@ -298,7 +299,7 @@ public class AbstractDatasource extends QoreObjectWrapper {
 
         @par Example:
         @code{.java}
-    HashMap<String, Object> h = (HashMap<String, Object>)datasource.vselectRow("select * from example_table where id = %v and type = %v", arg_list);
+    Map<String, Object> h = (Map<String, Object>)datasource.vselectRow("select * from example_table where id = %v and type = %v", arg_list);
         @endcode
 
         @see selectRow()
@@ -492,7 +493,7 @@ public class AbstractDatasource extends QoreObjectWrapper {
     //! Returns a @ref datasource_hash "datasource hash" describing the configuration of the current object
     /** @par Example:
         @code{.java}
-    HashMap<String, Object> h = obj.getConfigHash();
+    Map<String, Object> h = obj.getConfigHash();
         @endcode
 
         @return a @ref datasource_hash "datasource hash" describing the configuration of the current object

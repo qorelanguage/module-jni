@@ -74,14 +74,14 @@ public:
       init(env);
    }
 
-   ~BaseMethod() {
+   DLLLOCAL ~BaseMethod() {
       printd(LogLevel, "BaseMethod::~BaseMethod(), this: %p, cls: %p, id: %p\n", this, cls, id);
    }
 
    /**
     * \brief throws a BasicException when the passed object's class does not match the expected class
     */
-   DLLLOCAL void doObjectException(Env& env, jobject object);
+   DLLLOCAL void doObjectException(Env& env, jobject object) const;
 
    /**
     * \brief Invokes an instance method.
@@ -91,7 +91,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invoke(jobject object, const QoreListNode* args, int offset = 0);
+   QoreValue invoke(jobject object, const QoreListNode* args, int offset = 0) const;
 
    /**
     * \brief Invokes an instance method non-virtually.
@@ -101,7 +101,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invokeNonvirtual(jobject object, const QoreListNode* args, int offset = 0);
+   QoreValue invokeNonvirtual(jobject object, const QoreListNode* args, int offset = 0) const;
 
    /**
     * \brief Invokes a static method.
@@ -110,7 +110,7 @@ public:
     * \return the return value
     * \throws Exception if the arguments do not match the descriptor or if the method throws
     */
-   QoreValue invokeStatic(const QoreListNode* args, int offset = 0);
+   QoreValue invokeStatic(const QoreListNode* args, int offset = 0) const;
 
    /**
     * \brief Creates a new object by invoking a constructor.
@@ -161,42 +161,46 @@ public:
       return flags;
    }
 
-   DLLLOCAL int getParamTypes(type_vec_t& paramTypeInfo, QoreJniClassMap& clsmap);
+   DLLLOCAL int getParamTypes(type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo, QoreJniClassMap& clsmap);
 
    DLLLOCAL const QoreTypeInfo* getReturnTypeInfo(QoreJniClassMap& clsmap);
 
    DLLLOCAL void getSignature(QoreString& str) const;
 
 protected:
-   DLLLOCAL BaseMethod() {
-   }
+    DLLLOCAL BaseMethod() {
+    }
 
-   DLLLOCAL std::vector<jvalue> convertArgs(const QoreListNode* args, size_t base = 0);
+    DLLLOCAL std::vector<jvalue> convertArgs(const QoreListNode* args, size_t base = 0) const;
 
-   DLLLOCAL void init(Env &env) {
-      retValClass = env.callObjectMethod(method, Globals::methodMethodGetReturnType, nullptr).as<jclass>().makeGlobal();
-      retValType = Globals::getType(retValClass);
+    DLLLOCAL void init(Env &env) {
+        retValClass = env.callObjectMethod(method, Globals::methodMethodGetReturnType, nullptr).as<jclass>().makeGlobal();
+        retValType = Globals::getType(retValClass);
 
-      LocalReference<jobjectArray> paramTypesArray = env.callObjectMethod(method, Globals::methodMethodGetParameterTypes, nullptr).as<jobjectArray>();
-      jsize paramCount = env.getArrayLength(paramTypesArray);
-      paramTypes.reserve(paramCount);
-      for (jsize p = 0; p < paramCount; ++p) {
-         LocalReference<jclass> paramType = env.getObjectArrayElement(paramTypesArray, p).as<jclass>();
-         paramTypes.emplace_back(Globals::getType(paramType), paramType.makeGlobal());
-      }
+        LocalReference<jobjectArray> paramTypesArray = env.callObjectMethod(method, Globals::methodMethodGetParameterTypes, nullptr).as<jobjectArray>();
+        jsize paramCount = env.getArrayLength(paramTypesArray);
+        paramTypes.reserve(paramCount);
+        for (jsize p = 0; p < paramCount; ++p) {
+            LocalReference<jclass> paramType = env.getObjectArrayElement(paramTypesArray, p).as<jclass>();
+            if (p == (paramCount - 1) && env.callBooleanMethod(paramType, Globals::methodClassIsArray, nullptr)) {
+                doVarArgs = true;
+            }
+            paramTypes.emplace_back(Globals::getType(paramType), paramType.makeGlobal());
+        }
 
-      mods = env.callIntMethod(method, Globals::methodMethodGetModifiers, nullptr);
-   }
+        mods = env.callIntMethod(method, Globals::methodMethodGetModifiers, nullptr);
+    }
 
-protected:
-   Class* cls;
-   jmethodID id;
-   GlobalReference<jobject> method;             // the instance of java.lang.reflect.Method
-   GlobalReference<jclass> retValClass;
-   Type retValType;
-   std::vector<std::pair<Type, GlobalReference<jclass>>> paramTypes;
-   // method modifiers
-   int mods;
+    Class* cls;
+    jmethodID id;
+    GlobalReference<jobject> method;             // the instance of java.lang.reflect.Method
+    GlobalReference<jclass> retValClass;
+    Type retValType;
+    std::vector<std::pair<Type, GlobalReference<jclass>>> paramTypes;
+    // method modifiers
+    int mods;
+    // flag to collapse any trailing arguments into a final varargs argument (ex: String... args)
+    bool doVarArgs = false;
 };
 
 class Method : public BaseMethod {
