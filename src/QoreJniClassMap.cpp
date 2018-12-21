@@ -291,7 +291,9 @@ Class* QoreJniClassMap::loadClass(const char* name, bool& base) {
         jarg.l = jname;
 
         JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
-        assert(jpc);
+        if (!jpc) {
+            throw;
+        }
         try {
             LocalReference<jclass> c = env.callObjectMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderLoadClass, &jarg).as<jclass>();
             //printd(LogLevel, "QoreJniClassMap::loadClass() program-specific '%s': %p\n", nname.c_str(), *c);
