@@ -52,21 +52,23 @@ public class QoreURLClassLoader extends URLClassLoader {
         return defineClass(name, byte_code, 0, byte_code.length);
     }
 
-    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        //debugLog("loadClass: " + name + " resolve: " + resolve);
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        //debugLog("findClass: " + name);
         Class rv = tryGetPendingClass(name);
         if (rv != null) {
             return rv;
         }
+        return super.findClass(name);
+        /*
         try {
-            rv = super.loadClass(name, resolve);
-            //debugLog("loadClass: " + name + " got: " + rv);
+            rv = super.findClass(name);
+            //debugLog("findClass: " + name + " got: " + rv);
             return rv;
-        }
-        catch (ClassNotFoundException e) {
-            //debugLog("loadClass: " + name + ": no class found");
+        } catch (ClassNotFoundException e) {
+            //debugLog("findClass: " + name + ": no class found");
             throw e;
         }
+        */
     }
 
     public static long getProgramPtr() {
@@ -114,8 +116,7 @@ public class QoreURLClassLoader extends URLClassLoader {
             }
             try {
                 fileentry = fileentry.getCanonicalFile();
-            }
-            catch (IOException thr) {
+            } catch (IOException thr) {
                 errorLog("Ignoring non-existent classpath element '" + fileentry + "' (" + thr + ").");
                 continue;
             }
@@ -125,26 +126,21 @@ public class QoreURLClassLoader extends URLClassLoader {
             if (classPathElements.contains(fileentry.getPath())) {
                 //errorLog("Skipping duplicate classpath element '" + fileentry + "'.");
                 continue;
-            }
-            else {
+            } else {
                 classPathElements.add(fileentry.getPath());
             }
 
             if (basename != null && !basename.isEmpty()) {
                 //debugLog("addWildcard() parent: " + fileentry.getParentFile().getPath() + " basename: " + basename);
                 addWildcard(fileentry.getParentFile(), basename);
-            }
-            else if (!fileentry.exists()) { // s/never be due getCanonicalFile() above
+            } else if (!fileentry.exists()) { // s/never be due getCanonicalFile() above
                 errorLog("Could not find classpath element '" + fileentry + "'");
-            }
-            else if (fileentry.isDirectory()) {
+            } else if (fileentry.isDirectory()) {
                 addURL(createUrl(fileentry));
-            }
-            else if (isLoadable(fileentry.getName())) {
+            } else if (isLoadable(fileentry.getName())) {
                 //infoLog("adding jar: " + fileentry.getName());
                 addURL(createUrl(fileentry));
-            }
-            else {
+            } else {
                 errorLog("ClassPath element '" + fileentry + "' is not an existing directory and is not a file ending with '.zip' or '.jar'");
             }
         }
@@ -222,8 +218,7 @@ public class QoreURLClassLoader extends URLClassLoader {
             }
             this.classPath += fileentry.getPath();
             return url;
-        }
-        catch (MalformedURLException thr) {
+        } catch (MalformedURLException thr) {
             errorLog("classpath element '" + fileentry + "' could not be used to create a valid file system URL (" + thr + ")");
             return null;
         }

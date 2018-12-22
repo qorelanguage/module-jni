@@ -37,80 +37,79 @@ JavaVM *Jvm::vm = nullptr;
 thread_local JNIEnv *Jvm::env;
 
 QoreStringNode* Jvm::createVM() {
-   assert(vm == nullptr);
+    assert(vm == nullptr);
 
-   JavaVMInitArgs vm_args;
-   vm_args.version = JNI_VERSION_1_6;
-   vm_args.ignoreUnrecognized = false;
-   vm_args.nOptions = 0;
+    JavaVMInitArgs vm_args;
+    vm_args.version = JNI_VERSION_1_6;
+    vm_args.ignoreUnrecognized = false;
+    vm_args.nOptions = 0;
 
-   JavaVMOption options[1];
-   // "reduced signals"
-   options[vm_args.nOptions++].optionString = (char*)"-Xrs";
+    JavaVMOption options[1];
+    // "reduced signals"
+    options[vm_args.nOptions++].optionString = (char*)"-Xrs";
 
-   vm_args.options = options;
+    vm_args.options = options;
 
-   int rc = JNI_CreateJavaVM(&vm, reinterpret_cast<void**>(&env), &vm_args);
-   if (rc != JNI_OK) {
-      return new QoreStringNodeMaker("JNI_CreateJavaVM() failed with error code %d", rc);
-   }
-   try {
-      Globals::init();
-   } catch (JavaException& e) {
-      return e.toString();
-   }
-   catch (Exception &e) {
-      return new QoreStringNode("JVM initialization failed due to an unknown error");
-   }
-   return 0;
+    int rc = JNI_CreateJavaVM(&vm, reinterpret_cast<void**>(&env), &vm_args);
+    if (rc != JNI_OK) {
+        return new QoreStringNodeMaker("JNI_CreateJavaVM() failed with error code %d", rc);
+    }
+    try {
+        Globals::init();
+    } catch (JavaException& e) {
+        return e.toString();
+    } catch (Exception &e) {
+        return new QoreStringNode("JVM initialization failed due to an unknown error");
+    }
+    return 0;
 }
 
 void Jvm::destroyVM() {
-   assert(vm != nullptr);
+    assert(vm != nullptr);
 
-   Globals::cleanup();
-   vm->DestroyJavaVM();
-   vm = nullptr;
-   env = nullptr;
+    Globals::cleanup();
+    vm->DestroyJavaVM();
+    vm = nullptr;
+    env = nullptr;
 }
 
 JNIEnv *Jvm::attachAndGetEnv() {
-   assert(vm != nullptr);
+    assert(vm != nullptr);
 
-   if (env == nullptr) {
-      jint err = vm->AttachCurrentThread(reinterpret_cast<void**>(&env), nullptr);
-      if (err != JNI_OK) {
-         throw UnableToAttachException(err);
-      }
-      printd(LogLevel, "JNI - thread %d attached, env: %p\n", gettid(), env);
-   }
-   return env;
+    if (env == nullptr) {
+        jint err = vm->AttachCurrentThread(reinterpret_cast<void**>(&env), nullptr);
+        if (err != JNI_OK) {
+            throw UnableToAttachException(err);
+        }
+        printd(LogLevel, "JNI - thread %d attached, env: %p\n", gettid(), env);
+    }
+    return env;
 }
 
 JNIEnv* Jvm::attachAndGetEnv(bool& new_attach) {
-   assert(vm != nullptr);
+    assert(vm != nullptr);
 
-   if (env == nullptr) {
-      jint err = vm->AttachCurrentThread(reinterpret_cast<void**>(&env), nullptr);
-      if (err != JNI_OK) {
-         throw UnableToAttachException(err);
-      }
-      new_attach = true;
-      printd(LogLevel, "JNI - thread %d attached, env: %p\n", gettid(), env);
-   }
-   else
-      new_attach = false;
-   return env;
+    if (env == nullptr) {
+        jint err = vm->AttachCurrentThread(reinterpret_cast<void**>(&env), nullptr);
+        if (err != JNI_OK) {
+            throw UnableToAttachException(err);
+        }
+        new_attach = true;
+        printd(LogLevel, "JNI - thread %d attached, env: %p\n", gettid(), env);
+    } else {
+        new_attach = false;
+    }
+    return env;
 }
 
 void Jvm::threadCleanup() {
-   assert(vm != nullptr);
+    assert(vm != nullptr);
 
-   if (env != nullptr) {
-      printd(LogLevel, "JNI - detaching thread, env: %p\n", env);
-      vm->DetachCurrentThread();
-      env = nullptr;
-   }
+    if (env != nullptr) {
+        printd(LogLevel, "JNI - detaching thread, env: %p\n", env);
+        vm->DetachCurrentThread();
+        env = nullptr;
+    }
 }
 
 } // namespace jni

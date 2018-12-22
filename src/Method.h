@@ -47,125 +47,138 @@ class QoreJniClassMap;
  */
 class BaseMethod : public ObjectBase {
 public:
-   /**
-    * \brief Constructor.
-    * \param cls the class associated with the method id
-    * \param id the method id
-    * \param isStatic true if the method is static
-    */
-   BaseMethod(Class *cls, jmethodID id, bool isStatic) : cls(cls), id(id) {
-      printd(LogLevel, "BaseMethod::BaseMethod(), this: %p, cls: %p, id: %p\n", this, cls, id);
-      Env env;
-      method = env.toReflectedMethod(cls->getJavaObject(), id, isStatic).makeGlobal();
-      init(env);
-      cls->ref();
-   }
+    /**
+     * \brief Constructor.
+     * \param cls the class associated with the method id
+     * \param id the method id
+     * \param isStatic true if the method is static
+     */
+    BaseMethod(Class *cls, jmethodID id, bool isStatic) : cls(cls), id(id) {
+        printd(LogLevel, "BaseMethod::BaseMethod(), this: %p, cls: %p, id: %p\n", this, cls, id);
+        Env env;
+        method = env.toReflectedMethod(cls->getJavaObject(), id, isStatic).makeGlobal();
+        init(env);
+        cls->ref();
+    }
 
-   /**
-    * \brief Constructor.
-    * \param method an instance of java.lang.reflect.Method
-    * \cls the Class object for the method
-    */
-   DLLLOCAL BaseMethod(jobject method, Class* cls) : cls(cls) {
-      Env env;
-      id = env.fromReflectedMethod(method);
-      this->method = GlobalReference<jobject>::fromLocal(method);
-      printd(LogLevel, "Method::Method(), this: %p, cls: %p, id: %p\n", this, cls, id);
-      init(env);
-   }
+    /**
+     * \brief Constructor.
+     * \param method an instance of java.lang.reflect.Method
+     * \cls the Class object for the method
+     */
+    DLLLOCAL BaseMethod(jobject method, Class* cls) : cls(cls) {
+        Env env;
+        id = env.fromReflectedMethod(method);
+        this->method = GlobalReference<jobject>::fromLocal(method);
+        printd(LogLevel, "BaseMethod::BaseMethod(), this: %p, cls: %p, id: %p\n", this, cls, id);
+        init(env);
+    }
 
-   DLLLOCAL ~BaseMethod() {
-      printd(LogLevel, "BaseMethod::~BaseMethod(), this: %p, cls: %p, id: %p\n", this, cls, id);
-   }
+    DLLLOCAL ~BaseMethod() {
+        printd(LogLevel, "BaseMethod::~BaseMethod(), this: %p, cls: %p, id: %p\n", this, cls, id);
 
-   /**
-    * \brief throws a BasicException when the passed object's class does not match the expected class
-    */
-   DLLLOCAL void doObjectException(Env& env, jobject object) const;
+        /*
+        Env env;
+        LocalReference<jstring> clsName =
+            env.callObjectMethod(cls->getJavaObject(), Globals::methodClassGetName, nullptr).as<jstring>();
+        LocalReference<jstring> methName =
+            env.callObjectMethod(method, Globals::methodMethodGetName, nullptr).as<jstring>();
+        Env::GetStringUtfChars cname(env, clsName);
+        Env::GetStringUtfChars mname(env, methName);
+        printd(LogLevel, "BaseMethod::~BaseMethod() got %s::%s()\n", cname.c_str(), mname.c_str());
+        */
+    }
 
-   /**
-    * \brief Invokes an instance method.
-    * \param object the instance
-    * \param args the arguments
-    * \param offset the offset in args for the arguments
-    * \return the return value
-    * \throws Exception if the arguments do not match the descriptor or if the method throws
-    */
-   QoreValue invoke(jobject object, const QoreListNode* args, int offset = 0) const;
+    /**
+     * \brief throws a BasicException when the passed object's class does not match the expected class
+     */
+    DLLLOCAL void doObjectException(Env& env, jobject object) const;
 
-   /**
-    * \brief Invokes an instance method non-virtually.
-    * \param object the instance
-    * \param args the arguments
-    * \param offset the offset in args for the arguments
-    * \return the return value
-    * \throws Exception if the arguments do not match the descriptor or if the method throws
-    */
-   QoreValue invokeNonvirtual(jobject object, const QoreListNode* args, int offset = 0) const;
+    /**
+     * \brief Invokes an instance method.
+     * \param object the instance
+     * \param args the arguments
+     * \param offset the offset in args for the arguments
+     * \return the return value
+     * \throws Exception if the arguments do not match the descriptor or if the method throws
+     */
+    QoreValue invoke(jobject object, const QoreListNode* args, int offset = 0) const;
 
-   /**
-    * \brief Invokes a static method.
-    * \param args the arguments
-    * \param offset the offset in args for the arguments
-    * \return the return value
-    * \throws Exception if the arguments do not match the descriptor or if the method throws
-    */
-   QoreValue invokeStatic(const QoreListNode* args, int offset = 0) const;
+    /**
+     * \brief Invokes an instance method non-virtually.
+     * \param object the instance
+     * \param args the arguments
+     * \param offset the offset in args for the arguments
+     * \return the return value
+     * \throws Exception if the arguments do not match the descriptor or if the method throws
+     */
+    QoreValue invokeNonvirtual(jobject object, const QoreListNode* args, int offset = 0) const;
 
-   /**
-    * \brief Creates a new object by invoking a constructor.
-    * \param args the arguments
-    * \return the return value
-    * \throws Exception if the arguments do not match the descriptor or if the method throws
-    */
-   QoreValue newInstance(const QoreListNode* args);
+    /**
+     * \brief Invokes a static method.
+     * \param args the arguments
+     * \param offset the offset in args for the arguments
+     * \return the return value
+     * \throws Exception if the arguments do not match the descriptor or if the method throws
+     */
+    QoreValue invokeStatic(const QoreListNode* args, int offset = 0) const;
 
-   /**
-    * \brief Creates a new Qore object by invoking a constructor.
-    * \param args the arguments
-    * \return the return value
-    * \throws Exception if the arguments do not match the descriptor or if the method throws
-    */
-   LocalReference<jobject> newQoreInstance(const QoreListNode* args);
+    /**
+     * \brief Creates a new object by invoking a constructor.
+     * \param args the arguments
+     * \return the return value
+     * \throws Exception if the arguments do not match the descriptor or if the method throws
+     */
+    QoreValue newInstance(const QoreListNode* args);
 
-   void getName(QoreString& str) const;
+    /**
+     * \brief Creates a new Qore object by invoking a constructor.
+     * \param args the arguments
+     * \return the return value
+     * \throws Exception if the arguments do not match the descriptor or if the method throws
+     */
+    LocalReference<jobject> newQoreInstance(const QoreListNode* args);
 
-   int isStatic() const {
-      return mods & JVM_ACC_STATIC;
-   }
+    void getName(QoreString& str) const;
 
-   jobject getJavaObject() const override {
-      return method;
-   }
+    int isStatic() const {
+        return mods & JVM_ACC_STATIC;
+    }
 
-   ClassAccess getAccess() const {
-      ClassAccess access = Public;
+    jobject getJavaObject() const override {
+        return method;
+    }
 
-      if (mods & JVM_ACC_PRIVATE)
-         access = Internal;
-      else if (mods & JVM_ACC_PROTECTED)
-         access = Private;
+    ClassAccess getAccess() const {
+        ClassAccess access = Public;
 
-      return access;
-   }
+        if (mods & JVM_ACC_PRIVATE) {
+            access = Internal;
+        } else if (mods & JVM_ACC_PROTECTED) {
+            access = Private;
+        }
 
-   bool isAbstract() const {
-      return mods & JVM_ACC_ABSTRACT;
-   }
+        return access;
+    }
 
-   int64 getFlags() const {
-      Env env;
-      int64 flags = QCF_NO_FLAGS;
-      if (env.callBooleanMethod(method, Globals::methodMethodIsVarArgs, nullptr))
-         flags |= QCF_USES_EXTRA_ARGS;
-      return flags;
-   }
+    bool isAbstract() const {
+        return mods & JVM_ACC_ABSTRACT;
+    }
 
-   DLLLOCAL int getParamTypes(type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo, QoreJniClassMap& clsmap);
+    int64 getFlags() const {
+        Env env;
+        int64 flags = QCF_NO_FLAGS;
+        if (env.callBooleanMethod(method, Globals::methodMethodIsVarArgs, nullptr)) {
+            flags |= QCF_USES_EXTRA_ARGS;
+        }
+        return flags;
+    }
 
-   DLLLOCAL const QoreTypeInfo* getReturnTypeInfo(QoreJniClassMap& clsmap);
+    DLLLOCAL int getParamTypes(type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo, QoreJniClassMap& clsmap);
 
-   DLLLOCAL void getSignature(QoreString& str) const;
+    DLLLOCAL const QoreTypeInfo* getReturnTypeInfo(QoreJniClassMap& clsmap);
+
+    DLLLOCAL void getSignature(QoreString& str) const;
 
 protected:
     DLLLOCAL BaseMethod() {
@@ -205,33 +218,34 @@ protected:
 
 class Method : public BaseMethod {
 public:
-   /**
-    * \brief Constructor.
-    * \param cls the class associated with the method id
-    * \param id the method id
-    * \param isStatic true if the method is static
-    */
-   DLLLOCAL Method(Class *cls, jmethodID id, bool isStatic) : BaseMethod(cls, id, isStatic), cls_holder(cls) {
-      cls->ref();
-      cls_holder = cls;
-   }
+    /**
+     * \brief Constructor.
+     * \param cls the class associated with the method id
+     * \param id the method id
+     * \param isStatic true if the method is static
+     */
+    DLLLOCAL Method(Class *cls, jmethodID id, bool isStatic) : BaseMethod(cls, id, isStatic), cls_holder(cls) {
+        cls->ref();
+        cls_holder = cls;
+    }
 
-   /**
-    * \brief Constructor.
-    * \param method an instance of java.lang.reflect.Method
-    */
-   DLLLOCAL Method(jobject method) {
-      Env env;
-      cls = new Class(env.callObjectMethod(method, Globals::methodMethodGetDeclaringClass, nullptr).as<jclass>());
-      cls_holder = cls;
-      id = env.fromReflectedMethod(method);
-      this->method = GlobalReference<jobject>::fromLocal(method);
-      printd(LogLevel, "Method::Method(), this: %p, cls: %p, id: %p\n", this, cls, id);
-      init(env);
-   }
+    /**
+     * \brief Constructor.
+     * \param method an instance of java.lang.reflect.Method
+     */
+    DLLLOCAL Method(jobject method) {
+        Env env;
+        cls = new Class(env.callObjectMethod(method, Globals::methodMethodGetDeclaringClass, nullptr).as<jclass>());
+        cls_holder = cls;
+        id = env.fromReflectedMethod(method);
+        this->method = GlobalReference<jobject>::fromLocal(method);
+        printd(LogLevel, "Method::Method() this: %p, cls: %p, id: %p\n", this, cls, id);
+
+        init(env);
+    }
 
 private:
-   SimpleRefHolder<Class> cls_holder;
+    SimpleRefHolder<Class> cls_holder;
 };
 
 } // namespace jni
