@@ -168,30 +168,30 @@ private:
  */
 class QoreJniException : public IgnorableException {
 public:
-   /**
-    * \brief Constructor.
-    * \param err the exception error string
-    * \param message the exception message
-    */
-   DLLLOCAL QoreJniException(std::string err, const char* message, ...) : err(std::move(err)) {
-      va_list args;
+    /**
+     * \brief Constructor.
+     * \param err the exception error string
+     * \param message the exception message
+     */
+    DLLLOCAL QoreJniException(std::string err, const char* message, ...) : err(std::move(err)) {
+        va_list args;
 
-      while (true) {
-         va_start(args, message);
-         int rc = desc.vsprintf(message, args);
-         va_end(args);
-         if (!rc)
-            break;
-      }
-   }
+        while (true) {
+            va_start(args, message);
+            int rc = desc.vsprintf(message, args);
+            va_end(args);
+            if (!rc)
+                break;
+        }
+    }
 
-   DLLLOCAL void convert(ExceptionSink *xsink) override {
-      xsink->raiseException(err.c_str(), desc.c_str());
-   }
+    DLLLOCAL void convert(ExceptionSink *xsink) override {
+        xsink->raiseException(err.c_str(), desc.c_str());
+    }
 
 private:
-   std::string err;
-   QoreString desc;
+    std::string err;
+    QoreString desc;
 };
 
 /**

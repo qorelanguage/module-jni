@@ -165,8 +165,9 @@ void QoreJniClassMap::init() {
     CID_ZONEDDATETIME = QC_ZONEDDATETIME->getID();
 
     // rescan all classes
-    for (auto& i : jcmap)
+    for (auto& i : jcmap) {
         i.second->rescanParents();
+    }
 
     // add low-level API classes
     {
@@ -206,8 +207,7 @@ jclass QoreJniClassMap::findLoadClass(const char* jpath) {
         if (i != jcmap.end()) {
             qc = i->second;
             //printd(LogLevel, "findLoadClass() '%s': %p (cached)\n", jpath, qc);
-        }
-        else {
+        } else {
             JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
             if (jpc) {
                 assert(static_cast<QoreJniClassMapBase*>(jpc) != static_cast<QoreJniClassMapBase*>(this));
@@ -281,6 +281,7 @@ Class* QoreJniClassMap::loadClass(const char* name, bool& base) {
     } catch (jni::JavaException& e) {
         JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
         if (!jpc) {
+            printd(LogLevel, "loadClass() '%s' base: %d failed, no program data\n", name, base);
             throw;
         }
         Env env;
@@ -486,17 +487,18 @@ JniQoreClass* QoreJniClassMap::createClassInNamespace(QoreNamespace* ns, QoreNam
     Env env;
 
     // add superclass
-    if (parent)
+    if (parent) {
         addSuperClass(*qc, parent, false);
-    else if (qc == QC_OBJECT) {
+    } else if (qc == QC_OBJECT) {
         // set base class loader: the return value for Class.getClassLoader() with classes loaded by the bootstrap
         // class loader is implementation-dependent; it's possible that this will be nullptr
         LocalReference<jobject> cl = env.callObjectMethod(jc->getJavaObject(), Globals::methodClassGetClassLoader, nullptr);
-        if (cl)
+        if (cl) {
             baseClassLoader = cl.makeGlobal();
-    }
-    else // make interface classes at least inherit Object
+        }
+    } else { // make interface classes at least inherit Object
         qc->addBuiltinVirtualBaseClass(QC_OBJECT);
+    }
 
     // get and process interfaces
     LocalReference<jobjectArray> interfaceArray = jc->getInterfaces();
@@ -710,7 +712,8 @@ void QoreJniClassMap::doMethods(JniQoreClass& qc, jni::Class* jc) {
         type_vec_t paramTypeInfo;
         type_vec_t altParamTypeInfo;
         if (meth->getParamTypes(paramTypeInfo, altParamTypeInfo, *this)) {
-            printd(LogLevel, "+ skipping %s.%s(); unsupported parameter type for variant %d\n", qc.getName(), mname.c_str(), i + 1);
+            printd(LogLevel, "+ skipping %s.%s(); unsupported parameter type for variant %d\n", qc.getName(),
+                mname.c_str(), i + 1);
             continue;
         }
 
