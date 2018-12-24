@@ -251,4 +251,9 @@ public class QoreJavaApiTest {
     static QoreClosureMarker getClosure3() {
         return new ClosureTest3();
     }
+
+    @SuppressWarnings("unchecked")
+    static HashMap<String, Object>[] getCallStack() throws Throwable {
+        return (HashMap<String, Object>[])QoreJavaApi.callFunction("gtcs");
+    }
 }
