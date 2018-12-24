@@ -254,6 +254,6 @@ public class QoreJavaApiTest {
 
     @SuppressWarnings("unchecked")
     static HashMap<String, Object>[] getCallStack() throws Throwable {
-        return (HashMap<String, Object>[])QoreJavaApi.callFunction("gtcs");
+        return (HashMap<String, Object>[])QoreJavaApi.callFunction("gtcs", 50);
     }
 }

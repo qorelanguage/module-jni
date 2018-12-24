@@ -66,6 +66,8 @@ JniQoreClass* QC_ZONEDDATETIME;
 // the Qore class ID for java::time::ZonedDateTime
 qore_classid_t CID_ZONEDDATETIME;
 
+bool QoreJniClassMap::init_done = false;
+
 QoreJniClassMap qjcm;
 static void exec_java_constructor(const QoreMethod& meth, BaseMethod* m, QoreObject* self, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
@@ -150,19 +152,36 @@ void QoreJniClassMap::init() {
     CID_OBJECT = QC_OBJECT->getID();
     createClassInNamespace(ns, *default_jns, "java/lang/Object", Functions::loadClass("java/lang/Object"), QC_OBJECT, *this);
 
-    QC_CLASS = find("java/lang/Class");
+    QC_CLASS = findCreateQoreClass("java.lang.Class");
     CID_CLASS = QC_CLASS->getID();
-    QC_METHOD = find("java/lang/reflect/Method");
+    QC_METHOD = findCreateQoreClass("java.lang.reflect.Method");
     CID_METHOD = QC_METHOD->getID();
-    QC_CLASSLOADER = find("java/lang/ClassLoader");
+    QC_CLASSLOADER = findCreateQoreClass("java.lang.ClassLoader");
     CID_CLASSLOADER = QC_CLASSLOADER->getID();
-    QC_THROWABLE = find("java/lang/Throwable");
+    QC_THROWABLE = findCreateQoreClass("java.lang.Throwable");
     CID_THROWABLE = QC_THROWABLE->getID();
-    QC_INVOCATIONHANDLER = findCreateQoreClass("java/lang/reflect/InvocationHandler");
+    QC_INVOCATIONHANDLER = findCreateQoreClass("java.lang.reflect.InvocationHandler");
     CID_INVOCATIONHANDLER = QC_INVOCATIONHANDLER->getID();
 
-    QC_ZONEDDATETIME = find("java/time/ZonedDateTime");
+    QC_ZONEDDATETIME = findCreateQoreClass("java.time.ZonedDateTime");
     CID_ZONEDDATETIME = QC_ZONEDDATETIME->getID();
+
+    // populate classes after initial hierarchy done
+    init_done = true;
+
+    // now populate all classes created up until now
+    {
+        // copy all classes to a vector
+        std::vector<JniQoreClass*> cvec;
+        cvec.reserve(jcmap.size());
+        for (auto& i : jcmap) {
+            cvec.push_back(i.second);
+        }
+        // populate all classes in the vector
+        for (auto& i : cvec) {
+            populateQoreClass(*i, static_cast<Class*>(i->getManagedUserData()));
+        }
+    }
 
     // rescan all classes
     for (auto& i : jcmap) {
@@ -391,6 +410,12 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClass(const char* name) {
     jpath.replaceAll(".", "/");
     jpath.replaceAll("__", "$");
 
+    // first try to find class
+    JniQoreClass* rv = findInternal(jpath.c_str());
+    if (rv) {
+        return rv;
+    }
+
     // first try to load the class if possible
     bool base;
     SimpleRefHolder<Class> cls(loadClass(jpath.c_str(), base));
@@ -472,14 +497,31 @@ JniQoreClass* QoreJniClassMap::createClassInNamespace(QoreNamespace* ns, QoreNam
     qc->setManagedUserData(jc);
 
     int mods = jc->getModifiers();
-    if (mods & JVM_ACC_FINAL)
+    if (mods & JVM_ACC_FINAL) {
         qc->setFinal();
+    }
 
     printd(LogLevel, "QoreJniClassMap::createClassInNamespace() qc: %p ns: %p '%s::%s'\n", qc, ns, ns->getName(), qc->getName());
 
     // add to class maps
     map.add(jpath, static_cast<JniQoreClass*>(qc_holder.release()));
 
+    addSuperClasses(qc, jc, jpath);
+
+    // add methods after parents
+    if (init_done) {
+        populateQoreClass(*qc, jc);
+    }
+
+    printd(LogLevel, "QoreJniClassMap::createClassInNamespace() '%s' returning qc: %p ns: %p -> '%s::%s'\n", jpath, qc, ns, ns->getName(), qc->getName());
+
+    // save class in namespace
+    ns->addSystemClass(qc);
+
+    return qc;
+}
+
+void QoreJniClassMap::addSuperClasses(JniQoreClass* qc, Class* jc, const char* jpath) {
     Class* parent = jc->getSuperClass();
 
     printd(LogLevel, "QoreJniClassMap::createClassInNamespace() '%s' parent: %p\n", jpath, parent);
@@ -506,16 +548,6 @@ JniQoreClass* QoreJniClassMap::createClassInNamespace(QoreNamespace* ns, QoreNam
     for (jsize i = 0, e = env.getArrayLength(interfaceArray); i < e; ++i) {
         addSuperClass(*qc, new Class(env.getObjectArrayElement(interfaceArray, i).as<jclass>()), true);
     }
-
-    // add methods after parents
-    populateQoreClass(*qc, jc);
-
-    printd(LogLevel, "QoreJniClassMap::createClassInNamespace() '%s' returning qc: %p ns: %p -> '%s::%s'\n", jpath, qc, ns, ns->getName(), qc->getName());
-
-    // save class in namespace
-    ns->addSystemClass(qc);
-
-    return qc;
 }
 
 void QoreJniClassMap::addSuperClass(JniQoreClass& qc, jni::Class* parent, bool interface) {

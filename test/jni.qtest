@@ -87,8 +87,8 @@ TestClass sub get_object() {
     return new TestClass();
 }
 
-list<auto> sub gtcs() {
-    return get_thread_call_stack();
+list<auto> sub gtcs(int count, list<auto> rv = get_thread_call_stack()) {
+    return !--count ? rv : gtcs(count, rv);
 }
 
 public class Main inherits QUnit::Test {
@@ -131,13 +131,12 @@ public class Main inherits QUnit::Test {
 
     callStackTest() {
         list<auto> l = QoreJavaApiTest::getCallStack();
-        printf("%N\n", l);
         assertEq(Type::Hash, l[0].type());
         try {
             QoreJavaApiTest::throwTest();
             assertTrue(False);
         } catch (hash<ExceptionInfo> ex) {
-            #printf("%s\n", get_exception_string(ex));
+            assertEq("Throwable", ex.arg.className());
         }
     }
 
