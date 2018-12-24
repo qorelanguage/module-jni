@@ -87,6 +87,10 @@ TestClass sub get_object() {
     return new TestClass();
 }
 
+list<auto> sub gtcs(int count, list<auto> rv = get_thread_call_stack()) {
+    return !--count ? rv : gtcs(count, rv);
+}
+
 public class Main inherits QUnit::Test {
     public {
         const TestClass1ByteCode = <cafebabe0000003400110a0004000d08000e07000f0700100100063c696e69743e010003282956010004436f646501000f4c696e654e756d6265725461626c6501000367657401001428294c6a6176612f6c616e672f537472696e673b01000a536f7572636546696c65010009546573742e6a6176610c0005000601000474657374010004546573740100106a6176612f6c616e672f4f626a656374002000030004000000000002000000050006000100070000001d00010001000000052ab70001b10000000100080000000600010000000100000009000a000100070000001b00010001000000031202b0000000010008000000060001000000030001000b00000002000c>;
@@ -95,6 +99,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("jni test", "1.0") {
+        addTestCase("call stack test", \callStackTest());
         addTestCase("closure test", \closureTest());
         addTestCase("exception stack", \exceptionStackTest());
         addTestCase("Qore Java API test", \qoreJavaApiTest());
@@ -122,6 +127,17 @@ public class Main inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    callStackTest() {
+        list<auto> l = QoreJavaApiTest::getCallStack();
+        assertEq(Type::Hash, l[0].type());
+        try {
+            QoreJavaApiTest::throwTest();
+            assertTrue(False);
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("Throwable", ex.arg.className());
+        }
     }
 
     closureTest() {

@@ -91,15 +91,22 @@ public:
         jcmap[name] = qc;
     }
 
+    // accepts either a dotted name (ex: "java.lang.Object)") or an internal name ("java/lang/Object") as argument
     DLLLOCAL JniQoreClass* find(const char* jpath) const {
         if (strchr(jpath, '.')) {
             QoreString str(jpath);
             str.replaceAll(".", "/");
             jcmap_t::const_iterator i = jcmap.find(str.c_str());
-            return i == jcmap.end() ? 0 : i->second;
+            return i == jcmap.end() ? nullptr : i->second;
         }
         jcmap_t::const_iterator i = jcmap.find(jpath);
-        return i == jcmap.end() ? 0 : i->second;
+        return i == jcmap.end() ? nullptr : i->second;
+    }
+
+    // accepts an internal name as argument (ex: "java/lang/Object")
+    DLLLOCAL JniQoreClass* findInternal(const char* jpath) const {
+        jcmap_t::const_iterator i = jcmap.find(jpath);
+        return i == jcmap.end() ? nullptr : i->second;
     }
 };
 
@@ -120,11 +127,6 @@ public:
         return getQoreType(cls, altType);
     }
 
-    DLLLOCAL void initDone() {
-        assert(!init_done);
-        init_done = true;
-    }
-
     DLLLOCAL QoreNamespace& getJniNs() {
         return *default_jns;
     }
@@ -137,6 +139,8 @@ public:
     DLLLOCAL jclass findLoadClass(const QoreString& name);
 
     DLLLOCAL JniQoreClass* findCreateQoreClass(LocalReference<jclass>& jc);
+
+    // create the Qore class from the Java dot name (ex: java.lang.Object)
     DLLLOCAL JniQoreClass* findCreateQoreClass(const char* name);
 
     DLLLOCAL JniQoreClass* findCreateQoreClass(QoreString& name, const char* jpath, Class* c, bool base) {
@@ -162,7 +166,6 @@ protected:
 
     // parent namespace for jni module functionality
     QoreNamespace* default_jns = new QoreNamespace("Jni");
-    bool init_done = false;
 
     // class loader
     GlobalReference<jobject> baseClassLoader;
@@ -175,6 +178,10 @@ protected:
 
     DLLLOCAL void doConstructors(JniQoreClass& qc, Class* jc);
 
+    // add Java parent classes and interfaces as Qore parent classes
+    DLLLOCAL void addSuperClasses(JniQoreClass* qc, Class* jc, const char* jpath);
+
+    // populate the Qore class with methods and members from the Java class
     DLLLOCAL void populateQoreClass(JniQoreClass& qc, Class* jc);
 
     DLLLOCAL void addSuperClass(JniQoreClass& qc, Class* parent, bool interface);
@@ -194,6 +201,9 @@ protected:
     DLLLOCAL JniQoreClass* findCreateQoreClassInProgram(QoreString& name, const char* jpath, Class* c);
 
 private:
+    // initialization flag
+    static bool init_done;
+
     DLLLOCAL jarray getJavaArrayIntern(Env& env, const QoreListNode* l, jclass cls);
 };
 
