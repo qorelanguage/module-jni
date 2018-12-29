@@ -35,6 +35,8 @@
 #include "QoreJniThreads.h"
 #include "ModifiedUtf8String.h"
 
+#include <thread>
+
 namespace jni {
 
 // the QoreClass for java::lang::Object
@@ -67,6 +69,9 @@ JniQoreClass* QC_ZONEDDATETIME;
 qore_classid_t CID_ZONEDDATETIME;
 
 bool QoreJniClassMap::init_done = false;
+std::mutex QoreJniClassMap::init_mutex;
+std::condition_variable QoreJniClassMap::init_cond;
+jni::Exception* QoreJniClassMap::init_exception = nullptr;
 
 QoreJniClassMap qjcm;
 static void exec_java_constructor(const QoreMethod& meth, BaseMethod* m, QoreObject* self, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
@@ -133,7 +138,38 @@ static QoreNamespace* jni_find_create_namespace(QoreNamespace& jns, const char* 
     return ns;
 }
 
+void QoreJniClassMap::staticInitBackground(ExceptionSink* xsink, void* pgm) {
+    // set program context for initialization
+    QoreProgramContextHelper pgm_ctx(static_cast<QoreProgram*>(pgm));
+
+    // ensure that the parent thread is signaled on exit
+    InitSignaler signaler;
+    try {
+        qjcm.initBackground();
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+    }
+}
+
 void QoreJniClassMap::init() {
+    // grab init mutex
+    std::unique_lock<std::mutex> init_lock(init_mutex);
+
+    // issue #3199: perform initialization in the background
+    ExceptionSink xsink;
+    q_start_thread(&xsink, &staticInitBackground, getProgram());
+    //std::thread init_thread(&QoreJniClassMap::initBackground, &qjcm);
+
+    // wait for initialization to complete
+    init_cond.wait(init_lock);
+
+    // if the background thread threw an exception, then rethrow it here
+    if (xsink) {
+        throw XsinkException(xsink);
+    }
+}
+
+void QoreJniClassMap::initBackground() {
     // create java.lang namespace with automatic class loader handler
     QoreNamespace* javans = new QoreNamespace("java");
     QoreNamespace* langns = new QoreNamespace("lang");

@@ -49,28 +49,28 @@ constexpr int LogLevel = 10;
  */
 class Exception : public AbstractException {
 public:
-   /**
-    * \brief Default virtual destructor.
-    */
-   virtual ~Exception() = default;
+    /**
+     * \brief Default virtual destructor.
+     */
+    virtual ~Exception() = default;
 
-   /**
-    * \brief ignore the exception
-    */
-   virtual void ignore() = 0;
+    /**
+     * \brief ignore the exception
+     */
+    virtual void ignore() = 0;
 
-   Exception(Exception &&) = default;
-   Exception &operator=(Exception &&) = default;
+    Exception(Exception &&) = default;
+    Exception &operator=(Exception &&) = default;
 
 protected:
-   /**
-    * \brief Default constructor.
-    */
-   Exception() = default;
+    /**
+     * \brief Default constructor.
+     */
+    Exception() = default;
 
 private:
-   Exception(const Exception &) = delete;
-   Exception &operator=(const Exception &) = delete;
+    Exception(const Exception &) = delete;
+    Exception &operator=(const Exception &) = delete;
 };
 
 /**

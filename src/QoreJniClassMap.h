@@ -32,6 +32,8 @@
 #include "JniQoreClass.h"
 
 #include <map>
+#include <mutex>
+#include <condition_variable>
 
 DLLLOCAL QoreClass* initJavaArrayClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initQoreInvocationHandlerClass(QoreNamespace& ns);
@@ -203,8 +205,24 @@ protected:
 private:
     // initialization flag
     static bool init_done;
+    static std::mutex init_mutex;
+    static std::condition_variable init_cond;
+    static jni::Exception* init_exception;
+
+    DLLLOCAL static void staticInitBackground(ExceptionSink* xsink, void* pgm);
+
+    DLLLOCAL void initBackground();
 
     DLLLOCAL jarray getJavaArrayIntern(Env& env, const QoreListNode* l, jclass cls);
+
+    class InitSignaler {
+    public:
+        DLLLOCAL ~InitSignaler() {
+            init_cond.notify_one();
+        }
+
+        std::lock_guard<std::mutex> init_guard();
+    };
 };
 
 extern QoreJniClassMap qjcm;
