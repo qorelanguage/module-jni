@@ -35,8 +35,6 @@
 #include "QoreJniThreads.h"
 #include "ModifiedUtf8String.h"
 
-#include <thread>
-
 namespace jni {
 
 // the QoreClass for java::lang::Object
@@ -71,7 +69,6 @@ qore_classid_t CID_ZONEDDATETIME;
 bool QoreJniClassMap::init_done = false;
 std::mutex QoreJniClassMap::init_mutex;
 std::condition_variable QoreJniClassMap::init_cond;
-jni::Exception* QoreJniClassMap::init_exception = nullptr;
 
 QoreJniClassMap qjcm;
 static void exec_java_constructor(const QoreMethod& meth, BaseMethod* m, QoreObject* self, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink);

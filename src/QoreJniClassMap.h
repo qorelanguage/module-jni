@@ -207,7 +207,6 @@ private:
     static bool init_done;
     static std::mutex init_mutex;
     static std::condition_variable init_cond;
-    static jni::Exception* init_exception;
 
     DLLLOCAL static void staticInitBackground(ExceptionSink* xsink, void* pgm);
 
