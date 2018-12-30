@@ -53,7 +53,7 @@
  public class Main inherits QUnit::Test {
      private {
          Counter c(1);
-         any data;
+         auto data;
 
          const TextMsg = "Hello, world!";
      }
@@ -115,6 +115,13 @@
      }
  }
     @endcode
+
+    @section jniinit JVM Initialization
+
+    The JVM is initialized when the module is loaded.  It is possible to disable JIT when the module is loaded,
+    however the module is loaded an initialized before module parse commands are processed, therefore to tell the
+    module to disable JIT, the following environment variable must be set to \c 1:
+    - <tt>QORE_JNI_DISABLE_JIT=1</tt>
 
     @section jniimport Importing Java APIs
 
