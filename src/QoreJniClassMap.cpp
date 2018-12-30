@@ -155,7 +155,6 @@ void QoreJniClassMap::init() {
     // issue #3199: perform initialization in the background
     ExceptionSink xsink;
     q_start_thread(&xsink, &staticInitBackground, getProgram());
-    //std::thread init_thread(&QoreJniClassMap::initBackground, &qjcm);
 
     // wait for initialization to complete
     init_cond.wait(init_lock);
@@ -1016,13 +1015,15 @@ void JniExternalProgramData::addClasspath(const char* path) {
 
 void JniExternalProgramData::setContext(Env& env) {
     QoreProgram* pgm = getProgram();
-    assert(pgm);
-    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
-    // issue #3153: no context is available when called from a static method
-    if (jpc) {
-        // set classloader context in new thread
-        env.callVoidMethod(jpc->classLoader, Globals::methodQoreURLClassLoaderSetContext, nullptr);
-        //printd(LogLevel, "JniExternalProgramData::setContext() pgm: %p jpc: %p\n", pgm, jpc);
+    // issue #3199: no program is available when initializing the jni module from the command line
+    if (pgm) {
+        JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+        // issue #3153: no context is available when called from a static method
+        if (jpc) {
+            // set classloader context in new thread
+            env.callVoidMethod(jpc->classLoader, Globals::methodQoreURLClassLoaderSetContext, nullptr);
+            //printd(LogLevel, "JniExternalProgramData::setContext() pgm: %p jpc: %p\n", pgm, jpc);
+        }
     }
 }
 
