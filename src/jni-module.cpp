@@ -238,8 +238,7 @@ static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
 
     try {
         i->second(arg, pgm, jpc);
-    }
-    catch (jni::Exception& e) {
+    } catch (jni::Exception& e) {
         e.convert(xsink);
     }
 }

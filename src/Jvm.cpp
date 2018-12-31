@@ -44,9 +44,25 @@ QoreStringNode* Jvm::createVM() {
     vm_args.ignoreUnrecognized = false;
     vm_args.nOptions = 0;
 
-    JavaVMOption options[1];
+    size_t num_options = 1;
+    bool disable_jit = false;
+    // check QORE_JNI_DISABLE_JIT environment variable
+    {
+        QoreString val;
+        if (!SystemEnvironment::get("QORE_JNI_DISABLE_JIT", val)) {
+            disable_jit = q_parse_bool(val.c_str());
+        }
+        if (disable_jit) {
+            ++num_options;
+        }
+    }
+    JavaVMOption options[num_options];
     // "reduced signals"
     options[vm_args.nOptions++].optionString = (char*)"-Xrs";
+    if (disable_jit) {
+        // disable JIT
+        options[vm_args.nOptions++].optionString = (char*)"-Xint";
+    }
 
     vm_args.options = options;
 
