@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -1123,7 +1123,14 @@ const QoreStackLocation* QoreJniStackLocationHelper::getNext() const {
     }
     checkInit();
     assert(current < size());
-    return (++current < size()) ? this : stack_next;
+    // issue #3169: reset the pointer after iterating all the information in the stack
+    // the exception stack can be iterated multiple times
+    ++current;
+    if (current < size()) {
+        return this;
+    }
+    current = 0;
+    return stack_next;
 }
 
 void QoreJniStackLocationHelper::checkInit() const {
@@ -1160,7 +1167,8 @@ void QoreJniStackLocationHelper::checkInit() const {
                 QoreStringMaker code("%s.%s", cname.c_str(), mname.c_str());
 
                 QoreExternalProgramLocationWrapper loc(file.c_str(), line, line, nullptr, 0, "Java");
-                //printd(5, "QoreJniStackLocationHelper::checkInit() %d/%d %s:%d\n", (int)i, (int)len, loc.getFile(), line);
+                //printd(5, "QoreJniStackLocationHelper::checkInit() %d/%d %s:%d %s::%s()\n", (int)i, (int)len,
+                //    file.c_str(), line, cname.c_str(), mname.c_str());
                 stack_loc.push_back(loc);
                 stack_call.push_back(code.c_str());
                 stack_native.push_back(native);
