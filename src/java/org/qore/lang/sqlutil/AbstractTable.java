@@ -452,7 +452,7 @@ t.tryExec("drop table tmp_table");
         @return any return value from the SQL command executed
      */
     public Object tryExec(String sql) throws Throwable {
-        return obj.callMethod("tryExec");
+        return obj.callMethod("tryExec", sql);
     }
 
     //! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
