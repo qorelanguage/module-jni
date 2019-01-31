@@ -139,8 +139,9 @@ jmethodID Globals::methodThreadCurrentThread;
 jmethodID Globals::methodThreadGetContextClassLoader;
 
 GlobalReference<jclass> Globals::classHashMap;
-jmethodID Globals::ctorHashMap;
-jmethodID Globals::methodHashMapPut;
+GlobalReference<jclass> Globals::classLinkedHashMap;
+jmethodID Globals::ctorLinkedHashMap;
+jmethodID Globals::methodLinkedHashMapPut;
 
 GlobalReference<jclass> Globals::classMap;
 jmethodID Globals::methodMapEntrySet;
@@ -928,8 +929,9 @@ void Globals::init() {
     methodThreadGetContextClassLoader = env.getMethod(classThread, "getContextClassLoader", "()Ljava/lang/ClassLoader;");
 
     classHashMap = env.findClass("java/util/HashMap").makeGlobal();
-    ctorHashMap = env.getMethod(classHashMap, "<init>", "()V");
-    methodHashMapPut = env.getMethod(classHashMap, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+    classLinkedHashMap = env.findClass("java/util/LinkedHashMap").makeGlobal();
+    ctorLinkedHashMap = env.getMethod(classLinkedHashMap, "<init>", "()V");
+    methodLinkedHashMapPut = env.getMethod(classLinkedHashMap, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 
     classMap = env.findClass("java/util/Map").makeGlobal();
     methodMapEntrySet = env.getMethod(classMap, "entrySet", "()Ljava/util/Set;");
@@ -1033,6 +1035,7 @@ void Globals::cleanup() {
     classQoreURLClassLoader = nullptr;
     classThread = nullptr;
     classHashMap = nullptr;
+    classLinkedHashMap = nullptr;
     classMap = nullptr;
     classAbstractList = nullptr;
     classSet = nullptr;

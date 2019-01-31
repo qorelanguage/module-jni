@@ -152,7 +152,7 @@
     This module supports the following compatibility option: \c "compat-types" which, when enabled, will disable the following
     type conversions:
     - Java \c byte[] to \c binary; instead this will converted to \c list<int>
-    - Java \c java.util.HashMap to \c hash; instead this will be converted directly
+    - Java \c java.util.Map to \c hash; instead this will be converted directly
 
     This option can be set globally for all Program objects with <tt>set_module_option("jni", "compat-type", True)</tt> or
     locally for the current Program container with the \c set-compat-type module parse option like:
@@ -200,7 +200,7 @@
     |@ref binary_type "binary"|\c byte[]
     |@ref nothing_type "NOTHING" and @ref null_type "NULL"|\c void
     |@ref list_type "list"|java Arrays of the list type; if no list type can be found, then the Array type is \c java.lang.Object
-    |@ref hash_type "hash"|\c java.util.HashMap, however any type implementing \c java.util.Map that has a constructor that takes no arguments will be constructed / converted automatically to the desired type
+    |@ref hash_type "hash"|\c java.util.LinkedHashMap, however any type implementing \c java.util.Map that has a constructor that takes no arguments and a compatibule \c put() method will be constructed / converted automatically to the desired type
     |@ref Jni::org::qore::jni::JavaArray "JavaArray"|\c java.lang.Array
     |@ref object_type "object"|to the Java class if the Qore object is an instantiation of \c java.lang.Object, otherwise @ref  org.qore.jni.QoreObject
     |all \c jni objects|direct conversion
