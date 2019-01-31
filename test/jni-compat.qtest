@@ -98,6 +98,6 @@ public class Main inherits QUnit::Test {
         assertEq("HashMap", l[0].className());
 
         auto hm = QoreJavaApiTest::callFunctionTest();
-        assertEq("object<HashMap>", hm.fullType());
+        assertEq("object<LinkedHashMap>", hm.fullType());
     }
 }
