@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -66,7 +66,7 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
         return obj->refSelf();
     }
 
-    if (env.isInstanceOf(v, Globals::classHashMap) && !JniExternalProgramData::compatTypes()) {
+    if (env.isInstanceOf(v, Globals::classMap) && !JniExternalProgramData::compatTypes()) {
         // create hash from Map
         LocalReference<jobject> set = env.callObjectMethod(v,
             Globals::methodMapEntrySet, nullptr);

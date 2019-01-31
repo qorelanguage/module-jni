@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -51,9 +51,10 @@ QoreStringNode* Jvm::createVM() {
         QoreString val;
         if (!SystemEnvironment::get("QORE_JNI_DISABLE_JIT", val)) {
             disable_jit = q_parse_bool(val.c_str());
-        }
-        if (disable_jit) {
-            ++num_options;
+            if (disable_jit) {
+                ++num_options;
+                //printd(5, "jni module: disabling JIT\n");
+            }
         }
     }
     JavaVMOption options[num_options];

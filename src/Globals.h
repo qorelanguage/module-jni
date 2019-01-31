@@ -143,8 +143,9 @@ public:
     static jmethodID methodThreadGetContextClassLoader;                  // ClassLoader Thread.getContextClassLoader()
 
     static GlobalReference<jclass> classHashMap;                         // java.util.HashMap
-    static jmethodID ctorHashMap;                                        // HashMap()
-    static jmethodID methodHashMapPut;                                   // Object HashMap.put(Object K, Object V)
+    static GlobalReference<jclass> classLinkedHashMap;                   // java.util.LinkedHashMap
+    static jmethodID ctorLinkedHashMap;                                  // LinkedHashMap()
+    static jmethodID methodLinkedHashMapPut;                             // Object LinkedHashMap.put(Object K, Object V)
 
     static GlobalReference<jclass> classMap;                             // java.util.Map
     static jmethodID methodMapEntrySet;                                  // Set<Map.Entry<K,V>> Map.entrySet()

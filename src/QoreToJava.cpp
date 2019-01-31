@@ -109,7 +109,7 @@ jobject QoreToJava::toAnyObject(const QoreValue& value) {
             }
         }
         case NT_HASH: {
-            return makeMap(*value.get<QoreHashNode>(), Globals::classHashMap);
+            return makeMap(*value.get<QoreHashNode>(), Globals::classLinkedHashMap);
         }
         case NT_BINARY: {
             return makeByteArray(*value.get<BinaryNode>());
@@ -244,13 +244,16 @@ jobject QoreToJava::makeMap(const QoreHashNode& h, jclass cls) {
 
     // get constructor for class
     jmethodID ctor;
+    jmethodID put;
     try {
         ctor = env.getMethod(cls, "<init>", "()V");
+        put = env.getMethod(cls, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
     } catch (jni::Exception& e) {
         e.ignore();
-        // try HashMap
-        cls = Globals::classHashMap;
-        ctor = Globals::ctorHashMap;
+        // try LinkedHashMap
+        cls = Globals::classLinkedHashMap;
+        ctor = Globals::ctorLinkedHashMap;
+        put = Globals::methodLinkedHashMapPut;
     }
 
     LocalReference<jobject> hm = env.newObject(cls, ctor, nullptr);
@@ -265,7 +268,7 @@ jobject QoreToJava::makeMap(const QoreHashNode& h, jclass cls) {
         jargs[0].l = key;
         jargs[1].l = value;
 
-        env.callObjectMethod(hm, Globals::methodHashMapPut, &jargs[0]);
+        env.callObjectMethod(hm, put, &jargs[0]);
     }
 
     return hm.release();
