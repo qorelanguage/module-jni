@@ -65,7 +65,7 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t bas
             jargs[index].l = Array::toObjectArray(args, ccls, index).release();
             break;
         }
-        assert(!args || (index < argCount));
+        assert(!args || args->empty() || (index < argCount));
         QoreValue qv = args ? args->retrieveEntry(index + base) : QoreValue();
 
         switch (paramTypes[index].first) {

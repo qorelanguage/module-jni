@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -63,6 +63,11 @@ QoreValue QoreJniFunctionalInterface::execValue(const QoreListNode* args, Except
         if (*xsink) {
             return QoreValue();
         }
+
+        // make sure that the Qore exception stack is populated correctly in case a Qore exception is thrown
+        // from the Java code about to be called below
+        QoreJniStackLocationHelper slh;
+        // make the call
         return method->isStatic() ? method->invokeStatic(*evaluated_args) : method->invoke(obj, *evaluated_args);
     } catch (jni::Exception& e) {
         e.convert(xsink);
