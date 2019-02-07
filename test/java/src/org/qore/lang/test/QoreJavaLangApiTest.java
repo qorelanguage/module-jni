@@ -211,15 +211,16 @@ public class QoreJavaLangApiTest {
             test.testAssertion("my-test", () -> { return false; }, new TestResultFailure());
             test.testAssertion("my-test", () -> { return 1; }, new TestResultValue(1));
             {
-                // must be an array of an array due to the way argument handling works
                 Object[] args = new Object[1];
                 args[0] = 1;
-                Object[] top_args = new Object[1];
-                top_args[0] = args;
-                test.testAssertion("my-test", (Object... lambda_args) -> { return lambda_args[0]; }, top_args, new TestResultValue(1));
+                test.testAssertion("my-test", (Object... lambda_args) -> { return lambda_args[0]; }, args, new TestResultValue(1));
             }
 
             test.assertThrows("JNI-ERROR", "Error", () -> { throw new Throwable("Error"); });
+            test.testAssertion("my-test", () -> { throw new Throwable("Error"); }, new TestResultExceptionType("JNI-ERROR"));
+            test.testAssertion("my-test", () -> { throw new Throwable("Error"); }, new TestResultExceptionDetail("JNI-ERROR", "java.lang.Throwable: Error"));
+            test.testAssertion("my-test", () -> { throw new Throwable("Error"); }, new TestResultExceptionRegexp("JNI-ERROR", "Error"));
+            test.testAssertion("my-test", () -> { throw new Throwable("Error"); }, new TestResultExceptionSubstring("JNI-ERROR", "Error"));
         };
         test.addTestCase("my test", code);
         test.main();
