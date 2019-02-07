@@ -205,16 +205,21 @@ public class QoreJavaLangApiTest {
             test.assertLtSoft(2, "1");
             test.assertLe(2, 1);
             test.assertLeSoft(2, "1");
-        };
-        test.addTestCase("my test", code);
-        test.main();
-    }
 
-    static void doTestError() throws Throwable {
-        Test test = new Test("JniTest", "1.0");
+            test.testAssertion("my-test", () -> { return true; });
+            test.testAssertion("my-test", () -> { return true; }, new TestResultSuccess());
+            test.testAssertion("my-test", () -> { return false; }, new TestResultFailure());
+            test.testAssertion("my-test", () -> { return 1; }, new TestResultValue(1));
+            {
+                // must be an array of an array due to the way argument handling works
+                Object[] args = new Object[1];
+                args[0] = 1;
+                Object[] top_args = new Object[1];
+                top_args[0] = args;
+                test.testAssertion("my-test", (Object... lambda_args) -> { return lambda_args[0]; }, top_args, new TestResultValue(1));
+            }
 
-        TestCode code = () -> {
-            test.assertTrue(false);
+            test.assertThrows("JNI-ERROR", "Error", () -> { throw new Throwable("Error"); });
         };
         test.addTestCase("my test", code);
         test.main();

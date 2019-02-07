@@ -71,7 +71,6 @@ QoreValue QoreJniFunctionalInterface::execValue(const QoreListNode* args, Except
         return method->isStatic() ? method->invokeStatic(*evaluated_args) : method->invoke(obj, *evaluated_args);
     } catch (jni::Exception& e) {
         e.convert(xsink);
-        QoreToJava::wrapException(*xsink);
         return QoreValue();
     }
 }

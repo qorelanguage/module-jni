@@ -16,6 +16,16 @@ import java.math.BigDecimal;
 
 //! Base class (wrapping the %Qore QUnit::Test class) representing a simple test, implements an implicit main() method and all utility methods for testing
 public class Test extends QoreObjectWrapper {
+    // static initialization
+    static {
+        // load the QUnit module
+        try {
+            QoreJavaApi.callFunction("load_module", "QUnit");
+        } catch (Throwable e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
+
     //! creates the object based on the given Qore object
     protected Test(QoreObject obj) throws Throwable {
         super(obj);
@@ -826,6 +836,134 @@ assertSkip("assertion name or reason to skip");
      */
     public void assertSkip(String name) throws Throwable {
         obj.callMethod("assertSkip", name);
+    }
+
+    //! Fails the test unconditionally
+    /** @par Example:
+        @code{.java}
+fail("Unexpected code executed");
+        @endcode
+
+        @param msg the failure message
+     */
+    public void fail(String msg) throws Throwable {
+        obj.callMethod("fail", msg);
+    }
+
+    //! Tests for a single assertion for a call returning no value (for example, to ensure that the call does not throw an exception)
+    /**
+        @param name the name or description of the assertion
+        @param condition A test function whose result we are asserting
+        @param args Arguments passed to condition
+
+        @return the result of the \a condition call, if the immediate value has any further use
+     */
+    public void testNullAssertion(String name, TestConditionArgs condition, Object... args) throws Throwable {
+        obj.callMethod("testNullAssertion", name, condition, (Object)args);
+    }
+
+    //! Tests for a single assertion for a call returning an integer value and returns the value generated
+    /**
+        @param name the name or description of the assertion
+        @param condition A test function whose result we are asserting
+        @param args Arguments passed to condition
+        @param expectedResultValue the expected value
+
+        @return the result of the \a condition call, if the immediate value has any further use
+     */
+    public Object testAssertion(String name, TestConditionArgs condition, Object[] args, Object expectedResultValue) throws Throwable {
+        return obj.callMethod("testAssertion", name, condition, (Object)args, expectedResultValue);
+    }
+
+    //! Tests for a single assertion for a call returning no value (for example, to ensure that the call does not throw an exception)
+    /**
+        @param name the name or description of the assertion
+        @param condition A test function whose result we are asserting
+
+        @return the result of the \a condition call, if the immediate value has any further use
+     */
+    public void testNullAssertion(String name, TestCondition condition) throws Throwable {
+        obj.callMethod("testNullAssertion", name, condition);
+    }
+
+    //! Tests for a single assertion for a call returning an integer value and returns the value generated
+    /**
+        @param name the name or description of the assertion
+        @param condition A test function whose result we are asserting
+        @param expectedResultValue the expected value
+
+        @return the result of the \a condition call, if the immediate value has any further use
+     */
+    public Object testAssertion(String name, TestCondition condition, Object expectedResultValue) throws Throwable {
+        return obj.callMethod("testAssertion", name, condition, null, expectedResultValue);
+    }
+
+    //! Tests for a single assertion and returns the value generated
+    /**
+     * @param name the name or description of the assertion
+     * @param condition A test function whose result we are asserting
+     * @param args Arguments passed to condition
+     * @param expectedResult A class describing the expected result of condition; the default is QUnit::TestResultSuccess
+     *
+     * @return the result of the \a condition call, if the immediate value has any further use
+     */
+    public Object testAssertion(String name, TestConditionArgs condition, Object[] args, AbstractTestResult expectedResult) throws Throwable {
+        return obj.callMethod("testAssertion", name, condition, (Object)args, expectedResult.getQoreObject());
+    }
+
+    //! Tests for a single assertion and returns the value generated
+    /**
+     * @param name the name or description of the assertion
+     * @param condition A test function whose result we are asserting
+     * @param args Arguments passed to condition
+     *
+     * @return the result of the \a condition call, if the immediate value has any further use
+     */
+    public Object testAssertion(String name, TestConditionArgs condition, Object[] args) throws Throwable {
+        return obj.callMethod("testAssertion", name, condition, (Object)args);
+    }
+
+    //! Tests for a single assertion and returns the value generated
+    /**
+     * @param name the name or description of the assertion
+     * @param condition A test function whose result we are asserting
+     * @param expectedResult A class describing the expected result of condition; the default is QUnit::TestResultSuccess
+     *
+     * @return the result of the \a condition call, if the immediate value has any further use
+     */
+    public Object testAssertion(String name, TestCondition condition, AbstractTestResult expectedResult) throws Throwable {
+        return obj.callMethod("testAssertion", name, condition, null, expectedResult.getQoreObject());
+    }
+
+    //! Tests for a single assertion and returns the value generated
+    /**
+     * @param name the name or description of the assertion
+     * @param condition A test function whose result we are asserting
+     *
+     * @return the result of the \a condition call, if the immediate value has any further use
+     */
+    public Object testAssertion(String name, TestCondition condition) throws Throwable {
+        return obj.callMethod("testAssertion", name, condition);
+    }
+
+    //! Skips a given test, eg. because it may be missing some dependencies.
+    /**
+     * @param reason The reason for the test skip; used as the format argument with @ref Qore::vsprintf() "vsprintf()"
+     * with any remaining arguments
+     */
+    public void testSkip(String reason, Object... args) throws Throwable {
+        Object[] new_args = new Object[args.length + 1];
+        new_args[0] = reason;
+        System.arraycopy(args, 0, new_args, 1, args.length);
+        obj.callMethodArgs("testSkip", new_args);
+    }
+
+    //! Skips a given test, eg. because it may be missing some dependencies.
+    /**
+     * @param reason The reason for the test skip
+     */
+    public void testSkip(String reason) throws Throwable {
+        obj.callMethod("testSkip", reason);
     }
 
     //! Compare two values for equality
