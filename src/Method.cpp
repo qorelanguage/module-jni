@@ -56,8 +56,10 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t bas
 
     std::vector<jvalue> jargs(paramCount);
     for (size_t index = 0; index < paramCount; ++index) {
-        // process varargs with remaining arguments if appropriate
-        if (doVarArgs && (argCount > paramCount) && (index == (paramCount - 1))) {
+        // process varargs with remaining arguments or with a single argument if appropriate
+        if (doVarArgs && (index == (paramCount - 1))
+            && ((argCount > paramCount)
+                || (argCount == paramCount && !index && argCount == 1 && args->retrieveEntry(0).getType() != NT_LIST))) {
             // get array component type
             Env env;
             LocalReference<jclass> ccls = env.callObjectMethod(paramTypes[index].second,
