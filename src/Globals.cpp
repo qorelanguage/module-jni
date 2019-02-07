@@ -315,8 +315,7 @@ static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong 
 
     try {
         return QoreToJava::toAnyObject(*rv);
-    }
-    catch (jni::Exception& e) {
+    } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(xsink);
         return nullptr;

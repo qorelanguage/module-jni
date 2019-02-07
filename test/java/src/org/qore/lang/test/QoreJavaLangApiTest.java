@@ -3,6 +3,7 @@ package org.qore.lang.test;
 import org.qore.lang.*;
 import org.qore.lang.sqlutil.*;
 import org.qore.lang.bulksqlutil.*;
+import org.qore.lang.qunit.*;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -184,5 +185,43 @@ public class QoreJavaLangApiTest {
             }
         };
         return table.selectRow(sh);
+    }
+
+    static void doTests() throws Throwable {
+        Test test = new Test("JniTest", "1.0");
+
+        TestCode code = () -> {
+            test.assertTrue(true);
+            test.assertFalse(false);
+            test.assertEq(1, 1);
+            test.assertEqSoft(1, "1");
+            test.assertNeq(1, 2);
+            test.assertNeqSoft(1, "2");
+            test.assertGt(1, 2);
+            test.assertGtSoft(1, "2");
+            test.assertGe(1, 2);
+            test.assertGeSoft(1, "2");
+            test.assertLt(2, 1);
+            test.assertLtSoft(2, "1");
+            test.assertLe(2, 1);
+            test.assertLeSoft(2, "1");
+
+            test.testAssertion("my-test", () -> { return true; });
+            test.testAssertion("my-test", () -> { return true; }, new TestResultSuccess());
+            test.testAssertion("my-test", () -> { return false; }, new TestResultFailure());
+            test.testAssertion("my-test", () -> { return 1; }, new TestResultValue(1));
+            {
+                // must be an array of an array due to the way argument handling works
+                Object[] args = new Object[1];
+                args[0] = 1;
+                Object[] top_args = new Object[1];
+                top_args[0] = args;
+                test.testAssertion("my-test", (Object... lambda_args) -> { return lambda_args[0]; }, top_args, new TestResultValue(1));
+            }
+
+            test.assertThrows("JNI-ERROR", "Error", () -> { throw new Throwable("Error"); });
+        };
+        test.addTestCase("my test", code);
+        test.main();
     }
 }

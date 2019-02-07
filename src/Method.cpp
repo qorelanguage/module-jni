@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -65,7 +65,7 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t bas
             jargs[index].l = Array::toObjectArray(args, ccls, index).release();
             break;
         }
-        assert(!args || (index < argCount));
+        assert(!args || args->empty() || (index < argCount));
         QoreValue qv = args ? args->retrieveEntry(index + base) : QoreValue();
 
         switch (paramTypes[index].first) {
