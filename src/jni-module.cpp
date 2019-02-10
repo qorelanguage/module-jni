@@ -195,7 +195,7 @@ static QoreStringNode* jni_module_init() {
     }
 
     qore_set_module_option("jni", "jni-version", JNI_VERSION_1_8);
-    printf("jni module init done\n");
+    //printd(5, "jni_module_init() jni module init done\n");
     return nullptr;
 }
 
