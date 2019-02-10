@@ -1,7 +1,7 @@
 /** Qorus Java SqlStatementOutboundMapper class
  *
  */
-package org.qore.lang.mapper;
+package org.qore.lang.tablemapper;
 
 // qorus imports
 import org.qore.lang.tablemapper.AbstractSqlStatementOutboundMapper;
