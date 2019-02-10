@@ -122,6 +122,7 @@ static QoreStringNode* jni_module_init() {
     if (jvm_ptr->getType() == NT_INT) {
         jni::Jvm::setVmPtr(reinterpret_cast<JavaVM*>(jvm_ptr->getAsBigInt()));
         already_initialized = true;
+        Globals::setAlreadyInitialized();
     } else {
         already_initialized = false;
         try {

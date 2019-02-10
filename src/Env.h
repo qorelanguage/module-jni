@@ -73,7 +73,7 @@ public:
     * \return a local reference to the class object
     * \throws JavaException if the class cannot be found
     */
-   DLLLOCAL LocalReference<jclass> findClass(const char *name) {
+   DLLLOCAL LocalReference<jclass> findClass(const char* name) {
       jclass c = env->FindClass(name);
       if (c == nullptr) {
          throw JavaException();
@@ -89,7 +89,7 @@ public:
     * \return field id
     * \throws JavaException if the field cannot be found
     */
-   DLLLOCAL jfieldID getField(jclass cls, const char *name, const char *descriptor) {
+   DLLLOCAL jfieldID getField(jclass cls, const char* name, const char* descriptor) {
       jfieldID id = env->GetFieldID(cls, name, descriptor);
       if (id == nullptr) {
          throw JavaException();
@@ -105,7 +105,7 @@ public:
     * \return field id
     * \throws JavaException if the field cannot be found
     */
-   DLLLOCAL jfieldID getStaticField(jclass cls, const char *name, const char *descriptor) {
+   DLLLOCAL jfieldID getStaticField(jclass cls, const char* name, const char* descriptor) {
       jfieldID id = env->GetStaticFieldID(cls, name, descriptor);
       if (id == nullptr) {
          throw JavaException();
@@ -121,7 +121,7 @@ public:
     * \return method id
     * \throws JavaException if the method cannot be found
     */
-   DLLLOCAL jmethodID getMethod(jclass cls, const char *name, const char *descriptor) {
+   DLLLOCAL jmethodID getMethod(jclass cls, const char* name, const char* descriptor) {
       jmethodID id = env->GetMethodID(cls, name, descriptor);
       if (id == nullptr) {
          throw JavaException();
@@ -137,7 +137,7 @@ public:
     * \return method id
     * \throws JavaException if the method cannot be found
     */
-   DLLLOCAL jmethodID getStaticMethod(jclass cls, const char *name, const char *descriptor) {
+   DLLLOCAL jmethodID getStaticMethod(jclass cls, const char* name, const char* descriptor) {
       jmethodID id = env->GetStaticMethodID(cls, name, descriptor);
       if (id == nullptr) {
          throw JavaException();
@@ -1015,7 +1015,7 @@ public:
         return ret;
     }
 
-    DLLLOCAL LocalReference<jstring> newString(const char *utf8) {
+    DLLLOCAL LocalReference<jstring> newString(const char* utf8) {
         jstring s = env->NewStringUTF(utf8);
         if (s == nullptr) {
             throw JavaException();
@@ -1293,11 +1293,11 @@ public:
         env->Throw(throwable);
     }
 
-    DLLLOCAL void throwNew(jclass cls, const char *msg) {
+    DLLLOCAL void throwNew(jclass cls, const char* msg) {
         env->ThrowNew(cls, msg);
     }
 
-    DLLLOCAL LocalReference<jclass> defineClass(const char *name, jobject loader, const unsigned char *buf, jsize bufLen) {
+    DLLLOCAL LocalReference<jclass> defineClass(const char* name, jobject loader, const unsigned char* buf, jsize bufLen) {
         jclass c = env->DefineClass(name, loader, reinterpret_cast<const jbyte*>(buf), bufLen);
         if (c == nullptr) {
             throw JavaException();
@@ -1310,11 +1310,11 @@ public:
         we define a class if we are doing a clean initialization, otherwise if we have been initialized from Java, then
         the class already exists, so we look for it first
     */
-    DLLLOCAL LocalReference<jclass> findDefineClass(const char *name, jobject loader, const unsigned char *buf, jsize bufLen) {
+    DLLLOCAL LocalReference<jclass> findDefineClass(const char* name, jobject loader, const unsigned char* buf, jsize bufLen) {
         jclass c = env->FindClass(name);
-        if (c == nullptr) {
+        if (!c) {
             c = env->DefineClass(name, loader, reinterpret_cast<const jbyte*>(buf), bufLen);
-            if (c == nullptr) {
+            if (!c) {
                 throw JavaException();
             }
         }
@@ -1323,7 +1323,7 @@ public:
 
     class GetStringUtfChars {
     public:
-        DLLLOCAL GetStringUtfChars(Env &env, const LocalReference<jstring> &str) :
+        DLLLOCAL GetStringUtfChars(Env &env, const LocalReference<jstring>& str) :
             env(env), str(str),
             chars(str ? env.env->GetStringUTFChars(str, nullptr): nullptr) {
             if (str && chars == nullptr) {
@@ -1336,14 +1336,14 @@ public:
                 env.env->ReleaseStringUTFChars(str, chars);
         }
 
-        DLLLOCAL const char *c_str() const {
+        DLLLOCAL const char* c_str() const {
             return chars ? chars : "";
         }
 
     private:
         Env &env;
         const LocalReference<jstring> &str;
-        const char *chars;
+        const char* chars;
     };
 
 private:
