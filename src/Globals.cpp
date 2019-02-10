@@ -36,8 +36,6 @@
 #include "Array.h"
 #include "QoreToJava.h"
 
-#include <dlfcn.h>
-
 namespace jni {
 
 // Qore initialization flag
