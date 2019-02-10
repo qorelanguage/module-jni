@@ -148,13 +148,18 @@ void QoreJniClassMap::staticInitBackground(ExceptionSink* xsink, void* pgm) {
     }
 }
 
-void QoreJniClassMap::init() {
+void QoreJniClassMap::init(bool already_initialized) {
+    if (already_initialized) {
+        qjcm.initBackground();
+        return;
+    }
     // grab init mutex
     std::unique_lock<std::mutex> init_lock(init_mutex);
 
     // issue #3199: perform initialization in the background
     ExceptionSink xsink;
-    q_start_thread(&xsink, &staticInitBackground, getProgram());
+    QoreProgram* pgm = getProgram();
+    q_start_thread(&xsink, &staticInitBackground, pgm);
 
     // wait for initialization to complete
     init_cond.wait(init_lock);
@@ -970,9 +975,17 @@ JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni) : jni(n_jni
     assert(jni);
     Env env(false);
 
+    // get Program context
+    QoreProgram* pgm = getProgram();
+    // issue #3310: if there is no Program context - for example, if we are being called from a pure Java context -
+    // create one to provide Qore functionality to Java
+    if (!pgm) {
+        pgm = jni_get_create_program(env);
+    }
+
     // set up QoreURLClassLoader constructor args
     jvalue jarg;
-    jarg.j = (long)getProgram();
+    jarg.j = reinterpret_cast<long>(pgm);
     assert(jarg.j);
 
     // create our custom classloader

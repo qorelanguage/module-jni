@@ -11,12 +11,26 @@ import java.util.Collections;
 // jni module imports
 import org.qore.jni.QoreObject;
 import org.qore.jni.QoreObjectWrapper;
+import org.qore.jni.QoreJavaApi;
 
 // Qore Java imports
 import org.qore.lang.AbstractDatasource;
 
 //! Java wrapper for the @ref SqlUtil::AbstractSqlUtilBase class in %Qore
+/** @note Loads and initializes the Qore library and the jni module in static initialization if necessary
+ */
 public class AbstractSqlUtilBase extends QoreObjectWrapper {
+    // static initialization
+    static {
+        // loads and initializes the Qore library and the jni module (if necessary) and loads the \c SqlUtil module
+        try {
+            QoreJavaApi.initQore();
+            QoreJavaApi.callFunction("load_module", "SqlUtil");
+        } catch (Throwable e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
+
     //! creates the object from a weak reference to the Qore object
     public AbstractSqlUtilBase(QoreObject obj) {
         super(obj);

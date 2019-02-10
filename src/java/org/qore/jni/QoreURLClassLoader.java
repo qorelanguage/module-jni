@@ -59,20 +59,14 @@ public class QoreURLClassLoader extends URLClassLoader {
             return rv;
         }
         return super.findClass(name);
-        /*
-        try {
-            rv = super.findClass(name);
-            //debugLog("findClass: " + name + " got: " + rv);
-            return rv;
-        } catch (ClassNotFoundException e) {
-            //debugLog("findClass: " + name + ": no class found");
-            throw e;
-        }
-        */
     }
 
     public static long getProgramPtr() {
         return current.get().pgm_ptr;
+    }
+
+    public static void setProgramPtr(long ptr) {
+        current.get().pgm_ptr = ptr;
     }
 
     public static QoreURLClassLoader getCurrent() {

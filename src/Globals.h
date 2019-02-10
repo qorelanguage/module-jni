@@ -32,12 +32,19 @@
 #define QORE_JNI_GLOBALS_H_
 
 #include "GlobalReference.h"
+#include "Env.h"
+
+DLLLOCAL QoreStringNode* jni_module_init_intern();
 
 namespace jni {
 
 enum class Type {
     Void, Boolean, Byte, Char, Short, Int, Long, Float, Double, Reference
 };
+
+DLLLOCAL extern bool jni_qore_init;
+DLLLOCAL void jni_delete_pgm(ExceptionSink& xsink);
+DLLLOCAL QoreProgram* jni_get_create_program(Env& env);
 
 class Globals {
 

@@ -4,7 +4,7 @@
 package org.qore.lang.bulksqlutil;
 
 // jni module imports
-//import org.qore.jni.QoreJavaApi;
+import org.qore.jni.QoreJavaApi;
 import org.qore.jni.QoreObject;
 import org.qore.jni.QoreObjectWrapper;
 
@@ -66,8 +66,20 @@ try {
       emulated with single SQL operations; in such cases performance will be reduced.  Call
       @ref SqlUtil::AbstractTable::hasArrayBind() to check at runtime if the driver supports
       bulk SQL operations.
-*/
+    - loads and initializes the Qore library and the jni module in static initialization if necessary
+ */
 public class AbstractBulkOperation extends QoreObjectWrapper {
+    // static initialization
+    static {
+        // loads and initializes the Qore library and the jni module (if necessary) and loads the \c BulkSqlUtil module
+        try {
+            QoreJavaApi.initQore();
+            QoreJavaApi.callFunction("load_module", "BulkSqlUtil");
+        } catch (Throwable e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
+
     //! creates a new AbstractBulkOperation object wrapping the Qore object
     public AbstractBulkOperation(QoreObject obj) throws Throwable {
         super(obj);

@@ -13,7 +13,19 @@ import org.qore.jni.QoreObjectWrapper;
 import org.qore.jni.QoreJavaApi;
 
 //! Java wrapper for the @ref Qore::HTTPClient class in %Qore
+/** @note Loads and initializes the Qore library and the jni module in static initialization if necessary
+ */
 public class HTTPClient extends QoreObjectWrapper {
+    // static initialization
+    static {
+        // initialize the Qore library if necessary
+        try {
+            QoreJavaApi.initQore();
+        } catch (Throwable e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
+
     //! creates the object
     public HTTPClient(QoreObject ds) {
         super(ds);

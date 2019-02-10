@@ -116,7 +116,7 @@ class QoreJniClassMap : public QoreJniClassMapBase {
 public:
     static QoreJniThreadLock m;
 
-    DLLLOCAL void init();
+    DLLLOCAL void init(bool already_initialized);
 
     DLLLOCAL void destroy(ExceptionSink& xsink);
 

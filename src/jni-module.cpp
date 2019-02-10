@@ -39,6 +39,8 @@
 #include <map>
 #include <vector>
 
+#include <dlfcn.h>
+
 #include "defs.h"
 #include "Jvm.h"
 #include "QoreJniClassMap.h"
@@ -111,22 +113,41 @@ static void jni_thread_cleanup(void*) {
 static QoreStringNode* jni_module_init() {
     printd(LogLevel, "jni_module_init()\n");
 
+    jni::jni_qore_init = true;
+
     QoreStringNode* err = nullptr;
-    try {
-        err = jni::Jvm::createVM();
-    } catch (jni::Exception& e) {
-        ExceptionSink xsink;
-        e.convert(&xsink);
-        const QoreValue desc = xsink.getExceptionDesc();
-        if (desc.getType() == NT_STRING) {
-            err = new QoreStringNode(*desc.get<const QoreStringNode>());
-        } else {
-            err = new QoreStringNode("unknown exception calling Jvm::createVM()");
+
+    ValueHolder jvm_ptr(qore_get_module_option("jni", "jvm-ptr"), nullptr);
+    bool already_initialized;
+    if (jvm_ptr->getType() == NT_INT) {
+        jni::Jvm::setVmPtr(reinterpret_cast<JavaVM*>(jvm_ptr->getAsBigInt()));
+        already_initialized = true;
+    } else {
+        already_initialized = false;
+        try {
+            err = jni::Jvm::createVM();
+        } catch (jni::Exception& e) {
+            ExceptionSink xsink;
+            e.convert(&xsink);
+            const QoreValue desc = xsink.getExceptionDesc();
+            if (desc.getType() == NT_STRING) {
+                err = new QoreStringNode(*desc.get<const QoreStringNode>());
+            } else {
+                err = new QoreStringNode("unknown exception calling Jvm::createVM()");
+            }
+        }
+        if (err) {
+            err->prepend("Could not create the Java Virtual Machine: ");
+            return err;
         }
     }
-    if (err) {
-        err->prepend("Could not create the Java Virtual Machine: ");
-        return err;
+
+    try {
+        Globals::init();
+    } catch (JavaException& e) {
+        return e.toString();
+    } catch (Exception &e) {
+        return new QoreStringNode("JVM initialization failed due to an unknown error");
     }
 
    //printd(5, "jni_module_init() initialized JVM\n");
@@ -153,7 +174,7 @@ static QoreStringNode* jni_module_init() {
     tclist.push(jni_thread_cleanup, nullptr);
 
     try {
-        qjcm.init();
+        qjcm.init(already_initialized);
         //{ QoreString msg("jni_module_init() 1.3\n"); f.write(&msg, nullptr); f.sync(); };
     } catch (jni::Exception& e) {
         // display exception info on the console as an unhandled exception
@@ -173,6 +194,8 @@ static QoreStringNode* jni_module_init() {
         jni_compat_types = true;
     }
 
+    qore_set_module_option("jni", "jni-version", JNI_VERSION_1_8);
+    printf("jni module init done\n");
     return nullptr;
 }
 
@@ -190,6 +213,8 @@ static void jni_module_delete() {
     // clear all objects from stored classes before destroying the JVM (releases all global references)
     {
         ExceptionSink xsink;
+        // delete any Program object
+        jni::jni_delete_pgm(xsink);
         qjcm.destroy(xsink);
     }
     tclist.pop(false);

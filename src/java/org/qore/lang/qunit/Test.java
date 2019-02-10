@@ -15,11 +15,14 @@ import org.qore.lang.qunit.*;
 import java.math.BigDecimal;
 
 //! Base class (wrapping the %Qore QUnit::Test class) representing a simple test, implements an implicit main() method and all utility methods for testing
+/** @note Loads and initializes the Qore library and the jni module in static initialization if necessary
+ */
 public class Test extends QoreObjectWrapper {
     // static initialization
     static {
-        // load the QUnit module
+        // loads and initializes the Qore library and the jni module (if necessary) and loads the \c QUnit module
         try {
+            QoreJavaApi.initQore();
             QoreJavaApi.callFunction("load_module", "QUnit");
         } catch (Throwable e) {
             throw new ExceptionInInitializerError(e);
