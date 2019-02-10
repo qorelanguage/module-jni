@@ -71,13 +71,6 @@ QoreStringNode* Jvm::createVM() {
     if (rc != JNI_OK) {
         return new QoreStringNodeMaker("JNI_CreateJavaVM() failed with error code %d", rc);
     }
-    try {
-        Globals::init();
-    } catch (JavaException& e) {
-        return e.toString();
-    } catch (Exception &e) {
-        return new QoreStringNode("JVM initialization failed due to an unknown error");
-    }
     return 0;
 }
 

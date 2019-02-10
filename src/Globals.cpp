@@ -38,6 +38,11 @@
 
 namespace jni {
 
+// Qore initialization flag
+bool jni_qore_init = false;
+
+bool Globals::already_initialized = false;
+
 GlobalReference<jclass> Globals::classPrimitiveVoid;
 GlobalReference<jclass> Globals::classPrimitiveBoolean;
 GlobalReference<jclass> Globals::classPrimitiveByte;
@@ -218,6 +223,12 @@ jmethodID Globals::methodCharacterCharValue;
 std::string QoreJniStackLocationHelper::jni_no_call_name = "<jni_module_java_no_runtime_stack_info>";
 QoreExternalProgramLocationWrapper QoreJniStackLocationHelper::jni_loc_builtin("<jni_module_unknown>", -1, -1);
 
+// issue #3310: allow Java-only programs to manage a Qore Program object
+#include <mutex>
+static std::mutex jni_pgm_mutex;
+static QoreProgram* jni_pgm = nullptr;
+static QoreExternalProgramContextHelper* jni_pgm_ctx = nullptr;
+
 static void JNICALL invocation_handler_finalize(JNIEnv *, jclass, jlong ptr) {
    delete reinterpret_cast<Dispatcher*>(ptr);
 }
@@ -275,7 +286,58 @@ static int save_object(Env& env, const QoreValue& rv, QoreProgram* pgm, Exceptio
     return 0;
 }
 
-static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong ptr, jboolean save, jstring name, jobjectArray args) {
+void jni_delete_pgm(ExceptionSink& xsink) {
+    if (jni_pgm) {
+        // waits for the Program to terminate
+        jni_pgm->waitForTerminationAndDeref(&xsink);
+        jni_pgm = nullptr;
+    }
+}
+
+QoreProgram* jni_get_create_program_intern(Env& env) {
+    assert(!jni_pgm);
+
+    QoreThreadAttachHelper attach_helper;
+    try {
+        attach_helper.attach();
+        jni_pgm = new QoreProgram;
+        return jni_pgm;
+    } catch (Exception& e) {
+        env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
+        return nullptr;
+    }
+}
+
+QoreProgram* jni_get_create_program(Env& env) {
+    // grab mutex
+    std::unique_lock<std::mutex> init_lock(jni_pgm_mutex);
+
+    return jni_get_create_program_intern(env);
+}
+
+static jlong JNICALL java_api_init_qore(JNIEnv* jenv, jobject obj) {
+    // grab mutex
+    std::unique_lock<std::mutex> init_lock(jni_pgm_mutex);
+
+    if (!jni_pgm) {
+        Env env(jenv);
+        jni_get_create_program_intern(env);
+    }
+
+    // set program context
+    if (!jni_pgm_ctx) {
+        printd(5, "java_api_init_qore() setting pgm context: %p\n", jni_pgm);
+        ExceptionSink xsink;
+        jni_pgm_ctx = new QoreExternalProgramContextHelper(&xsink, jni_pgm);
+    } else {
+        printd(5, "java_api_init_qore() NOT setting pgm context: %p\n", jni_pgm);
+    }
+
+    return reinterpret_cast<jlong>(jni_pgm);
+}
+
+static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong ptr, jboolean save, jstring name,
+    jobjectArray args) {
     Env env(jenv);
     QoreThreadAttachHelper attach_helper;
     try {
@@ -712,6 +774,11 @@ static JNINativeMethod invocationHandlerNativeMethods[2] = {
 
 static JNINativeMethod qoreJavaApiNativeMethods[] = {
     {
+        const_cast<char*>("initQore0"),
+        const_cast<char*>("()J"),
+        reinterpret_cast<void*>(java_api_init_qore)
+    },
+    {
         const_cast<char*>("callFunction0"),
         const_cast<char*>("(JLjava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;"),
         reinterpret_cast<void*>(java_api_call_function)
@@ -815,6 +882,17 @@ static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperNa
 #include "JavaClassQoreJavaApi.inc"
 #include "JavaClassQoreRelativeTime.inc"
 
+// calling Env::FindClass() when the class is not available will cause the class lookup to fail later after we define it
+// therefore we have to only define the class if the java classes have not already been loaded
+LocalReference<jclass> Globals::findDefineClass(Env& env, const char* name, jobject loader, const unsigned char* buf,
+    jsize bufLen) {
+    if (already_initialized) {
+        return env.findDefineClass(name, loader, buf, bufLen);
+    } else {
+        return env.defineClass(name, loader, buf, bufLen);
+    }
+}
+
 void Globals::init() {
     Env env;
 
@@ -830,20 +908,20 @@ void Globals::init() {
     methodStackTraceElementGetMethodName = env.getMethod(classStackTraceElement, "getMethodName", "()Ljava/lang/String;");
     methodStackTraceElementIsNativeMethod = env.getMethod(classStackTraceElement, "isNativeMethod", "()Z");
 
-    classQoreExceptionWrapper = env.defineClass("org/qore/jni/QoreExceptionWrapper", nullptr, java_org_qore_jni_QoreExceptionWrapper_class, java_org_qore_jni_QoreExceptionWrapper_class_len).makeGlobal();
+    classQoreExceptionWrapper = findDefineClass(env, "org/qore/jni/QoreExceptionWrapper", nullptr, java_org_qore_jni_QoreExceptionWrapper_class, java_org_qore_jni_QoreExceptionWrapper_class_len).makeGlobal();
     env.registerNatives(classQoreExceptionWrapper, qoreExceptionWrapperNativeMethods, 2);
     ctorQoreExceptionWrapper = env.getMethod(classQoreExceptionWrapper, "<init>", "(J)V");
     methodQoreExceptionWrapperGet = env.getMethod(classQoreExceptionWrapper, "get", "()J");
 
-    classQoreObject = env.defineClass("org/qore/jni/QoreObject", nullptr, java_org_qore_jni_QoreObject_class, java_org_qore_jni_QoreObject_class_len).makeGlobal();
+    classQoreObject = findDefineClass(env, "org/qore/jni/QoreObject", nullptr, java_org_qore_jni_QoreObject_class, java_org_qore_jni_QoreObject_class_len).makeGlobal();
     env.registerNatives(classQoreObject, qoreObjectNativeMethods, num_qore_object_native_methods);
     ctorQoreObject = env.getMethod(classQoreObject, "<init>", "(J)V");
     methodQoreObjectGet = env.getMethod(classQoreObject, "get", "()J");
 
-    classQoreObjectWrapper = env.defineClass("org/qore/jni/QoreObjectWrapper", nullptr,
+    classQoreObjectWrapper = findDefineClass(env, "org/qore/jni/QoreObjectWrapper", nullptr,
         java_org_qore_jni_QoreObjectWrapper_class, java_org_qore_jni_QoreObjectWrapper_class_len).makeGlobal();
 
-    classQoreClosureMarker = env.defineClass("org/qore/jni/QoreClosureMarker", nullptr,
+    classQoreClosureMarker = findDefineClass(env, "org/qore/jni/QoreClosureMarker", nullptr,
         java_org_qore_jni_QoreClosureMarker_class, java_org_qore_jni_QoreClosureMarker_class_len).makeGlobal();
 
     classPrimitiveVoid = getPrimitiveClass(env, "java/lang/Void");
@@ -898,12 +976,12 @@ void Globals::init() {
     methodConstructorGetModifiers = env.getMethod(classConstructor, "getModifiers", "()I");
     methodConstructorIsVarArgs = env.getMethod(classConstructor, "isVarArgs", "()Z");
 
-    classQoreInvocationHandler = env.defineClass("org/qore/jni/QoreInvocationHandler", nullptr, java_org_qore_jni_QoreInvocationHandler_class, java_org_qore_jni_QoreInvocationHandler_class_len).makeGlobal();
+    classQoreInvocationHandler = findDefineClass(env, "org/qore/jni/QoreInvocationHandler", nullptr, java_org_qore_jni_QoreInvocationHandler_class, java_org_qore_jni_QoreInvocationHandler_class_len).makeGlobal();
     env.registerNatives(classQoreInvocationHandler, invocationHandlerNativeMethods, 2);
     ctorQoreInvocationHandler = env.getMethod(classQoreInvocationHandler, "<init>", "(J)V");
     methodQoreInvocationHandlerDestroy = env.getMethod(classQoreInvocationHandler, "destroy", "()V");
 
-    classQoreJavaApi = env.defineClass("org/qore/jni/QoreJavaApi", nullptr, java_org_qore_jni_QoreJavaApi_class, java_org_qore_jni_QoreJavaApi_class_len).makeGlobal();
+    classQoreJavaApi = findDefineClass(env, "org/qore/jni/QoreJavaApi", nullptr, java_org_qore_jni_QoreJavaApi_class, java_org_qore_jni_QoreJavaApi_class_len).makeGlobal();
     env.registerNatives(classQoreJavaApi, qoreJavaApiNativeMethods, num_qore_java_api_native_methods);
     methodQoreJavaApiGetStackTrace = env.getStaticMethod(classQoreJavaApi, "getStackTrace", "()[Ljava/lang/StackTraceElement;");
 
@@ -913,7 +991,7 @@ void Globals::init() {
     classClassLoader = env.findClass("java/lang/ClassLoader").makeGlobal();
     methodClassLoaderLoadClass = env.getMethod(classClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
 
-    classQoreURLClassLoader = env.defineClass("org/qore/jni/QoreURLClassLoader", nullptr, java_org_qore_jni_QoreURLClassLoader_class, java_org_qore_jni_QoreURLClassLoader_class_len).makeGlobal();
+    classQoreURLClassLoader = findDefineClass(env, "org/qore/jni/QoreURLClassLoader", nullptr, java_org_qore_jni_QoreURLClassLoader_class, java_org_qore_jni_QoreURLClassLoader_class_len).makeGlobal();
     ctorQoreURLClassLoader = env.getMethod(classQoreURLClassLoader, "<init>", "(J)V");
     methodQoreURLClassLoaderAddPath = env.getMethod(classQoreURLClassLoader, "addPath", "(Ljava/lang/String;)V");
     methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
@@ -921,7 +999,7 @@ void Globals::init() {
     methodQoreURLClassLoaderGetProgramPtr = env.getStaticMethod(classQoreURLClassLoader, "getProgramPtr", "()J");
     methodQoreURLClassLoaderAddPendingClass = env.getMethod(classQoreURLClassLoader, "addPendingClass", "(Ljava/lang/String;[B)V");
 
-    env.defineClass("org/qore/jni/QoreURLClassLoader$1", nullptr, java_org_qore_jni_QoreURLClassLoader_1_class, java_org_qore_jni_QoreURLClassLoader_1_class_len);
+    findDefineClass(env, "org/qore/jni/QoreURLClassLoader$1", nullptr, java_org_qore_jni_QoreURLClassLoader_1_class, java_org_qore_jni_QoreURLClassLoader_1_class_len);
 
     classThread = env.findClass("java/lang/Thread").makeGlobal();
     methodThreadCurrentThread = env.getStaticMethod(classThread, "currentThread", "()Ljava/lang/Thread;");
@@ -954,7 +1032,7 @@ void Globals::init() {
     methodZonedDateTimeParse = env.getStaticMethod(classZonedDateTime, "parse", "(Ljava/lang/CharSequence;)Ljava/time/ZonedDateTime;");
     methodZonedDateTimeToString = env.getMethod(classZonedDateTime, "toString", "()Ljava/lang/String;");
 
-    classQoreRelativeTime = env.defineClass("org/qore/jni/QoreRelativeTime", nullptr, java_org_qore_jni_QoreRelativeTime_class, java_org_qore_jni_QoreRelativeTime_class_len).makeGlobal();
+    classQoreRelativeTime = findDefineClass(env, "org/qore/jni/QoreRelativeTime", nullptr, java_org_qore_jni_QoreRelativeTime_class, java_org_qore_jni_QoreRelativeTime_class_len).makeGlobal();
     ctorQoreRelativeTime = env.getMethod(classQoreRelativeTime, "<init>", "(IIIIIII)V");
     fieldQoreRelativeTimeYear = env.getField(classQoreRelativeTime, "year", "I");
     fieldQoreRelativeTimeMonth = env.getField(classQoreRelativeTime, "month", "I");

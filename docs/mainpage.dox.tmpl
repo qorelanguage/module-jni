@@ -369,6 +369,47 @@ System::out.println("testing...");
     Class myClass = classLoader.loadClass("MyClass");
     @endcode
 
+    @section jni_from_java Using the jni Module From Java
+
+    Java code can use the jni module and Java classes based on %Qore code by calling
+    @ref org.qore.jni.QoreJavaApi.initQore() to initialize the Qore library and the jni module with an existing JVM
+    session.  This requires the platform-dependent \c qore library to be found in a directory set in the
+    \c java.library.path or by setting the \c QORE_LIBRARY environment variable to the absolute path of the \c qore
+    library.
+
+    If neither of these are set, then calling @ref org.qore.jni.QoreJavaApi.initQore() will result in a
+    \c java.lang.UnsatisfiedLinkError exception being raised.
+
+    All Java classes for %Qore support are located in the \c qore-jni.jar file.
+
+    Example Java source:
+    @code{.java}
+import org.qore.lang.qunit.*;
+
+class MyTest {
+    public static void main(String[] args) throws Throwable {
+        Test test = new Test("MyTest", "1.0");
+
+        test.addTestCase("test", () -> doTest(test));
+        test.main();
+    }
+
+    private static void doTest(Test test) throws Throwable {
+        test.assertTrue(true);
+    }
+}
+    @endcode
+
+    Example compilation command:
+    @verbatim
+    javac -cp qore-jni.jar MyTest.java
+    @endverbatim
+
+    Example run command:
+    @verbatim
+    java -Djava.library.path=/usr/local/lib -cp qore-jni.jar:. MyTest
+    @endverbatim
+
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_1_1 jni Module Version 1.1
@@ -403,7 +444,6 @@ System::out.println("testing...");
       - @ref org.qore.lang.bulksqlutil.BulkRowCallback
       - @ref org.qore.lang.bulksqlutil.BulkUpsertOperation
       - @ref org.qore.lang.mapper.Mapper
-      - @ref org.qore.lang.mapper.RawSqlStatementOutboundMapper
       - @ref org.qore.lang.sqlutil.Table
       - @ref org.qore.lang.sqlutil.AbstractTable
       - @ref org.qore.lang.sqlutil.AbstractSqlUtilBase

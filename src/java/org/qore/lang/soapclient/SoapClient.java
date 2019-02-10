@@ -14,11 +14,14 @@ import org.qore.jni.QoreJavaApi;
 import org.qore.lang.*;
 
 //! Java wrapper for the @ref SoapClient::SoapClient class in %Qore
+/** @note Loads and initializes the Qore library and the jni module in static initialization if necessary
+ */
 public class SoapClient extends HTTPClient {
     // static initialization
     static {
         // load the SoapClient module
         try {
+            QoreJavaApi.initQore();
             QoreJavaApi.callFunction("load_module", "SoapClient");
         } catch (Throwable e) {
             throw new ExceptionInInitializerError(e);
