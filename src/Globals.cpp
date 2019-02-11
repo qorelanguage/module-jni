@@ -301,6 +301,13 @@ QoreProgram* jni_get_create_program_intern(Env& env) {
     try {
         attach_helper.attach();
         jni_pgm = new QoreProgram;
+        // ensure that the jni module symbols are loaded into the new Program object
+        ExceptionSink xsink;
+        MM.runTimeLoadModule("jni", jni_pgm, &xsink);
+        if (xsink) {
+            QoreToJava::wrapException(xsink);
+            return nullptr;
+        }
         return jni_pgm;
     } catch (Exception& e) {
         env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
