@@ -198,6 +198,7 @@ jclass Array::getClassForValue(QoreValue v) {
         case NT_DATE: return Globals::classZonedDateTime.toLocal();
         case NT_NUMBER: return Globals::classBigDecimal.toLocal();
         case NT_HASH: return Globals::classLinkedHashMap.toLocal();
+        case NT_LIST: return Globals::classObject.toLocal();
         case NT_OBJECT: {
             QoreObject* o = v.get<QoreObject>();
             ExceptionSink xsink;
