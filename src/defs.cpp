@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 #include "LocalReference.h"
 #include "Globals.h"
 #include "QoreJniClassMap.h"
+#include "JavaToQore.h"
 
 namespace jni {
 
@@ -162,12 +163,35 @@ void JavaException::convert(ExceptionSink *xsink) {
     if (env->IsInstanceOf(throwable, Globals::classQoreExceptionWrapper)) {
         jlong l = env->CallLongMethod(throwable, Globals::methodQoreExceptionWrapperGet);
         if (l != 0) {
-            ExceptionSink *src = reinterpret_cast<ExceptionSink *>(l);
+            ExceptionSink* src = reinterpret_cast<ExceptionSink *>(l);
             xsink->assimilate(src);
             return;
         }
         //if l is zero, it means that the xsink wrapped in QoreExceptionWrapper has already been consumed. This should
         //not happen, but if it does, we simply report the QoreExceptionWrapper as if it was a normal Java exception
+    }
+
+    if (env->IsInstanceOf(throwable, Globals::classQoreException)) {
+        LocalReference<jstring> err = static_cast<jstring>(env->CallObjectMethod(throwable,
+            Globals::methodQoreExceptionGetErr));
+        LocalReference<jstring> desc = static_cast<jstring>(env->CallObjectMethod(throwable,
+            Globals::methodQoreExceptionGetDesc));
+        LocalReference<jobject> arg = static_cast<jstring>(env->CallObjectMethod(throwable,
+            Globals::methodQoreExceptionGetArg));
+
+        const char* err_str = env->GetStringUTFChars(err, nullptr);
+        const char* desc_str = env->GetStringUTFChars(desc, nullptr);
+
+        QoreValue qore_arg;
+        if (arg) {
+            qore_arg = JavaToQore::convertToQore(arg.release());
+        }
+
+        QoreExternalProgramLocationWrapper loc;
+        JniCallStack callstack(throwable, loc);
+
+        xsink->raiseExceptionArg(loc.get(), err_str, qore_arg, new QoreStringNode(desc_str), callstack);
+        return;
     }
 
     LocalReference<jstring> excName = static_cast<jstring>(env->CallObjectMethod(env->GetObjectClass(throwable), Globals::methodClassGetName));
@@ -185,7 +209,6 @@ void JavaException::convert(ExceptionSink *xsink) {
     }
     SimpleRefHolder<QoreStringNode> desc(new QoreStringNode(chars, QCS_UTF8));
     env->ReleaseStringUTFChars(excName, chars);
-
 
     LocalReference<jstring> msg = static_cast<jstring>(env->CallObjectMethod(throwable, Globals::methodThrowableGetMessage));
     if (env->ExceptionCheck()) {

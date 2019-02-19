@@ -103,6 +103,7 @@ ENDMACRO(ADD_JAR_TARGETS)
 # Java sources built in to the binary module with an indication of inner classes, if any
 generate_java(org/qore/jni/QoreJavaApi.java)
 generate_java(org/qore/jni/QoreExceptionWrapper.java)
+generate_java(org/qore/jni/QoreException.java)
 generate_java(org/qore/jni/QoreObject.java)
 generate_java(org/qore/jni/QoreObjectWrapper.java)
 generate_java(org/qore/jni/QoreInvocationHandler.java)

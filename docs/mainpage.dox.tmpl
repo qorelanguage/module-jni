@@ -369,6 +369,18 @@ System::out.println("testing...");
     Class myClass = classLoader.loadClass("MyClass");
     @endcode
 
+    @section jni_exceptions Java Exceptions in Qore
+
+    If a @ref org.qore.jni.QoreException exception is thrown, then it is mapped directly to a Qore exception.
+
+    Other Java exceptions are mapped to the %Qore @ref Qore::ExceptionInfo "ExceptionInfo" hash as follows:
+    - \c err: always \c "JNI-ERROR"
+    - \c desc: the full Java class name of the exception class; ex: \c "java.lang.RuntimeException"
+    - \c arg: the exception object itself as a %Qore object wrappingg the Java object
+
+    Exception locations including call stack locations reflect the actual Java source location(s), and in such cases
+    the \c lang attribute will be \c "Java".
+
     @section jni_from_java Using the jni Module From Java
 
     Java code can use the jni module and Java classes based on %Qore code by calling

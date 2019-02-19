@@ -256,4 +256,12 @@ public class QoreJavaApiTest {
     static HashMap<String, Object>[] getCallStack() throws Throwable {
         return (HashMap<String, Object>[])QoreJavaApi.callFunction("gtcs", 50);
     }
+
+    static void testException(String err, String desc, Object arg) throws QoreException {
+        throw new QoreException(err, desc, arg);
+    }
+
+    static void testException(String err, String desc) throws QoreException {
+        throw new QoreException(err, desc);
+    }
 }
