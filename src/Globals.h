@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -123,6 +123,11 @@ public:
     DLLLOCAL static GlobalReference<jclass> classQoreExceptionWrapper;            // org.qore.jni.QoreExceptionWrapper
     DLLLOCAL static jmethodID ctorQoreExceptionWrapper;                           // QoreExceptionWrapper(long)
     DLLLOCAL static jmethodID methodQoreExceptionWrapperGet;                      // long QoreExceptionWrapper.get()
+
+    DLLLOCAL static GlobalReference<jclass> classQoreException;                   // org.qore.jni.QoreException
+    DLLLOCAL static jmethodID methodQoreExceptionGetErr;                          // String QoreException.getErr()
+    DLLLOCAL static jmethodID methodQoreExceptionGetDesc;                         // String QoreException.getDesc()
+    DLLLOCAL static jmethodID methodQoreExceptionGetArg;                          // String QoreException.getArg()
 
     DLLLOCAL static GlobalReference<jclass> classQoreObject;                      // org.qore.jni.QoreObject
     DLLLOCAL static jmethodID ctorQoreObject;                                     // QoreObject(long)

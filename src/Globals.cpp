@@ -117,6 +117,11 @@ GlobalReference<jclass> Globals::classQoreExceptionWrapper;
 jmethodID Globals::ctorQoreExceptionWrapper;
 jmethodID Globals::methodQoreExceptionWrapperGet;
 
+GlobalReference<jclass> Globals::classQoreException;
+jmethodID Globals::methodQoreExceptionGetErr;
+jmethodID Globals::methodQoreExceptionGetDesc;
+jmethodID Globals::methodQoreExceptionGetArg;
+
 GlobalReference<jclass> Globals::classQoreObject;
 jmethodID Globals::ctorQoreObject;
 jmethodID Globals::methodQoreObjectGet;
@@ -881,6 +886,7 @@ static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperNa
 
 #include "JavaClassQoreInvocationHandler.inc"
 #include "JavaClassQoreExceptionWrapper.inc"
+#include "JavaClassQoreException.inc"
 #include "JavaClassQoreObject.inc"
 #include "JavaClassQoreObjectWrapper.inc"
 #include "JavaClassQoreClosureMarker.inc"
@@ -919,6 +925,12 @@ void Globals::init() {
     env.registerNatives(classQoreExceptionWrapper, qoreExceptionWrapperNativeMethods, 2);
     ctorQoreExceptionWrapper = env.getMethod(classQoreExceptionWrapper, "<init>", "(J)V");
     methodQoreExceptionWrapperGet = env.getMethod(classQoreExceptionWrapper, "get", "()J");
+
+    classQoreException = findDefineClass(env, "org/qore/jni/QoreException", nullptr,
+        java_org_qore_jni_QoreException_class, java_org_qore_jni_QoreException_class_len).makeGlobal();
+    methodQoreExceptionGetErr = env.getMethod(classQoreException, "getErr", "()Ljava/lang/String;");
+    methodQoreExceptionGetDesc = env.getMethod(classQoreException, "getDesc", "()Ljava/lang/String;");
+    methodQoreExceptionGetArg = env.getMethod(classQoreException, "getArg", "()Ljava/lang/Object;");
 
     classQoreObject = findDefineClass(env, "org/qore/jni/QoreObject", nullptr, java_org_qore_jni_QoreObject_class, java_org_qore_jni_QoreObject_class_len).makeGlobal();
     env.registerNatives(classQoreObject, qoreObjectNativeMethods, num_qore_object_native_methods);
@@ -1110,6 +1122,7 @@ void Globals::cleanup() {
     classConstructor = nullptr;
     classQoreInvocationHandler = nullptr;
     classQoreExceptionWrapper = nullptr;
+    classQoreException = nullptr;
     classQoreObject = nullptr;
     classQoreObjectWrapper = nullptr;
     classQoreClosureMarker = nullptr;

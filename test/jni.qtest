@@ -99,6 +99,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("jni test", "1.0") {
+        addTestCase("qore exception tes", \qoreExceptionTest());
         addTestCase("call stack test", \callStackTest());
         addTestCase("closure test", \closureTest());
         addTestCase("exception stack", \exceptionStackTest());
@@ -127,6 +128,69 @@ public class Main inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    qoreExceptionTest() {
+        try {
+            QoreJavaApiTest::testException("T1", "desc1");
+            assertTrue(False);
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("T1", ex.err);
+            assertEq("desc1", ex.desc);
+            assertNothing(ex.arg);
+            assertEq("QoreJavaApiTest.java", ex.file);
+            # don't test the exact line, as it will change when the source file is edited
+            assertGt(0, ex.line);
+            assertEq(ET_System, ex.type);
+            assertEq("Java", ex.lang);
+            assertEq("QoreJavaApiTest::testException", ex.callstack[0].function);
+        }
+
+        try {
+            QoreJavaApiTest::testException("T1", "desc1", 1);
+            assertTrue(False);
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("T1", ex.err);
+            assertEq("desc1", ex.desc);
+            assertEq(1, ex.arg);
+            assertEq("QoreJavaApiTest.java", ex.file);
+            # don't test the exact line, as it will change when the source file is edited
+            assertGt(0, ex.line);
+            assertEq(ET_System, ex.type);
+            assertEq("Java", ex.lang);
+            assertEq("QoreJavaApiTest::testException", ex.callstack[0].function);
+        }
+
+        try {
+            QoreJavaApiTest::testException("T1", "desc1", 2019-02-19);
+            assertTrue(False);
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("T1", ex.err);
+            assertEq("desc1", ex.desc);
+            assertEq(2019-02-19, ex.arg);
+            assertEq("QoreJavaApiTest.java", ex.file);
+            # don't test the exact line, as it will change when the source file is edited
+            assertGt(0, ex.line);
+            assertEq(ET_System, ex.type);
+            assertEq("Java", ex.lang);
+            assertEq("QoreJavaApiTest::testException", ex.callstack[0].function);
+        }
+
+        Mutex m();
+        try {
+            QoreJavaApiTest::testException("T1", "desc1", m);
+            assertTrue(False);
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("T1", ex.err);
+            assertEq("desc1", ex.desc);
+            assertEq(m, ex.arg);
+            assertEq("QoreJavaApiTest.java", ex.file);
+            # don't test the exact line, as it will change when the source file is edited
+            assertGt(0, ex.line);
+            assertEq(ET_System, ex.type);
+            assertEq("Java", ex.lang);
+            assertEq("QoreJavaApiTest::testException", ex.callstack[0].function);
+        }
     }
 
     callStackTest() {
