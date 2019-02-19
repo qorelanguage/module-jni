@@ -168,6 +168,1295 @@ public class AbstractTable extends AbstractSqlUtilBase {
     });
     //@}
 
+    /** @defgroup sql_cop_funcs SQL Column Operator Functions
+        These are static methods that can be used in the \c "columns" argument for select statements:
+        - @ref cop_append(): append a string to the output of a column
+        - @ref cop_as(): rename columns
+        - @ref cop_avg(): return the averge value for the given column when grouping
+        - @ref cop_cast(): convert column value into another datatype
+        - @ref cop_coalesce(): returns the first non-NULL value in the given columns
+        - @ref cop_distinct(): add \c DISTINCT to the column name
+        - @ref cop_length(): return the length of the given text column
+        - @ref cop_lower(): return a column in lower case
+        - @ref cop_max(): return the maximum value for the given column when grouping
+        - @ref cop_min(): return the minimum value for the given column when grouping
+        - @ref cop_over(): return a hash for the \c "over" operator for windowing methods
+        - @ref cop_prepend(): prepend a string to the output of a column
+        - @ref cop_seq(): increments the sequence and returns the next value
+        - @ref cop_seq_currval(): returns the current value of the given sequence without changing the sequence
+        - @ref cop_substr(): returns a substring of a text column
+        - @ref cop_sum(): return the sum of all values for the given column when grouping
+        - @ref cop_upper(): return a column in upper case
+        - @ref cop_value(): return a constant value (SQL literal) in a column
+        - @ref cop_year(): return the year of the given date column
+        - @ref cop_year_day(): return the year to day value of the given date column
+        - @ref cop_year_hour(): return the year to hour value of the given date column
+        - @ref cop_year_month(): return the year and month value of the given date column
+        - @ref cop_trunc_date(): return truncated date regarding the mask
+        - @ref cop_cume_dist(): analytic/window method
+        - @ref cop_dense_rank(): analytic/window method
+        - @ref cop_first_value(): analytic/window method
+        - @ref cop_last_value(): analytic/window method
+        - @ref cop_ntile(): analytic/window method
+        - @ref cop_percent_rank(): analytic/window method
+        - @ref cop_rank(): analytic/window method
+        - @ref cop_row_number(): analytic/window method
+
+        Column operator methods can be nested as in the following example:
+        @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("permission_type", "USER");
+    put("limit", 100);
+    put("offset", 200);
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_as(AbstractTable.cop_lower("permission_type"), "perm"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+     */
+    //@{
+    //! returns a @ref ColumnOperatorInfo hash
+    /** @param cop the column operator (one of @ref sql_cops)
+        @param column the column name
+        @param arg the argument to the operator
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @note Normally this method is not called directly, but rather by the other column operator methods
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> make_cop(String cop, Object column, Object arg) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("make_cop", cop, column, arg);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash
+    /** @param cop the column operator (one of @ref sql_cops)
+        @param column the column name
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @note Normally this method is not called directly, but rather by the other column operator methods
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> make_cop(String cop, Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("make_cop", cop, column);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "as" operator with the given argument
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("permission_type", "USER");
+    put("limit", 100);
+    put("offset", 200);
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_as(AbstractTable.cop_lower("permission_type"), "perm"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins) or any other column "cop_..." method
+        @param arg the new name of the output column
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @see cop_value for SQL literals handling
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_as(Object column, String arg) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_as", column, arg);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "cast" operator with the given argument(s)
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> ch = new HashMap<String, Object>() {
+    put("id", AbstractTable.cop_cast("id", "string"));
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", ch);
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins) or any other column "cop_..." method
+        @param arg the new datatype to cast the column value(s) to
+        @param arg1 optional, type dependent, specification (e.g. size or precision)
+        @param arg2 optional, type dependent, specification (e.g. scale)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @see cop_value for SQL literals handling
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_cast(Object column, String arg, Object arg1, Object arg2) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_cast", column, arg, arg1, arg2);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "cast" operator with the given argument(s)
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> ch = new HashMap<String, Object>() {
+    put("id", AbstractTable.cop_cast("id", "string"));
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", ch);
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins) or any other column "cop_..." method
+        @param arg the new datatype to cast the column value(s) to
+        @param arg1 optional, type dependent, specification (e.g. size or precision)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @see cop_value for SQL literals handling
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_cast(Object column, String arg, Object arg1) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_cast", column, arg, arg1);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "cast" operator with the given argument(s)
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> ch = new HashMap<String, Object>() {
+    put("id", AbstractTable.cop_cast("id", "string"));
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", ch);
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins) or any other column "cop_..." method
+        @param arg the new datatype to cast the column value(s) to
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @see cop_value for SQL literals handling
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_cast(Object column, String arg) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_cast", column, arg);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "prepend" operator with the given argument
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_prepend("name", "migrated-"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+        @param arg the text to prepend to the row values in the output column
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_prepend(Object column, String arg) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_prepend", column, arg);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "append" operator with the given argument
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_append("name", "-migrated"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+        @param arg the text to append (ie concatenate) to the row values in the output column
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_append(Object column, String arg) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_append", column, arg);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "value" (literal) operator with the given argument
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_value(100));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param arg the value to be returned in the column
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        SQL literals can be useful in some cases - as dummy values for select
+        statements where there is exact columns required, unions, expected values
+        for \c arc.insertFromIterator(src.getStatement(sh))
+        "insert as select", etc.
+
+        The term literal refers to a fixed data value. For example, 123, 'foobar' etc.
+
+        Mapping of Qore values to literals:
+
+        |!Java Type|!SQL Type|!Qore Example|!SQL interpretation
+        |int|NUMBER as it is|\c 123|\c 123
+        |float|NUMBER as it is|\c 12.3|\c 12.3
+        |\c java.math.BigDecimal|NUMBER as it is|\c 1.2n|\c 1.2
+        |\c java.time.ZonedDateTime|String representation of the date using DB native implementation like TO_TIMESTAMP for Oracle.|\c now()|\c to_timestamp('20150421104825000000', 'YYYYMMDDHH24MISSFF6')
+        |boolean|Internal representation of the bool value using DB native implementation|\c True|\c 1
+        |String|Standard and escaped string literal. No additional literal methods like Oracle's <tt>nq{foobar}</tt> are supported now|\c "foo bar"|\c 'foo bar'
+        |\c null|Direct null literal|\c NULL|\c null
+
+        @note Passing an existing SQL method name as a value to the cop_value() method
+                does not result in method call. The string value is escaped as it is.
+                Example: sysdate becomes 'sysdate'. See example below.
+
+        The most useful cop_value() usage is with cooperation of cop_as() which allows
+        human readable column name aliases.
+
+        @warning Using cop_value() without cop_as() can result in errors
+                    depending on the DB backend. For example Oracle's use of <tt>cop_value(1), cop_value(True)</tt>
+                    ends with <tt>ORA-00918: column ambiguously defined</tt>
+                    because both values are interpreted as 1 in the resulting SQL.
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_value(Object arg) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_value", arg);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "upper" operator with the given argument; returns a column value in upper case
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_upper("name"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_upper(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_upper", column);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "lower" operator with the given argument; returns a column value in lower case
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_lower("name"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_lower(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_lower", column);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "distinct" operator with the given argument; returns distinct column values
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_distinct("name"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_distinct(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_distinct", column);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "min" operator; returns minimum column values
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_min("id"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_min(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_min", column);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "max" operator; returns maximum column values
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_max("id"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_max(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_max", column);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "avg" operator; returns average column values
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_avg("quantity"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_avg(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_avg", column);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "sum" operator; returns the total sum of a numeric column.
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_sum("quantity"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_sum(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_sum", column);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "count" operator; returns row counts
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_count());
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_count(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_count", column);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "count" operator; returns row counts
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_count());
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_count() throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_count");
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "over" clause
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_as(AbstractTable.cop_over(AbstractTable.cop_max("qty"), "account_id"), "max_qty_per_account")));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_over(Object column, String partitionby, String orderby) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_over", column, partitionby, orderby);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "over" clause
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_as(AbstractTable.cop_over(AbstractTable.cop_max("qty"), "account_id"), "max_qty_per_account")));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_over(Object column, String partitionby) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_over", column, partitionby);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "over" clause
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_as(AbstractTable.cop_over(AbstractTable.cop_max("qty"), "account_id"), "max_qty_per_account")));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_over(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_over", column);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "-" operator with the given arguments
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_minus("complete_count", "error_count"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column1 the column specification for the first argument (String name or dot notation for use in joins)
+        @param column2 the column specification for the second argument (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_minus(Object column1, Object column2) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_minus", column1, column2);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "+" operator with the given arguments
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_plus("complete_count", "error_count"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column1 the column specification for the first argument (String name or dot notation for use in joins)
+        @param column2 the column specification for the second argument (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_plus(Object column1, Object column2) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_plus", column1, column2);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "/" operator with the given arguments
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_divide("complete_count", "error_count"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column1 the column specification for the first argument (String name or dot notation for use in joins)
+        @param column2 the column specification for the second argument (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_divide(Object column1, Object column2) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_divide", column1, column2);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "*" operator with the given arguments
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_multiply("complete_count", "error_count"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column1 the column specification for the first argument (String name or dot notation for use in joins)
+        @param column2 the column specification for the second argument (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_multiply(Object column1, Object column2) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_multiply", column1, column2);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "year" operator with the given argument
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_year("error_time"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_year(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_year", column);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "year_month" operator with the given argument
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_year_month("error_time"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_year_month(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_year_month", column);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "year_day" operator with the given argument
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_year_day("error_time"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_year_day(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_year_day", column);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "year_hour" operator with the given argument
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_year_hour("error_time"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_year_hour(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_year_hour", column);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_seq("xid", "xis"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param seq the name of the sequence whose value should be returned
+        @param as an optional column name that should be returned for the sequence value (so that @ref cop_as() need not be used)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_seq(String seq, String as) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_seq", seq, as);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_seq("xid", "xis"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param seq the name of the sequence whose value should be returned
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_seq(String seq) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_seq", seq);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "seq_currval" operator with the given argument giving the sequence name whose current value should be returned
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_seq_currval("xid", "xis"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param seq the name of the sequence whose current value should be returned
+        @param as an optional column name that should be returned for the sequence value (so that @ref cop_as() need not be used)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_seq_currval(String seq, String as) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_seq_currval", seq, as);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "seq_currval" operator with the given argument giving the sequence name whose current value should be returned
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_seq_currval("xid", "xis"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param seq the name of the sequence whose current value should be returned
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_seq_currval(String seq) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_seq_currval", seq);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "coalesce" operator with the given column arguments; the first non-NULL column value will be returned
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_colesce("first_name", "last_name"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param col1 the name or column operator hash for the first value
+        @param col2 the name or column operator hash for the second value, additional values should follow this argument
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @throw COALESCE-ERROR the arguments must be either string column designators or column operator hashes
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_coalesce(Object col1, Object col2) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_coalesce", col1, col2);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "coalesce" operator with the given column arguments; the first non-NULL column value will be returned
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_colesce("first_name", "last_name"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param col1 the name or column operator hash for the first value
+        @param col2 the name or column operator hash for the second value, additional values should follow this argument
+        @param args other column names or column operator hashes for subsequent values
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @throw COALESCE-ERROR the arguments must be either string column designators or column operator hashes
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_coalesce(Object col1, Object col2, Object... args) throws Throwable {
+        Object[] new_args = new Object[args.length + 2];
+        new_args[0] = col1;
+        new_args[1] = col2;
+        System.arraycopy(args, 0, new_args, 2, args.length);
+        return (HashMap<String, Object>)QoreJavaApi.callFunctionArgs("cop_coalesce", new_args);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "substr" operator with the given arguments; returns a substring of a column value
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_substr("name", 1, 1));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+        @param start position where the substring starts
+        @param count length of the substring in characters
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_substr(Object column, int start, int count) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_substr", column, start, count);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "substr" operator with the given arguments; returns a substring of a column value
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_substr("name", 1, 1));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+        @param start position where the substring starts
+        @param count length of the substring in characters
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_substr(Object column, int start) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_substr", column, start);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "len" operator with the given argument; returns the length of the given text field
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_length("product_code"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @since %SqlUtil 1.3.1
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_length(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_length", column);
+    }
+
+    //! Truncates a date column or value regarding the given mask. The resulting value remains Qore::date (no conversion to eg. string)
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_trunc_date("mydate", DF_MINUTE));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+// input: 2017-02-01 14:22:37
+// output 2017-02-01 14:22:00
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+        @param mask the string with one of specified values rederenced in @ref sql_cop_trunc_date_enum
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @since %SqlUtil 1.4.0
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_trunc_date(Object column, String mask) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_trunc_date", column, mask);
+    }
+
+    //! Analytic/window method: relative rank of the current row
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_as(cop_over(cop_cume_dist(), "row_type", "id"), "cume_dist"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+// rendered SQL statement
+// select cume_dist() over (partition by row_type order by id) as "cume_dist" from test_analytic_methods where type = 'user';
+        @endcode
+
+        Analytic/window method. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic method is available only in MariaDB 10.2 and later only.
+
+        @return relative rank of the current row: (number of rows preceding or peer with current row) / (total rows)
+
+        @since %SqlUtil 1.4.0
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_cume_dist() throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_cume_dist");
+    }
+
+    //! Analytic/window method: rank of the current row without gaps
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_as(cop_over(cop_dense_rank(), "row_type", "id"), "dense_rank"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+// rendered SQL statement
+select dense_rank() over (partition by row_type order by id) as "dense_rank" from test_analytic_methods where type = 'user';
+        @endcode
+
+        Analytic/window method. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic method is available only in MariaDB 10.2 and later only.
+
+        @return rank of the current row without gaps; this method counts peer groups
+
+        @since %SqlUtil 1.4.0
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_dense_rank() throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_dense_rank");
+    }
+
+    //! Analytic/window method: value evaluated at the row that is the first row of the window frame
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_as(cop_over(cop_first_value("row_value"), "row_type", "id"), "first_value"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+// rendered SQL statement
+select first_value(row_value) over (partition by row_type order by id) as "first_value" from test_analytic_methods where test = 'user';
+        @endcode
+
+        Analytic/window method. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic method is available only in MariaDB 10.2 and later only.
+
+        @return returns value evaluated at the row that is the first row of the window frame
+
+        @since %SqlUtil 1.4.0
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_first_value(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_first_value", column);
+    }
+
+    //! Analytic/window method: value evaluated at the row that is the last row of the window frame
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_as(cop_over(cop_last_value("row_value"), "row_type", "id"), "last_value"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+// rendered SQL statement
+select last_value(row_value) over (partition by row_type order by id) as "last_value" from test_analytic_methods where type = 'user';
+        @endcode
+
+        Analytic/window method. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic method is available only in MariaDB 10.2 and later only.
+
+        @return returns value evaluated at the row that is the last row of the window frame
+
+        @since %SqlUtil 1.4.0
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_last_value(Object column) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_last_value", column);
+    }
+
+    //! Analytic/window method: integer ranging from 1 to the argument value, dividing the partition as equally as possible
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_as(cop_over(cop_ntile(10), "row_type", "id"), "ntile"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+// rendered SQL statement
+select ntile(10) over (partition by row_type order by id) as "ntile" from test_analytic_methods where type = 'user';
+        @endcode
+
+        Analytic/window method. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic method is available only in MariaDB 10.2 and later only.
+
+        @param value an integer value used as count of sp;it buckets
+
+        @return integer ranging from 1 to the argument value, dividing the partition as equally as possible
+
+        @since %SqlUtil 1.4.0
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_ntile(int value) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_ntile", value);
+    }
+
+    //! Analytic/window method: relative rank of the current row
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_as(cop_over(cop_percent_rank(), "row_type", "id"), "percent_rank"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+// rendered SQL statement
+select percent_rank() over (partition by row_type order by id) as "percent_rank" from test_analytic_methods where type = 'user';
+        @endcode
+
+        Analytic/window method. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic method is available only in MariaDB 10.2 and later only.
+
+        @return relative rank of the current row: (rank - 1) / (total rows - 1)
+
+        @since %SqlUtil 1.4.0
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_percent_rank() throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_percent_rank");
+    }
+
+    //! Analytic/window method: rank of the current row with gaps
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_as(cop_over(cop_rank(), "row_type", "id"), "rank"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+// rendered SQL statement
+select rank() over (partition by row_type order by id) as "rank" from test_analytic_methods where type = 'user';
+        @endcode
+
+        Analytic/window method. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic method is available only in MariaDB 10.2 and later only.
+
+        @return rank of the current row with gaps; same as row_number of its first peer
+
+        @since %SqlUtil 1.4.0
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_rank() throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_rank");
+    }
+
+    //! Analytic/window method: number of the current row within its partition, counting from 1
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_as(cop_over(cop_row_number(), "row_type", "id"), "row_number"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+// rendered SQL statement
+select row_number() over (partition by row_type order by id) as "row_number" from test_analytic_methods where type = 'user';
+        @endcode
+
+        Analytic/window method. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic method is available only in MariaDB 10.2 and later only.
+
+        @return number of the current row within its partition, counting from 1
+
+        @since %SqlUtil 1.4.0
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_row_number() throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_row_number");
+    }
+    //@}
+
     /** @defgroup upsert_results Upsert Result Codes
         @see @ref UpsertResultMap and @ref UpsertResultDescriptionMap
         */
@@ -494,7 +1783,7 @@ list l = table.getDropSql();
 
         @param opt optional callback options; see @ref CallbackOptions for more info
 
-        @return a list of strings that can be used to drop the table and any other objects assocatied with the table (for example: PostgreSQL table trigger function(s))
+        @return a list of strings that can be used to drop the table and any other objects assocatied with the table (for example: PostgreSQL table trigger method(s))
 
         @throw OPTION-ERROR invalid or unknown callback option
     */
@@ -508,7 +1797,7 @@ list l = table.getDropSql();
 String[] l = table.getDropSql();
         @endcode
 
-        @return a list of strings that can be used to drop the table and any other objects assocatied with the table (for example: PostgreSQL table trigger function(s))
+        @return a list of strings that can be used to drop the table and any other objects assocatied with the table (for example: PostgreSQL table trigger method(s))
 
         @throw OPTION-ERROR invalid or unknown callback option
     */
@@ -662,7 +1951,7 @@ table.addColumn("name", column_hash, false);
         - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
         - \c scale: for numeric data types, this value gives the scale
         - \c default_value: the default value for the column
-        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
+        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native methods or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
         @param nullable if true then the column can hold NULL values; note that primary key columns cannot be nullable
 
         @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column already exists, invalid column data
@@ -690,7 +1979,7 @@ table.addColumn("name", column_hash, false);
         - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
         - \c scale: for numeric data types, this value gives the scale
         - \c default_value: the default value for the column
-        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
+        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native methods or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
 
         @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column already exists, invalid column data
 
@@ -717,7 +2006,7 @@ String[] l = table.getAddColumnSql("name", copt, false);
         - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
         - \c scale: for numeric data types, this value gives the scale
         - \c default_value: the default value for the column
-        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (false) or used as it is (true) to allow to use DBMS native functions or features. Defaults to false. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
+        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (false) or used as it is (true) to allow to use DBMS native methods or features. Defaults to false. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
         @param nullable if true then the column can hold NULL values; note that primary key columns cannot be nullable
         @param opt a hash of options for the SQL string; see @ref AlignTableOptions for common options; each driver can support additional driver-specific options
 
@@ -751,7 +2040,7 @@ String[] l = table.getAddColumnSql("name", copt, false);
         - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
         - \c scale: for numeric data types, this value gives the scale
         - \c default_value: the default value for the column
-        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (false) or used as it is (true) to allow to use DBMS native functions or features. Defaults to false. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
+        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (false) or used as it is (true) to allow to use DBMS native methods or features. Defaults to false. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
         @param nullable if true then the column can hold NULL values; note that primary key columns cannot be nullable
 
         @return a list of SQL strings that can be use to add a column to the table
@@ -784,7 +2073,7 @@ String[] l = table.getAddColumnSql("name", copt);
         - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
         - \c scale: for numeric data types, this value gives the scale
         - \c default_value: the default value for the column
-        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (false) or used as it is (true) to allow to use DBMS native functions or features. Defaults to false. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
+        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (false) or used as it is (true) to allow to use DBMS native methods or features. Defaults to false. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
 
         @return a list of SQL strings that can be use to add a column to the table
 
@@ -814,7 +2103,7 @@ String[] l = table.getModifyColumnSql("name", copt, false);
         - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
         - \c scale: for numeric data types, this value gives the scale
         - \c default_value: the default value for the column
-        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (false) or used as it is (true) to allow to use DBMS native functions or features. Defaults to false. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
+        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (false) or used as it is (true) to allow to use DBMS native methods or features. Defaults to false. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
         @param nullable if true then the column can hold NULL values; note that primary key columns cannot be nullable
         @param opt a hash of options for the SQL string; see @ref AlignTableOptions for common options; each driver can support additional driver-specific options
 
@@ -846,7 +2135,7 @@ String[] l = table.getModifyColumnSql("name", copt, false);
         - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
         - \c scale: for numeric data types, this value gives the scale
         - \c default_value: the default value for the column
-        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (false) or used as it is (true) to allow to use DBMS native functions or features. Defaults to false. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
+        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (false) or used as it is (true) to allow to use DBMS native methods or features. Defaults to false. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
         @param nullable if true then the column can hold NULL values; note that primary key columns cannot be nullable
 
         @return a list of SQL strings that can be used to modify an existing column in the table
@@ -877,7 +2166,7 @@ String[] l = table.getModifyColumnSql("name", copt, false);
         - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
         - \c scale: for numeric data types, this value gives the scale
         - \c default_value: the default value for the column
-        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (false) or used as it is (true) to allow to use DBMS native functions or features. Defaults to false. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
+        - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (false) or used as it is (true) to allow to use DBMS native methods or features. Defaults to false. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
 
         @return a list of SQL strings that can be used to modify an existing column in the table
 
@@ -2035,6 +3324,64 @@ try {
     @SuppressWarnings("unchecked")
     public HashMap<String, Object> upsertFromSelect(AbstractTable t, Map<String, Object> sh, int upsert_strategy) throws Throwable {
         return (HashMap<String, Object>)obj.callMethod("upsertFromSelect", t, sh, upsert_strategy);
+    }
+
+    //! deletes rows in the table matching the condition and returns the count of rows deleted; no transaction management is performed with this method
+    /** @par Example:
+        @code{.java}
+int dcnt = table.del(cond_hash);
+        @endcode
+
+        @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+        @param sql an optional reference to a string to return the SQL generated for the select statement
+        @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+        @return the count of rows deleted
+
+        @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+    */
+    public int del(HashMap<String, Object> cond, HashMap<String, Object> opt) throws Throwable {
+        return (int)obj.callMethod("del", cond, opt);
+    }
+
+    //! @ref del() variant
+    public int del(HashMap<String, Object> cond) throws Throwable {
+        return (int)obj.callMethod("del", cond);
+    }
+
+    //! @ref del() variant
+    public int del() throws Throwable {
+        return (int)obj.callMethod("del");
+    }
+
+    //! updates rows in the table matching an optional condition and returns the count of rows updated; no transaction management is performed with this method
+    /** @par Example:
+        @code{.java}
+int ucnt = table.update(set_hash, cond_hash);
+        @endcode
+
+        @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns or update operators (see @ref sql_uop_funcs)
+        @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+        @param sql an optional reference to a string to return the SQL generated for the select statement
+        @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+        @return the count of rows updated
+
+        @throw UPDATE-ERROR the set hash is empty
+        @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+    */
+    public int update(HashMap<String, Object> set, HashMap<String, Object> cond, HashMap<String, Object> opt) throws Throwable {
+        return (int)obj.callMethod("update", set, cond, opt);
+    }
+
+    //! A @ref update() variant
+    public int update(HashMap<String, Object> set, HashMap<String, Object> cond) throws Throwable {
+        return (int)obj.callMethod("update", set, cond);
+    }
+
+    //! A @ref update() variant
+    public int update(HashMap<String, Object> set) throws Throwable {
+        return (int)obj.callMethod("update", set);
     }
 
     //! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; no transaction management is performed with this method
