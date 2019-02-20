@@ -1230,7 +1230,7 @@ HashMap<String, Object> wh = new HashMap<String, Object>() {
 };
 
 HashMap<String, Object> sh = new HashMap<String, Object>() {
-    put("columns", AbstractTable.cop_trunc_date("mydate", DT_MINUTE));
+    put("columns", AbstractTable.cop_trunc_date("mydate", AbstractTable.DT_MINUTE));
     put("where", wh);
 };
 
