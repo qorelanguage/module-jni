@@ -168,6 +168,43 @@ public class AbstractTable extends AbstractSqlUtilBase {
     });
     //@}
 
+    /** @defgroup java_sql_cop_trunc_date_enum cop_trunc_date() formats
+    These are formatting constant which can be used as @ref cop_trunc_date() formatting arguments.
+
+    Input date used in the table below: 2017-04-20 14:27:34
+
+    |!Constant|!Meaning|!Example
+    |@ref DT_YEAR|Truncate date up to year|2017-01-01 00:00:00
+    |@ref DT_MONTH|Truncate date up to month|2017-04-01 00:00:00
+    |@ref DT_DAY|Truncate date up to day|2017-01-20 00:00:00
+    |@ref DT_HOUR|Truncate date up to hour|2017-01-20 14:00:00
+    |@ref DT_MINUTE|Truncate date up to minute|2017-01-20 14:27:00
+    |@ref DT_SECOND|Truncate date up to second|2017-01-20 14:27:34
+
+    @note Oracle: using \c DT_SECOND for \c DATE type does not make sense as the \c DATE resolution
+          is up to seconds out of the box. On the other side \c TINESTAMP is truncated up to seconds
+          with this operator.
+    */
+    //@{
+    //! Format unit: year
+    public static final String DT_YEAR = "Y";
+
+    //! Format unit: month
+    public static final String DT_MONTH = "M";
+
+    //! Format unit: day
+    public static final String DT_DAY = "D";
+
+    //! Format unit: hour
+    public static final String DT_HOUR = "H";
+
+    //! Format unit: minute
+    public static final String DT_MINUTE = "m";
+
+    //! Format unit: hour
+    public static final String DT_SECOND = "S";
+    //@}
+
     /** @defgroup sql_cop_funcs SQL Column Operator Functions
         These are static methods that can be used in the \c "columns" argument for select statements:
         - @ref cop_append(): append a string to the output of a column
@@ -1193,7 +1230,7 @@ HashMap<String, Object> wh = new HashMap<String, Object>() {
 };
 
 HashMap<String, Object> sh = new HashMap<String, Object>() {
-    put("columns", AbstractTable.cop_trunc_date("mydate", DF_MINUTE));
+    put("columns", AbstractTable.cop_trunc_date("mydate", AbstractTable.DT_MINUTE));
     put("where", wh);
 };
 

@@ -278,17 +278,112 @@ public class Main inherits QUnit::Test {
         on_exit {
             QoreJavaLangApiTest::dropTable(table);
         }
-        assertTrue(QoreJavaLangApiTest::testTable(table));
+        try {
+            assertTrue(QoreJavaLangApiTest::testTable(table));
 
-        list<auto> l = QoreJavaLangApiTest::testBulkInsert(table);
-        assertEq({"id": 2, "string": "str"}, l[0] - "modified");
-        assertEq({"id": 2, "string": "str"}, l[1][0] - "modified");
-        assertEq(Type::String, l[2][0].type());
+            list<auto> l = QoreJavaLangApiTest::testBulkInsert(table);
+            assertEq({"id": 2, "string": "str"}, l[0] - "modified");
+            assertEq({"id": 2, "string": "str"}, l[1][0] - "modified");
+            assertEq(Type::String, l[2][0].type());
 
-        hash<auto> h = QoreJavaLangApiTest::testBulkUpsert(table);
-        assertEq({"id": 2, "string": "new-str"}, h - "modified");
+            hash<auto> h = QoreJavaLangApiTest::testBulkUpsert(table);
+            assertEq({"id": 2, "string": "new-str"}, h - "modified");
 
-        QoreJavaLangApiTest::doTests();
+            assertEq(1, table.update({"string": "new-str-2"}, {"id": 2}));
+            assertEq("new-str-2", table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as("string", "str"),
+                "where": {"id": 2},
+            }).str);
+            assertEq("x-new-str-2", table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_prepend("string", "x-"), "str"),
+                "where": {"id": 2},
+            }).str);
+            assertEq("new-str-2-x", table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_append("string", "-x"), "str"),
+                "where": {"id": 2},
+            }).str);
+            assertEq(1, table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_value(1), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq(2, table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_min("id"), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq(2, table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_max("id"), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq(2, table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_distinct("id"), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq(2, table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_avg("id"), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq(2, table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_sum("id"), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq(1, table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_count("id"), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq(2, table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_minus("id", cop_value(0)), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq(2, table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_plus("id", cop_value(0)), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq(2, table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_divide("id", cop_value(1)), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq(2, table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_multiply("id", cop_value(1)), "val"),
+                "where": {"id": 2},
+            }).val);
+            date mod = table.selectRow({"columns": "modified", "where": {"id": 2}}).modified;
+            assertEq(mod.format("YYYY"), table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_year("modified"), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq(mod.format("YYYY-MM"), table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_year_month("modified"), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq(mod.format("YYYY-MM-DD"), table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_year_day("modified"), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq(2, table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_coalesce("id", cop_value(1)), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq("n", table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_substr("string", 1, 1), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq(9, table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_length("string"), "val"),
+                "where": {"id": 2},
+            }).val);
+            assertEq(date(mod.format("YYYY-01-01")), table.selectRow({
+                "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_trunc_date("modified", sqlutil::AbstractTable::DT_YEAR), "val"),
+                "where": {"id": 2},
+            }).val);
+
+            # must be the last data tests for the table
+            assertEq(2, table.del());
+
+            QoreJavaLangApiTest::doTests();
+        } catch (hash<ExceptionInfo> ex) {
+            table.rollback();
+            rethrow;
+        }
     }
 
     AbstractDatasource getDatasourcePool() {
