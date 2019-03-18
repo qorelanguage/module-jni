@@ -1,0 +1,32 @@
+stages:
+  - test
+
+test:
+  stage: test
+  image: $CI_REGISTRY/infrastructure/qore-test-base/qore-test-base:develop-slim
+  tags:
+    - docker-exec
+  services:
+  - name: postgres:11
+  variables:
+    REPO_NAME: module-jni
+    POSTGRES_PASSWORD: omq
+    QORE_DB_CONNSTR: pgsql:postgres/omq@postgres%postgres
+  script:
+    - |
+        curl "https://api.github.com/repos/qorelanguage/${REPO_NAME}/statuses/${CI_COMMIT_SHA}?access_token=${GITHUB_ACCESS_TOKEN}" \
+        -X POST -H "Content-Type: application/json" \
+        -d "{\"state\": \"pending\", \"context\": \"${REPO_NAME}\", \"description\": \"Gitlab CI\", \"target_url\": \"${CI_JOB_URL}\"}"
+    - |
+        set +e
+        if test/docker_test/test.sh; then
+          curl "https://api.github.com/repos/qorelanguage/${REPO_NAME}/statuses/${CI_COMMIT_SHA}?access_token=${GITHUB_ACCESS_TOKEN}" \
+            -X POST -H "Content-Type: application/json" \
+            -d "{\"state\": \"success\", \"context\": \"${REPO_NAME}\", \"description\": \"Gitlab CI\", \"target_url\": \"${CI_JOB_URL}\"}"
+          exit 0
+        else
+          curl "https://api.github.com/repos/qorelanguage/${REPO_NAME}/statuses/${CI_COMMIT_SHA}?access_token=${GITHUB_ACCESS_TOKEN}" \
+            -X POST -H "Content-Type: application/json" \
+            -d "{\"state\": \"failure\", \"context\": \"${REPO_NAME}\", \"description\": \"Gitlab CI\", \"target_url\": \"${CI_JOB_URL}\"}"
+          exit 1
+        fi
