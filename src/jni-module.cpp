@@ -176,7 +176,6 @@ static QoreStringNode* jni_module_init() {
 
     try {
         qjcm.init(already_initialized);
-        //{ QoreString msg("jni_module_init() 1.3\n"); f.write(&msg, nullptr); f.sync(); };
     } catch (jni::Exception& e) {
         // display exception info on the console as an unhandled exception
         {
