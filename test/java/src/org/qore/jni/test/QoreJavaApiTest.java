@@ -95,41 +95,41 @@ class ClosureTest3 implements QoreClosureMarker {
 }
 
 public class QoreJavaApiTest {
-    static void throwTest() throws Throwable {
+    public static void throwTest() throws Throwable {
         throw new Throwable("test");
     }
 
-    static HashMap callFunctionTest() throws Throwable {
+    public static HashMap callFunctionTest() throws Throwable {
         HashMap hm = (HashMap)QoreJavaApi.callFunction("get_qore_library_info");
 
         (new Thread(new ThreadTest())).start();
         return hm;
     }
 
-    static Object callFunctionTest(String name) throws Throwable {
+    public static Object callFunctionTest(String name) throws Throwable {
         return QoreJavaApi.callFunction(name);
     }
 
-    static HashMap callStaticMethodTest() throws Throwable {
+    public static HashMap callStaticMethodTest() throws Throwable {
         return (HashMap)QoreJavaApi.callStaticMethod("TestClass", "get", 1);
     }
 
-    static HashMap callStaticMethodTest2() throws InterruptedException {
+    public static HashMap callStaticMethodTest2() throws InterruptedException {
         Thread mythread = new Thread(new ThreadTest5());
         mythread.start();
         mythread.join();
         return ThreadTest5.result;
     }
 
-    static void threadTest(Runnable runme1, Runnable runme2) {
+    public static void threadTest(Runnable runme1, Runnable runme2) {
         (new Thread(new ThreadTest2(runme1, runme2))).start();
     }
 
-    static ZonedDateTime dateTest(ZonedDateTime dt) {
+    public static ZonedDateTime dateTest(ZonedDateTime dt) {
         return dt.minusDays(2);
     }
 
-    static String testObject1(QoreObject obj, String str) throws Throwable {
+    public static String testObject1(QoreObject obj, String str) throws Throwable {
         try {
             return (String)obj.callMethod("getString", str);
         } finally {
@@ -137,7 +137,7 @@ public class QoreJavaApiTest {
         }
     }
 
-    static Object testObject2(QoreObject obj) throws Throwable {
+    public static Object testObject2(QoreObject obj) throws Throwable {
         try {
             return obj.getMemberValue("member");
         } finally {
@@ -146,11 +146,11 @@ public class QoreJavaApiTest {
     }
 
     // do not release the object when returning it
-    static QoreObject testObject3(QoreObject obj) {
+    public static QoreObject testObject3(QoreObject obj) {
         return obj;
     }
 
-    static boolean testObject4(QoreObject obj, String cls) {
+    public static boolean testObject4(QoreObject obj, String cls) {
         try {
             return obj.instanceOf(cls);
         } finally {
@@ -158,16 +158,16 @@ public class QoreJavaApiTest {
         }
     }
 
-    static BigDecimal testObject5(String str) {
+    public static BigDecimal testObject5(String str) {
         return new BigDecimal(str);
     }
 
-    static BigDecimal testObject5(BigDecimal num) {
+    public static BigDecimal testObject5(BigDecimal num) {
         return num;
     }
 
     @SuppressWarnings("unchecked")
-    static HashMap[] testObject6() {
+    public static HashMap[] testObject6() {
         HashMap[] hm = new HashMap[2];
         hm[0] = new HashMap();
         hm[0].put("1", 1);
@@ -177,20 +177,20 @@ public class QoreJavaApiTest {
         return hm;
     }
 
-    static HashMap testObject7(HashMap h) {
+    public static HashMap testObject7(HashMap h) {
         h.remove("a");
         return h;
     }
 
-    static Object testObject8(Object obj) {
+    public static Object testObject8(Object obj) {
         return obj;
     }
 
-    static HashMap[] testObject9(HashMap[] l) {
+    public static HashMap[] testObject9(HashMap[] l) {
         return l;
     }
 
-    static HashMap[] testObject10(QoreObject obj) throws Throwable {
+    public static HashMap[] testObject10(QoreObject obj) throws Throwable {
         try {
             return (HashMap[])obj.callMethod("getListOfHashes");
         } finally {
@@ -198,33 +198,33 @@ public class QoreJavaApiTest {
         }
     }
 
-    static String testObject11(QoreObject obj) {
+    public static String testObject11(QoreObject obj) {
         return obj.className();
     }
 
-    static Object testObject12() throws Throwable {
+    public static Object testObject12() throws Throwable {
         return QoreJavaApi.callFunction("get_object");
     }
 
-    static Object testObject13() throws Throwable {
+    public static Object testObject13() throws Throwable {
         return QoreJavaApi.callFunctionSave("get_object");
     }
 
-    static String testObject14(QoreObject obj) throws InterruptedException {
+    public static String testObject14(QoreObject obj) throws InterruptedException {
         Thread mythread = new Thread(new ThreadTest3(obj));
         mythread.start();
         mythread.join();
         return ThreadTest3.result;
     }
 
-    static String testObject15() throws InterruptedException {
+    public static String testObject15() throws InterruptedException {
         Thread mythread = new Thread(new ThreadTest4());
         mythread.start();
         mythread.join();
         return ThreadTest4.result;
     }
 
-    static int[] testDate1(QoreRelativeTime dt) {
+    public static int[] testDate1(QoreRelativeTime dt) {
         int[] rv = new int[7];
         rv[0] = dt.year;
         rv[1] = dt.month;
@@ -236,32 +236,32 @@ public class QoreJavaApiTest {
         return rv;
     }
 
-    static QoreRelativeTime testDate2(QoreRelativeTime dt) {
+    public static QoreRelativeTime testDate2(QoreRelativeTime dt) {
         return dt;
     }
 
-    static QoreClosureMarker getClosure1() {
+    public static QoreClosureMarker getClosure1() {
         return new ClosureTest1();
     }
 
-    static QoreClosureMarker getClosure2() {
+    public static QoreClosureMarker getClosure2() {
         return new ClosureTest2();
     }
 
-    static QoreClosureMarker getClosure3() {
+    public static QoreClosureMarker getClosure3() {
         return new ClosureTest3();
     }
 
     @SuppressWarnings("unchecked")
-    static HashMap<String, Object>[] getCallStack() throws Throwable {
+    public static HashMap<String, Object>[] getCallStack() throws Throwable {
         return (HashMap<String, Object>[])QoreJavaApi.callFunction("gtcs", 50);
     }
 
-    static void testException(String err, String desc, Object arg) throws QoreException {
+    public static void testException(String err, String desc, Object arg) throws QoreException {
         throw new QoreException(err, desc, arg);
     }
 
-    static void testException(String err, String desc) throws QoreException {
+    public static void testException(String err, String desc) throws QoreException {
         throw new QoreException(err, desc);
     }
 }

@@ -138,21 +138,21 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
         switch (value.getType()) {
             // check compatible primitive types
             case NT_BOOLEAN: {
-                if (env.isSameObject(cls, Globals::classBoolean)) {
+                if (env.isSameObject(cls, Globals::classBoolean) || env.isSameObject(cls, Globals::classPrimitiveBoolean)) {
                     return toAnyObject(value);
                 }
                 break;
             }
 
             case NT_INT: {
-                if (env.isSameObject(cls, Globals::classInteger)) {
+                if (env.isSameObject(cls, Globals::classInteger) || env.isSameObject(cls, Globals::classPrimitiveInt)) {
                     return toAnyObject(value);
                 }
                 break;
             }
 
             case NT_FLOAT: {
-                if (env.isSameObject(cls, Globals::classDouble)) {
+                if (env.isSameObject(cls, Globals::classDouble) || env.isSameObject(cls, Globals::classPrimitiveDouble)) {
                     return toAnyObject(value);
                 }
                 break;
@@ -283,5 +283,4 @@ jbyteArray QoreToJava::makeByteArray(const BinaryNode& b) {
 
     return array.release();
 }
-
 }

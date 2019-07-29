@@ -110,6 +110,7 @@ generate_java(org/qore/jni/QoreInvocationHandler.java)
 generate_java(org/qore/jni/QoreURLClassLoader.java 1)
 generate_java(org/qore/jni/QoreRelativeTime.java)
 generate_java(org/qore/jni/QoreClosureMarker.java)
+generate_java(org/qore/jni/QoreJavaDynamicApi.java)
 
 # add Java sources without native methods
 add_java_source(org/qore/lang/sqlutil/Table.java)
@@ -159,7 +160,7 @@ add_custom_command(
     VERBATIM
 )
 
-add_jar_targets(org/qore/lang org/qore/lang/sqlutil org/qore/lang/mapper org/qore/lang/tablemapper)
+add_jar_targets(org/qore/lang org/qore/lang/sqlutil org/qore/lang/mapper org/qore/lang/tablemapper org/qore/jni/QoreJavaDynamicApi.java)
 
 # generate jar manually
 add_custom_command(
@@ -179,6 +180,9 @@ set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/Fields.java
     test/java/src/org/qore/jni/test/FloatConversions.java
     test/java/src/org/qore/jni/test/Methods.java
+    test/java/src/org/qore/jni/test/A.java
+    test/java/src/org/qore/jni/test/B.java
+    test/java/src/org/qore/jni/test/C.java
     test/java/src/org/qore/jni/test/QoreJavaApiTest.java
     test/java/src/org/qore/jni/test/StaticFields.java
     test/java/src/org/qore/jni/test/StaticMethods.java

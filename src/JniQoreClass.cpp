@@ -4,7 +4,7 @@
 
     Qore Programming Language JNI Module
 
-    Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -32,6 +32,7 @@
 #include "JavaToQore.h"
 #include "JniQoreClass.h"
 #include "ModifiedUtf8String.h"
+#include "QoreJniClassMap.h"
 
 #include <classfile_constants.h>
 
@@ -68,7 +69,7 @@ QoreValue JniQoreClass::memberGate(const QoreMethod& meth, void* m, QoreObject* 
         ModifiedUtf8String str(*mname);
         LocalReference<jstring> fname = env.newString(str.c_str());
 
-        std::vector<jvalue> jargs(1);
+        std::vector<jvalue> jargs(2);
         jargs[0].l = fname;
 
         LocalReference<jobject> field = env.callObjectMethod(cls, Globals::methodClassGetDeclaredField, &jargs[0]);
@@ -95,8 +96,16 @@ QoreValue JniQoreClass::memberGate(const QoreMethod& meth, void* m, QoreObject* 
             return QoreValue();
         }
 
-        jargs[0].l = jobj;
-        return JavaToQore::convertToQore(env.callObjectMethod(field, Globals::methodFieldGet, &jargs[0]));
+        jargs[0].l = field;
+        jargs[1].l = jobj;
+
+        QoreProgram* pgm = getProgram();
+        assert(pgm);
+        JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+        assert(jpc);
+
+        return JavaToQore::convertToQore(env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getFieldId(), &jargs[0]));
+        //return JavaToQore::convertToQore(env.callObjectMethod(field, Globals::methodFieldGet, &jargs[0]));
     } catch (jni::JavaException& e) {
         e.convert(xsink);
         return QoreValue();

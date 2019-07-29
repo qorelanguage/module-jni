@@ -70,8 +70,9 @@ extern JniQoreClass* QC_INVOCATIONHANDLER;
 // the Qore class ID for java::lang::reflect::InvocationHandler
 extern qore_classid_t CID_INVOCATIONHANDLER;
 
-// forward reference
+// forward references
 class Class;
+class JniExternalProgramData;
 
 class QoreJniClassMapBase {
 protected:
@@ -214,6 +215,8 @@ private:
 
     DLLLOCAL jarray getJavaArrayIntern(Env& env, const QoreListNode* l, jclass cls);
 
+    DLLLOCAL Class* loadProgramClass(const char* name, JniExternalProgramData* jpc);
+
     class InitSignaler {
     public:
         DLLLOCAL ~InitSignaler() {
@@ -235,12 +238,39 @@ public:
     // delete the copy constructor
     JniExternalProgramData(const JniExternalProgramData& parent) = delete;
 
+    DLLLOCAL virtual ~JniExternalProgramData() {
+        classLoader = nullptr;
+    }
+
     DLLLOCAL jobject getClassLoader() const {
         return classLoader;
     }
 
-    DLLLOCAL virtual ~JniExternalProgramData() {
-        classLoader = nullptr;
+    DLLLOCAL jclass getDynamicApi() const {
+        assert(dynamicApi);
+        return dynamicApi;
+    }
+
+    /*
+    DLLLOCAL jobject getLookup() const {
+        assert(lookup);
+        return lookup;
+    }
+    */
+
+    DLLLOCAL jmethodID getInvokeMethodId() const {
+        assert(methodQoreJavaDynamicApiInvokeMethod);
+        return methodQoreJavaDynamicApiInvokeMethod;
+    }
+
+    DLLLOCAL jmethodID getInvokeMethodNonvirtualId() const {
+        assert(methodQoreJavaDynamicApiInvokeMethodNonvirtual);
+        return methodQoreJavaDynamicApiInvokeMethodNonvirtual;
+    }
+
+    DLLLOCAL jmethodID getFieldId() const {
+        assert(methodQoreJavaDynamicApiGetField);
+        return methodQoreJavaDynamicApiGetField;
     }
 
     DLLLOCAL QoreNamespace* getJniNamespace() const {
@@ -275,6 +305,16 @@ protected:
     QoreNamespace* jni;
     // class loader
     GlobalReference<jobject> classLoader;
+    // dynamic API class
+    GlobalReference<jclass> dynamicApi;
+    // lookup object
+    //GlobalReference<jobject> lookup;
+    // QoreJavaDynamicApi.invokeNethod()
+    jmethodID methodQoreJavaDynamicApiInvokeMethod = 0;
+    // QoreJavaDynamicApi.invokeNethodNonvirtual()
+    jmethodID methodQoreJavaDynamicApiInvokeMethodNonvirtual = 0;
+    // QoreJavaDynamicApi.getField()
+    jmethodID methodQoreJavaDynamicApiGetField = 0;
     // override compat-types
     bool override_compat_types = false;
     // compat-types values
