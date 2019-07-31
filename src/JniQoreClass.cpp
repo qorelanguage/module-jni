@@ -99,7 +99,7 @@ QoreValue JniQoreClass::memberGate(const QoreMethod& meth, void* m, QoreObject* 
         jargs[0].l = field;
         jargs[1].l = jobj;
 
-        QoreProgram* pgm = getProgram();
+        QoreProgram* pgm = self->getProgram();
         assert(pgm);
         JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
         assert(jpc);
