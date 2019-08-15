@@ -60,6 +60,9 @@ public:
     DLLLOCAL static GlobalReference<jclass> classPrimitiveFloat;                  // class for the primitive type float
     DLLLOCAL static GlobalReference<jclass> classPrimitiveDouble;                 // class for the primitive type double
 
+    DLLLOCAL static GlobalReference<jclass> classSystem;                          // java.lang.System
+    DLLLOCAL static jmethodID methodSystemSetProperty;                            // String System.setProperty()
+
     DLLLOCAL static GlobalReference<jclass> classObject;                          // java.lang.Object
     DLLLOCAL static jmethodID methodObjectGetClass;                               // Class<?> Object.getClass()
 

@@ -147,6 +147,12 @@
       inner classes and has been implemented to allow circular dependencies in such classes to be resolved;
       \c &lt;name&gt; is the Java internal name for the inner class (ex: \c my/package/MyClassName$1)
 
+    @section jni_set_property_parse_time Setting Java System Properties at Parse Time
+
+    The jni module also supports setting Java system properties at parse time with the following jni-module-specific
+    parse directive:
+    - @code{.qore} %module-cmd(jni) set-property <propname> <value> @endcode sets the given property at parse time
+
     @section jni_compat JNI Module Compatibility Options
 
     This module supports the following compatibility option: \c "compat-types" which, when enabled, will disable the following
@@ -472,6 +478,9 @@ class MyTest {
       (<a href="https://github.com/qorelanguage/qore/issues/3077">issue 3077</a>)
     - fixed call stacks for exceptions to include Java call stack information in all cases
       (<a href="https://github.com/qorelanguage/qore/issues/3169">issue 3169</a>)
+    - implemented the \c set-property module command to allow for Java system properties to be set while initializing
+      the module
+      (<a href="https://github.com/qorelanguage/qore/issues/3495">issue 3495</a>)
 
     @subsection jni_1_0 jni Module Version 1.0
     - initial public release

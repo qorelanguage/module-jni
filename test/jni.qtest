@@ -237,11 +237,22 @@ public class Main inherits QUnit::Test {
         on_exit remove_thread_data("_jni_save");
         lang::DatasourcePool jdsp(dsp);
 
+<<<<<<< HEAD
         # drop the table uncondintionally to ensure that the test does not fail in case a previous run did not
         # complete
         try {
             jdsp.exec("drop table test_table_1");
         } catch (hash<ExceptionInfo> ex) {
+=======
+        # drop the table unconditionally in case it exists from a failed test
+        try {
+            on_error jdsp.rollback();
+            on_success jdsp.commit();
+
+            jdsp.exec("drop table test_table_1");
+        } catch (hash<ExceptionInfo> ex) {
+            # this block intentionally left blank
+>>>>>>> develop
         }
 
         {
