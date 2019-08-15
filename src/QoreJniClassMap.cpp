@@ -79,25 +79,25 @@ QoreJniThreadLock QoreJniClassMap::m;
 
 QoreJniClassMap::jtmap_t QoreJniClassMap::jtmap = {
     {"java.lang.Object", autoTypeInfo},
+    // because of automatic array conversions, we do not use "or nothing" types for simple types
     {"java.lang.String", stringTypeInfo},
     {"java.lang.Float", floatTypeInfo},
     {"java.lang.Double", floatTypeInfo},
     {"java.lang.Boolean", boolTypeInfo},
-    {"java.lang.Float", floatTypeInfo},
-    {"java.lang.Double", floatTypeInfo},
     {"java.lang.Byte", bigIntTypeInfo},
     {"java.lang.Short", bigIntTypeInfo},
     {"java.lang.Integer", bigIntTypeInfo},
     {"java.lang.Long", bigIntTypeInfo},
     {"java.lang.Void", nothingTypeInfo},
-    {"java.time.ZonedDateTime", dateTypeInfo},
-    {"org.qore.jni.QoreRelativeTime", dateTypeInfo},
-    {"java.math.BigDecimal", numberTypeInfo},
-    {"java.util.Map", autoHashTypeInfo},
-    {"java.util.AbstractMap", autoHashTypeInfo},
-    {"java.util.AbstractArray", autoListTypeInfo},
+    // for complex types, we use "or nothing" types to allow NULL to be passed explicitly
+    {"java.time.ZonedDateTime", dateOrNothingTypeInfo},
+    {"org.qore.jni.QoreRelativeTime", dateOrNothingTypeInfo},
+    {"java.math.BigDecimal", numberOrNothingTypeInfo},
+    {"java.util.Map", autoHashOrNothingTypeInfo},
+    {"java.util.AbstractMap", autoHashOrNothingTypeInfo},
+    {"java.util.AbstractArray", autoListOrNothingTypeInfo},
     {"org.qore.jni.QoreObject", objectOrNothingTypeInfo},
-    {"org.qore.jni.QoreClosureMarker", codeTypeInfo},
+    {"org.qore.jni.QoreClosureMarker", codeOrNothingTypeInfo},
 };
 
 QoreJniClassMap::jpmap_t QoreJniClassMap::jpmap = {
@@ -123,8 +123,7 @@ static QoreNamespace* jni_find_create_namespace(QoreNamespace& jns, const char* 
         ns = &jns;
         sn = name;
         printd(LogLevel, "jni_find_create_namespace() same namespace\n");
-    }
-    else {
+    } else {
         QoreString nsp(name);
         nsp.replaceAll(".", "::");
         ++sn;
