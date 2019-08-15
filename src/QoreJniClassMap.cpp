@@ -123,8 +123,7 @@ static QoreNamespace* jni_find_create_namespace(QoreNamespace& jns, const char* 
         ns = &jns;
         sn = name;
         printd(LogLevel, "jni_find_create_namespace() same namespace\n");
-    }
-    else {
+    } else {
         QoreString nsp(name);
         nsp.replaceAll(".", "::");
         ++sn;

@@ -94,6 +94,7 @@ static void qore_jni_mc_add_relative_classpath(const QoreString& arg, QoreProgra
 static void qore_jni_mc_define_pending_class(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 static void qore_jni_mc_set_compat_types(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
+static void qore_jni_mc_set_property(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 
 // module cmds
 typedef std::map<std::string, qore_jni_module_cmd_t> mcmap_t;
@@ -104,6 +105,7 @@ static mcmap_t mcmap = {
     {"define-pending-class", qore_jni_mc_define_pending_class},
     {"define-class", qore_jni_mc_define_class},
     {"set-compat-types", qore_jni_mc_set_compat_types},
+    {"set-property", qore_jni_mc_set_property},
 };
 
 static void jni_thread_cleanup(void*) {
@@ -374,6 +376,7 @@ static void qore_jni_mc_define_pending_class(const QoreString& arg, QoreProgram*
 static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
     assert(pgm);
     assert(pgm->checkFeature(QORE_JNI_MODULE_NAME));
+    assert(jpc);
 
     // find end of name
     qore_offset_t end = arg.find(' ');
@@ -388,7 +391,6 @@ static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, Jn
         throw XsinkException(xsink);
     }
     jni::Env env;
-    assert(jpc);
 
     //printd(5, "qore_jni_mc_define_class() jpc: %p name: '%s' class size: %d\n", jpc, java_name.c_str(), byte_code->size());
     LocalReference<jclass> jcls = env.defineClass(java_name.c_str(), jpc->getClassLoader(),
@@ -407,6 +409,35 @@ static void qore_jni_mc_set_compat_types(const QoreString& arg, QoreProgram* pgm
 
     bool compat_types = q_parse_bool(arg.c_str());
     jpc->overrideCompatTypes(compat_types);
+}
+
+static void qore_jni_mc_set_property(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
+    assert(pgm);
+    assert(pgm->checkFeature(QORE_JNI_MODULE_NAME));
+    assert(jpc);
+
+    // find end of property name
+    qore_offset_t end = arg.find(' ');
+    if (end == -1) {
+        throw QoreJniException("JNI-SET-PROPERTY-ERROR", "cannot find the end of the proprty name in the 'set-property' directive");
+    }
+
+    QoreString property(&arg, end);
+    QoreString value(arg.c_str() + end + 1);
+    //ExceptionSink xsink;
+
+    jni::Env env;
+
+    LocalReference<jstring> jprop = env.newString(property.c_str());
+    LocalReference<jstring> jval = env.newString(value.c_str());
+
+    std::vector<jvalue> jargs(2);
+    jargs[0].l = jprop;
+    jargs[1].l = jval;
+
+    LocalReference<jstring> str = env.callStaticObjectMethod(Globals::classSystem,
+        Globals::methodSystemSetProperty, &jargs[0]).as<jstring>();
+    str = nullptr;
 }
 
 QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
@@ -432,12 +463,10 @@ QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
         QoreClass* qc = qjcm.findCreateQoreClass(cp.getBuffer());
         printd(LogLevel, "jni_class_handler() cp: %s returning qc: %p\n", cp.getBuffer(), qc);
         return qc;
-    }
-    catch (jni::JavaException& e) {
+    } catch (jni::JavaException& e) {
         // ignore class not found exceptions here
         e.ignoreOrRethrowNoClass();
-    }
-    catch (jni::Exception& e) {
+    } catch (jni::Exception& e) {
         // display exception info on the console as an unhandled exception
         {
             ExceptionSink xsink;

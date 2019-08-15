@@ -53,6 +53,9 @@ GlobalReference<jclass> Globals::classPrimitiveLong;
 GlobalReference<jclass> Globals::classPrimitiveFloat;
 GlobalReference<jclass> Globals::classPrimitiveDouble;
 
+GlobalReference<jclass> Globals::classSystem;
+jmethodID Globals::methodSystemSetProperty;
+
 GlobalReference<jclass> Globals::classObject;
 jmethodID Globals::methodObjectGetClass;
 
@@ -953,6 +956,9 @@ void Globals::init() {
     classPrimitiveFloat = getPrimitiveClass(env, "java/lang/Float");
     classPrimitiveDouble = getPrimitiveClass(env, "java/lang/Double");
 
+    classSystem = env.findClass("java/lang/System").makeGlobal();
+    methodSystemSetProperty = env.getStaticMethod(classSystem, "setProperty", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
+
     classObject = env.findClass("java/lang/Object").makeGlobal();
     methodObjectGetClass = env.getMethod(classObject, "getClass", "()Ljava/lang/Class;");
 
@@ -1114,6 +1120,7 @@ void Globals::cleanup() {
     classPrimitiveLong = nullptr;
     classPrimitiveFloat = nullptr;
     classPrimitiveDouble = nullptr;
+    classSystem = nullptr;
     classObject = nullptr;
     classClass = nullptr;
     classString = nullptr;
