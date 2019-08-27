@@ -145,7 +145,8 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
             }
 
             case NT_INT: {
-                if (env.isSameObject(cls, Globals::classInteger) || env.isSameObject(cls, Globals::classPrimitiveInt)) {
+                if (env.isSameObject(cls, Globals::classInteger) || env.isSameObject(cls, Globals::classPrimitiveInt)
+                    || env.isSameObject(cls, Globals::classLong) || env.isSameObject(cls, Globals::classPrimitiveLong)) {
                     return toAnyObject(value);
                 }
                 break;
