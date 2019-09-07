@@ -13,6 +13,8 @@ public class QoreJavaDynamicApi {
     //! invokes the given method on the given object and returns the return value
     public static Object invokeMethod(Method m, Object obj, Object... args) throws Throwable {
         try {
+            Class<?> c = m.getDeclaringClass();
+            m.trySetAccessible();
             return m.invoke(obj, args);
         } catch (InvocationTargetException e) {
             throw e.getCause();

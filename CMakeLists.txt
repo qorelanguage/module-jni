@@ -8,7 +8,7 @@ set (VERSION_PATCH 0)
 
 set(PROJECT_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-find_package(Qore 0.9 REQUIRED)
+find_package(Qore 0.9.4 REQUIRED)
 find_package(JNI REQUIRED)
 find_package(Java REQUIRED)
 if ((NOT ${Java_VERSION_MAJOR} EQUAL 11) AND (NOT ${Java_VERSION_MAJOR} EQUAL 12))
@@ -184,6 +184,9 @@ set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/B.java
     test/java/src/org/qore/jni/test/C.java
     test/java/src/org/qore/jni/test/QoreJavaApiTest.java
+    test/java/src/org/qore/jni/test/ClosureTest1.java
+    test/java/src/org/qore/jni/test/ClosureTest2.java
+    test/java/src/org/qore/jni/test/ClosureTest3.java
     test/java/src/org/qore/jni/test/StaticFields.java
     test/java/src/org/qore/jni/test/StaticMethods.java
     test/java/src/org/qore/jni/test/StringFactory.java

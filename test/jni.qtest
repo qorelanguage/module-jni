@@ -12,6 +12,8 @@
 %requires SqlUtil
 %requires BulkSqlUtil
 
+%requires reflection
+
 %module-cmd(jni) add-relative-classpath qore-jni-test.jar
 # warning: hardcoded build directory
 %module-cmd(jni) add-relative-classpath ../build/qore-jni.jar
@@ -100,7 +102,6 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("jni test", "1.0") {
-        /*
         addTestCase("qore exception tes", \qoreExceptionTest());
         addTestCase("call stack test", \callStackTest());
         addTestCase("closure test", \closureTest());
@@ -114,7 +115,6 @@ public class Main inherits QUnit::Test {
         addTestCase("defineClass", \defineClassTest());
         addTestCase("issue 2950", \issue2950());
         addTestCase("class test", \testJniClasses());
-        */
         addTestCase("static method invocation test", \testStaticMethods());
         addTestCase("instance method invocation test", \testInstanceMethods());
         addTestCase("float conversion test", \testFloatConversions());
@@ -148,7 +148,7 @@ public class Main inherits QUnit::Test {
             assertGt(0, ex.line);
             assertEq(ET_System, ex.type);
             assertEq("Java", ex.lang);
-            assertEq("QoreJavaApiTest::testException", ex.callstack[0].function);
+            assertEq("QoreJavaApiTest::testException", (map $1.function, ex.callstack, $1.function == "QoreJavaApiTest::testException")[0]);
         }
 
         try {
@@ -163,7 +163,7 @@ public class Main inherits QUnit::Test {
             assertGt(0, ex.line);
             assertEq(ET_System, ex.type);
             assertEq("Java", ex.lang);
-            assertEq("QoreJavaApiTest::testException", ex.callstack[0].function);
+            assertEq("QoreJavaApiTest::testException", (map $1.function, ex.callstack, $1.function == "QoreJavaApiTest::testException")[0]);
         }
 
         try {
@@ -178,7 +178,7 @@ public class Main inherits QUnit::Test {
             assertGt(0, ex.line);
             assertEq(ET_System, ex.type);
             assertEq("Java", ex.lang);
-            assertEq("QoreJavaApiTest::testException", ex.callstack[0].function);
+            assertEq("QoreJavaApiTest::testException", (map $1.function, ex.callstack, $1.function == "QoreJavaApiTest::testException")[0]);
         }
 
         Mutex m();
@@ -194,7 +194,7 @@ public class Main inherits QUnit::Test {
             assertGt(0, ex.line);
             assertEq(ET_System, ex.type);
             assertEq("Java", ex.lang);
-            assertEq("QoreJavaApiTest::testException", ex.callstack[0].function);
+            assertEq("QoreJavaApiTest::testException", (map $1.function, ex.callstack, $1.function == "QoreJavaApiTest::testException")[0]);
         }
     }
 
@@ -237,13 +237,6 @@ public class Main inherits QUnit::Test {
         on_exit remove_thread_data("_jni_save");
         lang::DatasourcePool jdsp(dsp);
 
-<<<<<<< HEAD
-        # drop the table uncondintionally to ensure that the test does not fail in case a previous run did not
-        # complete
-        try {
-            jdsp.exec("drop table test_table_1");
-        } catch (hash<ExceptionInfo> ex) {
-=======
         # drop the table unconditionally in case it exists from a failed test
         try {
             on_error jdsp.rollback();
@@ -252,7 +245,6 @@ public class Main inherits QUnit::Test {
             jdsp.exec("drop table test_table_1");
         } catch (hash<ExceptionInfo> ex) {
             # this block intentionally left blank
->>>>>>> develop
         }
 
         {
@@ -600,7 +592,7 @@ public class Main inherits QUnit::Test {
             assertTrue(False);
         } catch (hash<ExceptionInfo> ex) {
             assertEq("QoreJavaApiTest.java", ex.file);
-            assertEq(99, ex.line);
+            assertEq(83, ex.line);
         }
     }
 

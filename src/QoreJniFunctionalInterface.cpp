@@ -28,7 +28,9 @@
 #include "QoreToJava.h"
 
 namespace jni {
-QoreJniFunctionalInterface::QoreJniFunctionalInterface(jobject obj) : obj(GlobalReference<jobject>::fromLocal(obj)) {
+QoreJniFunctionalInterface::QoreJniFunctionalInterface(jobject obj) : obj(GlobalReference<jobject>::fromLocal(obj)),
+    src_pgm(qore_get_call_program_context()) {
+    assert(src_pgm);
     Env env;
 
     cls = new Class(env.callObjectMethod(obj, Globals::methodObjectGetClass, nullptr).as<jclass>());
@@ -63,6 +65,9 @@ QoreValue QoreJniFunctionalInterface::execValue(const QoreListNode* args, Except
         if (*xsink) {
             return QoreValue();
         }
+
+        // set call context
+        QoreExternalProgramCallContextHelper call_ctx(src_pgm);
 
         // make sure that the Qore exception stack is populated correctly in case a Qore exception is thrown
         // from the Java code about to be called below

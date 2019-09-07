@@ -78,22 +78,6 @@ class ThreadTest5 implements Runnable {
     }
 }
 
-class ClosureTest1 implements QoreClosureMarker {
-    String call(int i) {
-        return "closure-" + String.valueOf(i);
-    }
-}
-
-class ClosureTest2 implements QoreClosureMarker {
-    void call(int i) {
-    }
-}
-
-class ClosureTest3 implements QoreClosureMarker {
-    void call2(int i) {
-    }
-}
-
 public class QoreJavaApiTest {
     public static void throwTest() throws Throwable {
         throw new Throwable("test");

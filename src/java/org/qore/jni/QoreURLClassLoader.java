@@ -23,10 +23,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     private HashMap<String, byte[]> pendingClasses = new HashMap<String, byte[]>();
 
     public QoreURLClassLoader(long p_ptr) {
-        //super(((URLClassLoader)ClassLoader.getSystemClassLoader()).getURLs());
-        //super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
         super("QoreURLClassLoader", new URL[]{}, ClassLoader.getPlatformClassLoader());
-        //super("QoreURLClassLoader", new URL[]{}, null);
         // set the current classloader as the thread context classloader
         pgm_ptr = p_ptr;
         setContext();

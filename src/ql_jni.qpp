@@ -220,7 +220,7 @@ java::lang::Class cls = define_class(name, bytecode);
     @param name the name of the class (ex: \c "org/qore/my_package/ClassName")
     @param bytecode the byte code of the class
 
-    @note the class will be created using the classloader for the containing %Progeam object
+    @note the class will be created using the classloader for the containing %Program object
 
     @since %jni 1.1
 */

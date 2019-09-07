@@ -4,7 +4,7 @@
 
     Qore Programming Language JNI Module
 
-    Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -83,7 +83,7 @@ protected:
 
 public:
     DLLLOCAL void add(const char* name, JniQoreClass* qc) {
-        printd(LogLevel, "QoreJniClassMapBase::add() name: %s qc: %p (%s)\n", name, qc, qc->getName());
+        printd(LogLevel, "QoreJniClassMapBase::add() this: %p name: %s qc: %p (%s)\n", this, name, qc, qc->getName());
 
 #ifdef DEBUG
         if (jcmap.find(name) != jcmap.end())
@@ -251,13 +251,6 @@ public:
         return dynamicApi;
     }
 
-    /*
-    DLLLOCAL jobject getLookup() const {
-        assert(lookup);
-        return lookup;
-    }
-    */
-
     DLLLOCAL jmethodID getInvokeMethodId() const {
         assert(methodQoreJavaDynamicApiInvokeMethod);
         return methodQoreJavaDynamicApiInvokeMethod;
@@ -307,8 +300,6 @@ protected:
     GlobalReference<jobject> classLoader;
     // dynamic API class
     GlobalReference<jclass> dynamicApi;
-    // lookup object
-    //GlobalReference<jobject> lookup;
     // QoreJavaDynamicApi.invokeNethod()
     jmethodID methodQoreJavaDynamicApiInvokeMethod = 0;
     // QoreJavaDynamicApi.invokeNethodNonvirtual()

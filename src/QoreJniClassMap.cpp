@@ -4,7 +4,7 @@
 
     Qore Programming Language JNI Module
 
-    Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -24,6 +24,8 @@
 #include <qore/Qore.h>
 
 #include <string.h>
+
+#include <memory>
 
 #include "defs.h"
 #include "Jvm.h"
@@ -299,8 +301,9 @@ QoreValue QoreJniClassMap::getValue(LocalReference<jobject>& obj) {
         return return_value.release();
     }
 
-    if (env.isSameObject(jc, Globals::classInteger))
+    if (env.isSameObject(jc, Globals::classInteger)) {
         return env.callIntMethod(obj, Globals::methodIntegerIntValue, nullptr);
+    }
 
     if (env.isSameObject(jc, Globals::classLong))
         return env.callLongMethod(obj, Globals::methodLongLongValue, nullptr);
@@ -311,8 +314,9 @@ QoreValue QoreJniClassMap::getValue(LocalReference<jobject>& obj) {
     if (env.isSameObject(jc, Globals::classByte))
         return env.callByteMethod(obj, Globals::methodByteByteValue, nullptr);
 
-    if (env.isSameObject(jc, Globals::classBoolean))
+    if (env.isSameObject(jc, Globals::classBoolean)) {
         return (bool)env.callBooleanMethod(obj, Globals::methodBooleanBooleanValue, nullptr);
+    }
 
     if (env.isSameObject(jc, Globals::classDouble))
         return (double)env.callDoubleMethod(obj, Globals::methodDoubleDoubleValue, nullptr);
@@ -360,22 +364,22 @@ Class* QoreJniClassMap::loadProgramClass(const char* name, JniExternalProgramDat
 
     try {
         LocalReference<jclass> c = env.callObjectMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderLoadClass, &jarg).as<jclass>();
-        printd(LogLevel, "QoreJniClassMap::loadClass() program-specific '%s': %p (class loader: %p)\n", name, *c, jpc->getClassLoader());
+        printd(LogLevel, "QoreJniClassMap::loadProgramClass() program-specific '%s': %p (class loader: %p)\n", name, *c, jpc->getClassLoader());
         return new Class(c.release());
     } catch (jni::JavaException& e) {
-        printd(LogLevel, "QoreJniClassMap::loadClass() '%s' LOCAL FAILED\n", name);
+        printd(LogLevel, "QoreJniClassMap::loadProgramClass() '%s' LOCAL FAILED\n", name);
         LocalReference<jthrowable> je = e.save();
         // try to load from any thread context class loader
         LocalReference<jobject> thread = env.callStaticObjectMethod(Globals::classThread, Globals::methodThreadCurrentThread, nullptr);
         LocalReference<jobject> cl = env.callObjectMethod(thread, Globals::methodThreadGetContextClassLoader, nullptr);
-        printd(LogLevel, "QoreJniClassMap::loadClass() '%s' thread local class loader: %d\n", name, cl ? 1 : 0);
+        printd(LogLevel, "QoreJniClassMap::loadProgramClass() '%s' thread local class loader: %d\n", name, cl ? 1 : 0);
         if (!cl) {
-            printd(LogLevel, "QoreJniClassMap::loadClass() FINAL FAILURE '%s'\n", name);
+            printd(LogLevel, "QoreJniClassMap::loadProgramClass() FINAL FAILURE '%s'\n", name);
             e.restore(je.release());
             throw;
         }
         LocalReference<jclass> c = env.callObjectMethod(cl, Globals::methodClassLoaderLoadClass, &jarg).as<jclass>();
-        printd(LogLevel, "QoreJniClassMap::loadClass() thread-local '%s': %p\n", name, *c);
+        printd(LogLevel, "QoreJniClassMap::loadProgramClass() thread-local '%s': %p\n", name, *c);
         return new Class(c.release());
     }
 }
@@ -395,7 +399,8 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClass(LocalReference<jclass>& jc) {
 
     // see if class is a builtin class or loaded by our custom classloader
     LocalReference<jobject> cl = env.callObjectMethod(jc, Globals::methodClassGetClassLoader, nullptr);
-    bool base = (baseClassLoader && env.isSameObject(baseClassLoader, cl)) || (!baseClassLoader && !cl);
+    bool base = (!baseClassLoader && !cl) || (cl && baseClassLoader && env.isSameObject(baseClassLoader, cl));
+    printd(LogLevel, "QoreJniClassMap::findCreateQoreClass() '%s' base: %d\n", jpath.c_str(), base);
     return findCreateQoreClass(cname, jpath.c_str(), new Class(jc), base);
 }
 
@@ -447,6 +452,7 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name, co
             sn = name.c_str() + (dot != -1 ? dot + 1 : 0);
         }
     }
+    assert(!ns->findLocalClass(sn));
 
     qc = new JniQoreClass(sn, name.c_str());
     createClassInNamespace(ns, *jpc->getJniNamespace(), jpath, cls.release(), qc, *jpc);
@@ -483,9 +489,11 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInBase(QoreString& name, const
     QoreJniAutoLocker al(m);
 
     // if we have the QoreClass already, then return it
-    JniQoreClass* qc = find(jpath);
-    if (qc)
-        return qc;
+    {
+        JniQoreClass* qc = find(jpath);
+        if (qc)
+            return qc;
+    }
 
     // see if we have an inner class
     int ic_idx = name.rfind('$');
@@ -509,8 +517,9 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInBase(QoreString& name, const
         }
     }
 
-    qc = new JniQoreClass(sn, name.c_str());
+    JniQoreClass *qc = new JniQoreClass(sn, name.c_str());
     assert(qc->isSystem());
+    // createClassInNamespace() will "save" qc in the namespace
     createClassInNamespace(ns, *default_jns, jpath, cls.release(), qc, *this);
 
     // now add to the current Program's namespace
@@ -525,7 +534,7 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInBase(QoreString& name, const
             }
 
             {
-               JniQoreClass* qc0 = jpc->find(jpath);
+                JniQoreClass* qc0 = jpc->find(jpath);
                 if (qc0) {
                     return qc0;
                 }
@@ -534,12 +543,16 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInBase(QoreString& name, const
             ns = jni_find_create_namespace(*jpc->getJniNamespace(), name.c_str(), sn);
 
             // copy class for assignment
-            qc = new JniQoreClass(*qc);
-            assert(qc->isSystem());
+            std::unique_ptr<JniQoreClass> new_qc(new JniQoreClass(*qc));
+            assert(new_qc->isSystem());
 
-            printd(LogLevel, "QoreJniClassMap::findCreateQoreClassInBase() '%s' qc: %p ns: %p '%s::%s'\n", jpath, qc, ns, ns->getName(), qc->getName());
+            printd(LogLevel, "QoreJniClassMap::findCreateQoreClassInBase() jpc: %p '%s' qc: %p ns: %p '%s::%s'\n", jpc, jpath, new_qc.get(), ns, ns->getName(), qc->getName());
+
+            // create entry for class in map
+            jpc->add(jpath, new_qc.get());
 
             // save class in namespace
+            qc = new_qc.release();
             ns->addSystemClass(qc);
         }
     }
@@ -1036,7 +1049,7 @@ JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni) : jni(n_jni
         lookup = env.callStaticObjectMethod(dynamicApi, methodQoreJavaDynamicApiLookup, nullptr).makeGlobal();
         */
 
-        //printd(LogLevel, "dynamic API created: %p classloader: %p\n", getDynamicApi(), getClassLoader());
+        //printd(LogLevel, "this: %p: dynamic API created: %p classloader: %p\n", this, getDynamicApi(), getClassLoader());
     }
 
     // setup classpath
@@ -1048,7 +1061,14 @@ JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni) : jni(n_jni
 
 JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& parent, QoreProgram* pgm) :
     // reuse the same classLoader as the parent
-    classLoader(GlobalReference<jobject>::fromLocal(parent.classLoader.toLocal())) {
+    classLoader(GlobalReference<jobject>::fromLocal(parent.classLoader.toLocal())),
+    // reuse the same dynamic API as the parent
+    dynamicApi(GlobalReference<jclass>::fromLocal(parent.dynamicApi.toLocal())),
+    methodQoreJavaDynamicApiInvokeMethod(parent.methodQoreJavaDynamicApiInvokeMethod),
+    methodQoreJavaDynamicApiInvokeMethodNonvirtual(parent.methodQoreJavaDynamicApiInvokeMethodNonvirtual),
+    methodQoreJavaDynamicApiGetField(parent.methodQoreJavaDynamicApiGetField),
+    override_compat_types(parent.override_compat_types),
+    compat_types(parent.compat_types) {
     // copy the parent's class map to this one
     jcmap = parent.jcmap;
     // find Jni namespace in new Program if present

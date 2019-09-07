@@ -207,8 +207,7 @@ QoreValue BaseMethod::invoke(jobject object, const QoreListNode* args, int offse
     // process method arguments
     jargs[2].l = vargs;
 
-    //printd(0, "BaseMethod::invokeNonvirtual() args: %d\n", (int)(args ? args->size() : 0));
-
+    //printd(0, "BaseMethod::invoke() args: %d\n", (int)(args ? args->size() : 0));
     return JavaToQore::convertToQore(env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getInvokeMethodId(), &jargs[0]));
 }
 
