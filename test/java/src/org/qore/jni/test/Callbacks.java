@@ -3,16 +3,15 @@ package org.qore.jni.test;
 import java.lang.reflect.*;
 
 public class Callbacks {
-
-    static void callNow(Runnable r) {
+    public static void callNow(Runnable r) {
         r.run();
     }
 
-    static void callInThread(Runnable r) {
+    public static void callInThread(Runnable r) {
         new Thread(r).start();
     }
 
-    static boolean trueIfThrows(Runnable r) {
+    public static boolean trueIfThrows(Runnable r) {
         try {
             r.run();
             return false;
@@ -23,11 +22,11 @@ public class Callbacks {
         }
     }
 
-    static void doThrow() {
+    public static void doThrow() {
         throw new MyException();
     }
 
-    static String createString(StringFactory factory) {
+    public static String createString(StringFactory factory) {
         return "*" + factory.create() + "*";
     }
 

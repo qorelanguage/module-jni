@@ -75,7 +75,7 @@ Jni::java::lang::Class load_class(string name) {
     }
 }
 
-//! Invokes a method with the given arguments in a non-virtual way; meaning that even if the object provided is a child class, the method given in the first argument is executed
+//! Invokes a method with the given arguments in a virtual way; meaning that the method in the most derived class is executed; not necessarily the method passed as an argument
 /** @param method the method to invoke
     @param object the object to use to invoke the method; for static methods, this argument can be @ref nothing
 
@@ -220,7 +220,7 @@ java::lang::Class cls = define_class(name, bytecode);
     @param name the name of the class (ex: \c "org/qore/my_package/ClassName")
     @param bytecode the byte code of the class
 
-    @note the class will be created using the classloader for the containing %Prorgam object
+    @note the class will be created using the classloader for the containing %Program object
 
     @since %jni 1.1
 */

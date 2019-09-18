@@ -55,5 +55,6 @@ private:
     GlobalReference<jobject> obj;
     SimpleRefHolder<Class> cls;
     SimpleRefHolder<BaseMethod> method;
+    QoreProgram* src_pgm;
 };
 }

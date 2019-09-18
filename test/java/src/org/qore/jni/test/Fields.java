@@ -1,21 +1,21 @@
 package org.qore.jni.test;
 
 public class Fields {
-
-    static Fields instance = new Fields();
+    public static Fields instance = new Fields();
 
     protected int pi = 1;
     private boolean z;
-    byte b;
-    char c;
-    short s;
-    int i;
-    long j;
-    float f;
-    double d;
 
-    byte[] ba = new byte[3];
-    Object o;
-    Object[] oa = new Object[3];
-    Integer[] ia = new Integer[3];
+    public byte b;
+    public char c;
+    public short s;
+    public int i;
+    public long j;
+    public float f;
+    public double d;
+
+    public byte[] ba = new byte[3];
+    public Object o;
+    public Object[] oa = new Object[3];
+    public Integer[] ia = new Integer[3];
 }

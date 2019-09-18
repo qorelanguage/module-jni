@@ -8,11 +8,11 @@ set (VERSION_PATCH 0)
 
 set(PROJECT_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-find_package(Qore 0.9 REQUIRED)
+find_package(Qore 0.9.4 REQUIRED)
 find_package(JNI REQUIRED)
 find_package(Java REQUIRED)
-if((NOT ${Java_VERSION_MAJOR} EQUAL 1) OR (NOT ${Java_VERSION_MINOR} EQUAL 8))
-    message(FATAL_ERROR "This module requires Java 8 to build; the current Java version is ${Java_VERSION}.")
+if ((NOT ${Java_VERSION_MAJOR} EQUAL 11) AND (NOT ${Java_VERSION_MAJOR} EQUAL 12))
+    message(FATAL_ERROR "This module requires Java 11 or 12 to build; the current Java version is ${Java_VERSION}.")
 endif()
 include(UseJava)
 
@@ -110,6 +110,7 @@ generate_java(org/qore/jni/QoreInvocationHandler.java)
 generate_java(org/qore/jni/QoreURLClassLoader.java 1)
 generate_java(org/qore/jni/QoreRelativeTime.java)
 generate_java(org/qore/jni/QoreClosureMarker.java)
+generate_java(org/qore/jni/QoreJavaDynamicApi.java)
 
 # add Java sources without native methods
 add_java_source(org/qore/lang/sqlutil/Table.java)
@@ -159,7 +160,7 @@ add_custom_command(
     VERBATIM
 )
 
-add_jar_targets(org/qore/lang org/qore/lang/sqlutil org/qore/lang/mapper org/qore/lang/tablemapper)
+add_jar_targets(org/qore/lang org/qore/lang/sqlutil org/qore/lang/mapper org/qore/lang/tablemapper org/qore/jni/QoreJavaDynamicApi.java)
 
 # generate jar manually
 add_custom_command(
@@ -179,7 +180,13 @@ set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/Fields.java
     test/java/src/org/qore/jni/test/FloatConversions.java
     test/java/src/org/qore/jni/test/Methods.java
+    test/java/src/org/qore/jni/test/A.java
+    test/java/src/org/qore/jni/test/B.java
+    test/java/src/org/qore/jni/test/C.java
     test/java/src/org/qore/jni/test/QoreJavaApiTest.java
+    test/java/src/org/qore/jni/test/ClosureTest1.java
+    test/java/src/org/qore/jni/test/ClosureTest2.java
+    test/java/src/org/qore/jni/test/ClosureTest3.java
     test/java/src/org/qore/jni/test/StaticFields.java
     test/java/src/org/qore/jni/test/StaticMethods.java
     test/java/src/org/qore/jni/test/StringFactory.java

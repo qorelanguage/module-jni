@@ -93,6 +93,7 @@ jmethodID Globals::methodFieldGetType;
 jmethodID Globals::methodFieldGetModifiers;
 jmethodID Globals::methodFieldGetName;
 jmethodID Globals::methodFieldGet;
+jmethodID Globals::methodFieldSetAccessible;
 
 GlobalReference<jclass> Globals::classMethod;
 jmethodID Globals::methodMethodGetReturnType;
@@ -146,6 +147,7 @@ jmethodID Globals::methodQoreURLClassLoaderLoadClass;
 jmethodID Globals::methodQoreURLClassLoaderSetContext;
 jmethodID Globals::methodQoreURLClassLoaderGetProgramPtr;
 jmethodID Globals::methodQoreURLClassLoaderAddPendingClass;
+jmethodID Globals::methodQoreURLClassLoaderDefineResolveClass;
 
 GlobalReference<jclass> Globals::classThread;
 jmethodID Globals::methodThreadCurrentThread;
@@ -882,9 +884,9 @@ static JNINativeMethod qoreObjectNativeMethods[] = {
 static const size_t num_qore_object_native_methods = sizeof(qoreObjectNativeMethods) / sizeof(JNINativeMethod);
 
 static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperName) {
-   LocalReference<jclass> wrapperClass = env.findClass(wrapperName);
-   jfieldID typeFieldId = env.getStaticField(wrapperClass, "TYPE", "Ljava/lang/Class;");
-   return std::move(env.getStaticObjectField(wrapperClass, typeFieldId).as<jclass>().makeGlobal());
+    LocalReference<jclass> wrapperClass = env.findClass(wrapperName);
+    jfieldID typeFieldId = env.getStaticField(wrapperClass, "TYPE", "Ljava/lang/Class;");
+    return std::move(env.getStaticObjectField(wrapperClass, typeFieldId).as<jclass>().makeGlobal());
 }
 
 #include "JavaClassQoreInvocationHandler.inc"
@@ -985,6 +987,7 @@ void Globals::init() {
     methodFieldGetModifiers = env.getMethod(classField, "getModifiers", "()I");
     methodFieldGetName = env.getMethod(classField, "getName", "()Ljava/lang/String;");
     methodFieldGet = env.getMethod(classField, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+    methodFieldSetAccessible = env.getMethod(classField, "setAccessible", "(Z)V");
 
     classMethod = env.findClass("java/lang/reflect/Method").makeGlobal();
     methodMethodGetReturnType = env.getMethod(classMethod, "getReturnType", "()Ljava/lang/Class;");
@@ -1011,20 +1014,26 @@ void Globals::init() {
     methodQoreJavaApiGetStackTrace = env.getStaticMethod(classQoreJavaApi, "getStackTrace", "()[Ljava/lang/StackTraceElement;");
 
     classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
-    methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance", "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
+    methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance",
+        "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
 
     classClassLoader = env.findClass("java/lang/ClassLoader").makeGlobal();
     methodClassLoaderLoadClass = env.getMethod(classClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
 
-    classQoreURLClassLoader = findDefineClass(env, "org/qore/jni/QoreURLClassLoader", nullptr, java_org_qore_jni_QoreURLClassLoader_class, java_org_qore_jni_QoreURLClassLoader_class_len).makeGlobal();
+    classQoreURLClassLoader = findDefineClass(env, "org/qore/jni/QoreURLClassLoader", nullptr,
+        java_org_qore_jni_QoreURLClassLoader_class, java_org_qore_jni_QoreURLClassLoader_class_len).makeGlobal();
     ctorQoreURLClassLoader = env.getMethod(classQoreURLClassLoader, "<init>", "(J)V");
     methodQoreURLClassLoaderAddPath = env.getMethod(classQoreURLClassLoader, "addPath", "(Ljava/lang/String;)V");
-    methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
+    methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass",
+        "(Ljava/lang/String;)Ljava/lang/Class;");
     methodQoreURLClassLoaderSetContext = env.getMethod(classQoreURLClassLoader, "setContext", "()V");
     methodQoreURLClassLoaderGetProgramPtr = env.getStaticMethod(classQoreURLClassLoader, "getProgramPtr", "()J");
-    methodQoreURLClassLoaderAddPendingClass = env.getMethod(classQoreURLClassLoader, "addPendingClass", "(Ljava/lang/String;[B)V");
+    methodQoreURLClassLoaderAddPendingClass = env.getMethod(classQoreURLClassLoader, "addPendingClass",
+        "(Ljava/lang/String;[B)V");
+    methodQoreURLClassLoaderDefineResolveClass = env.getMethod(classQoreURLClassLoader, "defineResolveClass", "(Ljava/lang/String;[BII)Ljava/lang/Class;");
 
-    findDefineClass(env, "org/qore/jni/QoreURLClassLoader$1", nullptr, java_org_qore_jni_QoreURLClassLoader_1_class, java_org_qore_jni_QoreURLClassLoader_1_class_len);
+    findDefineClass(env, "org/qore/jni/QoreURLClassLoader$1", nullptr, java_org_qore_jni_QoreURLClassLoader_1_class,
+        java_org_qore_jni_QoreURLClassLoader_1_class_len);
 
     classThread = env.findClass("java/lang/Thread").makeGlobal();
     methodThreadCurrentThread = env.getStaticMethod(classThread, "currentThread", "()Ljava/lang/Thread;");
@@ -1109,6 +1118,7 @@ void Globals::init() {
 }
 
 void Globals::cleanup() {
+    // delete classes
     classThrowable = nullptr;
     classStackTraceElement = nullptr;
     classPrimitiveVoid = nullptr;
@@ -1160,35 +1170,35 @@ void Globals::cleanup() {
 }
 
 Type Globals::getType(jclass cls) {
-   Env env;
-   if (env.isSameObject(cls, classPrimitiveInt)) {
-      return Type::Int;
-   }
-   if (env.isSameObject(cls, classPrimitiveVoid)) {
-      return Type::Void;
-   }
-   if (env.isSameObject(cls, classPrimitiveBoolean)) {
-      return Type::Boolean;
-   }
-   if (env.isSameObject(cls, classPrimitiveByte)) {
-      return Type::Byte;
-   }
-   if (env.isSameObject(cls, classPrimitiveChar)) {
-      return Type::Char;
-   }
-   if (env.isSameObject(cls, classPrimitiveShort)) {
-      return Type::Short;
-   }
-   if (env.isSameObject(cls, classPrimitiveLong)) {
-      return Type::Long;
-   }
-   if (env.isSameObject(cls, classPrimitiveFloat)) {
-      return Type::Float;
-   }
-   if (env.isSameObject(cls, classPrimitiveDouble)) {
-      return Type::Double;
-   }
-   return Type::Reference;
+    Env env;
+    if (env.isSameObject(cls, classPrimitiveInt)) {
+        return Type::Int;
+    }
+    if (env.isSameObject(cls, classPrimitiveVoid)) {
+        return Type::Void;
+    }
+    if (env.isSameObject(cls, classPrimitiveBoolean)) {
+        return Type::Boolean;
+    }
+    if (env.isSameObject(cls, classPrimitiveByte)) {
+        return Type::Byte;
+    }
+    if (env.isSameObject(cls, classPrimitiveChar)) {
+        return Type::Char;
+    }
+    if (env.isSameObject(cls, classPrimitiveShort)) {
+        return Type::Short;
+    }
+    if (env.isSameObject(cls, classPrimitiveLong)) {
+        return Type::Long;
+    }
+    if (env.isSameObject(cls, classPrimitiveFloat)) {
+        return Type::Float;
+    }
+    if (env.isSameObject(cls, classPrimitiveDouble)) {
+        return Type::Double;
+    }
+    return Type::Reference;
 }
 
 QoreJniStackLocationHelper::QoreJniStackLocationHelper() {

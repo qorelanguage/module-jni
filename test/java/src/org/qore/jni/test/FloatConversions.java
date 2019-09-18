@@ -1,52 +1,51 @@
 package org.qore.jni.test;
 
 public class FloatConversions {
-
-    static boolean isNaNFloat(float f) {
+    public static boolean isNaNFloat(float f) {
         return Float.isNaN(f);
     }
 
-    static boolean isNInfFloat(float f) {
+    public static boolean isNInfFloat(float f) {
         return Float.isInfinite(f) && f < 0;
     }
 
-    static boolean isPInfFloat(float f) {
+    public static boolean isPInfFloat(float f) {
         return Float.isInfinite(f) && f > 0;
     }
 
-    static float getNaNFloat() {
+    public static float getNaNFloat() {
         return Float.NaN;
     }
 
-    static float getNInfFloat() {
+    public static float getNInfFloat() {
         return Float.NEGATIVE_INFINITY;
     }
 
-    static float getPInfFloat() {
+    public static float getPInfFloat() {
         return Float.POSITIVE_INFINITY;
     }
 
-    static boolean isNaNDouble(double d) {
+    public static boolean isNaNDouble(double d) {
         return Double.isNaN(d);
     }
 
-    static boolean isNInfDouble(double d) {
+    public static boolean isNInfDouble(double d) {
         return Double.isInfinite(d) && d < 0;
     }
 
-    static boolean isPInfDouble(double d) {
+    public static boolean isPInfDouble(double d) {
         return Double.isInfinite(d) && d > 0;
     }
 
-    static double getNaNDouble() {
+    public static double getNaNDouble() {
         return Double.NaN;
     }
 
-    static double getNInfDouble() {
+    public static double getNInfDouble() {
         return Double.NEGATIVE_INFINITY;
     }
 
-    static double getPInfDouble() {
+    public static double getPInfDouble() {
         return Double.POSITIVE_INFINITY;
     }
 }

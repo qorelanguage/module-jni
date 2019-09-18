@@ -50,17 +50,17 @@ rm -rf glassfish4/.git
 # own everything by the qore user
 chown -R qore:qore ${MODULE_SRC_DIR} /home/qore
 
-# start glassfish
-echo && echo "-- starting Glassfish --"
-gosu qore:qore $GLASSFISH_HOME/bin/asadmin start-domain domain1
-sleep 2
-
-# create glassfish queue named abc, needed for the tests
-gosu qore:qore $GLASSFISH_HOME/bin/asadmin create-jms-resource --restype javax.jms.Queue abc
-
-# run the tests
-export QORE_MODULE_DIR=${MODULE_SRC_DIR}/qlib:${QORE_MODULE_DIR}
-cd ${MODULE_SRC_DIR}
-for test in test/*.qtest; do
-    gosu qore:qore qore $test -vv
-done
+## start glassfish
+#echo && echo "-- starting Glassfish --"
+#gosu qore:qore ${GLASSFISH_HOME}/bin/asadmin start-domain domain1
+#sleep 5
+#
+## create glassfish queue named abc, needed for the tests
+#gosu qore:qore ${GLASSFISH_HOME}/bin/asadmin create-jms-resource --restype javax.jms.Queue abc
+#
+## run the tests
+#export QORE_MODULE_DIR=${MODULE_SRC_DIR}/qlib:${QORE_MODULE_DIR}
+#cd ${MODULE_SRC_DIR}
+#for test in test/*.qtest; do
+#    gosu qore:qore qore $test -vv
+#done

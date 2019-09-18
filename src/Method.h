@@ -41,6 +41,7 @@
 namespace jni {
 
 class QoreJniClassMap;
+class JniExternalProgramData;
 
 /**
  * \brief Represents a Java method.
@@ -184,25 +185,21 @@ protected:
     DLLLOCAL BaseMethod() {
     }
 
-    DLLLOCAL std::vector<jvalue> convertArgs(const QoreListNode* args, size_t base = 0) const;
+    //! converts Qore args to Java args for a method call
+    /** @param args the Qore args
+        @param arg_offset the offset in args where to start converting arguments
+        @param output_offset the offset in the return value where arguments start
+     */
+    DLLLOCAL std::vector<jvalue> convertArgs(const QoreListNode* args, size_t arg_offset = 0) const;
 
-    DLLLOCAL void init(Env &env) {
-        retValClass = env.callObjectMethod(method, Globals::methodMethodGetReturnType, nullptr).as<jclass>().makeGlobal();
-        retValType = Globals::getType(retValClass);
+    //! converts Qore args to Java args for a method call
+    /** @param args the Qore args
+        @param arg_offset the offset in args where to start converting arguments
+        @param array_offset the offset in the return value where arguments start
+     */
+    DLLLOCAL LocalReference<jobjectArray> convertArgsToArray(const QoreListNode* args, size_t arg_offset = 0, size_t array_offset = 0) const;
 
-        LocalReference<jobjectArray> paramTypesArray = env.callObjectMethod(method, Globals::methodMethodGetParameterTypes, nullptr).as<jobjectArray>();
-        jsize paramCount = env.getArrayLength(paramTypesArray);
-        paramTypes.reserve(paramCount);
-        for (jsize p = 0; p < paramCount; ++p) {
-            LocalReference<jclass> paramType = env.getObjectArrayElement(paramTypesArray, p).as<jclass>();
-            if (p == (paramCount - 1) && env.callBooleanMethod(paramType, Globals::methodClassIsArray, nullptr)) {
-                doVarArgs = true;
-            }
-            paramTypes.emplace_back(Globals::getType(paramType), paramType.makeGlobal());
-        }
-
-        mods = env.callIntMethod(method, Globals::methodMethodGetModifiers, nullptr);
-    }
+    DLLLOCAL void init(Env &env);
 
     Class* cls;
     jmethodID id;

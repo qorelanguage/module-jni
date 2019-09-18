@@ -12,7 +12,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 
 public class QoreJavaLangApiTest {
-    static Table createTable(AbstractDatasource ds) throws Throwable {
+    public static Table createTable(AbstractDatasource ds) throws Throwable {
         Table table = new Table(ds, "test_table_1");
         HashMap<String, Object> column = new HashMap<String, Object>() {
             {
@@ -47,13 +47,13 @@ public class QoreJavaLangApiTest {
         return table;
     }
 
-    static boolean dropTable(Table table) throws Throwable {
+    public static boolean dropTable(Table table) throws Throwable {
         table.drop();
         table.commit();
         return true;
     }
 
-    static boolean testTable(Table table) throws Throwable {
+    public static boolean testTable(Table table) throws Throwable {
         AbstractDatasource ds = table.getDatasource();
         try {
             // dates retrieved from the DB will have their region info stripped
@@ -100,7 +100,7 @@ public class QoreJavaLangApiTest {
         }
     }
 
-    static Object[] testBulkInsert(Table table) throws Throwable {
+    public static Object[] testBulkInsert(Table table) throws Throwable {
         Object[] rv = new Object[3];
         // dates retrieved from the DB will have their region info stripped
         ZoneId zone = ZoneId.of(ZonedDateTime.now().getOffset().toString());
@@ -150,7 +150,7 @@ public class QoreJavaLangApiTest {
         return rv;
     }
 
-    static Map<String, Object> testBulkUpsert(Table table) throws Throwable {
+    public static Map<String, Object> testBulkUpsert(Table table) throws Throwable {
         // dates retrieved from the DB will have their region info stripped
         ZoneId zone = ZoneId.of(ZonedDateTime.now().getOffset().toString());
         final ZonedDateTime now = ZonedDateTime.now(zone);
@@ -187,7 +187,7 @@ public class QoreJavaLangApiTest {
         return table.selectRow(sh);
     }
 
-    static void doTests() throws Throwable {
+    public static void doTests() throws Throwable {
         Test test = new Test("JniTest", "1.0");
 
         TestCode code = () -> {
@@ -209,7 +209,8 @@ public class QoreJavaLangApiTest {
             test.testAssertion("my-test", () -> { return true; });
             test.testAssertion("my-test", () -> { return true; }, new TestResultSuccess());
             test.testAssertion("my-test", () -> { return false; }, new TestResultFailure());
-            test.testAssertion("my-test", () -> { return 1; }, new TestResultValue(1));
+            // NOTE: if () -> 1 is used, then the value returned is java true instead of 1
+            test.testAssertion("my-test", () -> 2, new TestResultValue(2));
             {
                 Object[] args = new Object[1];
                 args[0] = 1;

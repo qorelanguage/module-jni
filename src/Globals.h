@@ -100,6 +100,7 @@ public:
     DLLLOCAL static jmethodID methodFieldGetModifiers;                            // int Field.getModifiers()
     DLLLOCAL static jmethodID methodFieldGetName;                                 // String Field.getName()
     DLLLOCAL static jmethodID methodFieldGet;                                     // Object Field.get(Object)
+    DLLLOCAL static jmethodID methodFieldSetAccessible;                           // void Field.setAccessible(boolean)
 
     DLLLOCAL static GlobalReference<jclass> classMethod;                          // java.lang.reflect.Method
     DLLLOCAL static jmethodID methodMethodGetReturnType;                          // Class<?> Method.getReturnType()
@@ -153,6 +154,7 @@ public:
     DLLLOCAL static jmethodID methodQoreURLClassLoaderSetContext;                 // Class QoreURLClassLoader.setContext()
     DLLLOCAL static jmethodID methodQoreURLClassLoaderGetProgramPtr;              // long QoreURLClassLoader.getProgramPtr()
     DLLLOCAL static jmethodID methodQoreURLClassLoaderAddPendingClass;            // void QoreURLClassLoader.addPendingClass(String, byte[])
+    DLLLOCAL static jmethodID methodQoreURLClassLoaderDefineResolveClass;         // Class<?> defineResolveClass​(String, byte[], int, int)
 
     DLLLOCAL static GlobalReference<jclass> classThread;                          // java.lang.Thread
     DLLLOCAL static jmethodID methodThreadCurrentThread;                          // Thread Thread.currentThread()
@@ -242,6 +244,10 @@ public:
     DLLLOCAL static void setAlreadyInitialized() {
         assert(!already_initialized);
         already_initialized = true;
+    }
+
+    DLLLOCAL static bool getAlreadyInitialized() {
+        return already_initialized;
     }
 
     // if already initialized, first tries to find the class, and then defines it only if not found, otherwise

@@ -23,7 +23,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     private HashMap<String, byte[]> pendingClasses = new HashMap<String, byte[]>();
 
     public QoreURLClassLoader(long p_ptr) {
-        super(((URLClassLoader)ClassLoader.getSystemClassLoader()).getURLs());
+        super("QoreURLClassLoader", new URL[]{}, ClassLoader.getPlatformClassLoader());
         // set the current classloader as the thread context classloader
         pgm_ptr = p_ptr;
         setContext();
@@ -54,11 +54,37 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         //debugLog("findClass: " + name);
-        Class rv = tryGetPendingClass(name);
+        /*
+        debugLog("findClass: " + name);
+        for (URL url : getURLs()) {
+            debugLog(" + " + url.toString());
+        }
+        */
+        Class<?> rv = tryGetPendingClass(name);
         if (rv != null) {
             return rv;
         }
         return super.findClass(name);
+    }
+
+    /*
+    public Class<?> loadClass(String name) throws ClassNotFoundException {
+        debugLog("loadClass: " + name);
+        for (URL url : getURLs()) {
+            debugLog(" + " + url.toString());
+        }
+        Class<?> rv = tryGetPendingClass(name);
+        if (rv != null) {
+            return rv;
+        }
+        return super.loadClass(name);
+    }
+    */
+
+    public Class<?> defineResolveClass​(String name, byte[] b, int off, int len) throws ClassFormatError {
+        Class<?> rv = defineClass(name, b, off, len);
+        resolveClass(rv);
+        return rv;
     }
 
     public static long getProgramPtr() {

@@ -4,7 +4,7 @@
 
     Qore Programming Language JNI Module
 
-    Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -70,8 +70,9 @@ extern JniQoreClass* QC_INVOCATIONHANDLER;
 // the Qore class ID for java::lang::reflect::InvocationHandler
 extern qore_classid_t CID_INVOCATIONHANDLER;
 
-// forward reference
+// forward references
 class Class;
+class JniExternalProgramData;
 
 class QoreJniClassMapBase {
 protected:
@@ -82,7 +83,7 @@ protected:
 
 public:
     DLLLOCAL void add(const char* name, JniQoreClass* qc) {
-        printd(LogLevel, "QoreJniClassMapBase::add() name: %s qc: %p (%s)\n", name, qc, qc->getName());
+        printd(LogLevel, "QoreJniClassMapBase::add() this: %p name: %s qc: %p (%s)\n", this, name, qc, qc->getName());
 
 #ifdef DEBUG
         if (jcmap.find(name) != jcmap.end())
@@ -214,6 +215,8 @@ private:
 
     DLLLOCAL jarray getJavaArrayIntern(Env& env, const QoreListNode* l, jclass cls);
 
+    DLLLOCAL Class* loadProgramClass(const char* name, JniExternalProgramData* jpc);
+
     class InitSignaler {
     public:
         DLLLOCAL ~InitSignaler() {
@@ -235,12 +238,32 @@ public:
     // delete the copy constructor
     JniExternalProgramData(const JniExternalProgramData& parent) = delete;
 
+    DLLLOCAL virtual ~JniExternalProgramData() {
+        classLoader = nullptr;
+    }
+
     DLLLOCAL jobject getClassLoader() const {
         return classLoader;
     }
 
-    DLLLOCAL virtual ~JniExternalProgramData() {
-        classLoader = nullptr;
+    DLLLOCAL jclass getDynamicApi() const {
+        assert(dynamicApi);
+        return dynamicApi;
+    }
+
+    DLLLOCAL jmethodID getInvokeMethodId() const {
+        assert(methodQoreJavaDynamicApiInvokeMethod);
+        return methodQoreJavaDynamicApiInvokeMethod;
+    }
+
+    DLLLOCAL jmethodID getInvokeMethodNonvirtualId() const {
+        assert(methodQoreJavaDynamicApiInvokeMethodNonvirtual);
+        return methodQoreJavaDynamicApiInvokeMethodNonvirtual;
+    }
+
+    DLLLOCAL jmethodID getFieldId() const {
+        assert(methodQoreJavaDynamicApiGetField);
+        return methodQoreJavaDynamicApiGetField;
     }
 
     DLLLOCAL QoreNamespace* getJniNamespace() const {
@@ -275,6 +298,14 @@ protected:
     QoreNamespace* jni;
     // class loader
     GlobalReference<jobject> classLoader;
+    // dynamic API class
+    GlobalReference<jclass> dynamicApi;
+    // QoreJavaDynamicApi.invokeNethod()
+    jmethodID methodQoreJavaDynamicApiInvokeMethod = 0;
+    // QoreJavaDynamicApi.invokeNethodNonvirtual()
+    jmethodID methodQoreJavaDynamicApiInvokeMethodNonvirtual = 0;
+    // QoreJavaDynamicApi.getField()
+    jmethodID methodQoreJavaDynamicApiGetField = 0;
     // override compat-types
     bool override_compat_types = false;
     // compat-types values
