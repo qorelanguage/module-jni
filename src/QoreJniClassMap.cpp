@@ -894,14 +894,6 @@ jarray QoreJniClassMap::getJavaArrayIntern(Env& env, const QoreListNode* l, jcla
 }
 
 static void exec_java_constructor(const QoreMethod& qmeth, BaseMethod* m, QoreObject* self, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
-<<<<<<< HEAD
-   try {
-      self->setPrivate(qmeth.getClass()->getID(), new QoreJniPrivateData(m->newQoreInstance(args)));
-   }
-   catch (jni::Exception& e) {
-      e.convert(xsink);
-   }
-=======
     try {
         // issue #3585: set context for external java threads
         JniExternalProgramData::setContext();
@@ -909,7 +901,6 @@ static void exec_java_constructor(const QoreMethod& qmeth, BaseMethod* m, QoreOb
     } catch (jni::Exception& e) {
         e.convert(xsink);
     }
->>>>>>> 55fd5da... refs qore/qorelanguage/#3585 really fixed context bug
 }
 
 static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
@@ -929,16 +920,10 @@ static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObj
     QoreProgramContextHelper pch(self->getProgram());
 
     try {
-<<<<<<< HEAD
-        return m->invokeNonvirtual(jd->getObject(), args);
-    }
-    catch (jni::Exception& e) {
-=======
         // issue #3585: set context for external java threads
         JniExternalProgramData::setContext();
-        return m->invoke(jd->getObject(), args);
+        return m->invokeNonvirtual(jd->getObject(), args);
     } catch (jni::Exception& e) {
->>>>>>> 55fd5da... refs qore/qorelanguage/#3585 really fixed context bug
         e.convert(xsink);
         return QoreValue();
     }
@@ -1046,15 +1031,12 @@ void JniExternalProgramData::addClasspath(const char* path) {
 
 void JniExternalProgramData::setContext(Env& env) {
     QoreProgram* pgm = getProgram();
-    printf("1: PGM: %p\n", pgm);
     if (!pgm) {
         pgm = qore_get_call_program_context();
-        printf("2: PGM: %p\n", pgm);
     }
     // issue #3199: no program is available when initializing the jni module from the command line
     if (pgm) {
         JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
-        printf("3: JPC: %p\n", jpc);
         // issue #3153: no context is available when called from a static method
         if (jpc) {
             // set classloader context in new thread
