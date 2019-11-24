@@ -461,6 +461,11 @@ static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, j
         return nullptr;
     }
 
+    // issue #3585: set classloader thread context if necessary
+    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+    assert(jpc);
+    env.callVoidMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderSetContext, nullptr);
+
     ValueHolder rv(QoreObject::evalStaticMethod(*m, m->getClass(), *qore_args, &xsink), &xsink);
     if (xsink) {
         QoreToJava::wrapException(xsink);
