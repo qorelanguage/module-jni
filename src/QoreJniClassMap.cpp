@@ -894,16 +894,19 @@ jarray QoreJniClassMap::getJavaArrayIntern(Env& env, const QoreListNode* l, jcla
 }
 
 static void exec_java_constructor(const QoreMethod& qmeth, BaseMethod* m, QoreObject* self, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
-   try {
-      self->setPrivate(qmeth.getClass()->getID(), new QoreJniPrivateData(m->newQoreInstance(args)));
-   }
-   catch (jni::Exception& e) {
-      e.convert(xsink);
-   }
+    try {
+        // issue #3585: set context for external java threads
+        JniExternalProgramData::setContext();
+        self->setPrivate(qmeth.getClass()->getID(), new QoreJniPrivateData(m->newQoreInstance(args)));
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+    }
 }
 
 static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
     try {
+        // issue #3585: set context for external java threads
+        JniExternalProgramData::setContext();
         return m->invokeStatic(args);
     } catch (jni::Exception& e) {
         e.convert(xsink);
@@ -917,9 +920,10 @@ static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObj
     QoreProgramContextHelper pch(self->getProgram());
 
     try {
+        // issue #3585: set context for external java threads
+        JniExternalProgramData::setContext();
         return m->invokeNonvirtual(jd->getObject(), args);
-    }
-    catch (jni::Exception& e) {
+    } catch (jni::Exception& e) {
         e.convert(xsink);
         return QoreValue();
     }
@@ -1027,6 +1031,9 @@ void JniExternalProgramData::addClasspath(const char* path) {
 
 void JniExternalProgramData::setContext(Env& env) {
     QoreProgram* pgm = getProgram();
+    if (!pgm) {
+        pgm = qore_get_call_program_context();
+    }
     // issue #3199: no program is available when initializing the jni module from the command line
     if (pgm) {
         JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));

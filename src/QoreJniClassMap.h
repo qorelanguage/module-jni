@@ -266,6 +266,11 @@ public:
         delete this;
     }
 
+    DLLLOCAL static void setContext() {
+        Env env;
+        setContext(env);
+    }
+
     DLLLOCAL static void setContext(Env& env);
 
     DLLLOCAL static bool compatTypes();
