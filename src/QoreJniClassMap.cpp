@@ -1101,15 +1101,12 @@ void JniExternalProgramData::addClasspath(const char* path) {
 
 void JniExternalProgramData::setContext(Env& env) {
     QoreProgram* pgm = getProgram();
-    printf("1: PGM: %p\n", pgm);
     if (!pgm) {
         pgm = qore_get_call_program_context();
-        printf("2: PGM: %p\n", pgm);
     }
     // issue #3199: no program is available when initializing the jni module from the command line
     if (pgm) {
         JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
-        printf("3: JPC: %p\n", jpc);
         // issue #3153: no context is available when called from a static method
         if (jpc) {
             // set classloader context in new thread
