@@ -40,7 +40,7 @@ public class HTTPClient extends QoreObjectWrapper {
         @endcode
 
         @param opts sets options and changes default behaviour for the object, etc; key names are case-sensitive and therefore must all be in lower-case:
-        - \c additional_methods: An optional hash defining additional HTTP methods to handle.  This allows the HTTPClient class to handle various HTTP extensions like e.g. WebDAV. The hash is defined with new method names as keys; the values are @ref Qore::True "True" or @ref Qore::False "False" indicating if the method can accept a message body; for example:
+        - \c additional_methods: An optional hash defining additional HTTP methods to handle.  This allows the HTTPClient class to handle various HTTP extensions like e.g. WebDAV. The hash is defined with new method names as keys; the values are @ref true or @ref false indicating if the method can accept a message body; for example:
         @code{.py}
         # add two new HTTP methods for WebDAV; both require message bodies
         HTTPClient httpclient(("url": url, "additional_methods": ("PROPFIND": True, "MKCOL": True )));
@@ -55,7 +55,7 @@ public class HTTPClient extends QoreObjectWrapper {
         - \c ssl_cert_path: a path to an X.509 client certificate file in PEM format; if this option is used, then the calling context must not be restricted with sandbox restriction @ref Qore::PO_NO_FILESYSTEM which is checked at runtime
         - \c ssl_key_path: a path to a private key file in PEM format for the X.509 client certificate; if this option is used, then the calling context must not be restricted with sandbox restriction @ref Qore::PO_NO_FILESYSTEM which is checked at runtime
         - \c ssl_key_password: the password to the private key given with \c ssl_key_path
-        - \c ssl_verify_cert: if @ref Qore::True "True" then the server's certificate will only be accepted if it's verified
+        - \c ssl_verify_cert: if @ref true then the server's certificate will only be accepted if it's verified
         - \c timeout: The timeout value in milliseconds (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 5m)
         - \c url: A string giving the URL to connect to
 
@@ -1178,7 +1178,7 @@ public class HTTPClient extends QoreObjectWrapper {
     httpclient.setPersistent();
         @endcode
 
-        The persistent flag is automatically reset to @ref Qore::False "False" whenever the connection is closed; it must be called manually for every connection to turn off implicit reconnections.
+        The persistent flag is automatically reset to @ref false whenever the connection is closed; it must be called manually for every connection to turn off implicit reconnections.
 
         To turn off the persistent flag manually, call @ref HTTPClient::disconnect()
 

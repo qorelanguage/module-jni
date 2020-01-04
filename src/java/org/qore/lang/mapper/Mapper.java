@@ -90,6 +90,61 @@ public class Mapper extends QoreObjectWrapper {
         return (HashMap<String, Object>)obj.callMethod("getOutputRecord");
     }
 
+    //! returns an output record iterator that produces mapped data from the input data provider
+    /** @return an output record iterator that produces mapped data from the input data provider
+
+        @throw MAPPER-INPUT-PROVIDER-ERROR if no \a input_provider option was provided in the constructor or the input
+        provider uses the request/response API
+    */
+    public MapperOutputRecordIterator getOutputIterator() throws Throwable {
+        return new MapperOutputRecordIterator((QoreObject)obj.callMethodSave("getOutputIterator"));
+    }
+
+    //! Commits data written to the output data provider if the output data provider supports transaction management
+    /** Has no effect if the output data provider does not support transaction management
+
+        @throw MAPPER-OUTPUT-PROVIDER-ERROR no output provider available in this mapper
+    */
+    public void commit() throws Throwable {
+        obj.callMethod("commit");
+    }
+
+    //! Rolls back data written to the output data provider
+    /** Has no effect if the output data provider does not support transaction management
+
+        @throw MAPPER-OUTPUT-PROVIDER-ERROR no output provider available in this mapper
+    */
+    public void rollback() throws Throwable {
+        obj.callMethod("rollback");
+    }
+
+    //! Flushes any remaining data to the data provider
+    /** This method should always be called for successful bulk output operations with an output provider
+
+        @throw MAPPER-OUTPUT-BULK-ERROR no output bulk operation is in progress
+    */
+    public void flushOutput() throws Throwable {
+        obj.callMethod("flushOutput");
+    }
+
+    //! Discards any buffered data
+    /** This method should always be called if an error occurs in a bulk output operation
+
+        @throw MAPPER-OUTPUT-BULK-ERROR no output bulk operation is in progress
+    */
+    public void discardOutput() throws Throwable {
+        obj.callMethod("discardOutput");
+    }
+
+    //! Runs the input and output mappers with data providers on each end autonomously
+    /**
+        @throw MAPPER-INPUT-PROVIDER-ERROR no input provider available in this mapper
+        @throw MAPPER-OUTPUT-PROVIDER-ERROR no output provider available in this mapper
+    */
+    public void runAutonomous() throws Throwable {
+        obj.callMethod("runAutonomous");
+    }
+
     //! maps all input records and returns the mapped data as a list of output records
     /** this method applies the @ref mapData() method to all input records and returns the resulting list
         @param recs the list of input records

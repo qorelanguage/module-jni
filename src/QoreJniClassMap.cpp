@@ -4,7 +4,7 @@
 
     Qore Programming Language JNI Module
 
-    Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -116,6 +116,16 @@ QoreJniClassMap::jpmap_t QoreJniClassMap::jpmap = {
     {"boolean", {boolTypeInfo, "Z"}},
 };
 
+static QoreProgram* jni_get_program_context() {
+    // first try to get the actual Program context
+    QoreProgram* pgm = getProgram();
+    if (pgm) {
+        return pgm;
+    }
+    // if this fails, get the caller's Program context
+    return qore_get_call_program_context();
+}
+
 static QoreNamespace* jni_find_create_namespace(QoreNamespace& jns, const char* name, const char*& sn) {
     printd(LogLevel, "jni_find_create_namespace() jns: %p '%s'\n", &jns, name);
 
@@ -161,7 +171,7 @@ void QoreJniClassMap::init(bool already_initialized) {
 
     // issue #3199: perform initialization in the background
     ExceptionSink xsink;
-    QoreProgram* pgm = getProgram();
+    QoreProgram* pgm = jni_get_program_context();
     q_start_thread(&xsink, &staticInitBackground, pgm);
 
     // wait for initialization to complete
@@ -267,7 +277,12 @@ jclass QoreJniClassMap::findLoadClass(const char* jpath) {
             qc = i->second;
             //printd(LogLevel, "findLoadClass() '%s': %p (cached)\n", jpath, qc);
         } else {
-            JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
+            QoreProgram* pgm = jni_get_program_context();
+            if (!pgm) {
+                pgm = getProgram();
+            }
+            assert(pgm);
+            JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
             if (jpc) {
                 assert(static_cast<QoreJniClassMapBase*>(jpc) != static_cast<QoreJniClassMapBase*>(this));
                 qc = jpc->find(jpath);
@@ -327,7 +342,8 @@ QoreValue QoreJniClassMap::getValue(LocalReference<jobject>& obj) {
     if (env.isSameObject(jc, Globals::classCharacter))
         return (int64)env.callCharMethod(obj, Globals::methodCharacterCharValue, nullptr);
 
-    return new QoreObject(qjcm.findCreateQoreClass(jc), getProgram(), new QoreJniPrivateData(obj));
+    QoreProgram* pgm = jni_get_program_context();
+    return new QoreObject(qjcm.findCreateQoreClass(jc), pgm, new QoreJniPrivateData(obj));
 }
 
 static LocalReference<jstring> get_dot_name(Env& env, const char* name) {
@@ -340,15 +356,16 @@ static LocalReference<jstring> get_dot_name(Env& env, const char* name) {
 Class* QoreJniClassMap::loadClass(const char* name, bool& base) {
     try {
         base = true;
+
         // first we try to load with the builtin classloader
         return Functions::loadClass(name);
     } catch (jni::JavaException& e) {
         base = false;
         //printd(LogLevel, "QoreJniClassMap::loadClass() '%s' BASE FAILED\n", name);
-        QoreProgram* pgm = getProgram();
+        QoreProgram* pgm = jni_get_program_context();
         JniExternalProgramData* jpc = pgm ? static_cast<JniExternalProgramData*>(pgm->getExternalData("jni")) : nullptr;
         if (!jpc) {
-            printd(LogLevel, "failed to load class '%s' with default classloader; no program-speciffic classloader present", name);
+            printd(LogLevel, "failed to load class '%s' with default classloader; no program-specific classloader present", name);
             throw;
         }
         e.ignore();
@@ -364,7 +381,6 @@ Class* QoreJniClassMap::loadProgramClass(const char* name, JniExternalProgramDat
 
     try {
         LocalReference<jclass> c = env.callObjectMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderLoadClass, &jarg).as<jclass>();
-        printd(LogLevel, "QoreJniClassMap::loadProgramClass() program-specific '%s': %p (class loader: %p)\n", name, *c, jpc->getClassLoader());
         return new Class(c.release());
     } catch (jni::JavaException& e) {
         printd(LogLevel, "QoreJniClassMap::loadProgramClass() '%s' LOCAL FAILED\n", name);
@@ -413,7 +429,8 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name, co
     QoreJniAutoLocker al(m);
 
     // check current Program's namespace
-    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
+    QoreProgram* pgm = jni_get_program_context();
+    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
     if (!jpc) {
         throw BasicException("1: could not attach to deleted Qore Program");
     }
@@ -523,7 +540,7 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInBase(QoreString& name, const
     createClassInNamespace(ns, *default_jns, jpath, cls.release(), qc, *this);
 
     // now add to the current Program's namespace
-    QoreProgram* pgm = getProgram();
+    QoreProgram* pgm = jni_get_program_context();
     if (pgm) {
         JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
         if (jpc) {
@@ -750,9 +767,9 @@ const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls, const QoreTypeInfo*
     JniQoreClass* qc = find(jname.c_str());
     if (!qc) {
         // try to find mapping in Program-specific class map
-        QoreProgram* pgm = getProgram();
+        QoreProgram* pgm = jni_get_program_context();
         if (pgm) {
-            JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(getProgram()->getExternalData("jni"));
+            JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
             if (jpc) {
                 assert(static_cast<QoreJniClassMapBase*>(jpc) != static_cast<QoreJniClassMapBase*>(this));
                 qc = jpc->find(jname.c_str());
@@ -1013,7 +1030,7 @@ JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni) : jni(n_jni
     Env env(false);
 
     // get Program context
-    QoreProgram* pgm = getProgram();
+    QoreProgram* pgm = jni_get_program_context();
     // issue #3310: if there is no Program context - for example, if we are being called from a pure Java context -
     // create one to provide Qore functionality to Java
     if (!pgm) {
@@ -1100,10 +1117,7 @@ void JniExternalProgramData::addClasspath(const char* path) {
 }
 
 void JniExternalProgramData::setContext(Env& env) {
-    QoreProgram* pgm = getProgram();
-    if (!pgm) {
-        pgm = qore_get_call_program_context();
-    }
+    QoreProgram* pgm = jni_get_program_context();
     // issue #3199: no program is available when initializing the jni module from the command line
     if (pgm) {
         JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
@@ -1117,7 +1131,7 @@ void JniExternalProgramData::setContext(Env& env) {
 }
 
 bool JniExternalProgramData::compatTypes() {
-    QoreProgram* pgm = getProgram();
+    QoreProgram* pgm = jni_get_program_context();
     // no program context when called from the cmd-line
     if (!pgm) {
         return jni_compat_types;
