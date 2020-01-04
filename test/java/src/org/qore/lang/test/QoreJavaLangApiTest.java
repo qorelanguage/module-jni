@@ -4,15 +4,17 @@ import org.qore.lang.*;
 import org.qore.lang.sqlutil.*;
 import org.qore.lang.bulksqlutil.*;
 import org.qore.lang.qunit.*;
+import org.qore.lang.dataprovider.*;
 
 import java.util.Map;
 import java.util.HashMap;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class QoreJavaLangApiTest {
-    public static Table createTable(AbstractDatasource ds) throws Throwable {
+    public static Table createTable(DatasourcePool ds) throws Throwable {
         Table table = new Table(ds, "test_table_1");
         HashMap<String, Object> column = new HashMap<String, Object>() {
             {
@@ -185,6 +187,13 @@ public class QoreJavaLangApiTest {
             }
         };
         return table.selectRow(sh);
+    }
+
+    public static void testDataProvider(AbstractDataProvider dp) throws Throwable {
+        Test test = new Test("JniTest", "1.0");
+
+        AbstractDataProviderRecordIterator i = dp.searchRecords(Collections.emptyMap());
+        test.assertFalse(i.next());
     }
 
     public static void doTests() throws Throwable {

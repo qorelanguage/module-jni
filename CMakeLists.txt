@@ -113,11 +113,14 @@ generate_java(org/qore/jni/QoreClosureMarker.java)
 generate_java(org/qore/jni/QoreJavaDynamicApi.java)
 
 # add Java sources without native methods
+add_java_source(org/qore/lang/AbstractIterator.java)
+add_java_source(org/qore/lang/reflection/Type.java)
 add_java_source(org/qore/lang/sqlutil/Table.java)
 add_java_source(org/qore/lang/sqlutil/AbstractTable.java 1 2 3 4 5)
 add_java_source(org/qore/lang/sqlutil/AbstractSqlUtilBase.java)
 add_java_source(org/qore/lang/AbstractDatasource.java)
 add_java_source(org/qore/lang/mapper/Mapper.java)
+add_java_source(org/qore/lang/mapper/MapperOutputRecordIterator.java)
 add_java_source(org/qore/lang/tablemapper/RawSqlStatementOutboundMapper.java)
 add_java_source(org/qore/lang/tablemapper/InboundIdentityTableMapper.java)
 add_java_source(org/qore/lang/tablemapper/AbstractSqlStatementOutboundMapper.java)
@@ -127,6 +130,12 @@ add_java_source(org/qore/lang/bulksqlutil/AbstractBulkOperation.java)
 add_java_source(org/qore/lang/bulksqlutil/BulkRowCallback.java)
 add_java_source(org/qore/lang/bulksqlutil/BulkInsertOperation.java)
 add_java_source(org/qore/lang/bulksqlutil/BulkUpsertOperation.java)
+add_java_source(org/qore/lang/dataprovider/AbstractDataProvider.java)
+add_java_source(org/qore/lang/dataprovider/AbstractDataProviderType.java)
+add_java_source(org/qore/lang/dataprovider/AbstractDataProviderRecordIterator.java)
+add_java_source(org/qore/lang/dataprovider/AbstractDataProviderBulkRecordInterface.java)
+add_java_source(org/qore/lang/dataprovider/AbstractDataField.java)
+add_java_source(org/qore/lang/dataprovider/AbstractDataProviderBulkOperation.java)
 add_java_source(org/qore/lang/qunit/Test.java)
 add_java_source(org/qore/lang/qunit/TestCode.java)
 add_java_source(org/qore/lang/qunit/TestCodeArgs.java)
@@ -238,6 +247,11 @@ set(CPP_SRC
 
 qore_wrap_qpp_value(QPP_SOURCES ${QPP_SRC})
 
+foreach (it ${QPP_SOURCES})
+    GET_FILENAME_COMPONENT(_outfile ${it} NAME_WE)
+    set(QPP_DOX ${QPP_DOX} ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.dox.h)
+endforeach()
+
 set(module_name "jni")
 
 set(QORE_DOX_TMPL_SRC
@@ -257,7 +271,8 @@ add_dependencies(${module_name} QORE_INC_FILES)
 
 target_link_libraries(${module_name} ${JNI_LIBRARIES})
 
-set(MODULE_DOX_INPUT ${JAVA_JAR_SRC_STR})
+set(MODULE_DOX_INPUT ${CMAKE_CURRENT_BINARY_DIR}/mainpage.dox ${JAVA_JAR_SRC_STR} ${QPP_DOX})
+string(REPLACE ";" " " MODULE_DOX_INPUT "${MODULE_DOX_INPUT}")
 #message(STATUS mdi: ${MODULE_DOX_INPUT})
 
 qore_binary_module(${module_name} ${PROJECT_VERSION})

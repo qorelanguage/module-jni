@@ -19,12 +19,12 @@
 
     Helper %Qore functions provided by this module:
     |!Function|!Description
-    |@ref get_version()|Returns the version of the JNI API
-    |@ref implement_interface()|Creates a Java object that implements given interface using an invocation handler
-    |@ref invoke()|Invokes a method with the given arguments
-    |@ref invoke_nonvirtual()|Invokes a method with the given arguments in a non-virtual way; meaning that even if the object provided is a child class, the method given in the first argument is executed
-    |@ref load_class()|Loads a Java class with given name and returns a \c java::lang::Class object
-    |@ref new_array()|Creates a @ref Jni::org::qore::jni::JavaArray "JavaArray" object of the given type and size
+    |@ref Jni::org::qore::jni::get_version() "get_version()"|Returns the version of the JNI API
+    |@ref Jni::org::qore::jni::implement_interface() "implement_interface()"|Creates a Java object that implements given interface using an invocation handler
+    |@ref Jni::org::qore::jni::invoke() "invoke()"|Invokes a method with the given arguments
+    |@ref Jni::org::qore::jni::invoke_nonvirtual() "invoke_nonvirtual()"|Invokes a method with the given arguments in a non-virtual way; meaning that even if the object provided is a child class, the method given in the first argument is executed
+    |@ref Jni::org::qore::jni::load_class() "load_class()"|Loads a Java class with given name and returns a \c java::lang::Class object
+    |@ref Jni::org::qore::jni::new_array() "new_array()"|Creates a @ref Jni::org::qore::jni::JavaArray "JavaArray" object of the given type and size
 
     @section jni_examples Examples
 
@@ -356,9 +356,9 @@ System::out.println("testing...");
 
     <b>Java to Qore Access Mappings</b>
     |!Java|!Qore
-    |\c \b public|\c \b public
-    |\c \b protected|\c \b private (or \c \b private:hierarchy)
-    |\c \b private|\c \b private:internal
+    |\c\b public|\c\b public
+    |\c\b protected|\c\b private (or \c\b private:hierarchy)
+    |\c\b private|\c\b private:internal
 
     @section jni_classloader Java Classloader
 
@@ -433,7 +433,7 @@ class MyTest {
     @subsection jni_1_1 jni Module Version 1.1
     - added support for disabling JIT with the <tt>QORE_JNI_DISABLE_JIT=1</tt> environment variable
       (<a href="https://github.com/qorelanguage/qore/issues/3199">issue 3199</a>)
-    - updated to require Java/JDK 12
+    - updated to require Java/JDK 11+
       (<a href="https://github.com/qorelanguage/qore/issues/3188">issue 3188</a>)
     - added @ref Jni::org::qore::jni::define_class() "define_class()"
       (<a href="https://github.com/qorelanguage/qore/issues/3023">issue 3023</a>)
@@ -455,6 +455,7 @@ class MyTest {
       - @ref org.qore.jni.QoreObjectWrapper
       - @ref org.qore.jni.QoreRelativeTime
       - @ref org.qore.lang.AbstractDatasource
+      - @ref org.qore.lang.AbstractIterator
       - @ref org.qore.lang.AbstractSQLStatement
       - @ref org.qore.lang.DatasourcePool
       - @ref org.qore.lang.HTTPClient
@@ -463,7 +464,16 @@ class MyTest {
       - @ref org.qore.lang.bulksqlutil.BulkInsertOperation
       - @ref org.qore.lang.bulksqlutil.BulkRowCallback
       - @ref org.qore.lang.bulksqlutil.BulkUpsertOperation
+      - @ref org.qore.lang.dataprovider.AbstractDataField
+      - @ref org.qore.lang.dataprovider.AbstractDataProvider
+      - @ref org.qore.lang.dataprovider.AbstractDataProviderBulkOperation
+      - @ref org.qore.lang.dataprovider.AbstractDataProviderBulkRecordInterface
+      - @ref org.qore.lang.dataprovider.AbstractDataProviderRecordIterator
+      - @ref org.qore.lang.dataprovider.AbstractDataProviderType
       - @ref org.qore.lang.mapper.Mapper
+      - @ref org.qore.lang.mapper.MapperOutputRecordIterator
+      - @ref org.qore.lang.reflection.Type
+      - @ref org.qore.lang.soapclient.SoapClient
       - @ref org.qore.lang.sqlutil.Table
       - @ref org.qore.lang.sqlutil.AbstractTable
       - @ref org.qore.lang.sqlutil.AbstractSqlUtilBase
@@ -482,7 +492,7 @@ class MyTest {
       the module
       (<a href="https://github.com/qorelanguage/qore/issues/3495">issue 3495</a>)
 
-    @subsection jni_1_0.1 jni Module Version 1.0.1
+    @subsection jni_1_0_1 jni Module Version 1.0.1
     - fixed setting the class loader context when calling %Qore code from Java threads
       (<a href="https://github.com/qorelanguage/qore/issues/3585">issue 3585</a>)
 

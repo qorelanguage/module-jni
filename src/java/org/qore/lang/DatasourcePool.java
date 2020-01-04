@@ -24,7 +24,13 @@ public class DatasourcePool extends AbstractDatasource {
         }
     }
 
+    //! creates the object from the %Qore object
     public DatasourcePool(QoreObject ds) {
         super(ds);
+    }
+
+    //! creates the object from the config string (ex: \c "pgsql:user/pass@db")
+    public DatasourcePool(String config) throws Throwable {
+        super(QoreJavaApi.newObjectSave("DatasourcePool", config));
     }
 }
