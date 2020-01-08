@@ -103,7 +103,8 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("jni test", "1.0") {
-        addTestCase("qore exception tes", \qoreExceptionTest());
+        addTestCase("object lifecycle test", \objectLifecycleTest());
+        addTestCase("qore exception test", \qoreExceptionTest());
         addTestCase("call stack test", \callStackTest());
         addTestCase("closure test", \closureTest());
         addTestCase("exception stack", \exceptionStackTest());
@@ -134,6 +135,19 @@ public class Main inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    objectLifecycleTest() {
+        hash<string, object> object_cache;
+        code callback = sub (object obj) {
+            # save object in object cache, so it doesn't go out of scope
+            object_cache{obj.uniqueHash()} = obj;
+        };
+        set_save_object_callback(callback);
+        on_exit set_save_object_callback();
+        assertEq("test-y", QoreJavaApiTest::objectLifecycleTest("test"));
+        printf("object_cache: %N\n", object_cache);
+        assertEq(1, object_cache.size());
     }
 
     qoreExceptionTest() {
@@ -525,7 +539,7 @@ public class Main inherits QUnit::Test {
         assertEq("default-y", QoreJavaApiTest::testObject15());
         # ensure that thread-local data created from Java threads is destroyed when
         # the Java thread terminates
-        assertEq(1, TestClass2::cnt);
+        assertEq(2, TestClass2::cnt);
     }
 
     dateTest() {

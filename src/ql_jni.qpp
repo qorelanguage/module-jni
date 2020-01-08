@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -68,7 +68,7 @@ string get_version() {
  */
 Jni::java::lang::Class load_class(string name) {
     try {
-        return new QoreObject(QC_CLASS, getProgram(), new QoreJniPrivateData(qjcm.findLoadClass(*name)));
+        return new QoreObject(QC_CLASS, jni::jni_get_program_context(), new QoreJniPrivateData(qjcm.findLoadClass(*name)));
     } catch (jni::Exception& e) {
         e.convert(xsink);
         return QoreValue();
@@ -151,7 +151,7 @@ Jni::java::lang::Object implement_interface(Jni::org::qore::jni::QoreInvocationH
     QoreClass* qc = qjcm.findCreateQoreClass(jc);
 
     try {
-        return new QoreObject(qc, getProgram(), new QoreJniPrivateData(jni::Functions::implementInterface(nullptr, invocationHandler, jc)));
+        return new QoreObject(qc, jni::jni_get_program_context(), new QoreJniPrivateData(jni::Functions::implementInterface(nullptr, invocationHandler, jc)));
     } catch (jni::Exception& e) {
         e.convert(xsink);
         return QoreValue();
@@ -189,7 +189,7 @@ Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJni
     QoreClass* qc = qjcm.findCreateQoreClass(jc);
 
     try {
-        return new QoreObject(qc, getProgram(), new QoreJniPrivateData(jni::Functions::implementInterface(classLoader->getObject(), invocationHandler, jc)));
+        return new QoreObject(qc, jni::jni_get_program_context(), new QoreJniPrivateData(jni::Functions::implementInterface(classLoader->getObject(), invocationHandler, jc)));
     } catch (jni::Exception& e) {
         e.convert(xsink);
         return QoreValue();
@@ -204,7 +204,7 @@ Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJni
  */
 Jni::org::qore::jni::JavaArray new_array(Jni::java::lang::Class[QoreJniPrivateData] cls, int size) {
     try {
-        return new QoreObject(QC_JAVAARRAY, getProgram(), new Array(cls->makeLocal().as<jclass>(), size));
+        return new QoreObject(QC_JAVAARRAY, jni::jni_get_program_context(), new Array(cls->makeLocal().as<jclass>(), size));
     } catch (jni::Exception& e) {
         e.convert(xsink);
         return QoreValue();
@@ -228,6 +228,8 @@ Jni::org::qore::jni::Class define_class(string name, binary bytecode) {
     try {
         ModifiedUtf8String utf8_name(name);
         jni::Env env;
+        // NOTE: this must be qore_get_call_program_context() and not jni::jni_get_program_context()
+        // as the caller's program context must be used in all cases
         QoreProgram* pgm = qore_get_call_program_context();
         JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
         assert(jpc);
@@ -238,5 +240,35 @@ Jni::org::qore::jni::Class define_class(string name, binary bytecode) {
         e.convert(xsink);
         return QoreValue();
     }
+}
+
+//! Sets the "save object" callback for %Qore objects created from Java code
+/** @par Example:
+    @code{.py}
+hash<string, object> object_cache;
+code callback = sub (object obj) {
+    # save object in object cache, so it doesn't go out of scope
+    object_cache{obj.uniqueHash()} = obj;
+}
+set_save_object_callback(callback);
+    @endcode
+
+    @oaram save_object_callback the callback to save any %Qore objects created in Java code, must take an argument of
+    type @ref object_type "object"
+
+    Due to the differences in garbage collection approaches between %Qore and Java, %Qore objects must be managed with
+    a deterministic life cycle; Java objects have only weak references to %Qore objects due to the lack of
+    destructors in Java and the lack of determinism in the JVM for object lifecycle management.
+
+    The callback set here will be called any time a %Qore object is created from Java code; if no callback is set,
+    then the standard thread-local implementation is used where %Qore objects are saved in a thread-local hash.
+
+    @see @ref org.qore.jni.QoreJavaApi.newObjectSave() "QoreJavaApi.newObjectSave()" for more information
+*/
+set_save_object_callback(*code save_object_callback) [dom=PROCESS] {
+    QoreProgram* pgm = jni::jni_get_program_context();
+    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+    assert(jpc);
+    jpc->setSaveObjectCallback(save_object_callback);
 }
 //@}

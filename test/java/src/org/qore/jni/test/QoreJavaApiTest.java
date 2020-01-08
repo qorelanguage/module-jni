@@ -248,4 +248,9 @@ public class QoreJavaApiTest {
     public static void testException(String err, String desc) throws QoreException {
         throw new QoreException(err, desc);
     }
+
+    public static String objectLifecycleTest(String arg) throws Throwable {
+        QoreObject obj = QoreJavaApi.newObjectSave("TestClass2");
+        return (String)obj.callMethod("getString", arg);
+    }
 }

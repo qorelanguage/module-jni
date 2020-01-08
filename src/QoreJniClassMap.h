@@ -281,11 +281,25 @@ public:
         return override_compat_types ? compat_types : jni_compat_types;
     }
 
+    DLLLOCAL void setSaveObjectCallback(const ResolvedCallReferenceNode* save_object_callback) {
+        if (this->save_object_callback) {
+            this->save_object_callback->deref(nullptr);
+        }
+        this->save_object_callback = save_object_callback ? save_object_callback->refRefSelf() : nullptr;
+    }
+
+    DLLLOCAL ResolvedCallReferenceNode* getSaveObjectCallback() const {
+        return save_object_callback;
+    }
+
     DLLLOCAL virtual AbstractQoreProgramExternalData* copy(QoreProgram* pgm) const {
         return new JniExternalProgramData(*this, pgm);
     }
 
     DLLLOCAL virtual void doDeref() {
+        if (save_object_callback) {
+            save_object_callback->deref(nullptr);
+        }
         delete this;
     }
 
@@ -305,6 +319,8 @@ protected:
     GlobalReference<jobject> classLoader;
     // dynamic API class
     GlobalReference<jclass> dynamicApi;
+    // call reference for saving object references
+    ResolvedCallReferenceNode* save_object_callback = nullptr;
     // QoreJavaDynamicApi.invokeNethod()
     jmethodID methodQoreJavaDynamicApiInvokeMethod = 0;
     // QoreJavaDynamicApi.invokeNethodNonvirtual()
@@ -316,6 +332,8 @@ protected:
     // compat-types values
     bool compat_types = false;
 };
+
+DLLLOCAL QoreProgram* jni_get_program_context();
 
 }
 
