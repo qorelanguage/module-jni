@@ -82,7 +82,7 @@ public class QoreJavaApi {
      * @return the result of the call
      * @throws Throwable any Qore-language exception is rethrown here
      *
-     * @see jni_qore_object_lifecycle_management
+     * @see @ref jni_qore_object_lifecycle_management
      */
     public static Object callFunctionSave(String name, Object... args) throws Throwable {
         //QoreURLClassLoader cl = QoreURLClassLoader.getCurrent();
@@ -100,7 +100,7 @@ public class QoreJavaApi {
      * @return the result of the call
      * @throws Throwable any Qore-language exception is rethrown here
      *
-     * @see jni_qore_object_lifecycle_management
+     * @see @ref jni_qore_object_lifecycle_management
      */
     public static Object callFunctionSaveArgs(String name, Object[] args) throws Throwable {
         //QoreURLClassLoader cl = QoreURLClassLoader.getCurrent();
@@ -134,7 +134,7 @@ public class QoreJavaApi {
      * @return the result of the call
      * @throws Throwable any Qore-language exception is rethrown here
      *
-     * @see jni_qore_object_lifecycle_management
+     * @see @ref jni_qore_object_lifecycle_management
      */
     public static Object callStaticMethodSave(String class_name, String method_name, Object... args) throws Throwable {
         //QoreURLClassLoader cl = QoreURLClassLoader.getCurrent();
@@ -154,7 +154,7 @@ public class QoreJavaApi {
      * @return the result of the call
      * @throws Throwable any Qore-language exception is rethrown here
      *
-     * @see jni_qore_object_lifecycle_management
+     * @see @ref jni_qore_object_lifecycle_management
      */
     public static Object callStaticMethodSaveArgs(String class_name, String method_name, Object[] args) throws Throwable {
         //QoreURLClassLoader cl = QoreURLClassLoader.getCurrent();
@@ -172,7 +172,7 @@ public class QoreJavaApi {
      * @return the object created
      * @throws Throwable any Qore-language exception is rethrown here
      *
-     * @see jni_qore_object_lifecycle_management
+     * @see @ref jni_qore_object_lifecycle_management
      */
     public static QoreObject newObjectSave(String class_name, Object... args) throws Throwable {
         return newObjectSave0(QoreURLClassLoader.getProgramPtr(), class_name, args);
@@ -188,7 +188,7 @@ public class QoreJavaApi {
      * @return the object created
      * @throws Throwable any Qore-language exception is rethrown here
      *
-     * @see jni_qore_object_lifecycle_management
+     * @see @ref jni_qore_object_lifecycle_management
      */
     public static QoreObject newObjectSaveArgs(String class_name, Object[] args) throws Throwable {
         return newObjectSave0(QoreURLClassLoader.getProgramPtr(), class_name, args);

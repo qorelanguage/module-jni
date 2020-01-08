@@ -253,7 +253,7 @@ code callback = sub (object obj) {
 set_save_object_callback(callback);
     @endcode
 
-    @oaram save_object_callback the callback to save any %Qore objects created in Java code, must take an argument of
+    @param save_object_callback the callback to save any %Qore objects created in Java code, must take an argument of
     type @ref object_type "object"
 
     Due to the differences in garbage collection approaches between %Qore and Java, %Qore objects must be managed with
@@ -263,7 +263,7 @@ set_save_object_callback(callback);
     The callback set here will be called any time a %Qore object is created from Java code; if no callback is set,
     then the standard thread-local implementation is used where %Qore objects are saved in a thread-local hash.
 
-    @see @ref org.qore.jni.QoreJavaApi.newObjectSave() "QoreJavaApi.newObjectSave()" for more information
+    @see @ref jni_qore_object_lifecycle_management for more information
 */
 set_save_object_callback(*code save_object_callback) [dom=PROCESS] {
     QoreProgram* pgm = jni::jni_get_program_context();
