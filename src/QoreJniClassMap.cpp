@@ -116,7 +116,7 @@ QoreJniClassMap::jpmap_t QoreJniClassMap::jpmap = {
     {"boolean", {boolTypeInfo, "Z"}},
 };
 
-static QoreProgram* jni_get_program_context() {
+QoreProgram* jni_get_program_context() {
     // first try to get the actual Program context
     QoreProgram* pgm = getProgram();
     if (pgm) {

@@ -35,24 +35,42 @@ public class QoreObject {
     }
 
     //! calls the given method with the given arguments and returns the result
+    /**
+     * @param name the name of the method to call
+     * @param args argument to the function call
+     * @return the result of the call
+     * @throws Throwable any Qore-language exception is rethrown here
+     *
+     * @see callMethodSave()
+    */
     public Object callMethod(String name, Object... args) throws Throwable {
         return callMethod0(QoreURLClassLoader.getProgramPtr(), obj, name, args);
     }
 
     //! calls the given method with the given arguments and returns the result
+    /**
+     * @param name the name of the method to call
+     * @param args argument to the function call
+     * @return the result of the call
+     * @throws Throwable any Qore-language exception is rethrown here
+     *
+     * @see callMethodArgsSave()
+    */
     public Object callMethodArgs(String name, Object[] args) throws Throwable {
         return callMethod0(QoreURLClassLoader.getProgramPtr(), obj, name, args);
     }
 
     //! Calls the given method with the given arguments and returns the result; if an object is returned, then a strong reference to the object is stored in thread-local data
     /**
-     * This method can be used to save objects in thread-local data that would otherwise go out of scope.
-     * The top-level hash key is determined by the value of the \c "_jni_save" thread-local key, if set, if
-     * not then \c "_jni_save" is used instead as a literal key
+     * This method can be used to save objects in thread-local data that would otherwise go out of scope; see
+     * @ref jni_qore_object_lifecycle_management for more information
+     *
      * @param name the name of the method to call
      * @param args argument to the function call
      * @return the result of the call
      * @throws Throwable any Qore-language exception is rethrown here
+     *
+     * @see jni_qore_object_lifecycle_management
      */
     public Object callMethodSave(String name, Object... args) throws Throwable {
         return callMethodSave0(QoreURLClassLoader.getProgramPtr(), obj, name, args);
@@ -60,13 +78,15 @@ public class QoreObject {
 
     //! Calls the given method with the given arguments and returns the result; if an object is returned, then a strong reference to the object is stored in thread-local data
     /**
-     * This method can be used to save objects in thread-local data that would otherwise go out of scope.
-     * The top-level hash key is determined by the value of the \c "_jni_save" thread-local key, if set, if
-     * not then \c "_jni_save" is used instead as a literal key
+     * This method can be used to save objects in thread-local data that would otherwise go out of scope; see
+     * @ref jni_qore_object_lifecycle_management for more information
+     *
      * @param name the name of the method to call
      * @param args argument to the function call
      * @return the result of the call
      * @throws Throwable any Qore-language exception is rethrown here
+     *
+     * @see jni_qore_object_lifecycle_management
      */
     public Object callMethodArgsSave(String name, Object[] args) throws Throwable {
         return callMethodSave0(QoreURLClassLoader.getProgramPtr(), obj, name, args);

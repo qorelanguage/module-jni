@@ -74,13 +74,15 @@ public class QoreJavaApi {
 
     //! Calls the given Qore function with the given arguments and returns the result; if an object is returned, then a strong reference to the object is stored in thread-local data
     /**
-     * This method can be used to save objects in thread-local data that would otherwise go out of scope.
-     * The top-level hash key is determined by the value of the \c "_jni_save" thread-local key, if set, if
-     * not then \c "_jni_save" is used instead as a literal key
+     * This method can be used to save objects in thread-local data that would otherwise go out of scope; see
+     * @ref jni_qore_object_lifecycle_management for more information
+     *
      * @param name the name of the function to call
      * @param args argument to the function call
      * @return the result of the call
      * @throws Throwable any Qore-language exception is rethrown here
+     *
+     * @see jni_qore_object_lifecycle_management
      */
     public static Object callFunctionSave(String name, Object... args) throws Throwable {
         //QoreURLClassLoader cl = QoreURLClassLoader.getCurrent();
@@ -90,13 +92,15 @@ public class QoreJavaApi {
 
     //! Calls the given Qore function with the given arguments and returns the result; if an object is returned, then a strong reference to the object is stored in thread-local data, takes a variable number of arguments
     /**
-     * This method can be used to save objects in thread-local data that would otherwise go out of scope
-     * The top-level hash key is determined by the value of the \c "_jni_save" thread-local key, if set, if
-     * not then \c "_jni_save" is used instead as a literal key
+     * This method can be used to save objects in thread-local data that would otherwise go out of scope; see
+     * @ref jni_qore_object_lifecycle_management for more information
+     *
      * @param name the name of the function to call
      * @param args argument to the function call
      * @return the result of the call
      * @throws Throwable any Qore-language exception is rethrown here
+     *
+     * @see jni_qore_object_lifecycle_management
      */
     public static Object callFunctionSaveArgs(String name, Object[] args) throws Throwable {
         //QoreURLClassLoader cl = QoreURLClassLoader.getCurrent();
@@ -120,15 +124,17 @@ public class QoreJavaApi {
 
     //! Calls the given Qore static method with the given arguments and returns the result; if an object is returned, then a strong reference to the object is stored in thread-local data
     /**
-     * This method can be used to save objects in thread-local data that would otherwise go out of scope.
-     * The top-level hash key is determined by the value of the \c "_jni_save" thread-local key, if set, if
-     * not then \c "_jni_save" is used instead as a literal key
+     * This method can be used to save objects in thread-local data that would otherwise go out of scope; see
+     * @ref jni_qore_object_lifecycle_management for more information
+     *
      * @param class_name the name of the class where the static method is defined; can have a namespace-justified path
      * (ex: \c "Namespace::ClassName")
      * @param method_name the static method name to call
      * @param args argument to the static method call
      * @return the result of the call
      * @throws Throwable any Qore-language exception is rethrown here
+     *
+     * @see jni_qore_object_lifecycle_management
      */
     public static Object callStaticMethodSave(String class_name, String method_name, Object... args) throws Throwable {
         //QoreURLClassLoader cl = QoreURLClassLoader.getCurrent();
@@ -138,15 +144,17 @@ public class QoreJavaApi {
 
     //! Calls the given Qore static method with the given arguments and returns the result; if an object is returned, then a strong reference to the object is stored in thread-local data, takes a variable number of arguments
     /**
-     * This method can be used to save objects in thread-local data that would otherwise go out of scope
-     * The top-level hash key is determined by the value of the \c "_jni_save" thread-local key, if set, if
-     * not then \c "_jni_save" is used instead as a literal key
+     * This method can be used to save objects in thread-local data that would otherwise go out of scope; see
+     * @ref jni_qore_object_lifecycle_management for more information
+     *
      * @param class_name the name of the class where the static method is defined; can have a namespace-justified path
      * (ex: \c "Namespace::ClassName")
      * @param method_name the static method name to call
      * @param args argument to the static method call
      * @return the result of the call
      * @throws Throwable any Qore-language exception is rethrown here
+     *
+     * @see jni_qore_object_lifecycle_management
      */
     public static Object callStaticMethodSaveArgs(String class_name, String method_name, Object[] args) throws Throwable {
         //QoreURLClassLoader cl = QoreURLClassLoader.getCurrent();
@@ -156,10 +164,15 @@ public class QoreJavaApi {
 
     //! Creates a new QoreObject from the class name and constructor arguments; a strong reference to the object is stored in thread-local data
     /**
+     * This method can be used to save objects in thread-local data that would otherwise go out of scope; see
+     * @ref jni_qore_object_lifecycle_management for more information
+     *
      * @param class_name the class name or namespace-justified path (ex: \c "Qore::SQL::SQLStatement") of the object to create
      * @param args optional arguments to the constructor
      * @return the object created
      * @throws Throwable any Qore-language exception is rethrown here
+     *
+     * @see jni_qore_object_lifecycle_management
      */
     public static QoreObject newObjectSave(String class_name, Object... args) throws Throwable {
         return newObjectSave0(QoreURLClassLoader.getProgramPtr(), class_name, args);
@@ -167,10 +180,15 @@ public class QoreJavaApi {
 
     //! Creates a new QoreObject from the class name and constructor arguments; a strong reference to the object is stored in thread-local data under the given key
     /**
+     * This method can be used to save objects in thread-local data that would otherwise go out of scope; see
+     * @ref jni_qore_object_lifecycle_management for more information
+     *
      * @param class_name the class name or namespace-justified path (ex: \c "Qore::SQL::SQLStatement") of the object to create
      * @param args optional arguments to the constructor
      * @return the object created
      * @throws Throwable any Qore-language exception is rethrown here
+     *
+     * @see jni_qore_object_lifecycle_management
      */
     public static QoreObject newObjectSaveArgs(String class_name, Object[] args) throws Throwable {
         return newObjectSave0(QoreURLClassLoader.getProgramPtr(), class_name, args);

@@ -35,6 +35,7 @@
 #include "ModifiedUtf8String.h"
 #include "Array.h"
 #include "QoreToJava.h"
+#include "QoreJniClassMap.h"
 
 namespace jni {
 
@@ -240,21 +241,16 @@ static QoreProgram* jni_pgm = nullptr;
 static QoreExternalProgramContextHelper* jni_pgm_ctx = nullptr;
 
 static void JNICALL invocation_handler_finalize(JNIEnv *, jclass, jlong ptr) {
-   delete reinterpret_cast<Dispatcher*>(ptr);
+    delete reinterpret_cast<Dispatcher*>(ptr);
 }
 
 static jobject JNICALL invocation_handler_invoke(JNIEnv* jenv, jobject, jlong ptr, jobject proxy, jobject method, jobjectArray args) {
-   Env env(jenv);
-   Dispatcher* dispatcher = reinterpret_cast<Dispatcher*>(ptr);
-   return dispatcher->dispatch(env, proxy, method, args);
+    Env env(jenv);
+    Dispatcher* dispatcher = reinterpret_cast<Dispatcher*>(ptr);
+    return dispatcher->dispatch(env, proxy, method, args);
 }
 
-static int save_object(Env& env, const QoreValue& rv, QoreProgram* pgm, ExceptionSink& xsink) {
-    // save object in thread-local data if relevant
-    if (rv.getType() != NT_OBJECT) {
-        return 0;
-    }
-
+static int save_object_thread(Env& env, const QoreValue& rv, QoreProgram* pgm, ExceptionSink& xsink) {
     QoreHashNode* data = pgm->getThreadData();
     assert(data);
     const char* domain_name;
@@ -294,6 +290,30 @@ static int save_object(Env& env, const QoreValue& rv, QoreProgram* pgm, Exceptio
         //printd(5, "save_object() NOT SAVING domain: '%s' HAS KEY v: %s (kv: %s)\n", domain_name, rv.getFullTypeName(), kv.getFullTypeName());
     }
     return 0;
+}
+
+static int save_object(Env& env, const QoreValue& rv, QoreProgram* pgm, ExceptionSink& xsink) {
+    // save object in thread-local data if relevant
+    if (rv.getType() != NT_OBJECT) {
+        return 0;
+    }
+
+    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+    if (jpc) {
+        ResolvedCallReferenceNode* save_object_callback = jpc->getSaveObjectCallback();
+        if (save_object_callback) {
+            ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), &xsink);
+            args->push(rv.refSelf(), &xsink);
+            save_object_callback->execValue(*args, &xsink);
+            if (xsink) {
+                QoreToJava::wrapException(xsink);
+                return -1;
+            }
+            return 0;
+        }
+    }
+
+    return save_object_thread(env, rv, pgm, xsink);
 }
 
 void jni_delete_pgm(ExceptionSink& xsink) {
@@ -579,12 +599,10 @@ static jstring JNICALL qore_exception_wrapper_get_message(JNIEnv* jenv, jclass, 
             jstr.concat(err_str->c_str());
             jstr.concat(": ");
             jstr.concat(desc_str->c_str());
-        }
-        else {
+        } else {
             jstr.concat(err_str->c_str());
         }
-    }
-    else {
+    } else {
         if (!desc_str->empty())
             jstr.concat(desc_str->c_str());
         else
@@ -614,7 +632,7 @@ static jboolean JNICALL qore_object_instance_of(JNIEnv* jenv, jclass, jlong ptr,
     Env::GetStringUtfChars class_name(env, cname);
 
     ExceptionSink xsink;
-    const QoreClass* cls = getProgram()->findClass(class_name.c_str(), &xsink);
+    const QoreClass* cls = jni_get_program_context()->findClass(class_name.c_str(), &xsink);
     //printd(5, "qore_object_instance_of() cls: %p (%s) xsink: %d\n", cls, class_name.c_str(), (bool)xsink);
     if (!cls) {
         xsink.clear();
@@ -663,7 +681,7 @@ static jobject qore_object_call_method_internal(JNIEnv* jenv, jclass, jlong pgm_
 
         //printd(5, "qore_object_call_method_internal() method: '%s::%s()' rv: %s\n", obj->getClassName(), method_name.c_str(), val->getFullTypeName());
 
-        if (save && save_object(env, *val, getProgram(), xsink)) {
+        if (save && save_object(env, *val, jni_get_program_context(), xsink)) {
             return nullptr;
         }
 
