@@ -334,6 +334,7 @@ protected:
 };
 
 DLLLOCAL QoreProgram* jni_get_program_context();
+DLLLOCAL JniExternalProgramData* jni_get_context();
 
 }
 
