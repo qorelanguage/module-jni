@@ -530,12 +530,42 @@ public class AbstractDataProvider extends QoreObjectWrapper {
     }
 
     //! Returns the description of the record type, if any
+    /**
+        @param search_options to be included and processed by validateSearchOptions() if
+        \a recordRequiresSearchOptions() is true for this provider, otherwise any value provided in this argument
+        is ignored
+
+        @return the description of the record type, if any
+
+        @throws Throwable any exception thrown by the data provider
+     */
+    @SuppressWarnings("unchecked")
+    public HashMap<String, AbstractDataField> getRecordType(Map<String, Object> search_options) throws Throwable {
+        return (HashMap<String, AbstractDataField>)obj.callMethod("getRecordType", search_options);
+    }
+
+    //! Returns the description of the record type, if any
     @SuppressWarnings("unchecked")
     public HashMap<String, AbstractDataField> getRecordType() throws Throwable {
         return (HashMap<String, AbstractDataField>)obj.callMethod("getRecordType");
     }
 
-    //! Returns the description of the record type, if any
+    //! Returns the description of the record type with soft types, if any
+    /**
+        @param search_options to be included and processed by validateSearchOptions() if
+        \a recordRequiresSearchOptions() is true for this provider, otherwise any value provided in this argument
+        is ignored
+
+        @return the description of the record type with soft types, if any
+
+        @throws Throwable any exception thrown by the data provider
+     */
+    @SuppressWarnings("unchecked")
+    public HashMap<String, AbstractDataField> getSoftRecordType(Map<String, Object> search_options) throws Throwable {
+        return (HashMap<String, AbstractDataField>)obj.callMethod("getSoftRecordType", search_options);
+    }
+
+    //! Returns the description of the record type with soft types, if any
     @SuppressWarnings("unchecked")
     public HashMap<String, AbstractDataField> getSoftRecordType() throws Throwable {
         return (HashMap<String, AbstractDataField>)obj.callMethod("getSoftRecordType");
@@ -645,5 +675,19 @@ public class AbstractDataProvider extends QoreObjectWrapper {
     */
     public boolean supportsRequest() throws Throwable {
         return (boolean)obj.callMethod("supportsRequest");
+    }
+
+    //! Returns true if the data provider requires search options to retrieve the record type
+    /**
+    */
+    public boolean recordRequiresSearchOptions() throws Throwable {
+        return (boolean)obj.callMethod("recordRequiresSearchOptions");
+    }
+
+    //! Returns true if the data provider has a record type
+    /** @return true if the data provider has a record type
+    */
+    public boolean hasRecord() throws Throwable {
+        return (boolean)obj.callMethod("hasRecord");
     }
 }
