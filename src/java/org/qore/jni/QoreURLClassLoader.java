@@ -81,7 +81,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     }
     */
 
-    public Class<?> defineResolveClass​(String name, byte[] b, int off, int len) throws ClassFormatError {
+    public Class<?> defineResolveClass(String name, byte[] b, int off, int len) throws ClassFormatError {
         Class<?> rv = defineClass(name, b, off, len);
         resolveClass(rv);
         return rv;
