@@ -154,6 +154,7 @@ add_java_source(org/qore/lang/DatasourcePool.java)
 add_java_source(org/qore/lang/AbstractSQLStatement.java)
 add_java_source(org/qore/lang/HTTPClient.java)
 add_java_source(org/qore/lang/soapclient/SoapClient.java)
+add_java_source(org/qore/lang/restclient/RestClient.java)
 
 #message(STATUS "MESSAGE Src: ${JAVA_JAR_SRC}")
 #message(STATUS "STR: ${JAVA_JAR_SRC_STR}")

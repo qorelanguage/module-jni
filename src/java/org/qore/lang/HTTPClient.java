@@ -41,7 +41,7 @@ public class HTTPClient extends QoreObjectWrapper {
 
         @param opts sets options and changes default behaviour for the object, etc; key names are case-sensitive and therefore must all be in lower-case:
         - \c additional_methods: An optional hash defining additional HTTP methods to handle.  This allows the HTTPClient class to handle various HTTP extensions like e.g. WebDAV. The hash is defined with new method names as keys; the values are @ref true or @ref false indicating if the method can accept a message body; for example:
-        @code{.py}
+        @code{.java}
         # add two new HTTP methods for WebDAV; both require message bodies
         HTTPClient httpclient(("url": url, "additional_methods": ("PROPFIND": True, "MKCOL": True )));
         @endcode
@@ -83,7 +83,7 @@ public class HTTPClient extends QoreObjectWrapper {
     /** @param ver \c "1.0" or \"1.1\" for the HTTP protocol compliance version
 
         @par Example:
-        @code{.py}
+        @code{.java}
     httpclient.setHTTPVersion("1.1");
         @endcode
 
@@ -97,7 +97,7 @@ public class HTTPClient extends QoreObjectWrapper {
     /** @return the HTTP protocol version string used in outgoing messages
 
         @par Example:
-        @code{.py}
+        @code{.java}
     string version = httpclient.getHTTPVersion();
         @endcode
     */
@@ -111,7 +111,7 @@ public class HTTPClient extends QoreObjectWrapper {
         Note that the behavior of this method when called with no argument changed in version 0.8.0; prior to version 0.8.0 calling this method with no argument would turn off secure mode; the behavior was changed to the current functionality in order to make the usage of this method consistent with other methods of the same name and to make it more logical.
 
         @par Example:
-        @code{.py}
+        @code{.java}
     httpclient.setSecure(True);
         @endcode
 
@@ -125,7 +125,7 @@ public class HTTPClient extends QoreObjectWrapper {
     /** @return true if the current connection is encrypted, false if not
 
         @par Example:
-        @code{.py}
+        @code{.java}
     if (httpclient.isSecure())
         printf("secure connection: %s %s\n", httpclient.getSSLCipherName(), httpclient.getSSLCipherVersion());
         @endcode
@@ -140,7 +140,7 @@ public class HTTPClient extends QoreObjectWrapper {
         If the \c TCP_NODELAY flag has been set (see HTTPClient::setNoDelay()), then after a successful connection to the remote socket, this option will be set on the socket. If an error occurs setting the \c TCP_NODELAY option, the internal flag is set to false (use HTTPClient::getNoDelay() to check the flag's state) and the error code can be retrieved with errno().
 
         @par Example:
-        @code{.py}
+        @code{.java}
     httpclient.connect();
         @endcode
 
@@ -156,7 +156,7 @@ public class HTTPClient extends QoreObjectWrapper {
     //! Disconnects from the remote socket if a connection is established (otherwise does nothing)
     /**
          @par Example:
-        @code{.py}
+        @code{.java}
     httpclient.disconnect();
         @endcode
     */
@@ -168,7 +168,7 @@ public class HTTPClient extends QoreObjectWrapper {
     /** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
 
         @par Example:
-        @code{.py}
+        @code{.java}
     hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x-yaml"));
         @endcode
 
@@ -205,7 +205,7 @@ public class HTTPClient extends QoreObjectWrapper {
     /** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
 
         @par Example:
-        @code{.py}
+        @code{.java}
     hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x-yaml"));
         @endcode
 
@@ -241,7 +241,7 @@ public class HTTPClient extends QoreObjectWrapper {
     /** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
 
         @par Example:
-        @code{.py}
+        @code{.java}
     hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x-yaml"));
         @endcode
 
@@ -276,7 +276,7 @@ public class HTTPClient extends QoreObjectWrapper {
     /** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
 
         @par Example:
-        @code{.py}
+        @code{.java}
     hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x-yaml"));
         @endcode
 
@@ -310,7 +310,7 @@ public class HTTPClient extends QoreObjectWrapper {
     /** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
 
         @par Example:
-        @code{.py}
+        @code{.java}
     hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x-yaml"));
         @endcode
 
@@ -346,7 +346,7 @@ public class HTTPClient extends QoreObjectWrapper {
     /** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
 
         @par Example:
-        @code{.py}
+        @code{.java}
     hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x-yaml"));
         @endcode
 
@@ -381,7 +381,7 @@ public class HTTPClient extends QoreObjectWrapper {
     /** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
 
         @par Example:
-        @code{.py}
+        @code{.java}
     hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x-yaml"));
         @endcode
 
@@ -415,7 +415,7 @@ public class HTTPClient extends QoreObjectWrapper {
     /** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
 
         @par Example:
-        @code{.py}
+        @code{.java}
     hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x-yaml"));
         @endcode
 
@@ -452,7 +452,7 @@ public class HTTPClient extends QoreObjectWrapper {
         If any content encoding is used for the message body in the reply, the content is decoded and returned as a string; if the content encoding uses an unknown method, then an exception is thrown.
 
         @par Example:
-        @code{.py}
+        @code{.java}
     *string html = httpclient.get("/path/file.html");
         @endcode
 
@@ -490,7 +490,7 @@ public class HTTPClient extends QoreObjectWrapper {
         If any content encoding is used for the message body in the reply, the content is decoded and returned as a string; if the content encoding uses an unknown method, then an exception is thrown.
 
         @par Example:
-        @code{.py}
+        @code{.java}
     *string html = httpclient.get("/path/file.html");
         @endcode
 
@@ -693,7 +693,7 @@ public class HTTPClient extends QoreObjectWrapper {
         If no connection is established, an internal call to HTTPClient::connect() will be made before sending the message.
 
         @par Example:
-        @code{.py}
+        @code{.java}
     httpclient.post("/path", body);
         @endcode
 
@@ -728,7 +728,7 @@ public class HTTPClient extends QoreObjectWrapper {
         If no connection is established, an internal call to HTTPClient::connect() will be made before sending the message.
 
         @par Example:
-        @code{.py}
+        @code{.java}
     httpclient.post("/path", body);
         @endcode
 
@@ -796,7 +796,7 @@ public class HTTPClient extends QoreObjectWrapper {
     /** @return the character encoding used for the object
 
         @par Example:
-        @code{.py}
+        @code{.java}
     string encoding = httpclient.getEncoding();
         @endcode
     */
@@ -853,7 +853,7 @@ public class HTTPClient extends QoreObjectWrapper {
     /** @param url the new proxy URL value for the next connection
 
         @par Example:
-        @code{.py}
+        @code{.java}
     httpclient.setProxyURL("http://user:password@proxy_host:8080/path");
         @endcode
 
@@ -956,7 +956,7 @@ public class HTTPClient extends QoreObjectWrapper {
     /** @return Returns the connect timeout as an integer in milliseconds; negative numbers mean the system default timeout is used
 
         @par Example:
-        @code{.py}
+        @code{.java}
     int to = httpclient.getConnectTimeout();
         @endcode
     */
@@ -1133,6 +1133,30 @@ public class HTTPClient extends QoreObjectWrapper {
         return (String)obj.callMethod("getConnectionPath");
     }
 
+    //! Overrides any connection path set in the URL
+    /** @par Example:
+        @code{.java}
+    httpclient.setConnectionPath(new_path);
+        @endcode
+
+        @see getConnectionPath()
+    */
+    public void setConnectionPath(String uri_path) throws Throwable {
+        obj.callMethod("setConnectionPath", uri_path);
+    }
+
+    //! Overrides any connection path set in the URL
+    /** @par Example:
+        @code{.java}
+    httpclient.setConnectionPath();
+        @endcode
+
+        @see getConnectionPath()
+    */
+    public void setConnectionPath() throws Throwable {
+        obj.callMethod("setConnectionPath");
+    }
+
     //! Returns performance statistics for the socket
     /** @par Example:
          @code{.java}
@@ -1186,5 +1210,181 @@ public class HTTPClient extends QoreObjectWrapper {
     */
     public void setPersistent() throws Throwable {
         obj.callMethod("setPersistent");
+    }
+
+    //! set the error passthru status
+    /** @par Example:
+        @code{.java}
+    httpclient.setErrorPassthru();
+        @endcode
+
+        @param set if true then HTTP status codes indicating errors will not cause an
+        \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
+        like any other response
+
+        @return the old \c error_passthru value
+
+        If true then HTTP status codes indicating errors will not cause an
+        \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
+        like any other response.
+
+        @since %Qore 0.9.3
+    */
+    public boolean setErrorPassthru(boolean set) throws Throwable {
+        return (boolean)obj.callMethod("setErrorPassthru", set);
+    }
+
+    //! set the error passthru status
+    /** @par Example:
+        @code{.java}
+    httpclient.setErrorPassthru();
+        @endcode
+
+        @return the old \c error_passthru value
+
+        If true then HTTP status codes indicating errors will not cause an
+        \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
+        like any other response.
+
+        @since %Qore 0.9.3
+    */
+    public boolean setErrorPassthru() throws Throwable {
+        return (boolean)obj.callMethod("setErrorPassthru");
+    }
+
+    //! get the error passthru status
+    /** @par Example:
+        @code{.java}
+    boolean b = httpclient.getErrorPassthru();
+        @endcode
+
+        @return the current \c error_passthru value
+
+        If true then HTTP status codes indicating errors will not cause an
+        \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
+        like any other response.
+
+        @since %Qore 0.9.3
+    */
+    public boolean getErrorPassthru() throws Throwable {
+        return (boolean)obj.callMethod("getErrorPassthru");
+    }
+
+    //! set the redirect passthru status
+    /** @par Example:
+        @code{.java}
+    httpclient.setRedirectPassthru(true);
+        @endcode
+
+        @param set if true then redirect messages will be passed to the caller instead of proceessed
+
+        @return the old \c reddirect_passthru value
+
+        If true then redirect messages will be passed to the callers instead of proceessed
+
+        @since %Qore 0.9.3
+    */
+    public boolean setRedirectPassthru(boolean set) throws Throwable {
+        return (boolean)obj.callMethod("setRedirectPassthru", set);
+    }
+
+    //! set the redirect passthru status
+    /** @par Example:
+        @code{.java}
+    httpclient.setRedirectPassthru();
+        @endcode
+
+        @return the old \c reddirect_passthru value
+
+        If true then redirect messages will be passed to the callers instead of proceessed
+
+        @since %Qore 0.9.3
+    */
+    public boolean setRedirectPassthru() throws Throwable {
+        return (boolean)obj.callMethod("setRedirectPassthru");
+    }
+
+    //! get the redirect passthru status
+    /** @par Example:
+        @code{.java}
+    boolean b = httpclient.getRedirectPassthru();
+        @endcode
+
+        @return the current \c redirect_passthru value
+
+        If true then redirect messages will be passed to the caller instead of proceessed
+
+        @since %Qore 0.9.3
+    */
+    public boolean getRedirectPassthru() throws Throwable {
+        return (boolean)obj.callMethod("getRedirectPassthru");
+    }
+
+    //! set the encoding passthru status
+    /** @par Example:
+        @code{.java}
+    httpclient.setEncodingPassthru(true);
+        @endcode
+
+        @param set if true then message bodies received with known content encodings are not decoded but
+        rather passed through as-is
+
+        @return the old \c encoding_passthru value
+
+        If true then message bodies received with known content encodings are not decoded but
+        rather passed through as-is
+
+        @since %Qore 0.9.3
+    */
+    public boolean setEncodingPassthru(boolean set) throws Throwable {
+        return (boolean)obj.callMethod("setEncodingPassthru", set);
+    }
+
+    //! set the encoding passthru status
+    /** @par Example:
+        @code{.java}
+    httpclient.setEncodingPassthru();
+        @endcode
+
+        @return the old \c encoding_passthru value
+
+        If true then message bodies received with known content encodings are not decoded but
+        rather passed through as-is
+
+        @since %Qore 0.9.3
+    */
+    public boolean setEncodingPassthru() throws Throwable {
+        return (boolean)obj.callMethod("setEncodingPassthru");
+    }
+
+    //! get the encoding passthru status
+    /** @par Example:
+        @code{.java}
+    bool b = httpclient.getErrorPassthru();
+        @endcode
+
+        @return the current \c encoding_passthru value
+
+        If true then message bodies received with known content encodings are not decoded but
+        rather passed through as-is
+
+        @since %Qore 0.9.3
+    */
+    public boolean getEncodingPassthru() throws Throwable {
+        return (boolean)obj.callMethod("getEncodingPassthru");
+    }
+
+    //! returns the \c Host header value for this object
+    /** @par Example:
+        @code{.java}
+    string host = httpclient.getHostHeaderValue();
+        @endcode
+
+        @return the \c Host header value for this object
+
+        @since %Qore 0.9.3
+    */
+    public String getHostHeaderValue() throws Throwable {
+        return (String)obj.callMethod("getHostHeaderValue");
     }
 }

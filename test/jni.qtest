@@ -12,6 +12,8 @@
 %requires SqlUtil
 %requires BulkSqlUtil
 %requires DbDataProvider
+%requires HttpServer
+%requires Mime
 
 %requires reflection
 
@@ -28,8 +30,36 @@
 %module-cmd(jni) import org.qore.lang.mapper.*
 %module-cmd(jni) import org.qore.lang.tablemapper.*
 %module-cmd(jni) import org.qore.lang.test.QoreJavaLangApiTest
+%module-cmd(jni) import org.qore.lang.restclient.*
 
 %exec-class Main
+
+class SimpleStringHandler inherits AbstractHttpRequestHandler {
+    private {
+        *string m_data;
+        string m_mime;
+    }
+    constructor(string mime, *string str) {
+        m_mime = mime;
+        m_data = str;
+    }
+    hash<auto> handleRequest(hash<auto> cx, hash<auto> hdr, *data body) {
+        if (hdr."do-error") {
+            return makeResponse(404, "test error", {"Content-Type": MimeTypeText});
+        }
+        if (hdr.method == "GET") {
+            return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
+        } else if (hdr.method == "PUT") {
+            return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
+        } else if (hdr.method == "PATCH") {
+            return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
+        } else if (hdr.method == "POST") {
+            return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
+        } else if (hdr.method == "DELETE") {
+            return makeResponse(404, m_data ?? binary(body), {"Content-Type": m_mime});
+        }
+    }
+}
 
 class DtorThrows {
     destructor() {
@@ -100,9 +130,12 @@ public class Main inherits QUnit::Test {
         const TestClass1ByteCode = <cafebabe0000003700110a0004000d08000e07000f0700100100063c696e69743e010003282956010004436f646501000f4c696e654e756d6265725461626c6501000367657401001428294c6a6176612f6c616e672f537472696e673b01000a536f7572636546696c65010009546573742e6a6176610c0005000601000474657374010004546573740100106a6176612f6c616e672f4f626a656374002100030004000000000002000100050006000100070000001d00010001000000052ab70001b10000000100080000000600010000000100000009000a000100070000001b00010001000000031202b0000000010008000000060001000000020001000b00000002000c>;
 
         const TestClass2ByteCode = <cafebabe0000003400110a0004000d08000e07000f0700100100063c696e69743e010003282956010004436f646501000f4c696e654e756d6265725461626c6501000367657401001428294c6a6176612f6c616e672f537472696e673b01000a536f7572636546696c6501000a54657374322e6a6176610c00050006010005546573743201000d6d792f746573742f54657374320100106a6176612f6c616e672f4f626a656374002000030004000000000002000000050006000100070000001d00010001000000052ab70001b10000000100080000000600010000000300000009000a000100070000001b00010001000000031202b0000000010008000000060001000000050001000b00000002000c>;
+
+        const TEXT = "Lorem Ipsum";
     }
 
     constructor() : Test("jni test", "1.0") {
+        addTestCase("restclient test", \restClientTest());
         addTestCase("object lifecycle test", \objectLifecycleTest());
         addTestCase("qore exception test", \qoreExceptionTest());
         addTestCase("call stack test", \callStackTest());
@@ -135,6 +168,40 @@ public class Main inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    log(string fmt) {
+        if (m_options.verbose > 2) {
+            vprintf("HTTP: " + fmt, argv);
+        }
+    }
+
+    restClientTest() {
+        HttpServer httpserver(\log(), \log());
+        on_exit httpserver.stop();
+        httpserver.setHandler("/api_text", "/api_text", MimeTypeText, new SimpleStringHandler(MimeTypeText, TEXT));
+        httpserver.setHandler("/api_bin", "/api_bin", MimeTypeOctetStream, new SimpleStringHandler(MimeTypeOctetStream));
+        int port = httpserver.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+
+        restclient::RestClient rest({"url": "http://localhost:" + port});
+        assertThrows("REST-RESPONSE-ERROR", \rest.restGet(), ("/api_text", NOTHING, {"Do-Error": True}));
+        rest.setErrorPassthru(True);
+        hash<auto> msg = rest.restGet("/api_text", NOTHING, {"Do-Error": True});
+        assertEq(404, msg.status_code);
+        assertEq("test error", msg.body);
+
+        auto ret;
+        rest.setSerialization("text");
+        ret = rest.restPost("/api_bin", <abcd>);
+        #printf("ret: %y\n", ret);
+        assertEq(<abcd>, binary(ret.body));
+        assertEq(MimeTypeOctetStream, ret."content-type");
+
+        rest.setSerialization("bin");
+        ret = rest.restPost("/api_bin", <abcd>);
+        #printf("ret: %y\n", ret);
+        assertEq(<abcd>, binary(ret.body));
+        assertEq(MimeTypeOctetStream, ret."content-type");
     }
 
     objectLifecycleTest() {
@@ -237,7 +304,6 @@ public class Main inherits QUnit::Test {
             QoreJavaApiTest::callFunctionTest("does_not_exist");
             assertTrue(False);
         } catch (hash<ExceptionInfo> ex) {
-            assertEq("Qore", ex.lang);
             assertEq("Java", ex.callstack[0].lang);
             # Java native methods are "builtin"
             assertEq("builtin", ex.callstack[0].type);
@@ -304,7 +370,9 @@ public class Main inherits QUnit::Test {
             assertEq(now, row.modified);
         }
 
-        sqlutil::AbstractTable table = QoreJavaLangApiTest::createTable(jdsp);
+        object table = QoreJavaLangApiTest::createTable(dsp);
+        sqlutil::Table local_table = new sqlutil::Table(table.getQoreObject());
+        #sqlutil::AbstractTable table = QoreJavaLangApiTest::createTable(dsp);
         on_exit {
             QoreJavaLangApiTest::dropTable(table);
         }
@@ -319,103 +387,104 @@ public class Main inherits QUnit::Test {
             hash<auto> h = QoreJavaLangApiTest::testBulkUpsert(table);
             assertEq({"id": 2, "string": "new-str"}, h - "modified");
 
-            assertEq(1, table.update({"string": "new-str-2"}, {"id": 2}));
-            assertEq("new-str-2", table.selectRow({
+            assertEq(1, local_table.update({"string": "new-str-2"}, {"id": 2}));
+            assertEq("new-str-2", local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as("string", "str"),
                 "where": {"id": 2},
             }).str);
-            assertEq("x-new-str-2", table.selectRow({
+            assertEq("x-new-str-2", local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_prepend("string", "x-"), "str"),
                 "where": {"id": 2},
             }).str);
-            assertEq("new-str-2-x", table.selectRow({
+            assertEq("new-str-2-x", local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_append("string", "-x"), "str"),
                 "where": {"id": 2},
             }).str);
-            assertEq(1, table.selectRow({
+            assertEq(1, local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_value(1), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq(2, table.selectRow({
+            assertEq(2, local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_min("id"), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq(2, table.selectRow({
+            assertEq(2, local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_max("id"), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq(2, table.selectRow({
+            assertEq(2, local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_distinct("id"), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq(2, table.selectRow({
+            assertEq(2, local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_avg("id"), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq(2, table.selectRow({
+            assertEq(2, local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_sum("id"), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq(1, table.selectRow({
+            assertEq(1, local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_count("id"), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq(2, table.selectRow({
+            assertEq(2, local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_minus("id", cop_value(0)), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq(2, table.selectRow({
+            assertEq(2, local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_plus("id", cop_value(0)), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq(2, table.selectRow({
+            assertEq(2, local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_divide("id", cop_value(1)), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq(2, table.selectRow({
+            assertEq(2, local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_multiply("id", cop_value(1)), "val"),
                 "where": {"id": 2},
             }).val);
-            date mod = table.selectRow({"columns": "modified", "where": {"id": 2}}).modified;
-            assertEq(mod.format("YYYY"), table.selectRow({
+            date mod = local_table.selectRow({"columns": "modified", "where": {"id": 2}}).modified;
+            assertEq(mod.format("YYYY"), local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_year("modified"), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq(mod.format("YYYY-MM"), table.selectRow({
+            assertEq(mod.format("YYYY-MM"), local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_year_month("modified"), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq(mod.format("YYYY-MM-DD"), table.selectRow({
+            assertEq(mod.format("YYYY-MM-DD"), local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_year_day("modified"), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq(2, table.selectRow({
+            assertEq(2, local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_coalesce("id", cop_value(1)), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq("n", table.selectRow({
+            assertEq("n", local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_substr("string", 1, 1), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq(9, table.selectRow({
+            assertEq(9, local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_length("string"), "val"),
                 "where": {"id": 2},
             }).val);
-            assertEq(date(mod.format("YYYY-01-01")), table.selectRow({
+            assertEq(date(mod.format("YYYY-01-01")), local_table.selectRow({
                 "columns": sqlutil::AbstractTable::cop_as(sqlutil::AbstractTable::cop_trunc_date("modified", sqlutil::AbstractTable::DT_YEAR), "val"),
                 "where": {"id": 2},
             }).val);
 
             # must be the last data tests for the table
-            assertEq(2, table.del());
+            assertEq(2, local_table.del());
 
             QoreJavaLangApiTest::doTests();
 
             # issue #3545: test data provider API
-            DbTableDataProvider provider(table.getQoreObject().getTable());
-            QoreJavaLangApiTest::testDataProvider(new dataprovider::AbstractDataProvider(provider));
+            DbTableDataProvider provider(local_table.getQoreObject().getTable());
+            QoreJavaLangApiTest::testDataProvider(provider);
         } catch (hash<ExceptionInfo> ex) {
-            table.rollback();
+            printf("%s\n", get_exception_string(ex));
+            local_table.rollback();
             rethrow;
         }
     }
