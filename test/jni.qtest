@@ -28,6 +28,9 @@
 %module-cmd(jni) import org.qore.lang.mapper.*
 %module-cmd(jni) import org.qore.lang.tablemapper.*
 %module-cmd(jni) import org.qore.lang.test.QoreJavaLangApiTest
+%module-cmd(jni) import org.qore.lang.restclient.*
+%module-cmd(jni) import org.qore.lang.mailmessage.*
+%module-cmd(jni) import org.qore.lang.smtpclient.*
 
 %exec-class Main
 
@@ -100,9 +103,24 @@ public class Main inherits QUnit::Test {
         const TestClass1ByteCode = <cafebabe0000003700110a0004000d08000e07000f0700100100063c696e69743e010003282956010004436f646501000f4c696e654e756d6265725461626c6501000367657401001428294c6a6176612f6c616e672f537472696e673b01000a536f7572636546696c65010009546573742e6a6176610c0005000601000474657374010004546573740100106a6176612f6c616e672f4f626a656374002100030004000000000002000100050006000100070000001d00010001000000052ab70001b10000000100080000000600010000000100000009000a000100070000001b00010001000000031202b0000000010008000000060001000000020001000b00000002000c>;
 
         const TestClass2ByteCode = <cafebabe0000003400110a0004000d08000e07000f0700100100063c696e69743e010003282956010004436f646501000f4c696e654e756d6265725461626c6501000367657401001428294c6a6176612f6c616e672f537472696e673b01000a536f7572636546696c6501000a54657374322e6a6176610c00050006010005546573743201000d6d792f746573742f54657374320100106a6176612f6c616e672f4f626a656374002000030004000000000002000000050006000100070000001d00010001000000052ab70001b10000000100080000000600010000000300000009000a000100070000001b00010001000000031202b0000000010008000000060001000000050001000b00000002000c>;
+<<<<<<< HEAD
     }
 
     constructor() : Test("jni test", "1.0") {
+=======
+
+        const TEXT = "Lorem Ipsum";
+
+        const Sender = "foo@bar.cz";
+        const Subject = "foo bar";
+        const To = "target@bar.cz";
+    }
+
+    constructor() : Test("jni test", "1.0") {
+        addTestCase("smtpclient test", \smtpClientTest());
+        addTestCase("mailmessage test", \mailMessageTest());
+        addTestCase("restclient test", \restClientTest());
+>>>>>>> fc5409c... refs qorelanguage/qore#3794 added the SmtpClient and supporting classes + tests and docs
         addTestCase("object lifecycle test", \objectLifecycleTest());
         addTestCase("qore exception test", \qoreExceptionTest());
         addTestCase("call stack test", \callStackTest());
@@ -137,6 +155,146 @@ public class Main inherits QUnit::Test {
         set_return_value(main());
     }
 
+<<<<<<< HEAD
+=======
+    log(string fmt) {
+        if (m_options.verbose > 2) {
+            vprintf("HTTP: " + fmt, argv);
+        }
+    }
+
+    smtpClientTest() {
+        # test the java version of the object
+        smtpclient::SmtpClient smtp("smtp://user:pass@host.com");
+        assertEq("host.com:25", smtp.getTarget());
+        smtp = new smtpclient::SmtpClient("user:pass@x:23");
+        assertEq("x:23", smtp.getTarget());
+        smtp = new smtpclient::SmtpClient("smtp://user:pass@x1:23");
+        assertEq("x1:23", smtp.getTarget());
+        smtp = new smtpclient::SmtpClient("smtp://user:pass@x1");
+        assertEq("x1:25", smtp.getTarget());
+        smtp = new smtpclient::SmtpClient("smtp://user:pass@socket=%2Ftmp%2Fsock");
+        assertEq("/tmp/sock", smtp.getTarget());
+        assertThrows("SMTPCLIENT-UNKNOWN-PROTOCOL", sub () { new smtpclient::SmtpClient("smtpx://host:23");});
+        assertThrows("SMTPCLIENT-UNKNOWN-PROTOCOL", sub () { new smtpclient::SmtpClient("scheme://host");});
+    }
+
+    mailMessageTest() {
+        {
+            string body = "some body";
+
+            # test the java version of the object
+            mailmessage::Message msg(Sender, Subject);
+            msg.setBody(body);
+
+            msg.addTO(To);
+
+            msg.attach("foo.txt", MimeTypeText, "lorem ipsum", EncBase64);
+            string r = msg.serialize();
+
+            string refstr = "From: foo@bar.cz\r
+To: target@bar.cz\r
+Subject: foo bar\r
+MIME-Version: 1.0\r
+Content-Type: multipart/mixed;boundary=MjAxNjAxMjIxMTQ4MDg\r
+\r
+This is a MIME multipart message\r
+--MjAxNjAxMjIxMTQ4MDg\r
+Content-Type: text/plain;charset=UTF-8\r
+Content-Disposition: inline\r
+Content-Transfer-Encoding: quoted-printable\r
+\r
+some body\r
+--MjAxNjAxMjIxMTQ4MDg\r
+Content-Type: text/plain;charset=UTF-8\r
+Content-Disposition: attachment; filename=\"foo.txt\"\r
+Content-Transfer-Encoding: base64\r
+\r
+bG9yZW0gaXBzdW0=\r
+--MjAxNjAxMjIxMTQ4MDg--\r
+";
+            # get boundary from generated message
+            string boundary = (r =~ x/boundary=(\w+)/)[0];
+            r = replace(r, boundary, "MjAxNjAxMjIxMTQ4MDg");
+            assertEq(refstr, r);
+        }
+        {
+            # test the java version of the object
+            mailmessage::Message msg(Sender, Subject);
+            msg.setBody("body");
+            msg.addTO(To);
+
+            msg.attach("foo.txt", MimeTypeText, "lorem ipsum");
+            string r = msg.serialize();
+
+            string refstr = "From: foo@bar.cz\r
+To: target@bar.cz\r
+Subject: foo bar\r
+MIME-Version: 1.0\r
+Content-Type: multipart/mixed;boundary=MjAxNjAxMjIxMTQ4MDg\r
+\r
+This is a MIME multipart message\r
+--MjAxNjAxMjIxMTQ4MDg\r
+Content-Type: text/plain;charset=UTF-8\r
+Content-Disposition: inline\r
+Content-Transfer-Encoding: quoted-printable\r
+\r
+body\r
+--MjAxNjAxMjIxMTQ4MDg\r
+Content-Type: text/plain;charset=UTF-8\r
+Content-Disposition: attachment; filename=\"foo.txt\"\r
+Content-Transfer-Encoding: quoted-printable\r
+\r
+lorem ipsum\r
+--MjAxNjAxMjIxMTQ4MDg--\r
+";
+
+            # get boundary from generated message
+            string boundary = (r =~ x/boundary=(\w+)/)[0];
+            r = replace(r, boundary, "MjAxNjAxMjIxMTQ4MDg");
+            assertEq(refstr.split("\r\n"), r.split("\r\n"));
+            #assertEq(refstr, r);
+        }
+        {
+            # test issue #2360
+            # test the java version of the object
+            mailmessage::Message msg(Sender, Subject);
+            msg.addBody("body");
+            msg.addTO(To);
+            string r = msg.serialize();
+            assertRegex("Content-Transfer-Encoding: quoted-printable", r);
+        }
+    }
+
+    restClientTest() {
+        HttpServer httpserver(\log(), \log());
+        on_exit httpserver.stop();
+        httpserver.setHandler("/api_text", "/api_text", MimeTypeText, new SimpleStringHandler(MimeTypeText, TEXT));
+        httpserver.setHandler("/api_bin", "/api_bin", MimeTypeOctetStream, new SimpleStringHandler(MimeTypeOctetStream));
+        int port = httpserver.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+
+        restclient::RestClient rest({"url": "http://localhost:" + port});
+        assertThrows("REST-RESPONSE-ERROR", \rest.restGet(), ("/api_text", NOTHING, {"Do-Error": True}));
+        rest.setErrorPassthru(True);
+        hash<auto> msg = rest.restGet("/api_text", NOTHING, {"Do-Error": True});
+        assertEq(404, msg.status_code);
+        assertEq("test error", msg.body);
+
+        auto ret;
+        rest.setSerialization("text");
+        ret = rest.restPost("/api_bin", <abcd>);
+        #printf("ret: %y\n", ret);
+        assertEq(<abcd>, binary(ret.body));
+        assertEq(MimeTypeOctetStream, ret."content-type");
+
+        rest.setSerialization("bin");
+        ret = rest.restPost("/api_bin", <abcd>);
+        #printf("ret: %y\n", ret);
+        assertEq(<abcd>, binary(ret.body));
+        assertEq(MimeTypeOctetStream, ret."content-type");
+    }
+
+>>>>>>> fc5409c... refs qorelanguage/qore#3794 added the SmtpClient and supporting classes + tests and docs
     objectLifecycleTest() {
         hash<string, object> object_cache;
         code callback = sub (object obj) {
