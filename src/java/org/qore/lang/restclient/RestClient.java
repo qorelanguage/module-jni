@@ -96,7 +96,7 @@ RestClient rest = new RestClient(opts);
         - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean true or false: indicating if the method can accept a message body as well. Example:
             @code{.java}
 // add new HTTP methods for WebDAV. Both of them require body posting to the server
-("additional_methods": ("PROPFIND": true, "MKCOL": true ));
+{"additional_methods": {"PROPFIND": true, "MKCOL": true}};
             @endcode
         - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 20s)
         - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
@@ -146,7 +146,7 @@ rest.setSerialization("yaml");
 
         @throw RESTCLIENT-ERROR invalid or unsupported serialization option
 
-        @see @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+        @see @ref getSerialization()
     */
     public void setSerialization(String data) throws Throwable {
         obj.callMethod("setSerialization", data);
@@ -165,8 +165,8 @@ rest.setSendEncoding("gzip");
         @throw RESTCLIENT-ERROR invalid or unsupported data content encoding / compression option
 
         @see
-        - @ref RestClient::RestClient::setContentEncoding() "RestClient::setContentEncoding()"
-        - @ref RestClient::RestClient::getSendEncoding() "RestClient::getSendEncoding()"
+        - @ref setContentEncoding()
+        - @ref getSendEncoding()
     */
     public void setSendEncoding(String enc) throws Throwable {
         obj.callMethod("setSendEncoding", enc);
@@ -183,8 +183,8 @@ rest.setContentEncoding("gzip");
         @throw RESTCLIENT-ERROR invalid or unsupported data content encoding / compression option
 
         @see
-        - @ref RestClient::RestClient::getSendEncoding() "RestClient::getSendEncoding()"
-        - @ref RestClient::RestClient::setSendEncoding() "RestClient::setSendEncoding()"
+        - @ref getSendEncoding()
+        - @ref setSendEncoding()
 
         @since %RestClient 1.3
     */
@@ -203,7 +203,7 @@ rest.addDefaultHeaders(("Accept-Encoding": "compress"));
 
         @note default headers can also be set in the constructor
 
-        @see @ref RestClient::RestClient::getDefaultHeaders() "RestClient::getDefaultHeaders()"
+        @see @ref getDefaultHeaders()
 
         @since %RestClient 1.3
     */
@@ -221,7 +221,7 @@ HashMap<String, Object> h = rest.getDefaultHeaders();
 
         @note default headers can be set in the constructor and in addDefaultHeaders()
 
-        @see @ref RestClient::RestClient::addDefaultHeaders() "RestClient::addDefaultHeaders()"
+        @see @ref addDefaultHeaders()
 
         @since %RestClient 1.3
     */
@@ -239,8 +239,8 @@ String ce = rest.getSendEncoding();
         @return the current data content encoding (compression) object or null if no encoding option is set; see @ref EncodingSupport for valid options
 
         @see
-        - @ref RestClient::RestClient::setContentEncoding() "RestClient::setContentEncoding()"
-        - @ref RestClient::RestClient::setSendEncoding() "RestClient::setSendEncoding()"
+        - @ref setContentEncoding()
+        - @ref setSendEncoding()
 
         @since %RestClient 1.3
     */
@@ -256,7 +256,7 @@ String ser = rest.getSerialization();
 
         @return the current data serialization format currently in effect for the object (see @ref DataSerializationOptions for possible values)
 
-        @see @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        @see @ref setSerialization()
      */
     public String getSerialization() throws Throwable {
         return (String)obj.callMethod("getSerialization");
@@ -286,8 +286,8 @@ HashMap<String, Object> ans = rest.get("/orders/1?info=verbose");
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
         @see
-        - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
-        - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        - @ref getSerialization()
+        - @ref setSerialization()
         - @ref httpclient_get_with_body
      */
     @SuppressWarnings("unchecked")
@@ -320,8 +320,8 @@ HashMap<String, Object> ans = rest.get("/orders/1?info=verbose");
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
         @see
-        - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
-        - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        - @ref getSerialization()
+        - @ref setSerialization()
         - @ref httpclient_get_with_body
      */
     @SuppressWarnings("unchecked")
@@ -352,8 +352,8 @@ HashMap<String, Object> ans = rest.get("/orders/1?info=verbose");
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
         @see
-        - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
-        - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        - @ref getSerialization()
+        - @ref setSerialization()
         - @ref httpclient_get_with_body
      */
     @SuppressWarnings("unchecked")
@@ -386,8 +386,8 @@ HashMap<String, Object> ans = rest.put("/orders/1", ("action": "cancel"));
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
         @see
-        - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
-        - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        - @ref getSerialization()
+        - @ref setSerialization()
      */
     @SuppressWarnings("unchecked")
     public HashMap<String, Object> restPut(String path, Object body, Map<String, Object> hdr) throws Throwable {
@@ -418,8 +418,8 @@ HashMap<String, Object> ans = rest.put("/orders/1", ("action": "cancel"));
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
         @see
-        - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
-        - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        - @ref getSerialization()
+        - @ref setSerialization()
      */
     @SuppressWarnings("unchecked")
     public HashMap<String, Object> restPut(String path, Object body) throws Throwable {
@@ -451,8 +451,8 @@ HashMap<String, Object> ans = rest.patch("/orders/1", ("action": "cancel"));
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
         @see
-        - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
-        - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        - @ref getSerialization()
+        - @ref setSerialization()
      */
     @SuppressWarnings("unchecked")
     public HashMap<String, Object> restPatch(String path, Object body, Map<String, Object> hdr) throws Throwable {
@@ -483,8 +483,8 @@ HashMap<String, Object> ans = rest.patch("/orders/1", ("action": "cancel"));
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
         @see
-        - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
-        - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        - @ref getSerialization()
+        - @ref setSerialization()
      */
     @SuppressWarnings("unchecked")
     public HashMap<String, Object> restPatch(String path, Object body) throws Throwable {
@@ -516,8 +516,8 @@ HashMap<String, Object> ans = rest.post("/orders", ("product": "xyz123", "option
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
         @see
-        - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
-        - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        - @ref getSerialization()
+        - @ref setSerialization()
      */
     @SuppressWarnings("unchecked")
     public HashMap<String, Object> restPost(String path, Object body, Map<String, Object> hdr) throws Throwable {
@@ -548,8 +548,8 @@ HashMap<String, Object> ans = rest.post("/orders", ("product": "xyz123", "option
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
         @see
-        - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
-        - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        - @ref getSerialization()
+        - @ref setSerialization()
      */
     @SuppressWarnings("unchecked")
     public HashMap<String, Object> restPost(String path, Object body) throws Throwable {
@@ -581,8 +581,8 @@ HashMap<String, Object> ans = rest.del("/orders/1");
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
         @see
-        - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
-        - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        - @ref getSerialization()
+        - @ref setSerialization()
      */
     @SuppressWarnings("unchecked")
     public HashMap<String, Object> restDel(String path, Object body, Map<String, Object> hdr) throws Throwable {
@@ -613,8 +613,8 @@ HashMap<String, Object> ans = rest.del("/orders/1");
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
         @see
-        - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
-        - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        - @ref getSerialization()
+        - @ref setSerialization()
      */
     @SuppressWarnings("unchecked")
     public HashMap<String, Object> restDel(String path, Object body) throws Throwable {
@@ -651,8 +651,8 @@ HashMap<String, Object> ans = rest.doRequest("DELETE", "/orders/1");
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
         @see
-        - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
-        - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        - @ref getSerialization()
+        - @ref setSerialization()
         - @ref httpclient_get_with_body
      */
     @SuppressWarnings("unchecked")
@@ -689,8 +689,8 @@ HashMap<String, Object> ans = rest.doRequest("DELETE", "/orders/1");
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
         @see
-        - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
-        - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        - @ref getSerialization()
+        - @ref setSerialization()
         - @ref httpclient_get_with_body
      */
     @SuppressWarnings("unchecked")
@@ -726,8 +726,8 @@ HashMap<String, Object> ans = rest.doRequest("DELETE", "/orders/1");
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
         @see
-        - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
-        - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        - @ref getSerialization()
+        - @ref setSerialization()
         - @ref httpclient_get_with_body
      */
     @SuppressWarnings("unchecked")

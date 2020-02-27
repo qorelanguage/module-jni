@@ -4,7 +4,7 @@ project(qore-jni-module)
 
 set (VERSION_MAJOR 1)
 set (VERSION_MINOR 1)
-set (VERSION_PATCH 0)
+set (VERSION_PATCH 1)
 
 set(PROJECT_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
@@ -155,6 +155,10 @@ add_java_source(org/qore/lang/AbstractSQLStatement.java)
 add_java_source(org/qore/lang/HTTPClient.java)
 add_java_source(org/qore/lang/soapclient/SoapClient.java)
 add_java_source(org/qore/lang/restclient/RestClient.java)
+add_java_source(org/qore/lang/mailmessage/Message.java)
+add_java_source(org/qore/lang/mailmessage/Attachment.java)
+add_java_source(org/qore/lang/mailmessage/Part.java)
+add_java_source(org/qore/lang/smtpclient/SmtpClient.java)
 
 #message(STATUS "MESSAGE Src: ${JAVA_JAR_SRC}")
 #message(STATUS "STR: ${JAVA_JAR_SRC_STR}")
