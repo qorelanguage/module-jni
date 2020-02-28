@@ -28,6 +28,11 @@ public class SoapClient extends HTTPClient {
         }
     }
 
+    //! creates the object
+    public SoapClient(QoreObject ds) {
+        super(ds);
+    }
+
     //! creates the object based on a %WSDL which is parsed to a @ref WSDL::WebService "WebService" object which provides the basis for all communication with this object
     /** one of either the \c wsdl or \c wsdl_file keys is required in the hash given to the constructor or an exception will be thrown
         @param h valid option keys:
