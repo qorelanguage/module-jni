@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -124,23 +124,28 @@ public:
  */
 class JavaException : public Exception {
 public:
-   /**
-    * \brief Constructor.
+    /**
+        * \brief Constructor.
     */
-   DLLLOCAL JavaException() {
-   }
+    DLLLOCAL JavaException() {
+    }
 
-   DLLLOCAL void convert(ExceptionSink *xsink) override;
+    DLLLOCAL void convert(ExceptionSink *xsink) override;
 
-   DLLLOCAL void ignore() override;
+    DLLLOCAL void ignore() override;
 
-   DLLLOCAL void ignoreOrRethrowNoClass();
+    DLLLOCAL void ignoreOrRethrowNoClass();
 
-   DLLLOCAL jthrowable save();
+    //! returns true if the exception should be rethrown
+    /** workaround for https://bugs.openjdk.java.net/browse/JDK-8221530
+    */
+    DLLLOCAL bool checkBug_8221530();
 
-   DLLLOCAL void restore(jthrowable je);
+    DLLLOCAL jthrowable save();
 
-   DLLLOCAL QoreStringNode* toString() const;
+    DLLLOCAL void restore(jthrowable je);
+
+    DLLLOCAL QoreStringNode* toString() const;
 };
 
 /**
