@@ -191,9 +191,7 @@ QoreValue BaseMethod::invoke(jobject object, const QoreListNode* args, int offse
         doObjectException(env, object);
     }
 
-    QoreProgram* pgm = qore_get_call_program_context();
-    assert(pgm);
-    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+    JniExternalProgramData* jpc = jni_get_context();
     assert(jpc);
 
     // add the object as the first argument
@@ -217,9 +215,7 @@ QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreListNode* args,
         doObjectException(env, object);
     }
 
-    QoreProgram* pgm = qore_get_call_program_context();
-    assert(pgm);
-    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+    JniExternalProgramData* jpc = jni_get_context();
     assert(jpc);
 
     // add the object as the first argument
@@ -243,23 +239,17 @@ QoreValue BaseMethod::invokeStatic(const QoreListNode* args, int offset) const {
     jclass static_cls = nullptr;
     jmethodID static_method_id;
 
-    QoreProgram* pgm = qore_get_call_program_context();
-    if (pgm) {
-        assert(pgm);
-        JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
-        if (jpc) {
-            assert(jpc);
+    JniExternalProgramData* jpc = jni_get_context();
+    if (jpc) {
+        LocalReference<jarray> vargs = args ? convertArgsToArray(args, offset).release() : nullptr;
+        std::vector<jvalue> jargs(3);
+        jargs[0].l = method;
+        jargs[1].l = nullptr;
+        // process method arguments
+        jargs[2].l = vargs;
 
-            LocalReference<jarray> vargs = args ? convertArgsToArray(args, offset).release() : nullptr;
-            std::vector<jvalue> jargs(3);
-            jargs[0].l = method;
-            jargs[1].l = nullptr;
-            // process method arguments
-            jargs[2].l = vargs;
-
-            //printd(0, "BaseMethod::invokeStatic() with jpc context; args: %d\n", (int)(args ? args->size() : 0));
-            return JavaToQore::convertToQore(env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getInvokeMethodId(), &jargs[0]));
-        }
+        //printd(0, "BaseMethod::invokeStatic() with jpc context; args: %d\n", (int)(args ? args->size() : 0));
+        return JavaToQore::convertToQore(env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getInvokeMethodId(), &jargs[0]));
     }
 
     std::vector<jvalue> jargs = convertArgs(args);

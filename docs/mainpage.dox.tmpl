@@ -475,6 +475,10 @@ set_save_object_callback(callback);
 
     @section jnireleasenotes jni Module Release Notes
 
+    @subsection jni_1_1_2 jni Module Version 1.1.2
+    - fixed a crash in method invocation due to incorrect detection of the Java thread context
+      (<a href="https://github.com/qorelanguage/qore/issues/3795">issue 3795</a>)
+
     @subsection jni_1_1_1 jni Module Version 1.1.1
     - added the following Java classes:
       - @ref org.qore.lang.mailmessage.Attachment "Attachment"
