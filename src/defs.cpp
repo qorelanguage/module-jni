@@ -325,8 +325,22 @@ bool JavaException::checkBug_8221530() {
     // check if the exception happened in AccessibleObject
     QoreExternalProgramLocationWrapper loc;
     JniCallStack callstack(throwable, loc);
-    const std::string& file = loc.getFile();
-    if (file != "AccessibleObject.java") {
+
+    // check that the last element in the callstack (i.e. the first call) is a call to
+    // "java.lang.reflect.*.setAccessible()"
+    if (callstack.empty()) {
+        restore(throwable.release());
+        return true;
+    }
+
+    const std::string& code = callstack.back().code;
+    size_t i = code.find("java.lang.reflect");
+    if (i != 0) {
+        restore(throwable.release());
+        return true;
+    }
+    i = code.find("setAccessible");
+    if (i != code.size() - 13) {
         restore(throwable.release());
         return true;
     }
