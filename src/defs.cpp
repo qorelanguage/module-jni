@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -292,5 +292,45 @@ void JavaException::ignoreOrRethrowNoClass() {
     JniCallStack stack(throwable, loc);
 
     xsink.raiseExceptionArg(loc.get(), "JNI-ERROR", new QoreObject(QC_THROWABLE, getProgram(), new QoreJniPrivateData(throwable.as<jobject>())), desc.release(), stack);
+}
+
+// workaround for https://bugs.openjdk.java.net/browse/JDK-8221530
+bool JavaException::checkBug_8221530() {
+    JNIEnv* env = Jvm::getEnv();         //not using the Env wrapper because we don't want any C++ exceptions here
+    LocalReference<jthrowable> throwable = save();
+    assert(throwable);
+
+    LocalReference<jstring> excName = static_cast<jstring>(env->CallObjectMethod(env->GetObjectClass(throwable), Globals::methodClassGetName));
+    if (env->ExceptionCheck()) {
+        // Unable to get exception class name: another exception thrown
+        env->ExceptionClear();
+        restore(throwable.release());
+        return true;
+    }
+
+    const char* chars = env->GetStringUTFChars(excName, nullptr);
+    if (!chars) {
+        // Unable to get exception class name: GetStringUTFChars() failed
+        env->ExceptionClear();
+        restore(throwable.release());
+        return true;
+    }
+
+    // return if this is the exception we should ignore
+    if (strcmp(chars, "java.lang.NullPointerException")) {
+        restore(throwable.release());
+        return true;
+    }
+
+    // check if the exception happened in AccessibleObject
+    QoreExternalProgramLocationWrapper loc;
+    JniCallStack callstack(throwable, loc);
+    const std::string& file = loc.getFile();
+    if (file != "AccessibleObject.java") {
+        restore(throwable.release());
+        return true;
+    }
+
+    return false;
 }
 } // namespace jni

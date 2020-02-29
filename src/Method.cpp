@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -191,12 +191,47 @@ QoreValue BaseMethod::invoke(jobject object, const QoreListNode* args, int offse
         doObjectException(env, object);
     }
 
+    try {
+        // make a standard Java call
+        std::vector<jvalue> jargs = convertArgs(args, offset);
+        switch (retValType) {
+            case Type::Boolean:
+                return JavaToQore::convert(env.callBooleanMethod(object, id, &jargs[0]));
+            case Type::Byte:
+                return JavaToQore::convert(env.callByteMethod(object, id, &jargs[0]));
+            case Type::Char:
+                return JavaToQore::convert(env.callCharMethod(object, id, &jargs[0]));
+            case Type::Short:
+                return JavaToQore::convert(env.callShortMethod(object, id, &jargs[0]));
+            case Type::Int:
+                return JavaToQore::convert(env.callIntMethod(object, id, &jargs[0]));
+            case Type::Long:
+                return JavaToQore::convert(env.callLongMethod(object, id, &jargs[0]));
+            case Type::Float:
+                return JavaToQore::convert(env.callFloatMethod(object, id, &jargs[0]));
+            case Type::Double:
+                return JavaToQore::convert(env.callDoubleMethod(object, id, &jargs[0]));
+            case Type::Reference:
+                return JavaToQore::convertToQore(env.callObjectMethod(object, id, &jargs[0]));
+            case Type::Void:
+            default:
+                assert(retValType == Type::Void);
+                env.callVoidMethod(object, id, &jargs[0]);
+                return QoreValue();
+        }
+    } catch (JavaException& e) {
+        // workaround for https://bugs.openjdk.java.net/browse/JDK-8221530
+        if (e.checkBug_8221530()) {
+            throw;
+        }
+    }
+
+    // try to make a call through the dynamic API
     JniExternalProgramData* jpc = jni_get_context();
     assert(jpc);
 
     // add the object as the first argument
     LocalReference<jobjectArray> vargs = convertArgsToArray(args, offset).release();
-    //env.setObjectArrayElement(vargs, 0, object);
 
     // public static Object invokeMethodNonvirtual(Method m, Object obj, Object... args);
     std::vector<jvalue> jargs(3);
@@ -229,7 +264,6 @@ QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreListNode* args,
     jargs[2].l = vargs;
 
     //printd(0, "BaseMethod::invokeNonvirtual() args: %d\n", (int)(args ? args->size() : 0));
-
     return JavaToQore::convertToQore(env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getInvokeMethodNonvirtualId(), &jargs[0]));
 }
 
