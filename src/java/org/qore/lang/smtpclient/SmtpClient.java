@@ -199,7 +199,7 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
     */
     @SuppressWarnings("unchecked")
     public HashMap<String, HashMap<String, Object>> sendMessage(Message message) throws Throwable {
-        return (HashMap<String, HashMap<String, Object>>)obj.callMethod("sendMessage", message);
+        return (HashMap<String, HashMap<String, Object>>)obj.callMethod("sendMessage", message.getQoreObject());
     }
 
     //! force disconnect of socket without error
