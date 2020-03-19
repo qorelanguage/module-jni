@@ -976,8 +976,7 @@ static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, 
 }
 
 static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObject* self, QoreJniPrivateData* jd, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
-    // set Program context
-    assert(self->getProgram());
+    // NOTE: Java base classes will have no Qore program context
     QoreProgramContextHelper pch(self->getProgram());
 
     try {
