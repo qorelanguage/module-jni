@@ -293,6 +293,8 @@ public:
     }
 
     DLLLOCAL virtual AbstractQoreProgramExternalData* copy(QoreProgram* pgm) const {
+        // issue #3862: ensure that the thread is registered for this call
+        Env env;
         return new JniExternalProgramData(*this, pgm);
     }
 
