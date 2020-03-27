@@ -476,6 +476,8 @@ set_save_object_callback(callback);
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_1_1_2 jni Module Version 1.1.2
+    - fixed a crash in %Qore Program setup when initiated from a Qore thread with no Java context thread
+      (<a href="https://github.com/qorelanguage/qore/issues/3862">issue 3862</a>)
     - fixed a crash in method invocation due to incorrect detection of the Java thread context
       (<a href="https://github.com/qorelanguage/qore/issues/3794">issue 3794</a>)
     - fixed a bug in @ref org.qore.lang.smtpclient.SmtpClient.sendMessage() "SmtpClient.sendMessage()"
