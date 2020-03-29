@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 
 namespace jni {
 
-JavaVM *Jvm::vm = nullptr;
+JavaVM* Jvm::vm = nullptr;
 thread_local JNIEnv *Jvm::env;
 
 QoreStringNode* Jvm::createVM() {

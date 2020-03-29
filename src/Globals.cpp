@@ -155,9 +155,13 @@ jmethodID Globals::methodThreadCurrentThread;
 jmethodID Globals::methodThreadGetContextClassLoader;
 
 GlobalReference<jclass> Globals::classHashMap;
-GlobalReference<jclass> Globals::classLinkedHashMap;
-jmethodID Globals::ctorLinkedHashMap;
-jmethodID Globals::methodLinkedHashMapPut;
+GlobalReference<jclass> Globals::classHash;
+jmethodID Globals::ctorHash;
+jmethodID Globals::methodHashPut;
+
+//GlobalReference<jclass> Globals::classLinkedHashMap;
+//jmethodID Globals::ctorLinkedHashMap;
+//jmethodID Globals::methodLinkedHashMapPut;
 
 GlobalReference<jclass> Globals::classMap;
 jmethodID Globals::methodMapEntrySet;
@@ -917,6 +921,7 @@ static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperNa
 #include "JavaClassQoreURLClassLoader_1.inc"
 #include "JavaClassQoreJavaApi.inc"
 #include "JavaClassQoreRelativeTime.inc"
+#include "JavaClassHash.inc"
 
 // calling Env::FindClass() when the class is not available will cause the class lookup to fail later after we define it
 // therefore we have to only define the class if the java classes have not already been loaded
@@ -1058,9 +1063,13 @@ void Globals::init() {
     methodThreadGetContextClassLoader = env.getMethod(classThread, "getContextClassLoader", "()Ljava/lang/ClassLoader;");
 
     classHashMap = env.findClass("java/util/HashMap").makeGlobal();
-    classLinkedHashMap = env.findClass("java/util/LinkedHashMap").makeGlobal();
-    ctorLinkedHashMap = env.getMethod(classLinkedHashMap, "<init>", "()V");
-    methodLinkedHashMapPut = env.getMethod(classLinkedHashMap, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+    classHash = findDefineClass(env, "org/qore/jni/Hash", nullptr, java_org_qore_jni_Hash_class, java_org_qore_jni_Hash_class_len).makeGlobal();
+    ctorHash = env.getMethod(classHash, "<init>", "()V");
+    methodHashPut = env.getMethod(classHash, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+
+    //classLinkedHashMap = env.findClass("java/util/LinkedHashMap").makeGlobal();
+    //ctorLinkedHashMap = env.getMethod(classLinkedHashMap, "<init>", "()V");
+    //methodLinkedHashMapPut = env.getMethod(classLinkedHashMap, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 
     classMap = env.findClass("java/util/Map").makeGlobal();
     methodMapEntrySet = env.getMethod(classMap, "entrySet", "()Ljava/util/Set;");
@@ -1167,7 +1176,8 @@ void Globals::cleanup() {
     classQoreURLClassLoader = nullptr;
     classThread = nullptr;
     classHashMap = nullptr;
-    classLinkedHashMap = nullptr;
+    classHash = nullptr;
+    //classLinkedHashMap = nullptr;
     classMap = nullptr;
     classAbstractList = nullptr;
     classSet = nullptr;

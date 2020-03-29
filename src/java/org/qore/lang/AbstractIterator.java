@@ -45,7 +45,7 @@ public class AbstractIterator extends QoreObjectWrapper {
         @see AbstractIterator::valid()
     */
     public Object getValue() throws Throwable {
-        return obj.callMethod("next");
+        return obj.callMethod("getValue");
     }
 
     //! returns true if the iterator is currently pointing at a valid element, false if not
