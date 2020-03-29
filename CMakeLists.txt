@@ -111,9 +111,11 @@ generate_java(org/qore/jni/QoreURLClassLoader.java 1)
 generate_java(org/qore/jni/QoreRelativeTime.java)
 generate_java(org/qore/jni/QoreClosureMarker.java)
 generate_java(org/qore/jni/QoreJavaDynamicApi.java)
+generate_java(org/qore/jni/Hash.java)
 
 # add Java sources without native methods
 add_java_source(org/qore/lang/AbstractIterator.java)
+add_java_source(org/qore/lang/HashListIterator.java)
 add_java_source(org/qore/lang/reflection/Type.java)
 add_java_source(org/qore/lang/sqlutil/Table.java)
 add_java_source(org/qore/lang/sqlutil/AbstractTable.java 1 2 3 4 5)

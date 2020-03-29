@@ -207,7 +207,7 @@
     |@ref binary_type "binary"|\c byte[]
     |@ref nothing_type "NOTHING" and @ref null_type "NULL"|\c void
     |@ref list_type "list"|java Arrays of the list type; if no list type can be found, then the Array type is \c java.lang.Object
-    |@ref hash_type "hash"|\c java.util.LinkedHashMap, however any type implementing \c java.util.Map that has a constructor that takes no arguments and a compatibule \c put() method will be constructed / converted automatically to the desired type
+    |@ref hash_type "hash"|@ref org.qore.jni.Hash (extends \c java.util.LinkedHashMap), however any type implementing \c java.util.Map that has a constructor that takes no arguments and a compatibule \c put() method will be constructed / converted automatically to the desired type
     |@ref Jni::org::qore::jni::JavaArray "JavaArray"|\c java.lang.Array
     |@ref object_type "object"|to the Java class if the Qore object is an instantiation of \c java.lang.Object, otherwise @ref  org.qore.jni.QoreObject
     |all \c jni objects|direct conversion
@@ -231,11 +231,11 @@
     |\c double|@ref float_type "double"
     |\c java.lang.String|@ref string_type "string"
     |\c java.time.ZonedDateTime|@ref date_type "date" (@ref absolute_dates "absolute date")
-    |\c @ref org.qore.jni.QoreRelativeTime|@ref date_type "date" (@ref relative_dates "relative date")
+    |@ref org.qore.jni.QoreRelativeTime|@ref date_type "date" (@ref relative_dates "relative date")
     |\c java.math.BigDecimal|@ref number_type "number"
     |\c java.lang.AbstractArray and arrays|@ref list_type "list"
     |\c java.util.Map|@ref hash_type "hash" (see also @ref jni_compat)
-    |\c @ref org.qore.jni.QoreClosureMarker|@ref code_type "code"
+    |\c org.qore.jni.QoreClosureMarker|@ref code_type "code"
     |all other objects|direct conversion
 
     @note see @ref jni_arrays for more information about conversions between %Qore lists and Java arrays
@@ -270,7 +270,7 @@
     StringBuilder stringBuilder("");
     lang::Class stringBuilderClass = lang::Class::forName("java.lang.StringBuilder");
     Method stringBuilderAppendLong = stringBuilderClass.getMethod("append", Long::TYPE);
-    stringBuilderAppendLong.invoke(stringBuilder, (20,));
+    stringBuilderAppendLong.invoke(stringBuilder, 20);
     printf("%y\n", stringBuilder.toString());
     @endcode
 
@@ -294,8 +294,8 @@
     To call an unmapped method, use reflection to get a \c java.lang.Method object and make the call using \c java.lang.Method.invoke() as in the folllowing example:
     @code{.py}
     StringBuilder stringBuilder("");
-    Method stringBuilderAppendLong = stringBuilderClass.getMethod("append", (Long::TYPE,));
-    stringBuilderAppendLong.invoke(stringBuilder, (20,));
+    Method stringBuilderAppendLong = stringBuilderClass.getMethod("append", Long::TYPE);
+    stringBuilderAppendLong.invoke(stringBuilder, 20);
     printf("%y\n", stringBuilder.toString());
     @endcode
 
@@ -476,6 +476,9 @@ set_save_object_callback(callback);
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_1_1_2 jni Module Version 1.1.2
+    - added the @ref org.qore.jni.Hash class to use when passing %Qore hashes to Java to make it easier to work with
+      %Qore hash data
+      (<a href="https://github.com/qorelanguage/qore/issues/3868">issue 3868</a>)
     - fixed a crash in %Qore Program setup when initiated from a Qore thread with no Java context thread
       (<a href="https://github.com/qorelanguage/qore/issues/3862">issue 3862</a>)
     - fixed a crash in method invocation due to incorrect detection of the Java thread context

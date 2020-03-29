@@ -161,9 +161,13 @@ public:
     DLLLOCAL static jmethodID methodThreadGetContextClassLoader;                  // ClassLoader Thread.getContextClassLoader()
 
     DLLLOCAL static GlobalReference<jclass> classHashMap;                         // java.util.HashMap
-    DLLLOCAL static GlobalReference<jclass> classLinkedHashMap;                   // java.util.LinkedHashMap
-    DLLLOCAL static jmethodID ctorLinkedHashMap;                                  // LinkedHashMap()
-    DLLLOCAL static jmethodID methodLinkedHashMapPut;                             // Object LinkedHashMap.put(Object K, Object V)
+    DLLLOCAL static GlobalReference<jclass> classHash;                            // java.util.LinkedHashMap
+    DLLLOCAL static jmethodID ctorHash;                                           // Hash()
+    DLLLOCAL static jmethodID methodHashPut;                                      // Object Hash.put(Object K, Object V)
+
+    //DLLLOCAL static GlobalReference<jclass> classLinkedHashMap;                   // java.util.LinkedHashMap
+    //DLLLOCAL static jmethodID ctorLinkedHashMap;                                  // LinkedHashMap()
+    //DLLLOCAL static jmethodID methodLinkedHashMapPut;                             // Object LinkedHashMap.put(Object K, Object V)
 
     DLLLOCAL static GlobalReference<jclass> classMap;                             // java.util.Map
     DLLLOCAL static jmethodID methodMapEntrySet;                                  // Set<Map.Entry<K,V>> Map.entrySet()
