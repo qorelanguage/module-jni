@@ -6,6 +6,7 @@ package org.qore.jni;
 // java imports
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.time.ZonedDateTime;
 import java.math.BigDecimal;
 
@@ -73,8 +74,12 @@ public class Hash extends LinkedHashMap<String, Object> {
     }
 
     //! Returns the given key as an array
-    public Object[] getList(String key) {
-        return (Object[])get(key);
+    public ArrayList<Object> getList(String key) {
+        ArrayList<Object> rv = new ArrayList();
+        for (Object elem : (Object[])get(key)) {
+            rv.add(elem);
+        }
+        return rv;
     }
 
     //! Returns the given key as an absolute date/time value

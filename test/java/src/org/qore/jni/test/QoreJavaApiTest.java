@@ -6,6 +6,7 @@ import org.qore.lang.*;
 import org.qore.lang.sqlutil.*;
 
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
 import java.math.BigDecimal;
@@ -288,6 +289,10 @@ public class QoreJavaApiTest {
 
     public static Hash testHashHash(Hash h, String key) {
         return h.getHash(key);
+    }
+
+    public static ArrayList<Object> testHashList(Hash h, String key) {
+        return h.getList(key);
     }
 
     public static QoreClosureMarker testHashCode(Hash h, String key) {
