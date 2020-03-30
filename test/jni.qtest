@@ -791,8 +791,18 @@ lorem ipsum\r
             assertTrue(False);
         } catch (hash<ExceptionInfo> ex) {
             assertEq("QoreJavaApiTest.java", ex.file);
-            assertEq(83, ex.line);
+            assertEq(84, ex.line);
         }
+
+        # test Hash APIs
+        assertEq(True, QoreJavaApiTest::testHashBool({"a": True}, "a"));
+        assertEq(1, QoreJavaApiTest::testHashInt({"a": 1}, "a"));
+        assertEq(1.0, QoreJavaApiTest::testHashDouble({"a": 1.0}, "a"));
+        assertEq(2020-03-28, QoreJavaApiTest::testHashADate({"a": 2020-03-28}, "a"));
+        assertEq(<abcdef>, QoreJavaApiTest::testHashBinary({"a": <abcdef>}, "a"));
+        assertEq("test", QoreJavaApiTest::testHashString({"a": "test"}, "a"));
+        assertEq((1, "two", True), QoreJavaApiTest::testHashList({"a": (1, "two", True)}, "a"));
+        assertEq({"a": 1, "b": "two"}, QoreJavaApiTest::testHashListIterator({"a": (1,), "b": ("two",)}));
     }
 
     testJniClasses() {

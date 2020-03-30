@@ -6,6 +6,7 @@ import org.qore.lang.*;
 import org.qore.lang.sqlutil.*;
 
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
 import java.math.BigDecimal;
@@ -13,7 +14,7 @@ import java.math.BigDecimal;
 class ThreadTest implements Runnable {
     public void run() {
         try {
-            HashMap hm = (HashMap)QoreJavaApi.callFunction("get_qore_library_info");
+            Hash hm = (Hash)QoreJavaApi.callFunction("get_qore_library_info");
         } catch (Throwable e) {
         }
     }
@@ -68,11 +69,11 @@ class ThreadTest4 implements Runnable {
 }
 
 class ThreadTest5 implements Runnable {
-    static public HashMap result;
+    static public Hash result;
 
     public void run() {
         try {
-            result = (HashMap)QoreJavaApi.callStaticMethod("TestClass", "get", 1);
+            result = (Hash)QoreJavaApi.callStaticMethod("TestClass", "get", 1);
         } catch (Throwable e) {
         }
     }
@@ -84,7 +85,7 @@ public class QoreJavaApiTest {
     }
 
     public static HashMap callFunctionTest() throws Throwable {
-        HashMap hm = (HashMap)QoreJavaApi.callFunction("get_qore_library_info");
+        Hash hm = (Hash)QoreJavaApi.callFunction("get_qore_library_info");
 
         (new Thread(new ThreadTest())).start();
         return hm;
@@ -152,10 +153,10 @@ public class QoreJavaApiTest {
 
     @SuppressWarnings("unchecked")
     public static HashMap[] testObject6() {
-        HashMap[] hm = new HashMap[2];
-        hm[0] = new HashMap();
+        Hash[] hm = new Hash[2];
+        hm[0] = new Hash();
         hm[0].put("1", 1);
-        hm[1] = new HashMap();
+        hm[1] = new Hash();
         hm[1].put("2", 2);
 
         return hm;
@@ -252,5 +253,55 @@ public class QoreJavaApiTest {
     public static String objectLifecycleTest(String arg) throws Throwable {
         QoreObject obj = QoreJavaApi.newObjectSave("TestClass2");
         return (String)obj.callMethod("getString", arg);
+    }
+
+    public static boolean testHashBool(Hash h, String key) {
+        return h.getBool(key);
+    }
+
+    public static int testHashInt(Hash h, String key) {
+        return h.getInt(key);
+    }
+
+    public static double testHashDouble(Hash h, String key) {
+        return h.getDouble(key);
+    }
+
+    public static ZonedDateTime testHashADate(Hash h, String key) {
+        return h.getADate(key);
+    }
+
+    public static QoreRelativeTime testHashRDate(Hash h, String key) {
+        return h.getRDate(key);
+    }
+
+    public static String testHashString(Hash h, String key) {
+        return h.getString(key);
+    }
+
+    public static BigDecimal testHashNumber(Hash h, String key) {
+        return h.getNumber(key);
+    }
+
+    public static byte[] testHashBinary(Hash h, String key) {
+        return h.getBinary(key);
+    }
+
+    public static Hash testHashHash(Hash h, String key) {
+        return h.getHash(key);
+    }
+
+    public static ArrayList<Object> testHashList(Hash h, String key) {
+        return h.getList(key);
+    }
+
+    public static QoreClosureMarker testHashCode(Hash h, String key) {
+        return h.getCode(key);
+    }
+
+    public static Hash testHashListIterator(Hash h) throws Throwable {
+        HashListIterator i = new HashListIterator(h);
+        i.next();
+        return i.getHash();
     }
 }
