@@ -85,6 +85,8 @@ DLLEXPORT char qore_module_license_str[] = "MIT";
 // global type compatibility option
 DLLLOCAL bool jni_compat_types = false;
 
+static bool jni_init_failed = false;
+
 // module cmd type
 using qore_jni_module_cmd_t = void (*) (const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 static void qore_jni_mc_import(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
@@ -113,6 +115,9 @@ static void jni_thread_cleanup(void*) {
 }
 
 static QoreStringNode* jni_module_init() {
+    if (jni_init_failed) {
+        return new QoreStringNode("jni module initialization failed");
+    }
     printd(LogLevel, "jni_module_init()\n");
 
     jni::jni_qore_init = true;
@@ -140,6 +145,7 @@ static QoreStringNode* jni_module_init() {
             }
         }
         if (err) {
+            jni_init_failed = true;
             err->prepend("Could not create the Java Virtual Machine: ");
             return err;
         }
@@ -148,8 +154,10 @@ static QoreStringNode* jni_module_init() {
     try {
         Globals::init();
     } catch (JavaException& e) {
+        jni_init_failed = true;
         return e.toString();
     } catch (Exception &e) {
+        jni_init_failed = true;
         return new QoreStringNode("JVM initialization failed due to an unknown error");
     }
 
