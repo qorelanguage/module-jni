@@ -255,6 +255,19 @@ public class QoreJavaApiTest {
         return (String)obj.callMethod("getString", arg);
     }
 
+    public static void testHash1() throws Throwable {
+        Hash h = new Hash();
+        h.put("a", 1);
+        QoreJavaApi.callStaticMethod("TestHelper", "setHash", h);
+    }
+
+    public static void testHash2() throws Throwable {
+        Hash[] h = new Hash[1];
+        h[0] = new Hash();
+        h[0].put("a", 1);
+        QoreJavaApi.callStaticMethod("TestHelper", "setHashList", (Object)h);
+    }
+
     public static boolean testHashBool(Hash h, String key) {
         return h.getBool(key);
     }

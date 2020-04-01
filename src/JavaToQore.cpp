@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -120,9 +120,9 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
         return rv.release();
     }
 
-    if (env.isInstanceOf(v, Globals::classAbstractList)) {
-        // create list from AbstractList
-        jint size = env.callIntMethod(v, Globals::methodAbstractListSize, nullptr);
+    if (env.isInstanceOf(v, Globals::classList)) {
+        // create list from List
+        jint size = env.callIntMethod(v, Globals::methodListSize, nullptr);
 
         ExceptionSink xsink;
         ReferenceHolder<QoreListNode> rv(new QoreListNode(autoTypeInfo), &xsink);
@@ -133,7 +133,7 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
             jargs[0].i = pos++;
 
             LocalReference<jobject> value = env.callObjectMethod(v,
-                Globals::methodAbstractListGet, &jargs[0]);
+                Globals::methodListGet, &jargs[0]);
 
             ValueHolder val(convertToQore(value.release()), &xsink);
             if (xsink) {

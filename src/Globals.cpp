@@ -166,9 +166,9 @@ jmethodID Globals::methodHashPut;
 GlobalReference<jclass> Globals::classMap;
 jmethodID Globals::methodMapEntrySet;
 
-GlobalReference<jclass> Globals::classAbstractList;
-jmethodID Globals::methodAbstractListSize;
-jmethodID Globals::methodAbstractListGet;
+GlobalReference<jclass> Globals::classList;
+jmethodID Globals::methodListSize;
+jmethodID Globals::methodListGet;
 
 GlobalReference<jclass> Globals::classSet;
 jmethodID Globals::methodSetIterator;
@@ -1074,9 +1074,9 @@ void Globals::init() {
     classMap = env.findClass("java/util/Map").makeGlobal();
     methodMapEntrySet = env.getMethod(classMap, "entrySet", "()Ljava/util/Set;");
 
-    classAbstractList = env.findClass("java/util/AbstractList").makeGlobal();
-    methodAbstractListSize = env.getMethod(classAbstractList, "size", "()I");
-    methodAbstractListGet = env.getMethod(classAbstractList, "get", "(I)Ljava/lang/Object;");
+    classList = env.findClass("java/util/List").makeGlobal();
+    methodListSize = env.getMethod(classList, "size", "()I");
+    methodListGet = env.getMethod(classList, "get", "(I)Ljava/lang/Object;");
 
     classSet = env.findClass("java/util/Set").makeGlobal();
     methodSetIterator = env.getMethod(classSet, "iterator", "()Ljava/util/Iterator;");
@@ -1179,7 +1179,7 @@ void Globals::cleanup() {
     classHash = nullptr;
     //classLinkedHashMap = nullptr;
     classMap = nullptr;
-    classAbstractList = nullptr;
+    classList = nullptr;
     classSet = nullptr;
     classEntry = nullptr;
     classIterator = nullptr;
