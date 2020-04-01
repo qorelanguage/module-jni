@@ -476,6 +476,9 @@ set_save_object_callback(callback);
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_1_1_2 jni Module Version 1.1.2
+    - use <tt>java.util.List&lt;?&gt;</tt> instead of <tt>java.util.ArrayList&lt;?&gt;</tt> as the base class for list
+      conversions
+      (<a href="https://github.com/qorelanguage/qore/issues/3873">issue 3873</a>)
     - added the @ref org.qore.jni.Hash class to use when passing %Qore hashes to Java to make it easier to work with
       %Qore hash data
       (<a href="https://github.com/qorelanguage/qore/issues/3868">issue 3868</a>)

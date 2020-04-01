@@ -172,9 +172,9 @@ public:
     DLLLOCAL static GlobalReference<jclass> classMap;                             // java.util.Map
     DLLLOCAL static jmethodID methodMapEntrySet;                                  // Set<Map.Entry<K,V>> Map.entrySet()
 
-    DLLLOCAL static GlobalReference<jclass> classAbstractList;                    // java.util.AbstractList
-    DLLLOCAL static jmethodID methodAbstractListSize;                             // int AbstractList.size()
-    DLLLOCAL static jmethodID methodAbstractListGet;                              // Object AbstractList.get(int index)
+    DLLLOCAL static GlobalReference<jclass> classList;                            // java.util.List
+    DLLLOCAL static jmethodID methodListSize;                                     // int List.size()
+    DLLLOCAL static jmethodID methodListGet;                                      // Object List.get(int index)
 
     DLLLOCAL static GlobalReference<jclass> classSet;                             // java.util.Set
     DLLLOCAL static jmethodID methodSetIterator;                                  // Set.iterator()
