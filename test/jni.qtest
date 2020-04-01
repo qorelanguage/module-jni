@@ -34,6 +34,51 @@
 
 %exec-class Main
 
+class TestHelper {
+    private {
+        static hash<auto> hash_value = {};
+    }
+
+    static setHash(hash<auto> h) {
+        hash_value = h;
+    }
+
+    static setHashList(list<auto> l) {
+        hash_value = l[0];
+    }
+
+    static hash<auto> getHash() {
+        return hash_value;
+    }
+}
+
+class SimpleStringHandler inherits AbstractHttpRequestHandler {
+    private {
+        *string m_data;
+        string m_mime;
+    }
+    constructor(string mime, *string str) {
+        m_mime = mime;
+        m_data = str;
+    }
+    hash<auto> handleRequest(hash<auto> cx, hash<auto> hdr, *data body) {
+        if (hdr."do-error") {
+            return makeResponse(404, "test error", {"Content-Type": MimeTypeText});
+        }
+        if (hdr.method == "GET") {
+            return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
+        } else if (hdr.method == "PUT") {
+            return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
+        } else if (hdr.method == "PATCH") {
+            return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
+        } else if (hdr.method == "POST") {
+            return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
+        } else if (hdr.method == "DELETE") {
+            return makeResponse(404, m_data ?? binary(body), {"Content-Type": m_mime});
+        }
+    }
+}
+
 class DtorThrows {
     destructor() {
         throw "DTOR-ERROR";
@@ -142,8 +187,6 @@ public class Main inherits QUnit::Test {
         addTestCase("callback return value test", \testCallbackRetVal());
         addTestCase("special conversions test", \testSpecialConversions());
         addTestCase("api test", \testQoreJavaApi());
-        /*
-        */
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -772,6 +815,13 @@ lorem ipsum\r
         assertEq("test", QoreJavaApiTest::testHashString({"a": "test"}, "a"));
         assertEq((1, "two", True), QoreJavaApiTest::testHashList({"a": (1, "two", True)}, "a"));
         assertEq({"a": 1, "b": "two"}, QoreJavaApiTest::testHashListIterator({"a": (1,), "b": ("two",)}));
+
+        QoreJavaApiTest::testHash1();
+        assertEq({"a": 1}, TestHelper::getHash());
+        TestHelper::setHash({});
+        assertEq({}, TestHelper::getHash());
+        QoreJavaApiTest::testHash2();
+        assertEq({"a": 1}, TestHelper::getHash());
     }
 
     testJniClasses() {
