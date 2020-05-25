@@ -43,6 +43,22 @@ public:
         setGateAccessFlag();
     }
 
+    DLLLOCAL JniQoreClass(const JniQoreClass& old) : QoreBuiltinClass(old), jname(old.jname) {
+    }
+
+    DLLLOCAL virtual ~JniQoreClass() {
+    }
+
+    DLLLOCAL virtual QoreClass* copyImport() {
+        JniQoreClass* rv = new JniQoreClass;
+        rv->jname = jname;
+        return rv;
+    }
+
+    DLLLOCAL virtual QoreClass* copy() {
+        return new JniQoreClass(*this);
+    }
+
     DLLLOCAL const std::string& getJavaName() const {
         return jname;
     }
@@ -55,6 +71,9 @@ private:
     std::string jname;
 
     static type_vec_t paramTypeInfo;
+
+    DLLLOCAL JniQoreClass() {
+    }
 };
 }
 
