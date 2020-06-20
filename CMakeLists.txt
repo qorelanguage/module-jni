@@ -4,7 +4,7 @@ project(qore-jni-module)
 
 set (VERSION_MAJOR 1)
 set (VERSION_MINOR 1)
-set (VERSION_PATCH 2)
+set (VERSION_PATCH 3)
 
 set(PROJECT_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
@@ -167,9 +167,11 @@ add_java_source(org/qore/lang/smtpclient/SmtpClient.java)
 #message(STATUS "MESSAGE Classes: ${JAVA_JAR_CLASSES}")
 #message(STATUS "MESSAGE Inc: ${QORE_INC_FILES}")
 
+set(CMAKE_JAVA_COMPILE_FLAGS -Xlint:unchecked -Xlint:deprecation)
+
 add_custom_command(
     OUTPUT ${_qore_jni_sentinel}
-    COMMAND ${Java_JAVAC_EXECUTABLE} -d ${CMAKE_CURRENT_BINARY_DIR} ${JAVA_JAR_SRC}
+    COMMAND ${Java_JAVAC_EXECUTABLE} ${CMAKE_JAVA_COMPILE_FLAGS} -d ${CMAKE_CURRENT_BINARY_DIR} ${JAVA_JAR_SRC}
     COMMAND ${CMAKE_COMMAND} -E touch ${_qore_jni_sentinel}
     DEPENDS ${JAVA_JAR_SRC}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -209,8 +211,6 @@ set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/QoreCallback.java
     test/java/src/org/qore/lang/test/QoreJavaLangApiTest.java
 )
-
-set(CMAKE_JAVA_COMPILE_FLAGS -Xlint:unchecked)
 
 add_jar(qore-jni-test ${JAVA_TEST_JAR_SRC}
     INCLUDE_JARS qore-jni.jar

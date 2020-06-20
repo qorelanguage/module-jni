@@ -117,6 +117,7 @@ public class QoreObject {
     }
 
     //! releases the weak reference
+    @SuppressWarnings("deprecation")
     @Override
     protected void finalize() throws Throwable {
         if (obj != 0) {
