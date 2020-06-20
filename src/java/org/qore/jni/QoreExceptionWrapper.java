@@ -18,6 +18,7 @@ public class QoreExceptionWrapper extends RuntimeException {
         return x;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected void finalize() throws Throwable {
         finalize0(xsink);

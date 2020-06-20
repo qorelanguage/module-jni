@@ -312,6 +312,38 @@ public class QoreJavaApiTest {
         return h.getCode(key);
     }
 
+    public static boolean testHashAsBool(Hash h, String key) {
+        return h.getAsBool(key);
+    }
+
+    public static byte testHashAsByte(Hash h, String key) {
+        return h.getAsByte(key);
+    }
+
+    public static short testHashAsShort(Hash h, String key) {
+        return h.getAsShort(key);
+    }
+
+    public static int testHashAsInt(Hash h, String key) {
+        return h.getAsInt(key);
+    }
+
+    public static long testHashAsLong(Hash h, String key) {
+        return h.getAsLong(key);
+    }
+
+    public static float testHashAsFloat(Hash h, String key) {
+        return h.getAsFloat(key);
+    }
+
+    public static double testHashAsDouble(Hash h, String key) {
+        return h.getAsDouble(key);
+    }
+
+    public static String testHashAsString(Hash h, String key) {
+        return h.getAsString(key);
+    }
+
     public static Hash testHashListIterator(Hash h) throws Throwable {
         HashListIterator i = new HashListIterator(h);
         i.next();
