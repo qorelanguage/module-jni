@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -49,69 +49,69 @@ class BaseMethod;
  */
 class Class : public ObjectBase, public AbstractQoreClassUserData {
 private:
-   DLLLOCAL ~Class();
+    DLLLOCAL ~Class();
 
 public:
-   /**
-    * \brief Constructor.
-    * \param cls a local reference to a Java class
-    * \throws JavaException if a global reference cannot be created
-    */
-   DLLLOCAL Class(const LocalReference<jclass>& cls) : cls(cls.makeGlobal()) {
-      printd(LogLevel, "Class::Class(), this: %p, cls: %p\n", this, static_cast<jclass>(this->cls));
-      assert(static_cast<jclass>(this->cls));
-   }
+    /**
+        * \brief Constructor.
+        * \param cls a local reference to a Java class
+        * \throws JavaException if a global reference cannot be created
+        */
+    DLLLOCAL Class(const LocalReference<jclass>& cls) : cls(cls.makeGlobal()) {
+        printd(LogLevel, "Class::Class() this: %p cls: %p\n", this, static_cast<jclass>(this->cls));
+        assert(static_cast<jclass>(this->cls));
+    }
 
-   DLLLOCAL jclass getJavaObject() const override {
-      return cls;
-   }
+    DLLLOCAL jclass getJavaObject() const override {
+        return cls;
+    }
 
-   DLLLOCAL virtual Class* copy() const override {
-      const_cast<Class*>(this)->ref();
-      return const_cast<Class*>(this);
-   }
+    DLLLOCAL virtual Class* copy() const override {
+        const_cast<Class*>(this)->ref();
+        return const_cast<Class*>(this);
+    }
 
-   DLLLOCAL virtual void doDeref() override {
-      deref();
-   }
+    DLLLOCAL virtual void doDeref() override {
+        deref();
+    }
 
-   DLLLOCAL Field* getField(const QoreStringNode* name, const QoreStringNode* descriptor);
-   DLLLOCAL Field* getStaticField(const QoreStringNode* name, const QoreStringNode* descriptor);
-   DLLLOCAL Method* getMethod(const QoreStringNode* name, const QoreStringNode* descriptor);
-   DLLLOCAL Method* getStaticMethod(const QoreStringNode* name, const QoreStringNode* descriptor);
-   DLLLOCAL Method* getConstructor(const QoreStringNode* descriptor);
-   DLLLOCAL bool isInstance(const ObjectBase* obj);
+    DLLLOCAL Field* getField(const QoreStringNode* name, const QoreStringNode* descriptor);
+    DLLLOCAL Field* getStaticField(const QoreStringNode* name, const QoreStringNode* descriptor);
+    DLLLOCAL Method* getMethod(const QoreStringNode* name, const QoreStringNode* descriptor);
+    DLLLOCAL Method* getStaticMethod(const QoreStringNode* name, const QoreStringNode* descriptor);
+    DLLLOCAL Method* getConstructor(const QoreStringNode* descriptor);
+    DLLLOCAL bool isInstance(const ObjectBase* obj);
 
-   // returns the parent class or nullptr if there is none
-   DLLLOCAL Class* getSuperClass();
+    // returns the parent class or nullptr if there is none
+    DLLLOCAL Class* getSuperClass();
 
-   // returns an array of interface classes
-   DLLLOCAL LocalReference<jobjectArray> getInterfaces();
+    // returns an array of interface classes
+    DLLLOCAL LocalReference<jobjectArray> getInterfaces();
 
-   // returns an array of constructors
-   DLLLOCAL LocalReference<jobjectArray> getDeclaredConstructors();
+    // returns an array of constructors
+    DLLLOCAL LocalReference<jobjectArray> getDeclaredConstructors();
 
-   // returns an array of methods
-   DLLLOCAL LocalReference<jobjectArray> getDeclaredMethods();
+    // returns an array of methods
+    DLLLOCAL LocalReference<jobjectArray> getDeclaredMethods();
 
-   // returns an arry of fields
-   DLLLOCAL LocalReference<jobjectArray> getDeclaredFields();
+    // returns an arry of fields
+    DLLLOCAL LocalReference<jobjectArray> getDeclaredFields();
 
-   // returns class modifiers as an integer
-   DLLLOCAL int getModifiers();
+    // returns class modifiers as an integer
+    DLLLOCAL int getModifiers();
 
-   DLLLOCAL void trackMethod(BaseMethod* m);
+    DLLLOCAL void trackMethod(BaseMethod* m);
 
-   // returns a local reference to the jclass
-   DLLLOCAL jclass toLocal() {
-      return cls.toLocal();
-   }
+    // returns a local reference to the jclass
+    DLLLOCAL jclass toLocal() {
+        return cls.toLocal();
+    }
 
 private:
-   GlobalReference<jclass> cls;
-   // for tracking Method objects associated with this Class
-   typedef std::vector<BaseMethod*> mlist_t;
-   mlist_t mlist;
+    GlobalReference<jclass> cls;
+    // for tracking Method objects associated with this Class
+    typedef std::vector<BaseMethod*> mlist_t;
+    mlist_t mlist;
 };
 
 } // namespace jni

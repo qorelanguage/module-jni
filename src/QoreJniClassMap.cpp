@@ -316,6 +316,8 @@ jclass QoreJniClassMap::findLoadClass(const char* jpath) {
                 //cpath.replaceAll("$", "__");
                 qc = findCreateQoreClass(cpath, jpath, cls.release(), base);
                 //printd(LogLevel, "findLoadClass() '%s': %p (created)\n", jpath, qc);
+            } else {
+                //printd(LogLevel, "findLoadClass() '%s': %p (cached 2)\n", jpath, qc);
             }
         }
     }
@@ -580,6 +582,8 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInBase(QoreString& name, const
 
         printd(LogLevel, "QoreJniClassMap::findCreateQoreClassInBase() jpc: %p '%s' qc: %p ns: %p '%s::%s'\n", jpc, jpath, new_qc.get(), ns, ns->getName(), qc->getName());
 
+        assert(new_qc->getManagedUserData());
+
         // create entry for class in map
         jpc->add(jpath, new_qc.get());
 
@@ -605,6 +609,8 @@ JniQoreClass* QoreJniClassMap::createClassInNamespace(QoreNamespace* ns, QoreNam
     }
 
     printd(LogLevel, "QoreJniClassMap::createClassInNamespace() qc: %p ns: %p '%s::%s'\n", qc, ns, ns->getName(), qc->getName());
+
+    assert(qc->getManagedUserData());
 
     // add to class maps
     map.add(jpath, static_cast<JniQoreClass*>(qc_holder.release()));
