@@ -23,6 +23,7 @@ public class QoreInvocationHandler implements InvocationHandler {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected void finalize() throws Throwable {
         cleanup();
