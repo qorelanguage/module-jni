@@ -14,6 +14,7 @@ find_package(Java REQUIRED)
 if (${Java_VERSION_MAJOR} LESS 11)
     message(FATAL_ERROR "This module requires Java 11+; the current Java version is ${Java_VERSION}.")
 endif()
+add_definitions(-DJAVA_VERSION_MAJOR=${Java_VERSION_MAJOR})
 include(UseJava)
 
 # Check for C++11.
