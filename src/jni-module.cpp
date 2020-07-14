@@ -224,14 +224,14 @@ static QoreStringNode* check_java_version() {
     Env::GetStringUtfChars jver(env, str);
     const char* p = strchr(jver.c_str(), '.');
     if (!p) {
-        throw QoreStandardException("JAVA-VERSION-ERROR", "the jni module was compiled with Java %d, but runtime " \
+        return new QoreStringMaker("the jni module was compiled with Java %d, but runtime " \
             "Java version cannot be determined; please install the correct version of Java and try again (%d)",
             JAVA_VERSION_MAJOR);
     }
     QoreString maj(jver.c_str(), p - jver.c_str());
     int mver = atoi(maj.c_str());
     if (JAVA_VERSION_MAJOR != mver) {
-        throw QoreStandardException("JAVA-VERSION-ERROR", "the jni module was compiled with Java %d; the runtime " \
+        return new QoreStringMaker("the jni module was compiled with Java %d; the runtime " \
             "Java version is %s; please install the correct version of Java and try again", JAVA_VERSION_MAJOR,
             jver.c_str());
     }
