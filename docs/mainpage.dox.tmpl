@@ -476,6 +476,9 @@ set_save_object_callback(callback);
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_1_1_3 jni Module Version 1.1.3
+    - added a runtime check to verify that the Java version is the expected version, otherwise a crash or other
+      errors could result
+      (<a href="https://github.com/qorelanguage/qore/issues/3969">issue 3969</a>)
     - added \c getAs*() methods to the @ref org.qore.jni.Hash class to help in retrieving key values with specific
       base types
       (<a href="https://github.com/qorelanguage/qore/issues/3957">issue 3957</a>)

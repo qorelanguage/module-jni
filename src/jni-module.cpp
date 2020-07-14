@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -114,6 +114,8 @@ static void jni_thread_cleanup(void*) {
     jni::Jvm::threadCleanup();
 }
 
+static QoreStringNode* check_java_version();
+
 static QoreStringNode* jni_module_init() {
     if (jni_init_failed) {
         return new QoreStringNode("jni module initialization failed");
@@ -206,6 +208,33 @@ static QoreStringNode* jni_module_init() {
 
     qore_set_module_option("jni", "jni-version", JNI_VERSION_1_8);
     //printd(5, "jni_module_init() jni module init done\n");
+    return check_java_version();
+}
+
+static QoreStringNode* check_java_version() {
+    jni::Env env;
+    LocalReference<jstring> jprop = env.newString("java.version");
+
+    std::vector<jvalue> jargs(1);
+    jargs[0].l = jprop;
+
+    LocalReference<jstring> str = env.callStaticObjectMethod(Globals::classSystem,
+        Globals::methodSystemGetProperty, &jargs[0]).as<jstring>();
+
+    Env::GetStringUtfChars jver(env, str);
+    const char* p = strchr(jver.c_str(), '.');
+    if (!p) {
+        throw QoreStandardException("JAVA-VERSION-ERROR", "the jni module was compiled with Java %d, but runtime " \
+            "Java version cannot be determined; please install the correct version of Java and try again (%d)",
+            JAVA_VERSION_MAJOR);
+    }
+    QoreString maj(jver.c_str(), p - jver.c_str());
+    int mver = atoi(maj.c_str());
+    if (JAVA_VERSION_MAJOR != mver) {
+        throw QoreStandardException("JAVA-VERSION-ERROR", "the jni module was compiled with Java %d; the runtime " \
+            "Java version is %s; please install the correct version of Java and try again", JAVA_VERSION_MAJOR,
+            jver.c_str());
+    }
     return nullptr;
 }
 
@@ -431,7 +460,6 @@ static void qore_jni_mc_set_property(const QoreString& arg, QoreProgram* pgm, Jn
 
     QoreString property(&arg, end);
     QoreString value(arg.c_str() + end + 1);
-    //ExceptionSink xsink;
 
     jni::Env env;
 
