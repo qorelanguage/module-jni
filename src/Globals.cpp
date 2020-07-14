@@ -1241,7 +1241,7 @@ const std::string& QoreJniStackLocationHelper::getCallName() const {
         return jni_no_call_name;
     }
     checkInit();
-    assert(current < size());
+    assert((unsigned)current < size());
     //printd(5, "QoreJniStackLocationHelper::getCallName() this: %p %d/%d '%s'\n", this, (int)current, (int)size,
     //    stack_call[current].c_str());
     return stack_call[current];
@@ -1252,7 +1252,7 @@ qore_call_t QoreJniStackLocationHelper::getCallType() const {
         return CT_BUILTIN;
     }
     checkInit();
-    assert(current < size());
+    assert((unsigned)current < size());
     return stack_native[current] ? CT_BUILTIN : CT_USER;
 }
 
@@ -1261,7 +1261,7 @@ const QoreProgramLocation& QoreJniStackLocationHelper::getLocation() const {
         return jni_loc_builtin.get();
     }
     checkInit();
-    assert(current < size());
+    assert((unsigned)current < size());
     //printd(5, "QoreJniStackLocationHelper::getLocation() %s:%d (%s)\n", stack_loc[current].getFile(), stack_loc[current].getStartLine());
     return stack_loc[current].get();
 }
@@ -1271,11 +1271,11 @@ const QoreStackLocation* QoreJniStackLocationHelper::getNext() const {
         return stack_next;
     }
     checkInit();
-    assert(current < size());
+    assert((unsigned)current < size());
     // issue #3169: reset the pointer after iterating all the information in the stack
     // the exception stack can be iterated multiple times
     ++current;
-    if (current < size()) {
+    if ((unsigned)current < size()) {
         return this;
     }
     current = 0;
@@ -1296,7 +1296,6 @@ void QoreJniStackLocationHelper::checkInit() const {
             Globals::methodQoreJavaApiGetStackTrace, nullptr).as<jobjectArray>();
 
         if (jstack) {
-            Type elementType = Globals::getType(Globals::classStackTraceElement);
             jsize len = env.getArrayLength(jstack);
             stack_loc.reserve(len);
             stack_native.reserve(len);
