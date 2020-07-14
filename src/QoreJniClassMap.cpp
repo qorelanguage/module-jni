@@ -595,8 +595,6 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInBase(QoreString& name, const
     return qc;
 }
 
-static void breakit() {}
-
 JniQoreClass* QoreJniClassMap::createClassInNamespace(QoreNamespace* ns, QoreNamespace& jns, const char* jpath,
     Class* jc, JniQoreClass* qc, QoreJniClassMapBase& map) {
     QoreClassHolder qc_holder(qc);
@@ -1067,7 +1065,7 @@ JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni) : jni(n_jni
 
         // make byte array
         LocalReference<jbyteArray> jbyte_code = env.newByteArray(java_org_qore_jni_QoreJavaDynamicApi_class_len).as<jbyteArray>();
-        for (jsize i = 0; i < java_org_qore_jni_QoreJavaDynamicApi_class_len; ++i) {
+        for (jsize i = 0; (unsigned)i < java_org_qore_jni_QoreJavaDynamicApi_class_len; ++i) {
             env.setByteArrayElement(jbyte_code, i, java_org_qore_jni_QoreJavaDynamicApi_class[i]);
         }
 
