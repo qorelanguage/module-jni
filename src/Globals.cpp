@@ -935,10 +935,44 @@ LocalReference<jclass> Globals::findDefineClass(Env& env, const char* name, jobj
     }
 }
 
+static void check_java_version() {
+    jni::Env env;
+    LocalReference<jstring> jprop = env.newString("java.version");
+
+    std::vector<jvalue> jargs(1);
+    jargs[0].l = jprop;
+
+    LocalReference<jstring> str = env.callStaticObjectMethod(Globals::classSystem,
+        Globals::methodSystemGetProperty, &jargs[0]).as<jstring>();
+
+    Env::GetStringUtfChars jver(env, str);
+    const char* p = strchr(jver.c_str(), '.');
+    if (!p) {
+        throw QoreStandardException("JAVA-VERSION-ERROR", "the jni module was compiled with Java %d, but runtime " \
+            "Java version cannot be determined; please install the correct version of Java and try again (%d)",
+            JAVA_VERSION_MAJOR);
+    }
+    QoreString maj(jver.c_str(), p - jver.c_str());
+    int mver = atoi(maj.c_str());
+    if (JAVA_VERSION_MAJOR != mver) {
+        throw QoreStandardException("JAVA-VERSION-ERROR", "the jni module was compiled with Java %d; the runtime " \
+            "Java version is %s; please install the correct version of Java and try again", JAVA_VERSION_MAJOR,
+            jver.c_str());
+    }
+}
+
 void Globals::init() {
     Env env;
 
-    // get exception info first
+    // check version first
+    classSystem = env.findClass("java/lang/System").makeGlobal();
+    methodSystemSetProperty = env.getStaticMethod(classSystem, "setProperty",
+        "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
+    methodSystemGetProperty = env.getStaticMethod(classSystem, "getProperty",
+        "(Ljava/lang/String;)Ljava/lang/String;");
+    check_java_version();
+
+    // get exception info second
     classThrowable = env.findClass("java/lang/Throwable").makeGlobal();
     methodThrowableGetMessage = env.getMethod(classThrowable, "getMessage", "()Ljava/lang/String;");
     methodThrowableGetStackTrace = env.getMethod(classThrowable, "getStackTrace", "()[Ljava/lang/StackTraceElement;");
@@ -981,12 +1015,6 @@ void Globals::init() {
     classPrimitiveLong = getPrimitiveClass(env, "java/lang/Long");
     classPrimitiveFloat = getPrimitiveClass(env, "java/lang/Float");
     classPrimitiveDouble = getPrimitiveClass(env, "java/lang/Double");
-
-    classSystem = env.findClass("java/lang/System").makeGlobal();
-    methodSystemSetProperty = env.getStaticMethod(classSystem, "setProperty",
-        "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
-    methodSystemGetProperty = env.getStaticMethod(classSystem, "getProperty",
-        "(Ljava/lang/String;)Ljava/lang/String;");
 
     classObject = env.findClass("java/lang/Object").makeGlobal();
     methodObjectGetClass = env.getMethod(classObject, "getClass", "()Ljava/lang/Class;");
@@ -1241,7 +1269,7 @@ const std::string& QoreJniStackLocationHelper::getCallName() const {
         return jni_no_call_name;
     }
     checkInit();
-    assert(current < size());
+    assert((unsigned)current < size());
     //printd(5, "QoreJniStackLocationHelper::getCallName() this: %p %d/%d '%s'\n", this, (int)current, (int)size,
     //    stack_call[current].c_str());
     return stack_call[current];
@@ -1252,7 +1280,7 @@ qore_call_t QoreJniStackLocationHelper::getCallType() const {
         return CT_BUILTIN;
     }
     checkInit();
-    assert(current < size());
+    assert((unsigned)current < size());
     return stack_native[current] ? CT_BUILTIN : CT_USER;
 }
 
@@ -1261,7 +1289,7 @@ const QoreProgramLocation& QoreJniStackLocationHelper::getLocation() const {
         return jni_loc_builtin.get();
     }
     checkInit();
-    assert(current < size());
+    assert((unsigned)current < size());
     //printd(5, "QoreJniStackLocationHelper::getLocation() %s:%d (%s)\n", stack_loc[current].getFile(), stack_loc[current].getStartLine());
     return stack_loc[current].get();
 }
@@ -1271,11 +1299,11 @@ const QoreStackLocation* QoreJniStackLocationHelper::getNext() const {
         return stack_next;
     }
     checkInit();
-    assert(current < size());
+    assert((unsigned)current < size());
     // issue #3169: reset the pointer after iterating all the information in the stack
     // the exception stack can be iterated multiple times
     ++current;
-    if (current < size()) {
+    if ((unsigned)current < size()) {
         return this;
     }
     current = 0;
@@ -1296,7 +1324,6 @@ void QoreJniStackLocationHelper::checkInit() const {
             Globals::methodQoreJavaApiGetStackTrace, nullptr).as<jobjectArray>();
 
         if (jstack) {
-            Type elementType = Globals::getType(Globals::classStackTraceElement);
             jsize len = env.getArrayLength(jstack);
             stack_loc.reserve(len);
             stack_native.reserve(len);
