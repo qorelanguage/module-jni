@@ -935,10 +935,44 @@ LocalReference<jclass> Globals::findDefineClass(Env& env, const char* name, jobj
     }
 }
 
+static void check_java_version() {
+    jni::Env env;
+    LocalReference<jstring> jprop = env.newString("java.version");
+
+    std::vector<jvalue> jargs(1);
+    jargs[0].l = jprop;
+
+    LocalReference<jstring> str = env.callStaticObjectMethod(Globals::classSystem,
+        Globals::methodSystemGetProperty, &jargs[0]).as<jstring>();
+
+    Env::GetStringUtfChars jver(env, str);
+    const char* p = strchr(jver.c_str(), '.');
+    if (!p) {
+        throw QoreStandardException("JAVA-VERSION-ERROR", "the jni module was compiled with Java %d, but runtime " \
+            "Java version cannot be determined; please install the correct version of Java and try again (%d)",
+            JAVA_VERSION_MAJOR);
+    }
+    QoreString maj(jver.c_str(), p - jver.c_str());
+    int mver = atoi(maj.c_str());
+    if (JAVA_VERSION_MAJOR != mver) {
+        throw QoreStandardException("JAVA-VERSION-ERROR", "the jni module was compiled with Java %d; the runtime " \
+            "Java version is %s; please install the correct version of Java and try again", JAVA_VERSION_MAJOR,
+            jver.c_str());
+    }
+}
+
 void Globals::init() {
     Env env;
 
-    // get exception info first
+    // check version first
+    classSystem = env.findClass("java/lang/System").makeGlobal();
+    methodSystemSetProperty = env.getStaticMethod(classSystem, "setProperty",
+        "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
+    methodSystemGetProperty = env.getStaticMethod(classSystem, "getProperty",
+        "(Ljava/lang/String;)Ljava/lang/String;");
+    check_java_version();
+
+    // get exception info second
     classThrowable = env.findClass("java/lang/Throwable").makeGlobal();
     methodThrowableGetMessage = env.getMethod(classThrowable, "getMessage", "()Ljava/lang/String;");
     methodThrowableGetStackTrace = env.getMethod(classThrowable, "getStackTrace", "()[Ljava/lang/StackTraceElement;");
@@ -981,12 +1015,6 @@ void Globals::init() {
     classPrimitiveLong = getPrimitiveClass(env, "java/lang/Long");
     classPrimitiveFloat = getPrimitiveClass(env, "java/lang/Float");
     classPrimitiveDouble = getPrimitiveClass(env, "java/lang/Double");
-
-    classSystem = env.findClass("java/lang/System").makeGlobal();
-    methodSystemSetProperty = env.getStaticMethod(classSystem, "setProperty",
-        "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
-    methodSystemGetProperty = env.getStaticMethod(classSystem, "getProperty",
-        "(Ljava/lang/String;)Ljava/lang/String;");
 
     classObject = env.findClass("java/lang/Object").makeGlobal();
     methodObjectGetClass = env.getMethod(classObject, "getClass", "()Ljava/lang/Class;");
