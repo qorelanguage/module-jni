@@ -615,13 +615,13 @@ JniQoreClass* QoreJniClassMap::createClassInNamespace(QoreNamespace* ns, QoreNam
 
     addSuperClasses(qc, jc, jpath);
 
-    // save class in namespace
-    ns->addSystemClass(qc);
-
     // add methods after parents
     if (init_done) {
         populateQoreClass(*qc, jc);
     }
+
+    // save class in namespace
+    ns->addSystemClass(qc);
 
     printd(LogLevel, "QoreJniClassMap::createClassInNamespace() '%s' returning qc: %p ns: %p -> '%s::%s'\n", jpath, qc, ns, ns->getName(), qc->getName());
 
