@@ -139,6 +139,7 @@ add_java_source(org/qore/lang/dataprovider/AbstractDataProviderRecordIterator.ja
 add_java_source(org/qore/lang/dataprovider/AbstractDataProviderBulkRecordInterface.java)
 add_java_source(org/qore/lang/dataprovider/AbstractDataField.java)
 add_java_source(org/qore/lang/dataprovider/AbstractDataProviderBulkOperation.java)
+add_java_source(org/qore/lang/dataprovider/AbstractDataProcessor.java)
 add_java_source(org/qore/lang/qunit/Test.java)
 add_java_source(org/qore/lang/qunit/TestCode.java)
 add_java_source(org/qore/lang/qunit/TestCodeArgs.java)

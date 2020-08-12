@@ -13,7 +13,7 @@ import org.qore.jni.QoreObjectWrapper;
 import org.qore.jni.QoreJavaApi;
 import org.qore.lang.reflection.Type;
 
-//! Java wrapper for the @ref DataProvider::AbstractDataProviderType class in Qore
+//! Java wrapper for the @ref DataProvider::AbstractDataField class in Qore
 /** @note Loads and initializes the Qore library and the jni module in static initialization if necessary
  */
 public class AbstractDataField extends QoreObjectWrapper {
