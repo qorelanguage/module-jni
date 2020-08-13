@@ -180,7 +180,7 @@ void JavaException::convert(ExceptionSink *xsink) {
             Globals::methodQoreExceptionGetArg));
 
         const char* err_str = env->GetStringUTFChars(err, nullptr);
-        const char* desc_str = env->GetStringUTFChars(desc, nullptr);
+        const char* desc_str = desc ? env->GetStringUTFChars(desc, nullptr) : "";
 
         QoreValue qore_arg;
         if (arg) {

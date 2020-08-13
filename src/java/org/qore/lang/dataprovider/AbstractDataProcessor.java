@@ -5,6 +5,7 @@ package org.qore.lang.dataprovider;
 
 // jni module imports
 import org.qore.lang.dataprovider.AbstractDataProviderType;
+import org.qore.jni.QoreException;
 
 //! Java AbstractDataProcessor class
 /**
@@ -48,9 +49,16 @@ public abstract class AbstractDataProcessor {
         @note
         - Calls @ref submitImpl() on the data to do the actual processing
         - Accept and return type information is not enforced in this method; it must be enforced in submitImpl()
+        - Pipeline data can be of any type except lists or arrays; if a processor returns a list or array of data,
+          then each element in the list or array is interpreted as a new pipeline data item or record
     */
     public Object submit(Object _data) throws Throwable {
         return submitImpl(_data);
+    }
+
+    //! Call this method in the submitImpl() method to skip processing for this record for the rest of the queue
+    static protected void skipProcessing() {
+        throw new QoreException("DPE-SKIP-DATA");
     }
 
     //! Returns the expected type of data to be submitted, if available
@@ -73,6 +81,9 @@ public abstract class AbstractDataProcessor {
         @throw DPE-SKIP-DATA throw this exception to tell the
         @ref DataProvider::DataProviderPipeline "DataProviderPipeline" to skip processing the data for the rest of the
         queue
+
+        @note Pipeline data can be of any type except lists or arrays; if a processor returns a list or array of data,
+        then each element in the list or array is interpreted as a new pipeline data item or record
     */
     protected abstract Object submitImpl(Object _data) throws Throwable;
 
