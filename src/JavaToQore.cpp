@@ -66,6 +66,12 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
         return obj->refSelf();
     }
 
+    if (env.isInstanceOf(v, Globals::classQoreClosure)) {
+        ResolvedCallReferenceNode* call = reinterpret_cast<ResolvedCallReferenceNode*>(env.callLongMethod(v,
+            Globals::methodQoreClosureGet, nullptr));
+        return call->refRefSelf();
+    }
+
     if (env.isInstanceOf(v, Globals::classMap) && !JniExternalProgramData::compatTypes()) {
         // create hash from Map
         LocalReference<jobject> set = env.callObjectMethod(v,

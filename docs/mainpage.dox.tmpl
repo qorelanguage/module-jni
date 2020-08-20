@@ -208,8 +208,9 @@
     |@ref nothing_type "NOTHING" and @ref null_type "NULL"|\c void
     |@ref list_type "list"|java Arrays of the list type; if no list type can be found, then the Array type is \c java.lang.Object
     |@ref hash_type "hash"|@ref org.qore.jni.Hash (extends \c java.util.LinkedHashMap), however any type implementing \c java.util.Map that has a constructor that takes no arguments and a compatibule \c put() method will be constructed / converted automatically to the desired type
+    |@ref code_type "code" (closure or call reference)|@ref org.qore.jni.QoreClosure
     |@ref Jni::org::qore::jni::JavaArray "JavaArray"|\c java.lang.Array
-    |@ref object_type "object"|to the Java class if the Qore object is an instantiation of \c java.lang.Object, otherwise @ref  org.qore.jni.QoreObject
+    |@ref object_type "object"|to the Java class if the Qore object is an instantiation of \c java.lang.Object, otherwise @ref org.qore.jni.QoreObject
     |all \c jni objects|direct conversion
 
     @note
@@ -235,6 +236,7 @@
     |\c java.math.BigDecimal|@ref number_type "number"
     |\c java.lang.AbstractArray and arrays|@ref list_type "list"
     |\c java.util.Map|@ref hash_type "hash" (see also @ref jni_compat)
+    |\c @ref org.qore.jni.QoreClosure|@ref code_type "code"
     |\c org.qore.jni.QoreClosureMarker|@ref code_type "code"
     |all other objects|direct conversion
 
@@ -474,6 +476,10 @@ set_save_object_callback(callback);
     @endcode
 
     @section jnireleasenotes jni Module Release Notes
+
+    @subsection jni_1_2 jni Module Version 1.2
+    - added support for converting %Qore closures / call references to a Java object
+      (<a href="https://github.com/qorelanguage/qore/issues/3995">issue 3995</a>)
 
     @subsection jni_1_1_3 jni Module Version 1.1.3
     - fixed a bug create %Qore classes wrapping Java classes that can cause a crash with debug builds of %Qore

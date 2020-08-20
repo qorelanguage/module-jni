@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -107,6 +107,12 @@ jobject QoreToJava::toAnyObject(const QoreValue& value) {
             if (javaObjectRef) {
                 return javaObjectRef;
             }
+            return nullptr;
+        }
+        case NT_RUNTIME_CLOSURE:
+        case NT_FUNCREF: {
+            const ResolvedCallReferenceNode* call = value.get<const ResolvedCallReferenceNode>();
+            return qjcm.getJavaClosure(call);
         }
         case NT_HASH: {
             return makeMap(*value.get<QoreHashNode>(), Globals::classHash);
@@ -206,6 +212,12 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
                 }
                 javaObjectRef = jo->makeLocal();
             }
+            break;
+        }
+        case NT_RUNTIME_CLOSURE:
+        case NT_FUNCREF: {
+            const ResolvedCallReferenceNode* call = value.get<const ResolvedCallReferenceNode>();
+            javaObjectRef = qjcm.getJavaClosure(call);
             break;
         }
         default: {
