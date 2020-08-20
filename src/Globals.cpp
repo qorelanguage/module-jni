@@ -128,9 +128,15 @@ jmethodID Globals::methodQoreExceptionGetErr;
 jmethodID Globals::methodQoreExceptionGetDesc;
 jmethodID Globals::methodQoreExceptionGetArg;
 
+GlobalReference<jclass> Globals::classQoreObjectBase;
+
 GlobalReference<jclass> Globals::classQoreObject;
 jmethodID Globals::ctorQoreObject;
 jmethodID Globals::methodQoreObjectGet;
+
+GlobalReference<jclass> Globals::classQoreClosure;
+jmethodID Globals::ctorQoreClosure;
+jmethodID Globals::methodQoreClosureGet;
 
 GlobalReference<jclass> Globals::classQoreObjectWrapper;
 
@@ -647,11 +653,10 @@ static jboolean JNICALL qore_object_instance_of(JNIEnv* jenv, jclass, jlong ptr,
     return obj->validInstanceOf(*cls);
 }
 
-static jobject qore_object_call_method_internal(JNIEnv* jenv, jclass, jlong pgm_ptr, jlong obj_ptr, jboolean save, jstring mname, jobjectArray args) {
+static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, jlong pgm_ptr, jlong obj_ptr, jboolean save, jstring mname, jobjectArray args) {
     assert(pgm_ptr);
     assert(obj_ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(pgm_ptr);
-    QoreObject* obj = reinterpret_cast<QoreObject*>(obj_ptr);
     // must ensure that the thread is attached before executing Qore code
     Env env(jenv);
     QoreThreadAttachHelper attach_helper;
@@ -677,14 +682,23 @@ static jobject qore_object_call_method_internal(JNIEnv* jenv, jclass, jlong pgm_
             Array::getArgList(qore_args, env, args);
         }
 
-        Env::GetStringUtfChars method_name(env, mname);
+        ValueHolder val(&xsink);
+        if (mname) {
+            // this is a method call and "obj" is a QoreObject*
+            QoreObject* obj = reinterpret_cast<QoreObject*>(obj_ptr);
+            Env::GetStringUtfChars method_name(env, mname);
+            val = obj->evalMethod(method_name.c_str(), *qore_args, &xsink);
+        } else {
+            // otherwise must be a closure / call reference; "obj" is a ResolvedCallReferenceNode
+            const ResolvedCallReferenceNode* call = reinterpret_cast<const ResolvedCallReferenceNode*>(obj_ptr);
+            val = call->execValue(*qore_args, &xsink);
+        }
 
-        ValueHolder val(obj->evalMethod(method_name.c_str(), *qore_args, &xsink), &xsink);
         if (xsink) {
             throw XsinkException(xsink);
         }
 
-        //printd(5, "qore_object_call_method_internal() method: '%s::%s()' rv: %s\n", obj->getClassName(), method_name.c_str(), val->getFullTypeName());
+        //printd(5, "qore_object_closure_call_internal() method: '%s::%s()' rv: %s\n", obj->getClassName(), method_name.c_str(), val->getFullTypeName());
 
         if (save && save_object(env, *val, jni_get_program_context(), xsink)) {
             return nullptr;
@@ -708,11 +722,19 @@ static jobject qore_object_call_method_internal(JNIEnv* jenv, jclass, jlong pgm_
 }
 
 static jobject JNICALL qore_object_call_method(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr, jstring mname, jobjectArray args) {
-    return qore_object_call_method_internal(jenv, jcls, pgm_ptr, obj_ptr, false, mname, args);
+    return qore_object_closure_call_internal(jenv, jcls, pgm_ptr, obj_ptr, false, mname, args);
 }
 
 static jobject JNICALL qore_object_call_method_save(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr, jstring mname, jobjectArray args) {
-    return qore_object_call_method_internal(jenv, jcls, pgm_ptr, obj_ptr, true, mname, args);
+    return qore_object_closure_call_internal(jenv, jcls, pgm_ptr, obj_ptr, true, mname, args);
+}
+
+static jobject JNICALL qore_closure_call(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr, jobjectArray args) {
+    return qore_object_closure_call_internal(jenv, jcls, pgm_ptr, obj_ptr, false, nullptr, args);
+}
+
+static jobject JNICALL qore_closure_call_save(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr, jobjectArray args) {
+    return qore_object_closure_call_internal(jenv, jcls, pgm_ptr, obj_ptr, true, nullptr, args);
 }
 
 static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jclass, jlong ptr, jstring mname) {
@@ -846,8 +868,6 @@ static JNINativeMethod qoreJavaApiNativeMethods[] = {
     },
 };
 
-static const size_t num_qore_java_api_native_methods = sizeof(qoreJavaApiNativeMethods) / sizeof(JNINativeMethod);
-
 static JNINativeMethod qoreExceptionWrapperNativeMethods[] = {
     {
         const_cast<char*>("finalize0"),
@@ -859,6 +879,24 @@ static JNINativeMethod qoreExceptionWrapperNativeMethods[] = {
         const_cast<char*>("(J)Ljava/lang/String;"),
         reinterpret_cast<void*>(qore_exception_wrapper_get_message)
     }
+};
+
+static JNINativeMethod qoreObjectBaseNativeMethods[] = {
+    {
+        const_cast<char*>("release0"),
+        const_cast<char*>("(J)V"),
+        reinterpret_cast<void*>(qore_object_release)
+    },
+    {
+        const_cast<char*>("destroy0"),
+        const_cast<char*>("(J)V"),
+        reinterpret_cast<void*>(qore_object_destroy)
+    },
+    {
+        const_cast<char*>("finalize0"),
+        const_cast<char*>("(J)V"),
+        reinterpret_cast<void*>(qore_object_finalize)
+    },
 };
 
 static JNINativeMethod qoreObjectNativeMethods[] = {
@@ -887,24 +925,20 @@ static JNINativeMethod qoreObjectNativeMethods[] = {
         const_cast<char*>("(JLjava/lang/String;)Ljava/lang/Object;"),
         reinterpret_cast<void*>(qore_object_get_member_value)
     },
-    {
-        const_cast<char*>("release0"),
-        const_cast<char*>("(J)V"),
-        reinterpret_cast<void*>(qore_object_release)
-    },
-    {
-        const_cast<char*>("destroy0"),
-        const_cast<char*>("(J)V"),
-        reinterpret_cast<void*>(qore_object_destroy)
-    },
-    {
-        const_cast<char*>("finalize0"),
-        const_cast<char*>("(J)V"),
-        reinterpret_cast<void*>(qore_object_finalize)
-    },
 };
 
-static const size_t num_qore_object_native_methods = sizeof(qoreObjectNativeMethods) / sizeof(JNINativeMethod);
+static JNINativeMethod qoreClosureNativeMethods[] = {
+    {
+        const_cast<char*>("call0"),
+        const_cast<char*>("(JJ[Ljava/lang/Object;)Ljava/lang/Object;"),
+        reinterpret_cast<void*>(qore_closure_call)
+    },
+    {
+        const_cast<char*>("callSave0"),
+        const_cast<char*>("(JJ[Ljava/lang/Object;)Ljava/lang/Object;"),
+        reinterpret_cast<void*>(qore_closure_call_save)
+    },
+};
 
 static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperName) {
     LocalReference<jclass> wrapperClass = env.findClass(wrapperName);
@@ -915,7 +949,9 @@ static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperNa
 #include "JavaClassQoreInvocationHandler.inc"
 #include "JavaClassQoreExceptionWrapper.inc"
 #include "JavaClassQoreException.inc"
+#include "JavaClassQoreObjectBase.inc"
 #include "JavaClassQoreObject.inc"
+#include "JavaClassQoreClosure.inc"
 #include "JavaClassQoreObjectWrapper.inc"
 #include "JavaClassQoreClosureMarker.inc"
 #include "JavaClassQoreURLClassLoader.inc"
@@ -995,10 +1031,24 @@ void Globals::init() {
     methodQoreExceptionGetDesc = env.getMethod(classQoreException, "getDesc", "()Ljava/lang/String;");
     methodQoreExceptionGetArg = env.getMethod(classQoreException, "getArg", "()Ljava/lang/Object;");
 
-    classQoreObject = findDefineClass(env, "org/qore/jni/QoreObject", nullptr, java_org_qore_jni_QoreObject_class, java_org_qore_jni_QoreObject_class_len).makeGlobal();
-    env.registerNatives(classQoreObject, qoreObjectNativeMethods, num_qore_object_native_methods);
+    classQoreObjectBase = findDefineClass(env, "org/qore/jni/QoreObjectBase", nullptr,
+        java_org_qore_jni_QoreObjectBase_class, java_org_qore_jni_QoreObjectBase_class_len).makeGlobal();
+    env.registerNatives(classQoreObjectBase, qoreObjectBaseNativeMethods,
+        sizeof(qoreObjectBaseNativeMethods) / sizeof(JNINativeMethod));
+
+    classQoreObject = findDefineClass(env, "org/qore/jni/QoreObject", nullptr, java_org_qore_jni_QoreObject_class,
+        java_org_qore_jni_QoreObject_class_len).makeGlobal();
+    env.registerNatives(classQoreObject, qoreObjectNativeMethods,
+        sizeof(qoreObjectNativeMethods) / sizeof(JNINativeMethod));
     ctorQoreObject = env.getMethod(classQoreObject, "<init>", "(J)V");
     methodQoreObjectGet = env.getMethod(classQoreObject, "get", "()J");
+
+    classQoreClosure = findDefineClass(env, "org/qore/jni/QoreClosure", nullptr, java_org_qore_jni_QoreClosure_class,
+        java_org_qore_jni_QoreClosure_class_len).makeGlobal();
+    env.registerNatives(classQoreClosure, qoreClosureNativeMethods,
+        sizeof(qoreClosureNativeMethods) / sizeof(JNINativeMethod));
+    ctorQoreClosure = env.getMethod(classQoreClosure, "<init>", "(J)V");
+    methodQoreClosureGet = env.getMethod(classQoreClosure, "get", "()J");
 
     classQoreObjectWrapper = findDefineClass(env, "org/qore/jni/QoreObjectWrapper", nullptr,
         java_org_qore_jni_QoreObjectWrapper_class, java_org_qore_jni_QoreObjectWrapper_class_len).makeGlobal();
@@ -1065,7 +1115,8 @@ void Globals::init() {
     methodQoreInvocationHandlerDestroy = env.getMethod(classQoreInvocationHandler, "destroy", "()V");
 
     classQoreJavaApi = findDefineClass(env, "org/qore/jni/QoreJavaApi", nullptr, java_org_qore_jni_QoreJavaApi_class, java_org_qore_jni_QoreJavaApi_class_len).makeGlobal();
-    env.registerNatives(classQoreJavaApi, qoreJavaApiNativeMethods, num_qore_java_api_native_methods);
+    env.registerNatives(classQoreJavaApi, qoreJavaApiNativeMethods,
+        sizeof(qoreJavaApiNativeMethods) / sizeof(JNINativeMethod));
     methodQoreJavaApiGetStackTrace = env.getStaticMethod(classQoreJavaApi, "getStackTrace", "()[Ljava/lang/StackTraceElement;");
 
     classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
@@ -1199,7 +1250,9 @@ void Globals::cleanup() {
     classQoreInvocationHandler = nullptr;
     classQoreExceptionWrapper = nullptr;
     classQoreException = nullptr;
+    classQoreObjectBase = nullptr;
     classQoreObject = nullptr;
+    classQoreClosure = nullptr;
     classQoreObjectWrapper = nullptr;
     classQoreClosureMarker = nullptr;
     classQoreJavaApi = nullptr;

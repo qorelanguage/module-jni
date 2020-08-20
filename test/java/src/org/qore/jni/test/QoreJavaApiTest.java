@@ -349,4 +349,8 @@ public class QoreJavaApiTest {
         i.next();
         return i.getHash();
     }
+
+    public static void testCode(QoreClosure code, int val) throws Throwable {
+        code.call(val);
+    }
 }

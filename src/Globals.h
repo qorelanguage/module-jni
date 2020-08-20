@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -134,13 +134,19 @@ public:
     DLLLOCAL static jmethodID methodQoreExceptionGetDesc;                         // String QoreException.getDesc()
     DLLLOCAL static jmethodID methodQoreExceptionGetArg;                          // String QoreException.getArg()
 
+    DLLLOCAL static GlobalReference<jclass> classQoreObjectBase;                  // org.qore.jni.QoreObjectBase
+
     DLLLOCAL static GlobalReference<jclass> classQoreObject;                      // org.qore.jni.QoreObject
     DLLLOCAL static jmethodID ctorQoreObject;                                     // QoreObject(long)
     DLLLOCAL static jmethodID methodQoreObjectGet;                                // long QoreObject.get()
 
+    DLLLOCAL static GlobalReference<jclass> classQoreClosure;                     // org.qore.jni.QoreClosure
+    DLLLOCAL static jmethodID ctorQoreClosure;                                    // QoreClosure(long)
+    DLLLOCAL static jmethodID methodQoreClosureGet;                               // long QoreClosure.get()
+
     DLLLOCAL static GlobalReference<jclass> classQoreObjectWrapper;               // org.qore.jni.QoreObjectWrapper
 
-    DLLLOCAL static GlobalReference<jclass> classQoreClosureMarker;              // org.qore.jni.QoreClosureMarker
+    DLLLOCAL static GlobalReference<jclass> classQoreClosureMarker;               // org.qore.jni.QoreClosureMarker
 
     DLLLOCAL static GlobalReference<jclass> classProxy;                           // java.lang.reflect.Proxy
     DLLLOCAL static jmethodID methodProxyNewProxyInstance;                        // Object Proxy.newProxyInstance(ClassLoader, Class[], InvocationHandler)

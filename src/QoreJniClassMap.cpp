@@ -105,6 +105,7 @@ QoreJniClassMap::jtmap_t QoreJniClassMap::jtmap = {
     {"java.util.AbstractArray", autoListOrNothingTypeInfo},
     {"org.qore.jni.QoreObject", objectOrNothingTypeInfo},
     {"org.qore.jni.QoreClosureMarker", codeOrNothingTypeInfo},
+    {"org.qore.jni.QoreClosure", codeOrNothingTypeInfo},
 };
 
 QoreJniClassMap::jpmap_t QoreJniClassMap::jpmap = {
@@ -925,6 +926,23 @@ jobject QoreJniClassMap::getJavaObject(const QoreObject* o) {
         return env.newObject(Globals::classQoreObject, Globals::ctorQoreObject, &arg).release();
     } catch (jni::Exception& e) {
         const_cast<QoreObject*>(o)->tDeref();
+        throw;
+    }
+}
+
+jobject QoreJniClassMap::getJavaClosure(const ResolvedCallReferenceNode* call) {
+    // return a new Java QoreClosure; weak references are not needed, as ResolvedCallReferenceNode objects always
+    // implement a weak reference to any captured QoreObject*s
+    call->ref();
+    jvalue arg;
+    arg.j = reinterpret_cast<jlong>(call);
+    try {
+        Env env;
+        return env.newObject(Globals::classQoreClosure, Globals::ctorQoreClosure, &arg).release();
+    } catch (jni::Exception& e) {
+        // NOTE: in the very unlikely case of a Qore exception here, the default exception handler will handle it
+        ExceptionSink xsink;
+        const_cast<ResolvedCallReferenceNode*>(call)->deref(&xsink);
         throw;
     }
 }

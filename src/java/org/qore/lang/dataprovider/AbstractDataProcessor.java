@@ -6,10 +6,11 @@ package org.qore.lang.dataprovider;
 // jni module imports
 import org.qore.lang.dataprovider.AbstractDataProviderType;
 import org.qore.jni.QoreException;
+import org.qore.jni.QoreClosure;
 
 //! Java AbstractDataProcessor class
 /**
-    @since jni 1.1.3
+    @since jni 1.2
 */
 public abstract class AbstractDataProcessor {
     //! Returns the expected type of data to be submitted, if available
@@ -40,25 +41,28 @@ public abstract class AbstractDataProcessor {
     }
 
     //! Submits the data for processing
-    /** @param _data the data to process
+    /** @par Example
+        @code{.java}
+void submitImpl(QoreClosure enqueue, Object _data) throws Throwable {
+    // .. process the data and submit the modified data for onward processing
+    enqueue.call(_data);
+}
+        enqueue.call(new_rec);
+        @endcode
 
-        @throw DPE-SKIP-DATA throw this exception to tell the
-        @ref DataProvider::DataProviderPipeline "DataProviderPipeline" skip processing the data for the rest of the
-        queue
+        @param enqueue s closure taking a single arugment that enqueues the processed data for the next step in the
+        pipeline; if no data should be processed onwards, do not call enqueue; if only one record should be processed
+        onwards, then \a enqueue should be called only once; if multiple records are generated from the input data,
+        then call it once for each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode
+        @param _data the data to process
 
         @note
         - Calls @ref submitImpl() on the data to do the actual processing
         - Accept and return type information is not enforced in this method; it must be enforced in submitImpl()
-        - Pipeline data can be of any type except lists or arrays; if a processor returns a list or array of data,
-          then each element in the list or array is interpreted as a new pipeline data item or record
+        - Pipeline data can be of any type
     */
-    public Object submit(Object _data) throws Throwable {
-        return submitImpl(_data);
-    }
-
-    //! Call this method in the submitImpl() method to skip processing for this record for the rest of the queue
-    static protected void skipProcessing() {
-        throw new QoreException("DPE-SKIP-DATA");
+    public void submit(QoreClosure enqueue, Object _data) throws Throwable {
+        submitImpl(enqueue, _data);
     }
 
     //! Returns the expected type of data to be submitted, if available
@@ -76,16 +80,24 @@ public abstract class AbstractDataProcessor {
     }
 
     //! Submits the data for processing
-    /** @param _data the data to process
+    /** @par Example
+        @code{.java}
+void submitImpl(QoreClosure enqueue, Object _data) throws Throwable {
+    // .. process the data and submit the modified data for onward processing
+    enqueue.call(_data);
+}
+        enqueue.call(new_rec);
+        @endcode
 
-        @throw DPE-SKIP-DATA throw this exception to tell the
-        @ref DataProvider::DataProviderPipeline "DataProviderPipeline" to skip processing the data for the rest of the
-        queue
+        @param enqueue s closure taking a single arugment that enqueues the processed data for the next step in the
+        pipeline; if no data should be processed onwards, do not call enqueue; if only one record should be processed
+        onwards, then \a enqueue should be called only once; if multiple records are generated from the input data,
+        then call it once for each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode
+        @param _data the data to process
 
-        @note Pipeline data can be of any type except lists or arrays; if a processor returns a list or array of data,
-        then each element in the list or array is interpreted as a new pipeline data item or record
+        @note Pipeline data can be of any type
     */
-    protected abstract Object submitImpl(Object _data) throws Throwable;
+    protected abstract void submitImpl(QoreClosure enqueue, Object _data) throws Throwable;
 
     //! Returns true if the data processor supports bulk operation
     /** @return true if the data processor supports bulk operation
