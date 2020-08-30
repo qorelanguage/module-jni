@@ -299,4 +299,6 @@ extern thread_local QoreThreadAttacher qoreThreadAttacher;
 
 } // namespace jni
 
+extern "C" DLLEXPORT int jni_module_import(ExceptionSink* xsink, QoreProgram* pgm, const char* import);
+
 #endif // QORE_JNI_DEFS_H_

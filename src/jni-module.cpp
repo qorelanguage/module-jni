@@ -187,6 +187,17 @@ static QoreStringNode* jni_module_init() {
     tclist.push(jni_thread_cleanup, nullptr);
 
     try {
+        std::unique_ptr<QoreProgramHelper> qph;
+        ExceptionSink xsink;
+        // issue #4006: ensure there is a program context
+        QoreProgram* pgm = getProgram();
+        if (!pgm) {
+            qph.reset(new QoreProgramHelper(PO_NEW_STYLE, xsink));
+            pgm = **qph;
+        }
+        // set program context for initialization
+        QoreProgramContextHelper pgm_ctx(pgm);
+
         qjcm.init(already_initialized);
     } catch (jni::Exception& e) {
         // display exception info on the console as an unhandled exception
@@ -231,6 +242,59 @@ static void jni_module_delete() {
     }
     tclist.pop(false);
     jni::Jvm::destroyVM();
+}
+
+static QoreNamespace* qore_jni_wildcard_import(QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
+    if (arg[-2] != '.' || arg.strlen() < 3) {
+        throw QoreJniException("JNI-IMPORT-ERROR", "invalid import argument: '%s'", arg.getBuffer());
+        return nullptr;
+    }
+
+    arg.terminate(arg.strlen() - 2);
+
+    arg.replaceAll(".", "::");
+    arg.concat("::x");
+
+    QoreNamespace* jns;
+
+    // create jni namespace in root namespace if necessary
+    jns = pgm->getRootNS()->findLocalNamespace("Jni");
+
+    QoreNamespace* ns = jns->findCreateNamespacePath(arg.c_str());
+    printd(LogLevel, "jni_module_parse_cmd() nsp: '%s' ns: %p '%s'\n", arg.c_str(), ns, ns->getName());
+    ns->setClassHandler(jni_class_handler);
+
+    return ns;
+}
+
+// exported function
+extern "C" int jni_module_import(ExceptionSink* xsink, QoreProgram* pgm, const char* import) {
+    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+    if (!jpc) {
+        QoreNamespace* jnins = qjcm.getJniNs().copy();
+        pgm->getRootNS()->addNamespace(jnins);
+        pgm->setExternalData("jni", new JniExternalProgramData(jnins));
+        pgm->addFeature(QORE_JNI_MODULE_NAME);
+    }
+    //printd(LogLevel, "jni_module_import '%s' jpc: %p jnins: %p\n", import, jpc, jpc->getJniNamespace());
+    QoreString arg(import);
+    try {
+        if (arg[-1] != '*') {
+            printd(LogLevel, "jni_module_parse_cmd() non wc lcc arg: '%s' (pgm: %p)\n", arg.c_str(), pgm);
+            // the following call adds the class to the current program as well
+            qjcm.findCreateQoreClass(arg.c_str());
+        } else {
+            QoreNamespace* ns = qore_jni_wildcard_import(arg, pgm, jpc);
+            if (!ns) {
+                assert(*xsink);
+                return -1;
+            }
+        }
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        return -1;
+    }
+    return 0;
 }
 
 static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
@@ -290,26 +354,9 @@ static void qore_jni_mc_import(const QoreString& cmd_arg, QoreProgram* pgm, JniE
 
     // see if there is a wildcard at the end
     if (arg[-1] == '*') {
-        if (arg[-2] != '.' || arg.strlen() < 3) {
-            throw QoreJniException("JNI-IMPORT-ERROR", "invalid import argument: '%s'", arg.getBuffer());
-            return;
-        }
-
-        arg.terminate(arg.strlen() - 2);
-
-        arg.replaceAll(".", "::");
-        arg.concat("::x");
-
-        QoreNamespace* jns;
-
-        // create jni namespace in root namespace if necessary
-        jns = pgm->getRootNS()->findLocalNamespace("Jni");
-
-        QoreNamespace* ns = jns->findCreateNamespacePath(arg.c_str());
-        printd(LogLevel, "jni_module_parse_cmd() nsp: '%s' ns: %p '%s'\n", arg.c_str(), ns, ns->getName());
-        ns->setClassHandler(jni_class_handler);
+        qore_jni_wildcard_import(arg, pgm, jpc);
     } else {
-        printd(LogLevel, "jni_module_parse_cmd() non wc lcc arg: '%s'\n", arg.c_str());
+        printd(LogLevel, "jni_module_parse_cmd() non wc lcc arg: '%s' (pgm: %p)\n", arg.c_str(), pgm);
         // the following call adds the class to the current program as well
         qjcm.findCreateQoreClass(arg.c_str());
     }

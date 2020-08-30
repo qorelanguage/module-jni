@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -46,92 +46,92 @@ namespace jni {
 class Functions {
 
 public:
-   static QoreStringNode* getVersion() {
-      Env env;
-      jint v = env.getVersion();
-      QoreStringNode *str = new QoreStringNode();
-      str->sprintf("%d.%d", v >> 16, v & 0xFFFF);
-      return str;
-   }
+    static QoreStringNode* getVersion() {
+        Env env;
+        jint v = env.getVersion();
+        QoreStringNode *str = new QoreStringNode();
+        str->sprintf("%d.%d", v >> 16, v & 0xFFFF);
+        return str;
+    }
 
-   // 'name' must be in UTF-8 encoding
-   static Class* loadClass(const char* name) {
-      Env env;
-      printd(LogLevel, "loadClass '%s'\n", name);
-      return new Class(env.findClass(name));
-   }
+    // 'name' must be in UTF-8 encoding
+    static Class* loadClass(const char* name) {
+        Env env;
+        printd(LogLevel, "loadClass '%s'\n", name);
+        return new Class(env.findClass(name));
+    }
 
-   static Class* loadClass(const QoreString& name) {
-      ModifiedUtf8String nameUtf8(name);
-      return loadClass(nameUtf8.c_str());
-   }
+    static Class* loadClass(const QoreString& name) {
+        ModifiedUtf8String nameUtf8(name);
+        return loadClass(nameUtf8.c_str());
+    }
 
-   static LocalReference<jobject> implementInterface(jobject classLoader, const InvocationHandler *invocationHandler, jclass cls) {
-      Env env;
+    static LocalReference<jobject> implementInterface(jobject classLoader, const InvocationHandler *invocationHandler, jclass cls) {
+        Env env;
 
-      LocalReference<jobject> cl;
-      LocalReference<jobjectArray> interfaces = env.newObjectArray(1, Globals::classClass);
-      env.setObjectArrayElement(interfaces, 0, cls);
+        LocalReference<jobject> cl;
+        LocalReference<jobjectArray> interfaces = env.newObjectArray(1, Globals::classClass);
+        env.setObjectArrayElement(interfaces, 0, cls);
 
-      jvalue args[3];
-      if (classLoader == nullptr) {
-         cl = env.callObjectMethod(cls, Globals::methodClassGetClassLoader, nullptr);
-         args[0].l = cl;
-      } else {
-         args[0].l = classLoader;
-      }
-      args[1].l = interfaces;
-      args[2].l = invocationHandler->getObject();
-      return env.callStaticObjectMethod(Globals::classProxy, Globals::methodProxyNewProxyInstance, args);
-   }
+        jvalue args[3];
+        if (classLoader == nullptr) {
+            cl = env.callObjectMethod(cls, Globals::methodClassGetClassLoader, nullptr);
+            args[0].l = cl;
+        } else {
+            args[0].l = classLoader;
+        }
+        args[1].l = interfaces;
+        args[2].l = invocationHandler->getObject();
+        return env.callStaticObjectMethod(Globals::classProxy, Globals::methodProxyNewProxyInstance, args);
+    }
 
-   static Array *newBooleanArray(int64 size) {
-      Env env;
-      return new Array(env.newBooleanArray(size));
-   }
+    static Array *newBooleanArray(int64 size) {
+        Env env;
+        return new Array(env.newBooleanArray(size));
+    }
 
-   static Array *newByteArray(int64 size) {
-      Env env;
-      return new Array(env.newByteArray(size));
-   }
+    static Array *newByteArray(int64 size) {
+        Env env;
+        return new Array(env.newByteArray(size));
+    }
 
-   static Array *newCharArray(int64 size) {
-      Env env;
-      return new Array(env.newCharArray(size));
-   }
+    static Array *newCharArray(int64 size) {
+        Env env;
+        return new Array(env.newCharArray(size));
+    }
 
-   static Array *newShortArray(int64 size) {
-      Env env;
-      return new Array(env.newShortArray(size));
-   }
+    static Array *newShortArray(int64 size) {
+        Env env;
+        return new Array(env.newShortArray(size));
+    }
 
-   static Array *newIntArray(int64 size) {
-      Env env;
-      return new Array(env.newIntArray(size));
-   }
+    static Array *newIntArray(int64 size) {
+        Env env;
+        return new Array(env.newIntArray(size));
+    }
 
-   static Array *newLongArray(int64 size) {
-      Env env;
-      return new Array(env.newLongArray(size));
-   }
+    static Array *newLongArray(int64 size) {
+        Env env;
+        return new Array(env.newLongArray(size));
+    }
 
-   static Array *newFloatArray(int64 size) {
-      Env env;
-      return new Array(env.newFloatArray(size));
-   }
+    static Array *newFloatArray(int64 size) {
+        Env env;
+        return new Array(env.newFloatArray(size));
+    }
 
-   static Array *newDoubleArray(int64 size) {
-      Env env;
-      return new Array(env.newDoubleArray(size));
-   }
+    static Array *newDoubleArray(int64 size) {
+        Env env;
+        return new Array(env.newDoubleArray(size));
+    }
 
-   static Array *newObjectArray(int64 size, const Class *cls) {
-      Env env;
-      return new Array(env.newObjectArray(size, cls->getJavaObject()));
-   }
+    static Array *newObjectArray(int64 size, const Class *cls) {
+        Env env;
+        return new Array(env.newObjectArray(size, cls->getJavaObject()));
+    }
 
 private:
-   Functions() = delete;
+    Functions() = delete;
 };
 
 } // namespace jni
