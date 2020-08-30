@@ -121,13 +121,7 @@ QoreJniClassMap::jpmap_t QoreJniClassMap::jpmap = {
 };
 
 QoreProgram* jni_get_program_context() {
-    // first try to get the actual Program context
-    QoreProgram* pgm = getProgram();
-    if (pgm) {
-        return pgm;
-    }
-    // if this fails, get the caller's Program context
-    return qore_get_call_program_context();
+    return getProgram();
 }
 
 JniExternalProgramData* jni_get_context() {
@@ -437,7 +431,7 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClass(LocalReference<jclass>& jc) {
     // see if class is a builtin class or loaded by our custom classloader
     LocalReference<jobject> cl = env.callObjectMethod(jc, Globals::methodClassGetClassLoader, nullptr);
     bool base = (!baseClassLoader && !cl) || (cl && baseClassLoader && env.isSameObject(baseClassLoader, cl));
-    printd(LogLevel, "QoreJniClassMap::findCreateQoreClass() '%s' base: %d\n", jpath.c_str(), base);
+    //printd(LogLevel, "QoreJniClassMap::findCreateQoreClass() '%s' base: %d\n", jpath.c_str(), base);
     return findCreateQoreClass(cname, jpath.c_str(), new Class(jc), base);
 }
 
@@ -505,8 +499,10 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClass(const char* name) {
     // first try to find class
     JniQoreClass* rv = findInternal(jpath.c_str());
     if (rv) {
+        //printd(LogLevel, "QoreJniClassMap::findCreateQoreClass() '%s': %p\n", name, rv);
         return rv;
     }
+    //printd(LogLevel, "QoreJniClassMap::findCreateQoreClass() '%s' not cached\n", name);
 
     // first try to load the class if possible
     bool base;

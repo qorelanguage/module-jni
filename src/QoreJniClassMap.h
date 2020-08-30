@@ -148,6 +148,7 @@ public:
     DLLLOCAL JniQoreClass* findCreateQoreClass(const char* name);
 
     DLLLOCAL JniQoreClass* findCreateQoreClass(QoreString& name, const char* jpath, Class* c, bool base) {
+        //printd(5, "QoreJniClassMap::findCreateQoreClass() '%s' base: %d\n", jpath, base);
         return base
             ? findCreateQoreClassInBase(name, jpath, c)
             : findCreateQoreClassInProgram(name, jpath, c);
