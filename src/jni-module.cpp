@@ -167,21 +167,28 @@ static QoreStringNode* jni_module_init() {
 
 #ifndef Q_WINDOWS
     {
-        QoreStringNode *err = qore_reassign_signals(sig_vec, QORE_JNI_MODULE_NAME);
-        if (err) {
-            jni::Jvm::destroyVM();
-            return err;
+        sig_vec_t new_sig_vec;
+        for (int sig : sig_vec) {
+            QoreStringNode *err = qore_reassign_signal(sig, QORE_JNI_MODULE_NAME);
+            if (err) {
+                // ignore errors; already assigned to another module
+                err->deref();
+            }
+            new_sig_vec.push_back(sig);
         }
-        sigset_t mask;
-        // setup signal mask
-        sigemptyset(&mask);
-        for (auto& sig : sig_vec) {
-            //printd(LogLevel, "jni_module_init() unblocking signal %d\n", sig);
-            sigaddset(&mask, sig);
+        if (!new_sig_vec.empty()) {
+            sigset_t mask;
+            // setup signal mask
+            sigemptyset(&mask);
+            for (auto& sig : new_sig_vec) {
+                //printd(LogLevel, "python_module_init() unblocking signal %d\n", sig);
+                sigaddset(&mask, sig);
+            }
+            // unblock threads
+            pthread_sigmask(SIG_UNBLOCK, &mask, 0);
         }
-        // unblock threads
-        pthread_sigmask(SIG_UNBLOCK, &mask, 0);
     }
+
 #endif
 
     tclist.push(jni_thread_cleanup, nullptr);
