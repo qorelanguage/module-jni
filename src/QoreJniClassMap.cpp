@@ -1046,7 +1046,7 @@ void QoreJniClassMap::doFields(JniQoreClass& qc, jni::Class* jc) {
                 qc.addBuiltinConstant(fname.c_str(), v, field->getAccess());
             } else
                 qc.addBuiltinStaticVar(fname.c_str(), v, field->getAccess(), fieldTypeInfo);
-        } else {
+        } else if (!qc.findLocalMember(fname.c_str())) {
             printd(LogLevel, "+ adding field %s %s %s.%s\n", access_str(field->getAccess()), typeInfoGetName(fieldTypeInfo), qc.getName(), fname.c_str());
             qc.addMember(fname.c_str(), field->getAccess(), fieldTypeInfo);
         }
