@@ -478,6 +478,9 @@ set_save_object_callback(callback);
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_1_2 jni Module Version 1.2
+    - fixed a memory leak (or an assertion crash in debug mode) for a duplicate member error when importing Java
+      classes in %Qore
+      (<a href="https://github.com/qorelanguage/qore/issues/4029">issue 4029</a>)
     - added support for converting %Qore closures / call references to a Java object
       (<a href="https://github.com/qorelanguage/qore/issues/3995">issue 3995</a>)
 
