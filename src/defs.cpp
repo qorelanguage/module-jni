@@ -43,6 +43,7 @@ public:
         try {
             LocalReference<jobjectArray> jstack = env.callObjectMethod(throwable, Globals::methodThrowableGetStackTrace, nullptr).as<jobjectArray>();
             if (jstack) {
+                QoreString code;
                 for (jsize i = 0, e = env.getArrayLength(jstack); i < e; ++i) {
                     LocalReference<jobject> jste = env.getObjectArrayElement(jstack, i);
 
@@ -55,14 +56,18 @@ public:
                     jint line = env.callIntMethod(jste, Globals::methodStackTraceElementGetLineNumber, nullptr);
                     jboolean native = env.callBooleanMethod(jste, Globals::methodStackTraceElementIsNativeMethod, nullptr);
 
-                    QoreStringMaker code("%s.%s", cname.c_str(), mname.c_str());
-
-                    //printd(LogLevel, "JniCallStack::JniCallStack() adding %s\n", code.c_str());
+                    printd(LogLevel, "JniCallStack::JniCallStack() adding %s\n", code.c_str());
                     if (!i) {
                         loc.set(file.c_str(), line, line, nullptr, 0, "Java");
                     } else {
                         add(native ? CT_BUILTIN : CT_USER, file.c_str(), line, line, code.c_str(), "Java");
                     }
+
+                    code.clear();
+                    code.sprintf("%s.%s", cname.c_str(), mname.c_str());
+                }
+                if (!code.empty()) {
+                    add(CT_BUILTIN, "unknown", -1, -1, code.c_str(), "c++");
                 }
             }
         } catch (jni::Exception& e) {
@@ -103,7 +108,7 @@ QoreStringNode* JavaException::toString() const {
     if (env->IsInstanceOf(throwable, Globals::classQoreExceptionWrapper)) {
         jlong l = env->CallLongMethod(throwable, Globals::methodQoreExceptionWrapperGet);
         if (l != 0) {
-            ExceptionSink *src = reinterpret_cast<ExceptionSink *>(l);
+            ExceptionSink *src = reinterpret_cast<ExceptionSink*>(l);
             QoreValue err = src->getExceptionErr();
             QoreValue desc = src->getExceptionDesc();
             QoreValue arg = src->getExceptionArg();

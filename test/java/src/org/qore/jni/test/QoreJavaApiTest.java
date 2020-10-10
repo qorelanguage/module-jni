@@ -95,6 +95,14 @@ public class QoreJavaApiTest {
         return QoreJavaApi.callFunction(name);
     }
 
+    public static Object nestedExceptionTest() throws Throwable {
+        return throwException();
+    }
+
+    public static Object throwException() throws Throwable {
+        throw new QoreException("TEST", "test");
+    }
+
     public static HashMap callStaticMethodTest() throws Throwable {
         return (HashMap)QoreJavaApi.callStaticMethod("TestClass", "get", 1);
     }
