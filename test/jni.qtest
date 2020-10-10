@@ -465,6 +465,16 @@ lorem ipsum\r
             # normal (non-native) Java methods are "user"
             assertEq("user", ex.callstack[1].type);
         }
+
+        # issue #4030
+        try {
+            QoreJavaApiTest::nestedExceptionTest();
+            assertTrue(False);
+        } catch (hash<ExceptionInfo> ex) {
+            #printf("%s\n", get_exception_string(ex));
+            assertEq("org.qore.jni.test.QoreJavaApiTest.throwException", ex.callstack[0].function);
+            assertEq("org.qore.jni.test.QoreJavaApiTest.nestedExceptionTest", ex.callstack[1].function);
+        }
     }
 
     qoreJavaApiTest() {
