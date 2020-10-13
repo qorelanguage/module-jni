@@ -260,15 +260,17 @@ static QoreNamespace* qore_jni_wildcard_import(QoreString& arg, QoreProgram* pgm
     arg.terminate(arg.strlen() - 2);
 
     arg.replaceAll(".", "::");
+    return jni_module_find_create_java_namespace(arg, pgm);
+}
+
+extern "C" QoreNamespace* jni_module_find_create_java_namespace(QoreString& arg, QoreProgram* pgm) {
     arg.concat("::x");
 
-    QoreNamespace* jns;
-
     // create jni namespace in root namespace if necessary
-    jns = pgm->getRootNS()->findLocalNamespace("Jni");
+    QoreNamespace* jns = pgm->getRootNS()->findLocalNamespace("Jni");
 
     QoreNamespace* ns = jns->findCreateNamespacePath(arg.c_str());
-    printd(LogLevel, "jni_module_parse_cmd() nsp: '%s' ns: %p '%s'\n", arg.c_str(), ns, ns->getName());
+    printd(LogLevel, "jni_module_find_create_java_namespace() nsp: '%s' ns: %p '%s'\n", arg.c_str(), ns, ns->getName());
     ns->setClassHandler(jni_class_handler);
 
     return ns;
@@ -536,5 +538,5 @@ QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
         }
         assert(false);
     }
-    return 0;
+    return nullptr;
 }
