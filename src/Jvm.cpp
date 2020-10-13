@@ -84,7 +84,9 @@ void Jvm::destroyVM() {
 }
 
 JNIEnv *Jvm::attachAndGetEnv() {
-    assert(vm != nullptr);
+    if (!vm) {
+        throw UnableToAttachException(JNI_ERR);
+    }
 
     if (env == nullptr) {
         jint err = vm->AttachCurrentThread(reinterpret_cast<void**>(&env), nullptr);
@@ -97,7 +99,9 @@ JNIEnv *Jvm::attachAndGetEnv() {
 }
 
 JNIEnv* Jvm::attachAndGetEnv(bool& new_attach) {
-    assert(vm != nullptr);
+    if (!vm) {
+        throw UnableToAttachException(JNI_ERR);
+    }
 
     if (env == nullptr) {
         jint err = vm->AttachCurrentThread(reinterpret_cast<void**>(&env), nullptr);
