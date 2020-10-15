@@ -33,6 +33,8 @@
 
 namespace jni {
 
+static const char* this_file = q_basenameptr(__FILE__);
+
 thread_local QoreThreadAttacher qoreThreadAttacher;
 
 class JniCallStack : public QoreCallStack {
@@ -67,7 +69,7 @@ public:
                     code.sprintf("%s.%s", cname.c_str(), mname.c_str());
                 }
                 if (!code.empty()) {
-                    add(CT_BUILTIN, "unknown", -1, -1, code.c_str(), "c++");
+                    add(CT_BUILTIN, this_file, __LINE__, __LINE__, code.c_str(), "c++");
                 }
             }
         } catch (jni::Exception& e) {
