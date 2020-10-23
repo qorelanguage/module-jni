@@ -287,7 +287,7 @@ public:
     DLLLOCAL virtual const QoreStackLocation* getNext() const;
 
 private:
-    int tid = gettid();
+    int tid = q_gettid();
     mutable jsize current = 0;
 
     mutable std::vector<std::string> stack_call;

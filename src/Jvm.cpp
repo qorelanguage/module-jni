@@ -93,7 +93,7 @@ JNIEnv *Jvm::attachAndGetEnv() {
         if (err != JNI_OK) {
             throw UnableToAttachException(err);
         }
-        printd(LogLevel, "JNI - thread %d attached, env: %p\n", gettid(), env);
+        printd(LogLevel, "JNI - thread %d attached, env: %p\n", q_gettid(), env);
     }
     return env;
 }
@@ -109,7 +109,7 @@ JNIEnv* Jvm::attachAndGetEnv(bool& new_attach) {
             throw UnableToAttachException(err);
         }
         new_attach = true;
-        printd(LogLevel, "JNI - thread %d attached, env: %p\n", gettid(), env);
+        printd(LogLevel, "JNI - thread %d attached, env: %p\n", q_gettid(), env);
     } else {
         new_attach = false;
     }
