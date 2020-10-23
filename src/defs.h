@@ -91,7 +91,7 @@ public:
     * \param err the error code
     */
    DLLLOCAL UnableToAttachException(jint err) : err(err) {
-      printd(LogLevel, "JNI - error attaching thread %d, err: %d\n", gettid(), err);
+      printd(LogLevel, "JNI - error attaching thread %d, err: %d\n", q_gettid(), err);
    }
 
    DLLLOCAL void convert(ExceptionSink *xsink) override {

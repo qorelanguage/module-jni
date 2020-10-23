@@ -1318,7 +1318,7 @@ QoreJniStackLocationHelper::QoreJniStackLocationHelper() {
 }
 
 const std::string& QoreJniStackLocationHelper::getCallName() const {
-    if (tid != gettid()) {
+    if (tid != q_gettid()) {
         return jni_no_call_name;
     }
     checkInit();
@@ -1329,7 +1329,7 @@ const std::string& QoreJniStackLocationHelper::getCallName() const {
 }
 
 qore_call_t QoreJniStackLocationHelper::getCallType() const {
-    if (tid != gettid()) {
+    if (tid != q_gettid()) {
         return CT_BUILTIN;
     }
     checkInit();
@@ -1338,7 +1338,7 @@ qore_call_t QoreJniStackLocationHelper::getCallType() const {
 }
 
 const QoreProgramLocation& QoreJniStackLocationHelper::getLocation() const {
-    if (tid != gettid()) {
+    if (tid != q_gettid()) {
         return jni_loc_builtin.get();
     }
     checkInit();
@@ -1348,7 +1348,7 @@ const QoreProgramLocation& QoreJniStackLocationHelper::getLocation() const {
 }
 
 const QoreStackLocation* QoreJniStackLocationHelper::getNext() const {
-    if (tid != gettid()) {
+    if (tid != q_gettid()) {
         return stack_next;
     }
     checkInit();
@@ -1364,7 +1364,7 @@ const QoreStackLocation* QoreJniStackLocationHelper::getNext() const {
 }
 
 void QoreJniStackLocationHelper::checkInit() const {
-    assert(tid == gettid());
+    assert(tid == q_gettid());
     if (init) {
         return;
     }
