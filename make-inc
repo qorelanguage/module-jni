@@ -14,10 +14,10 @@
 
 class MakeInc {
     private {
-        const Opts = (
+        const Opts = {
             "verbose": "v,verbose:i+",
             "help": "h,help",
-            );
+        };
 
         const BlockSize = 4096;
         const LineSize = 12;

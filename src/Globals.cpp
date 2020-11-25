@@ -156,6 +156,7 @@ jmethodID Globals::methodQoreURLClassLoaderSetContext;
 jmethodID Globals::methodQoreURLClassLoaderGetProgramPtr;
 jmethodID Globals::methodQoreURLClassLoaderAddPendingClass;
 jmethodID Globals::methodQoreURLClassLoaderDefineResolveClass;
+jmethodID Globals::methodQoreURLClassLoaderCreateClass;
 
 GlobalReference<jclass> Globals::classThread;
 jmethodID Globals::methodThreadCurrentThread;
@@ -776,6 +777,77 @@ static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jclass, jlong 
     return nullptr;
 }
 
+static jclass JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv, jclass jcls, jlong ptr, jstring nspath, jstring jname) {
+    assert(ptr);
+    QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
+    Env env(jenv);
+    Env::GetStringUtfChars qpath(env, nspath);
+    //printd(LogLevel, "qore_url_classloader_create_java_qore_class() p: %p path: '%s'\n", pgm, qpath.c_str());
+
+    // must ensure that the thread is attached before calling Qore APIs
+    QoreThreadAttachHelper attach_helper;
+    try {
+        attach_helper.attach();
+    } catch (Exception& e) {
+        env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
+        return nullptr;
+    }
+
+    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+    if (!jpc) {
+        env.throwNew(env.findClass("java/lang/RuntimeException"), "No JNI context for Qore Program");
+        return nullptr;
+    }
+
+    ExceptionSink xsink;
+    try {
+        // set program context before converting arguments
+        QoreExternalProgramContextHelper pch(&xsink, pgm);
+        jlong cptr = 0;
+        if (!xsink) {
+            cptr = reinterpret_cast<jlong>(pgm->findClass(qpath.c_str(), &xsink));
+        }
+        if (xsink) {
+            assert(!cptr);
+            throw XsinkException(xsink);
+            return nullptr;
+        }
+
+        printd(0, "qore_url_classloader_create_java_qore_class() p: %p path: '%s': %p\n", pgm, qpath.c_str(), cptr);
+
+        // static public DynamicType.Builder<?> createClass(String className, Class<?> parentClass, boolean is_abstract, long cptr)
+
+        std::vector<jvalue> jargs(4);
+        jargs[0].l = jname;
+        jargs[1].l = Globals::classQoreObjectBase;
+        jargs[2].z = false;
+        jargs[3].j = cptr;
+
+        LocalReference<jobject> bb = env.callObjectMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderCreateClass, &jargs[0]);
+        printd(0, "qore_url_classloader_create_java_qore_class() bb: %p\n", *bb);
+
+        return nullptr;
+    } catch (jni::Exception& e) {
+        e.convert(&xsink);
+        QoreToJava::wrapException(xsink);
+    } catch (const std::bad_alloc& e) {
+        // translate OOM C++ exception to a Java exception
+        env.throwNew(env.findClass("java/lang/OutOfMemoryError"), e.what());
+    } catch (const std::exception& e) {
+        // translate unknown C++ exceptions to a Java exception
+        env.throwNew(env.findClass("java/lang/Error"), e.what());
+    } catch (...) {
+        // translate unknown C++ exception to a Java exception
+        env.throwNew(env.findClass("java/lang/Error"), "Unknown exception type");
+    }
+    return 0;
+}
+
+static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass jcls, QoreClass* qcls, jobject args) {
+    printd(0, "qore_object_create() jcls: %p qcls: %p, args: %p\n", jcls, qcls, args);
+    return 0;
+}
+
 static void JNICALL qore_object_release(JNIEnv*, jclass, jlong ptr) {
     assert(ptr);
     reinterpret_cast<QoreObject*>(ptr)->tDeref();
@@ -883,6 +955,11 @@ static JNINativeMethod qoreExceptionWrapperNativeMethods[] = {
 
 static JNINativeMethod qoreObjectBaseNativeMethods[] = {
     {
+        const_cast<char*>("create0"),
+        const_cast<char*>("(J[Ljava/lang/Object;)J"),
+        reinterpret_cast<void*>(qore_object_create)
+    },
+    {
         const_cast<char*>("release0"),
         const_cast<char*>("(J)V"),
         reinterpret_cast<void*>(qore_object_release)
@@ -937,6 +1014,14 @@ static JNINativeMethod qoreClosureNativeMethods[] = {
         const_cast<char*>("callSave0"),
         const_cast<char*>("(JJ[Ljava/lang/Object;)Ljava/lang/Object;"),
         reinterpret_cast<void*>(qore_closure_call_save)
+    },
+};
+
+static JNINativeMethod qoreURLClassLoaderNativeMethods[] = {
+    {
+        const_cast<char*>("createJavaQoreClass0"),
+        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;)Ljava/lang/Class;"),
+        reinterpret_cast<void*>(qore_url_classloader_create_java_qore_class),
     },
 };
 
@@ -1128,6 +1213,8 @@ void Globals::init() {
 
     classQoreURLClassLoader = findDefineClass(env, "org/qore/jni/QoreURLClassLoader", nullptr,
         java_org_qore_jni_QoreURLClassLoader_class, java_org_qore_jni_QoreURLClassLoader_class_len).makeGlobal();
+    env.registerNatives(classQoreURLClassLoader, qoreURLClassLoaderNativeMethods,
+        sizeof(qoreURLClassLoaderNativeMethods) / sizeof(JNINativeMethod));
     ctorQoreURLClassLoader = env.getMethod(classQoreURLClassLoader, "<init>", "(J)V");
     methodQoreURLClassLoaderAddPath = env.getMethod(classQoreURLClassLoader, "addPath", "(Ljava/lang/String;)V");
     methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass",
@@ -1136,7 +1223,10 @@ void Globals::init() {
     methodQoreURLClassLoaderGetProgramPtr = env.getStaticMethod(classQoreURLClassLoader, "getProgramPtr", "()J");
     methodQoreURLClassLoaderAddPendingClass = env.getMethod(classQoreURLClassLoader, "addPendingClass",
         "(Ljava/lang/String;[B)V");
-    methodQoreURLClassLoaderDefineResolveClass = env.getMethod(classQoreURLClassLoader, "defineResolveClass", "(Ljava/lang/String;[BII)Ljava/lang/Class;");
+    methodQoreURLClassLoaderDefineResolveClass = env.getMethod(classQoreURLClassLoader, "defineResolveClass",
+        "(Ljava/lang/String;[BII)Ljava/lang/Class;");
+    methodQoreURLClassLoaderCreateClass = env.getStaticMethod(classQoreURLClassLoader, "createClass",
+        "(Ljava/lang/String;Ljava/lang/Class;ZJ)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
 
     findDefineClass(env, "org/qore/jni/QoreURLClassLoader$1", nullptr, java_org_qore_jni_QoreURLClassLoader_1_class,
         java_org_qore_jni_QoreURLClassLoader_1_class_len);

@@ -2,9 +2,11 @@ cmake_minimum_required(VERSION 2.8.3)
 
 project(qore-jni-module)
 
-set (VERSION_MAJOR 1)
-set (VERSION_MINOR 2)
+set (VERSION_MAJOR 2)
+set (VERSION_MINOR 0)
 set (VERSION_PATCH 0)
+
+set (BYTE_BUDDY_JAR ${CMAKE_SOURCE_DIR}/byte-buddy/byte-buddy-1.10.18.jar)
 
 set(PROJECT_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
@@ -175,7 +177,7 @@ set(CMAKE_JAVA_COMPILE_FLAGS -Xlint:unchecked -Xlint:deprecation)
 
 add_custom_command(
     OUTPUT ${_qore_jni_sentinel}
-    COMMAND ${Java_JAVAC_EXECUTABLE} ${CMAKE_JAVA_COMPILE_FLAGS} -d ${CMAKE_CURRENT_BINARY_DIR} ${JAVA_JAR_SRC}
+    COMMAND ${Java_JAVAC_EXECUTABLE} ${CMAKE_JAVA_COMPILE_FLAGS} -d ${CMAKE_CURRENT_BINARY_DIR} ${JAVA_JAR_SRC} -cp ${BYTE_BUDDY_JAR}
     COMMAND ${CMAKE_COMMAND} -E touch ${_qore_jni_sentinel}
     DEPENDS ${JAVA_JAR_SRC}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -186,9 +188,18 @@ add_jar_targets(org/qore/lang org/qore/lang/sqlutil org/qore/lang/mapper org/qor
 
 # generate jar manually
 add_custom_command(
-    OUTPUT qore-jni.jar
-    COMMAND ${Java_JAR_EXECUTABLE} cf qore-jni.jar ${JAVA_JAR_CLASSES}
+    OUTPUT qore-jni-qore.jar
+    COMMAND ${Java_JAR_EXECUTABLE} cf qore-jni-qore.jar ${JAVA_JAR_CLASSES}
     DEPENDS ${_qore_jni_sentinel}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+)
+
+# combine jars into final jar
+add_custom_command(
+    OUTPUT qore-jni.jar
+    COMMAND ${CMAKE_SOURCE_DIR}/make-jar -o qore-jni.jar ${BYTE_BUDDY_JAR} ${CMAKE_CURRENT_BINARY_DIR}/qore-jni-qore.jar
+    DEPENDS qore-jni-qore.jar
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
 )

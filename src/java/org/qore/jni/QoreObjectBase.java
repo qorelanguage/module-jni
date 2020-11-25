@@ -15,6 +15,11 @@ public class QoreObjectBase {
     protected long obj;
 
     //! creates the wrapper object with a pointer to an object; this Java object holds a weak reference to the Qore object passed here
+    public QoreObjectBase(long cptr, Object... args) throws Throwable {
+        obj = create0(cptr, args);
+    }
+
+    //! creates the wrapper object with a pointer to an object; this Java object holds a weak reference to the Qore object passed here
     public QoreObjectBase(long obj) {
         this.obj = obj;
     }
@@ -60,6 +65,7 @@ public class QoreObjectBase {
         return x;
     }
 
+    private native long create0(long obj_ptr, Object... args);
     private native void release0(long obj_ptr);
     private native void destroy0(long obj_ptr);
     private native void finalize0(long obj_ptr);
