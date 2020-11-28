@@ -40,7 +40,7 @@ QoreStringNode* Jvm::createVM() {
     assert(vm == nullptr);
 
     JavaVMInitArgs vm_args;
-    vm_args.version = JNI_VERSION_1_6;
+    vm_args.version = JNI_VERSION_10;
     vm_args.ignoreUnrecognized = false;
     vm_args.nOptions = 0;
 
@@ -57,12 +57,21 @@ QoreStringNode* Jvm::createVM() {
             }
         }
     }
+    QoreString classpath;
+    if (!SystemEnvironment::get("QORE_CLASSPATH", classpath)) {
+        ++num_options;
+    }
     JavaVMOption options[num_options];
     // "reduced signals"
     options[vm_args.nOptions++].optionString = (char*)"-Xrs";
     if (disable_jit) {
         // disable JIT
         options[vm_args.nOptions++].optionString = (char*)"-Xint";
+    }
+    if (!classpath.empty()) {
+        classpath.prepend("-Djava.class.path=");
+        options[vm_args.nOptions++].optionString = (char*)classpath.c_str();
+        printd(0, "classpath: '%s'\n", classpath.c_str());
     }
 
     vm_args.options = options;

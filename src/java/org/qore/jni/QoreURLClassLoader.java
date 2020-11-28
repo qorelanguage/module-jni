@@ -28,6 +28,7 @@ import net.bytebuddy.NamingStrategy;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 
 import java.net.URLClassLoader;
 import java.net.URL;
@@ -138,7 +139,12 @@ public class QoreURLClassLoader extends URLClassLoader {
             return super.findClass(name);
         } catch (ClassNotFoundException e) {
             if (name.startsWith("qore.") && name.length() > 5) {
-                return createJavaQoreClass(name);
+                try {
+                    return createJavaQoreClass(name);
+                } catch (Throwable e1) {
+                    e1.printStackTrace();
+                    throw new ClassNotFoundException(e1.toString());
+                }
             }
             throw e;
         }
@@ -306,16 +312,22 @@ public class QoreURLClassLoader extends URLClassLoader {
         }
     }
 
-    static public DynamicType.Builder<?> createClass(String className, Class<?> parentClass, boolean is_abstract, long cptr)
-            throws NoSuchMethodException {
-        DynamicType.Builder<?> bb = new ByteBuddy()
-            .with(new NamingStrategy.AbstractBase() {
-                @Override
-                public String name(TypeDescription superClass) {
-                    return className;
-                }
-            })
-            .subclass(parentClass, ConstructorStrategy.Default.NO_CONSTRUCTORS);
+    public DynamicType.Builder<?> getClassBuilder(String className, Class<?> parentClass, boolean is_abstract, long cptr)
+            throws NoSuchMethodException, RuntimeException {
+        DynamicType.Builder<?> bb;
+        try {
+            bb = new ByteBuddy()
+                .with(new NamingStrategy.AbstractBase() {
+                    @Override
+                    public String name(TypeDescription superClass) {
+                        return className;
+                    }
+                })
+                .subclass(parentClass, ConstructorStrategy.Default.NO_CONSTRUCTORS);
+        } catch (NoClassDefFoundError e) {
+            throw new RuntimeException(String.format("qore-jni.jar module not in CLASSPATH; bytecode generation unavailable; " +
+                "cannot perform dynamic imports in Java"));
+        }
 
         int modifiers = ACC_PUBLIC;
         if (is_abstract) {
@@ -328,7 +340,6 @@ public class QoreURLClassLoader extends URLClassLoader {
         bb = (DynamicType.Builder<?>)bb.defineField(CLASS_FIELD, long.class,
             Modifier.FINAL | Modifier.PUBLIC | Modifier.STATIC)
             .value(cptr);
-
 
         // create default constructor
         List<Type> paramTypes = new ArrayList<Type>();
@@ -347,11 +358,18 @@ public class QoreURLClassLoader extends URLClassLoader {
         return bb;
     }
 
+    public Class<?> getClassFromBuilder(DynamicType.Builder<?> bb) {
+        return bb
+            .make()
+            .load(getClass().getClassLoader(), ClassLoadingStrategy.Default.WRAPPER)
+            .getLoaded();
+    }
+
     private Class<?> createJavaQoreClass(String name) throws ClassNotFoundException {
         String qname = "::" + name.substring(5).replace(".", "::");
         Class<?> jcls = createJavaQoreClass0(pgm_ptr, qname, name);
         if (jcls == null) {
-            throw new ClassNotFoundException(String.format("could not find a Qore class matching '%s' to use to create Java class '%s'",
+            throw new ClassNotFoundException(String.format("could not find a Qore source class matching '%s' to create Java class '%s'",
                 qname, name));
         }
         return jcls;

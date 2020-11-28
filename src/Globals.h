@@ -163,7 +163,8 @@ public:
     DLLLOCAL static jmethodID methodQoreURLClassLoaderAddPendingClass;            // void QoreURLClassLoader.addPendingClass(String, byte[])
     DLLLOCAL static jmethodID methodQoreURLClassLoaderDefineResolveClass;         // Class<?> defineResolveClass​(String, byte[], int, int)
 
-    DLLLOCAL static jmethodID methodQoreURLClassLoaderCreateClass;                //  static DynamicType.Builder<?> createClass(String, Class<?>, boolean, long)
+    DLLLOCAL static jmethodID methodQoreURLClassLoaderGetClassBuilder;            // static DynamicType.Builder<?> getClassBuilder(String, Class<?>, boolean, long)
+    DLLLOCAL static jmethodID methodQoreURLClassLoaderGetClassFromBuilder;        // static Class<?> getClassFromBuilder(DynamicType.Builder<?>)
 
     DLLLOCAL static GlobalReference<jclass> classThread;                          // java.lang.Thread
     DLLLOCAL static jmethodID methodThreadCurrentThread;                          // Thread Thread.currentThread()

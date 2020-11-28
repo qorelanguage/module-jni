@@ -19,6 +19,8 @@ endif()
 add_definitions(-DJAVA_VERSION_MAJOR=${Java_VERSION_MAJOR})
 include(UseJava)
 
+find_package(BZip2 REQUIRED)
+
 # Check for C++11.
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -73,6 +75,24 @@ MACRO(GENERATE_JAVA _input)
     endforeach()
 ENDMACRO(GENERATE_JAVA)
 
+# adds a make rule for jar -> inc generation
+MACRO(GENERATE_JAR _input _output)
+    GET_FILENAME_COMPONENT(_base ${_input} NAME_WE)
+    GET_FILENAME_COMPONENT(_pkgdir ${_input} PATH)
+
+    # generate rules to generate include files for primary classes
+    SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/${_output}.inc)
+    add_custom_command(
+        OUTPUT ${_inc_outfile}
+        COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_input} ${_inc_outfile}
+        DEPENDS ${_qore_jni_sentinel}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        VERBATIM
+    )
+
+    SET(QORE_INC_FILES ${QORE_INC_FILES} ${_inc_outfile})
+ENDMACRO(GENERATE_JAVA)
+
 # adds a make rule for java -> class generation annd class -> inc generation
 MACRO(ADD_JAVA_SOURCE _input)
     GET_FILENAME_COMPONENT(_base ${_input} NAME_WE)
@@ -112,7 +132,7 @@ generate_java(org/qore/jni/QoreObject.java)
 generate_java(org/qore/jni/QoreClosure.java)
 generate_java(org/qore/jni/QoreObjectWrapper.java)
 generate_java(org/qore/jni/QoreInvocationHandler.java)
-generate_java(org/qore/jni/QoreURLClassLoader.java 1)
+generate_java(org/qore/jni/QoreURLClassLoader.java 1 2)
 generate_java(org/qore/jni/QoreRelativeTime.java)
 generate_java(org/qore/jni/QoreClosureMarker.java)
 generate_java(org/qore/jni/QoreJavaDynamicApi.java)
@@ -277,7 +297,7 @@ endforeach()
 set(module_name "jni")
 
 set(QORE_DOX_TMPL_SRC
-  docs/mainpage.dox.tmpl
+    docs/mainpage.dox.tmpl
 )
 
 add_library(${module_name} SHARED ${CPP_SRC} ${QPP_SOURCES})
@@ -291,7 +311,7 @@ set_source_files_properties(${CMAKE_SOURCE_DIR}/src/Globals.cpp PROPERTIES OBJEC
 add_custom_target(QORE_INC_FILES DEPENDS ${QORE_INC_SRC})
 add_dependencies(${module_name} QORE_INC_FILES)
 
-target_link_libraries(${module_name} ${JNI_LIBRARIES})
+target_link_libraries(${module_name} ${JNI_LIBRARIES} ${BZIP2_LIBRARIES})
 
 set(MODULE_DOX_INPUT ${CMAKE_CURRENT_BINARY_DIR}/mainpage.dox ${JAVA_JAR_SRC_STR} ${QPP_DOX})
 string(REPLACE ";" " " MODULE_DOX_INPUT "${MODULE_DOX_INPUT}")
