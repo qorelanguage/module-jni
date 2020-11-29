@@ -65,6 +65,15 @@ cd ${MODULE_SRC_DIR}
 for test in test/*.qtest; do
     # skip jms tests for now
     if [ -z "`$test`" ]; then
+        date
         gosu qore:qore qore $test -vv
+        RESULTS="$RESULTS $?"
+    fi
+done
+
+# check the results
+for R in $RESULTS; do
+    if [ "$R" != "0" ]; then
+        exit 1 # fail
     fi
 done
