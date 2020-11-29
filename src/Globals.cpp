@@ -44,6 +44,8 @@ bool jni_qore_init = false;
 
 bool Globals::already_initialized = false;
 
+GlobalReference<jobject> Globals::syscl;
+
 GlobalReference<jclass> Globals::classPrimitiveVoid;
 GlobalReference<jclass> Globals::classPrimitiveBoolean;
 GlobalReference<jclass> Globals::classPrimitiveByte;
@@ -156,8 +158,13 @@ jmethodID Globals::methodQoreURLClassLoaderSetContext;
 jmethodID Globals::methodQoreURLClassLoaderGetProgramPtr;
 jmethodID Globals::methodQoreURLClassLoaderAddPendingClass;
 jmethodID Globals::methodQoreURLClassLoaderDefineResolveClass;
-jmethodID Globals::methodQoreURLClassLoaderGetClassBuilder;
-jmethodID Globals::methodQoreURLClassLoaderGetClassFromBuilder;
+jmethodID Globals::methodQoreURLClassLoaderGetResolveClass;
+jmethodID Globals::methodQoreURLClassLoaderClearCache;
+jmethodID Globals::methodQoreURLClassLoaderDefineClassUnconditional;
+
+GlobalReference<jclass> Globals::classJavaClassBuilder;
+jmethodID Globals::methodJavaClassBuilderGetClassBuilder;
+jmethodID Globals::methodJavaClassBuilderGetClassFromBuilder;
 
 GlobalReference<jclass> Globals::classThread;
 jmethodID Globals::methodThreadCurrentThread;
@@ -800,6 +807,12 @@ static jclass JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv, 
         return nullptr;
     }
 
+    if (!Globals::classJavaClassBuilder) {
+        env.throwNew(env.findClass("java/lang/RuntimeException"), "qore-jni.jar module not in QORE_CLASSPATH; bytecode " \
+            "generation unavailable; cannot perform dynamic imports in Java");
+        return nullptr;
+    }
+
     ExceptionSink xsink;
     try {
         // set program context before converting arguments
@@ -822,11 +835,13 @@ static jclass JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv, 
         jargs[2].z = false;
         jargs[3].j = cptr;
 
-        LocalReference<jobject> bb = env.callObjectMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderGetClassBuilder, &jargs[0]);
+        LocalReference<jobject> bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
+            Globals::methodJavaClassBuilderGetClassBuilder, &jargs[0]);
         printd(0, "qore_url_classloader_create_java_qore_class() bb: %p\n", *bb);
 
         jargs[0].l = bb;
-        LocalReference<jclass> rv = env.callObjectMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderGetClassFromBuilder, &jargs[0]).as<jclass>();
+        LocalReference<jclass> rv = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
+            Globals::methodJavaClassBuilderGetClassFromBuilder, &jargs[0]).as<jclass>();
         printd(0, "qore_url_classloader_create_java_qore_class() rv: %p\n", *rv);
         return rv.release();
     } catch (jni::Exception& e) {
@@ -1043,18 +1058,35 @@ static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperNa
 #include "JavaClassQoreClosureMarker.inc"
 #include "JavaClassQoreURLClassLoader.inc"
 #include "JavaClassQoreURLClassLoader_1.inc"
+#include "JavaClassJavaClassBuilder.inc"
+#include "JavaClassJavaClassBuilder_1.inc"
 #include "JavaClassQoreJavaApi.inc"
 #include "JavaClassQoreRelativeTime.inc"
 #include "JavaClassHash.inc"
+#include "JavaJarByteBuddy.inc"
 
 // calling Env::FindClass() when the class is not available will cause the class lookup to fail later after we define it
 // therefore we have to only define the class if the java classes have not already been loaded
 LocalReference<jclass> Globals::findDefineClass(Env& env, const char* name, jobject loader, const unsigned char* buf,
     jsize bufLen) {
-    if (already_initialized) {
-        return env.findDefineClass(name, loader, buf, bufLen);
+    if (!loader) {
+        QoreString jname(name);
+        jname.replaceAll(".", "/");
+        if (already_initialized) {
+            return env.findDefineClass(jname.c_str(), loader, buf, bufLen);
+        } else {
+            return env.defineClass(jname.c_str(), loader, buf, bufLen);
+        }
     } else {
-        return env.defineClass(name, loader, buf, bufLen);
+        std::vector<jvalue> jargs(2);
+        LocalReference<jbyteArray> jbyte_code = env.newByteArray(bufLen).as<jbyteArray>();
+        for (jsize i = 0; i < static_cast<jsize>(bufLen); ++i) {
+            env.setByteArrayElement(jbyte_code, i, ((const char*)buf)[i]);
+        }
+        LocalReference<jstring> bname = env.newString(name);
+        jargs[0].l = bname;
+        jargs[1].l = jbyte_code;
+        return env.callObjectMethod(syscl, Globals::methodQoreURLClassLoaderDefineClassUnconditional, &jargs[0]).as<jclass>();
     }
 }
 
@@ -1107,62 +1139,19 @@ void Globals::init() {
     methodStackTraceElementGetMethodName = env.getMethod(classStackTraceElement, "getMethodName", "()Ljava/lang/String;");
     methodStackTraceElementIsNativeMethod = env.getMethod(classStackTraceElement, "isNativeMethod", "()Z");
 
-    classClassLoader = env.findClass("java/lang/ClassLoader").makeGlobal();
-    methodClassLoaderLoadClass = env.getMethod(classClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
-
-    jmethodID methodClassLoaderGetSystemClassLoader = env.getStaticMethod(classClassLoader, "getSystemClassLoader", "()Ljava/lang/ClassLoader;");
-    LocalReference<jclass> syscl = env.callObjectMethod(classClassLoader, methodClassLoaderGetSystemClassLoader, nullptr).as<jclass>();
-
-    classQoreExceptionWrapper = findDefineClass(env, "org/qore/jni/QoreExceptionWrapper", syscl,
+    classQoreExceptionWrapper = findDefineClass(env, "org.qore.jni.QoreExceptionWrapper", nullptr,
         java_org_qore_jni_QoreExceptionWrapper_class, java_org_qore_jni_QoreExceptionWrapper_class_len).makeGlobal();
     env.registerNatives(classQoreExceptionWrapper, qoreExceptionWrapperNativeMethods, 2);
     ctorQoreExceptionWrapper = env.getMethod(classQoreExceptionWrapper, "<init>", "(J)V");
     methodQoreExceptionWrapperGet = env.getMethod(classQoreExceptionWrapper, "get", "()J");
 
-    classQoreException = findDefineClass(env, "org/qore/jni/QoreException", syscl,
+    classQoreException = findDefineClass(env, "org.qore.jni.QoreException", nullptr,
         java_org_qore_jni_QoreException_class, java_org_qore_jni_QoreException_class_len).makeGlobal();
     methodQoreExceptionGetErr = env.getMethod(classQoreException, "getErr", "()Ljava/lang/String;");
     methodQoreExceptionGetDesc = env.getMethod(classQoreException, "getDesc", "()Ljava/lang/String;");
     methodQoreExceptionGetArg = env.getMethod(classQoreException, "getArg", "()Ljava/lang/Object;");
 
-    classQoreObjectBase = findDefineClass(env, "org/qore/jni/QoreObjectBase", syscl,
-        java_org_qore_jni_QoreObjectBase_class, java_org_qore_jni_QoreObjectBase_class_len).makeGlobal();
-    env.registerNatives(classQoreObjectBase, qoreObjectBaseNativeMethods,
-        sizeof(qoreObjectBaseNativeMethods) / sizeof(JNINativeMethod));
-
-    classQoreObject = findDefineClass(env, "org/qore/jni/QoreObject", syscl, java_org_qore_jni_QoreObject_class,
-        java_org_qore_jni_QoreObject_class_len).makeGlobal();
-    env.registerNatives(classQoreObject, qoreObjectNativeMethods,
-        sizeof(qoreObjectNativeMethods) / sizeof(JNINativeMethod));
-    ctorQoreObject = env.getMethod(classQoreObject, "<init>", "(J)V");
-    methodQoreObjectGet = env.getMethod(classQoreObject, "get", "()J");
-
-    classQoreClosure = findDefineClass(env, "org/qore/jni/QoreClosure", syscl, java_org_qore_jni_QoreClosure_class,
-        java_org_qore_jni_QoreClosure_class_len).makeGlobal();
-    env.registerNatives(classQoreClosure, qoreClosureNativeMethods,
-        sizeof(qoreClosureNativeMethods) / sizeof(JNINativeMethod));
-    ctorQoreClosure = env.getMethod(classQoreClosure, "<init>", "(J)V");
-    methodQoreClosureGet = env.getMethod(classQoreClosure, "get", "()J");
-
-    classQoreObjectWrapper = findDefineClass(env, "org/qore/jni/QoreObjectWrapper", syscl,
-        java_org_qore_jni_QoreObjectWrapper_class, java_org_qore_jni_QoreObjectWrapper_class_len).makeGlobal();
-
-    classQoreClosureMarker = findDefineClass(env, "org/qore/jni/QoreClosureMarker", syscl,
-        java_org_qore_jni_QoreClosureMarker_class, java_org_qore_jni_QoreClosureMarker_class_len).makeGlobal();
-
-    classPrimitiveVoid = getPrimitiveClass(env, "java/lang/Void");
-    classPrimitiveBoolean = getPrimitiveClass(env, "java/lang/Boolean");
-    classPrimitiveByte = getPrimitiveClass(env, "java/lang/Byte");
-    classPrimitiveChar = getPrimitiveClass(env, "java/lang/Character");
-    classPrimitiveShort = getPrimitiveClass(env, "java/lang/Short");
-    classPrimitiveInt = getPrimitiveClass(env, "java/lang/Integer");
-    classPrimitiveLong = getPrimitiveClass(env, "java/lang/Long");
-    classPrimitiveFloat = getPrimitiveClass(env, "java/lang/Float");
-    classPrimitiveDouble = getPrimitiveClass(env, "java/lang/Double");
-
-    classObject = env.findClass("java/lang/Object").makeGlobal();
-    methodObjectGetClass = env.getMethod(classObject, "getClass", "()Ljava/lang/Class;");
-
+    // needed for exception handling
     classClass = env.findClass("java/lang/Class").makeGlobal();
     methodClassIsArray = env.getMethod(classClass, "isArray", "()Z");
     methodClassGetComponentType = env.getMethod(classClass, "getComponentType", "()Ljava/lang/Class;");
@@ -1177,6 +1166,76 @@ void Globals::init() {
     methodClassGetDeclaredMethods = env.getMethod(classClass, "getDeclaredMethods", "()[Ljava/lang/reflect/Method;");
     methodClassGetCanonicalName = env.getMethod(classClass, "getCanonicalName", "()Ljava/lang/String;");
     methodClassGetDeclaredField = env.getMethod(classClass, "getDeclaredField", "(Ljava/lang/String;)Ljava/lang/reflect/Field;");
+
+    findDefineClass(env, "org.qore.jni.QoreURLClassLoader$1", nullptr, java_org_qore_jni_QoreURLClassLoader_1_class,
+        java_org_qore_jni_QoreURLClassLoader_1_class_len);
+
+    // create our class loader to load module classes
+    classQoreURLClassLoader = findDefineClass(env, "org.qore.jni.QoreURLClassLoader", nullptr,
+        java_org_qore_jni_QoreURLClassLoader_class, java_org_qore_jni_QoreURLClassLoader_class_len).makeGlobal();
+    methodQoreURLClassLoaderDefineClassUnconditional = env.getMethod(classQoreURLClassLoader, "defineClassUnconditional",
+        "(Ljava/lang/String;[BII)Ljava/lang/Class;");
+    {
+        jmethodID ctorQoreURLClassLoaderSys = env.getMethod(classQoreURLClassLoader, "<init>", "()V");
+        syscl = env.newObject(classQoreURLClassLoader, ctorQoreURLClassLoaderSys, nullptr).makeGlobal();
+    }
+
+    env.registerNatives(classQoreURLClassLoader, qoreURLClassLoaderNativeMethods,
+        sizeof(qoreURLClassLoaderNativeMethods) / sizeof(JNINativeMethod));
+    ctorQoreURLClassLoader = env.getMethod(classQoreURLClassLoader, "<init>", "(JLjava/lang/ClassLoader;)V");
+    methodQoreURLClassLoaderAddPath = env.getMethod(classQoreURLClassLoader, "addPath", "(Ljava/lang/String;)V");
+    methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass",
+        "(Ljava/lang/String;)Ljava/lang/Class;");
+    methodQoreURLClassLoaderSetContext = env.getMethod(classQoreURLClassLoader, "setContext", "()V");
+    methodQoreURLClassLoaderGetProgramPtr = env.getStaticMethod(classQoreURLClassLoader, "getProgramPtr", "()J");
+    methodQoreURLClassLoaderAddPendingClass = env.getMethod(classQoreURLClassLoader, "addPendingClass",
+        "(Ljava/lang/String;[B)V");
+    methodQoreURLClassLoaderDefineResolveClass = env.getMethod(classQoreURLClassLoader, "defineResolveClass",
+        "(Ljava/lang/String;[BII)Ljava/lang/Class;");
+
+    methodQoreURLClassLoaderGetResolveClass = env.getMethod(classQoreURLClassLoader, "getResolveClass",
+        "(Ljava/lang/String;)Ljava/lang/Class;");
+    methodQoreURLClassLoaderClearCache = env.getMethod(classQoreURLClassLoader, "clearCache", "()V");
+    classClassLoader = env.findClass("java/lang/ClassLoader").makeGlobal();
+    methodClassLoaderLoadClass = env.getMethod(classClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
+
+    classQoreObjectBase = findDefineClass(env, "org.qore.jni.QoreObjectBase", nullptr,
+        java_org_qore_jni_QoreObjectBase_class, java_org_qore_jni_QoreObjectBase_class_len).makeGlobal();
+    env.registerNatives(classQoreObjectBase, qoreObjectBaseNativeMethods,
+        sizeof(qoreObjectBaseNativeMethods) / sizeof(JNINativeMethod));
+
+    classQoreObject = findDefineClass(env, "org.qore.jni.QoreObject", nullptr, java_org_qore_jni_QoreObject_class,
+        java_org_qore_jni_QoreObject_class_len).makeGlobal();
+    env.registerNatives(classQoreObject, qoreObjectNativeMethods,
+        sizeof(qoreObjectNativeMethods) / sizeof(JNINativeMethod));
+    ctorQoreObject = env.getMethod(classQoreObject, "<init>", "(J)V");
+    methodQoreObjectGet = env.getMethod(classQoreObject, "get", "()J");
+
+    classQoreClosure = findDefineClass(env, "org.qore.jni.QoreClosure", nullptr, java_org_qore_jni_QoreClosure_class,
+        java_org_qore_jni_QoreClosure_class_len).makeGlobal();
+    env.registerNatives(classQoreClosure, qoreClosureNativeMethods,
+        sizeof(qoreClosureNativeMethods) / sizeof(JNINativeMethod));
+    ctorQoreClosure = env.getMethod(classQoreClosure, "<init>", "(J)V");
+    methodQoreClosureGet = env.getMethod(classQoreClosure, "get", "()J");
+
+    classQoreObjectWrapper = findDefineClass(env, "org.qore.jni.QoreObjectWrapper", nullptr,
+        java_org_qore_jni_QoreObjectWrapper_class, java_org_qore_jni_QoreObjectWrapper_class_len).makeGlobal();
+
+    classQoreClosureMarker = findDefineClass(env, "org.qore.jni.QoreClosureMarker", nullptr,
+        java_org_qore_jni_QoreClosureMarker_class, java_org_qore_jni_QoreClosureMarker_class_len).makeGlobal();
+
+    classPrimitiveVoid = getPrimitiveClass(env, "java/lang/Void");
+    classPrimitiveBoolean = getPrimitiveClass(env, "java/lang/Boolean");
+    classPrimitiveByte = getPrimitiveClass(env, "java/lang/Byte");
+    classPrimitiveChar = getPrimitiveClass(env, "java/lang/Character");
+    classPrimitiveShort = getPrimitiveClass(env, "java/lang/Short");
+    classPrimitiveInt = getPrimitiveClass(env, "java/lang/Integer");
+    classPrimitiveLong = getPrimitiveClass(env, "java/lang/Long");
+    classPrimitiveFloat = getPrimitiveClass(env, "java/lang/Float");
+    classPrimitiveDouble = getPrimitiveClass(env, "java/lang/Double");
+
+    classObject = env.findClass("java/lang/Object").makeGlobal();
+    methodObjectGetClass = env.getMethod(classObject, "getClass", "()Ljava/lang/Class;");
 
     classString = env.findClass("java/lang/String").makeGlobal();
 
@@ -1203,13 +1262,13 @@ void Globals::init() {
     methodConstructorGetModifiers = env.getMethod(classConstructor, "getModifiers", "()I");
     methodConstructorIsVarArgs = env.getMethod(classConstructor, "isVarArgs", "()Z");
 
-    classQoreInvocationHandler = findDefineClass(env, "org/qore/jni/QoreInvocationHandler", syscl,
+    classQoreInvocationHandler = findDefineClass(env, "org.qore.jni.QoreInvocationHandler", nullptr,
         java_org_qore_jni_QoreInvocationHandler_class, java_org_qore_jni_QoreInvocationHandler_class_len).makeGlobal();
     env.registerNatives(classQoreInvocationHandler, invocationHandlerNativeMethods, 2);
     ctorQoreInvocationHandler = env.getMethod(classQoreInvocationHandler, "<init>", "(J)V");
     methodQoreInvocationHandlerDestroy = env.getMethod(classQoreInvocationHandler, "destroy", "()V");
 
-    classQoreJavaApi = findDefineClass(env, "org/qore/jni/QoreJavaApi", syscl, java_org_qore_jni_QoreJavaApi_class,
+    classQoreJavaApi = findDefineClass(env, "org.qore.jni.QoreJavaApi", nullptr, java_org_qore_jni_QoreJavaApi_class,
         java_org_qore_jni_QoreJavaApi_class_len).makeGlobal();
     env.registerNatives(classQoreJavaApi, qoreJavaApiNativeMethods,
         sizeof(qoreJavaApiNativeMethods) / sizeof(JNINativeMethod));
@@ -1219,43 +1278,12 @@ void Globals::init() {
     methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance",
         "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
 
-    classQoreURLClassLoader = findDefineClass(env, "org/qore/jni/QoreURLClassLoader", syscl,
-        java_org_qore_jni_QoreURLClassLoader_class, java_org_qore_jni_QoreURLClassLoader_class_len).makeGlobal();
-    env.registerNatives(classQoreURLClassLoader, qoreURLClassLoaderNativeMethods,
-        sizeof(qoreURLClassLoaderNativeMethods) / sizeof(JNINativeMethod));
-    ctorQoreURLClassLoader = env.getMethod(classQoreURLClassLoader, "<init>", "(J)V");
-    methodQoreURLClassLoaderAddPath = env.getMethod(classQoreURLClassLoader, "addPath", "(Ljava/lang/String;)V");
-    methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass",
-        "(Ljava/lang/String;)Ljava/lang/Class;");
-    methodQoreURLClassLoaderSetContext = env.getMethod(classQoreURLClassLoader, "setContext", "()V");
-    methodQoreURLClassLoaderGetProgramPtr = env.getStaticMethod(classQoreURLClassLoader, "getProgramPtr", "()J");
-    methodQoreURLClassLoaderAddPendingClass = env.getMethod(classQoreURLClassLoader, "addPendingClass",
-        "(Ljava/lang/String;[B)V");
-    methodQoreURLClassLoaderDefineResolveClass = env.getMethod(classQoreURLClassLoader, "defineResolveClass",
-        "(Ljava/lang/String;[BII)Ljava/lang/Class;");
-    methodQoreURLClassLoaderGetClassBuilder = env.getMethod(classQoreURLClassLoader, "getClassBuilder",
-        "(Ljava/lang/String;Ljava/lang/Class;ZJ)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
-    methodQoreURLClassLoaderGetClassFromBuilder = env.getMethod(classQoreURLClassLoader, "getClassFromBuilder",
-        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;)Ljava/lang/Class;");
-
-    {
-        //static GlobalReference<jclass> test = env.findClass("net/bytebuddy/ByteBuddy").makeGlobal();
-        /*
-        std::vector<jvalue> jargs(1);
-        jargs[0].l = classQoreURLClassLoader;
-        env.callVoidMethod(classQoreURLClassLoader, env.getMethod(classQoreURLClassLoader, "resolveClass", "(Ljava/lang/Class;)V"), &jargs[0]);
-        */
-    }
-
-    findDefineClass(env, "org/qore/jni/QoreURLClassLoader$1", syscl, java_org_qore_jni_QoreURLClassLoader_1_class,
-        java_org_qore_jni_QoreURLClassLoader_1_class_len);
-
     classThread = env.findClass("java/lang/Thread").makeGlobal();
     methodThreadCurrentThread = env.getStaticMethod(classThread, "currentThread", "()Ljava/lang/Thread;");
     methodThreadGetContextClassLoader = env.getMethod(classThread, "getContextClassLoader", "()Ljava/lang/ClassLoader;");
 
     classHashMap = env.findClass("java/util/HashMap").makeGlobal();
-    classHash = findDefineClass(env, "org/qore/jni/Hash", syscl, java_org_qore_jni_Hash_class, java_org_qore_jni_Hash_class_len).makeGlobal();
+    classHash = findDefineClass(env, "org.qore.jni.Hash", nullptr, java_org_qore_jni_Hash_class, java_org_qore_jni_Hash_class_len).makeGlobal();
     ctorHash = env.getMethod(classHash, "<init>", "()V");
     methodHashPut = env.getMethod(classHash, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 
@@ -1285,7 +1313,7 @@ void Globals::init() {
     methodZonedDateTimeParse = env.getStaticMethod(classZonedDateTime, "parse", "(Ljava/lang/CharSequence;)Ljava/time/ZonedDateTime;");
     methodZonedDateTimeToString = env.getMethod(classZonedDateTime, "toString", "()Ljava/lang/String;");
 
-    classQoreRelativeTime = findDefineClass(env, "org/qore/jni/QoreRelativeTime", syscl,
+    classQoreRelativeTime = findDefineClass(env, "org.qore.jni.QoreRelativeTime", nullptr,
         java_org_qore_jni_QoreRelativeTime_class, java_org_qore_jni_QoreRelativeTime_class_len).makeGlobal();
     ctorQoreRelativeTime = env.getMethod(classQoreRelativeTime, "<init>", "(IIIIIII)V");
     fieldQoreRelativeTimeYear = env.getField(classQoreRelativeTime, "year", "I");
@@ -1335,6 +1363,42 @@ void Globals::init() {
     classCharacter = env.findClass("java/lang/Character").makeGlobal();
     ctorCharacter = env.getMethod(classCharacter, "<init>", "(C)V");
     methodCharacterCharValue = env.getMethod(classCharacter, "charValue", "()C");
+
+    native_jar_init(env, syscl);
+
+    {
+       std::vector<jvalue> jargs(2);
+       LocalReference<jbyteArray> jbyte_code = env.newByteArray(java_org_qore_jni_JavaClassBuilder_1_class_len).as<jbyteArray>();
+       for (jsize i = 0; i < static_cast<jsize>(java_org_qore_jni_JavaClassBuilder_1_class_len); ++i) {
+    	  env.setByteArrayElement(jbyte_code, i, ((const char*)java_org_qore_jni_JavaClassBuilder_1_class)[i]);
+       }
+       LocalReference<jstring> bname = env.newString("org.qore.jni.JavaClassBuilder$1");
+       jargs[0].l = bname;
+       jargs[1].l = jbyte_code;
+       env.callVoidMethod(syscl, Globals::methodQoreURLClassLoaderAddPendingClass, &jargs[0]);
+    }
+    {
+       std::vector<jvalue> jargs(2);
+       LocalReference<jbyteArray> jbyte_code = env.newByteArray(java_org_qore_jni_JavaClassBuilder_class_len).as<jbyteArray>();
+       for (jsize i = 0; i < static_cast<jsize>(java_org_qore_jni_JavaClassBuilder_class_len); ++i) {
+    	  env.setByteArrayElement(jbyte_code, i, ((const char*)java_org_qore_jni_JavaClassBuilder_class)[i]);
+       }
+       LocalReference<jstring> bname = env.newString("org.qore.jni.JavaClassBuilder");
+       jargs[0].l = bname;
+       jargs[1].l = jbyte_code;
+       env.callVoidMethod(syscl, Globals::methodQoreURLClassLoaderAddPendingClass, &jargs[0]);
+    }
+    {
+        std::vector<jvalue> jargs(1);
+        LocalReference<jstring> bname = env.newString("org.qore.jni.JavaClassBuilder");
+        jargs[0].l = bname;
+    	classJavaClassBuilder = env.callObjectMethod(syscl, Globals::methodQoreURLClassLoaderGetResolveClass, &jargs[0]).as<jclass>().makeGlobal();
+    }
+
+    methodJavaClassBuilderGetClassBuilder = env.getStaticMethod(classJavaClassBuilder, "getClassBuilder",
+        "(Ljava/lang/String;Ljava/lang/Class;ZJ)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
+    methodJavaClassBuilderGetClassFromBuilder = env.getStaticMethod(classJavaClassBuilder, "getClassFromBuilder",
+        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;)Ljava/lang/Class;");
 }
 
 void Globals::cleanup() {
@@ -1369,6 +1433,7 @@ void Globals::cleanup() {
     classProxy = nullptr;
     classClassLoader = nullptr;
     classQoreURLClassLoader = nullptr;
+    classJavaClassBuilder = nullptr;
     classThread = nullptr;
     classHashMap = nullptr;
     classHash = nullptr;
@@ -1390,6 +1455,8 @@ void Globals::cleanup() {
     classDouble = nullptr;
     classFloat = nullptr;
     classCharacter = nullptr;
+
+    native_jar_cleanup();
 }
 
 Type Globals::getType(jclass cls) {

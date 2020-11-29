@@ -245,6 +245,13 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
             LocalReference<jstring> oclsName = env.callObjectMethod(ocls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
             Env::GetStringUtfChars ocname(env, oclsName);
 
+            if (!strcmp(cname.c_str(), ocname.c_str())) {
+                QoreStringMaker str("ClassLoader error; expected a Java object of class '%s'; object has same class " \
+                    "name but a different classloader and is therefore incompatible",
+                    cname.c_str(), ocname.c_str());
+                throw BasicException(str.c_str());
+            }
+
             QoreStringMaker str("expected class '%s'; instead got an object of class '%s'", cname.c_str(), ocname.c_str());
             throw BasicException(str.c_str());
         }

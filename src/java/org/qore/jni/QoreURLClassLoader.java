@@ -22,81 +22,61 @@
 
 package org.qore.jni;
 
-import net.bytebuddy.ByteBuddy;
-import net.bytebuddy.dynamic.DynamicType;
-import net.bytebuddy.NamingStrategy;
-import net.bytebuddy.implementation.MethodCall;
-import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
-import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
-
 import java.net.URLClassLoader;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.FilenameFilter;
+
 import java.nio.file.Files;
 import java.nio.file.FileSystems;
+
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.HashSet;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
+import java.util.Enumeration;
 
 public class QoreURLClassLoader extends URLClassLoader {
     private static InheritableThreadLocal<QoreURLClassLoader> current = new InheritableThreadLocal<QoreURLClassLoader>();
     private HashSet<String> classPathElements = new HashSet<String>();
     private String classPath = new String();
     private long pgm_ptr = 0;
-    private static Class objArray;
-
-    private static final String CLASS_FIELD = "cls";
-
-    // copied from org.objectweb.asm.Opcodes
-    public static final int ACC_PUBLIC = (1 << 0);
-    public static final int ACC_ABSTRACT = (1 << 10);
+    private boolean enable_cache = false;
 
     // cache of inner classes to resolve circular dependencies when injecting classes
     private HashMap<String, byte[]> pendingClasses = new HashMap<String, byte[]>();
 
-    // static initialization
-    static {
-        try {
-            objArray = Class.forName("[L" + Object.class.getCanonicalName() + ";");
+    // cache of classes when running as the boot classloader
+    private HashMap<String, Class<?>> classCache = new HashMap<String, Class<?>>();
 
-            /*
-            Class<?>[] args = new Class<?>[2];
-            args[0] = long.class;
-            args[1] = objArray;
-            mConstructorCall = BBTest.class.getDeclaredMethod("doConstructorCall", args);
-
-            Class<?>[] args = new Class<?>[2];
-            args[0] = String.class;
-            args[1] = objArray;
-            mStaticCall = BBTest.class.getDeclaredMethod("doStaticCall", args);
-
-            args = new Class<?>[3];
-            args[0] = String.class;
-            args[1] = long.class;
-            args[2] = objArray;
-            mNormalCall = BBTest.class.getDeclaredMethod("doNormalCall", args);
-            */
-        } catch (Throwable e) {
-            throw new ExceptionInInitializerError(e);
-        }
+    // constructor for using this class as the boot classloader for the module
+    public QoreURLClassLoader() {
+        super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
+        setContext();
+        enable_cache = true;
     }
 
-    public QoreURLClassLoader(long p_ptr) {
-        super("QoreURLClassLoader", new URL[]{}, ClassLoader.getPlatformClassLoader());
+    public QoreURLClassLoader(long p_ptr, ClassLoader parent) {
+        super("QoreURLClassLoader", new URL[]{}, parent);
         // set the current classloader as the thread context classloader
         pgm_ptr = p_ptr;
         setContext();
+    }
+
+    public URL findResource(final String name) {
+        URL rv = super.findResource(name);
+        System.out.printf("QoreURLClassLoader.findResource(%s): %s\n", name, rv);
+        return rv;
+    }
+
+    public Enumeration<URL> findResources(final String name) throws IOException {
+        Enumeration<URL> rv = super.findResources(name);
+        System.out.printf("QoreURLClassLoader.findResources(%s): %s\n", name, rv);
+        return rv;
     }
 
     public void addPathOrig(String path) throws Exception {
@@ -106,20 +86,48 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     // adds byte code for an inner class to the byte code cache; requires a dot name (ex: \c my.package.MyClass$1)
     public void addPendingClass(String name, byte[] byte_code) {
-        //debugLog("addPendingClass: " + name + " len: " + byte_code.length);
+        if (byte_code == null) {
+            throw new RuntimeException("QoreURLClassLoader.addPendingClass() called with null byte_code");
+        }
         pendingClasses.put(name, byte_code);
+        //debugLog("addPendingClass: " + name + " len: " + byte_code.length + " hm size: " + pendingClasses.size());
+    }
+
+    public Class<?> getResolveClass(String name) throws ClassNotFoundException {
+        Class<?> rv = tryGetPendingClass(name);
+        if (rv == null) {
+            rv = super.findClass(name);
+        }
+        resolveClass(rv);
+        return rv;
+    }
+
+    public void clearCache() {
+        pendingClasses.clear();
     }
 
     // for resolving circular dependencies when defining inner classes
     private Class<?> tryGetPendingClass(String name) {
         byte[] byte_code = pendingClasses.get(name);
+
         if (byte_code == null) {
+            if (enable_cache) {
+                Class<?> rv = classCache.get(name);
+                if (rv == null) {
+                    ClassLoader parent = getParent();
+                    if (parent != null && (parent instanceof QoreURLClassLoader)) {
+                        rv = ((QoreURLClassLoader)parent).tryGetPendingClass(name);
+                    }
+                }
+                return rv;
+            }
+
             return null;
         }
         // remove from the cache
         pendingClasses.remove(name);
         // create the class and return it
-        return defineClass(name, byte_code, 0, byte_code.length);
+        return defineClassIntern(name, byte_code, 0, byte_code.length);
     }
 
     protected Class<?> findClass(String name) throws ClassNotFoundException {
@@ -134,17 +142,12 @@ public class QoreURLClassLoader extends URLClassLoader {
         if (rv != null) {
             return rv;
         }
-        //return super.findClass(name);
+
         try {
             return super.findClass(name);
         } catch (ClassNotFoundException e) {
             if (name.startsWith("qore.") && name.length() > 5) {
-                try {
-                    return createJavaQoreClass(name);
-                } catch (Throwable e1) {
-                    e1.printStackTrace();
-                    throw new ClassNotFoundException(e1.toString());
-                }
+                return createJavaQoreClass(name);
             }
             throw e;
         }
@@ -164,8 +167,22 @@ public class QoreURLClassLoader extends URLClassLoader {
     }
     */
 
+    protected Class<?> defineClassIntern(String name, byte[] byte_code, int off, int len) throws ClassFormatError {
+        Class<?> rv = defineClass(name, byte_code, off, len);
+        if (enable_cache) {
+            classCache.put(name, rv);
+            //debugLog("QoreURLClassLoader.defineClassIntern() caching " + name);
+        }
+        return rv;
+    }
+
+    public Class<?> defineClassUnconditional(String name, byte[] byte_code, int off, int len) throws ClassFormatError {
+        // create the class and return it
+        return defineClassIntern(name, byte_code, 0, byte_code.length);
+    }
+
     public Class<?> defineResolveClass(String name, byte[] b, int off, int len) throws ClassFormatError {
-        Class<?> rv = defineClass(name, b, off, len);
+        Class<?> rv = defineClassIntern(name, b, off, len);
         resolveClass(rv);
         return rv;
     }
@@ -312,62 +329,14 @@ public class QoreURLClassLoader extends URLClassLoader {
         }
     }
 
-    public DynamicType.Builder<?> getClassBuilder(String className, Class<?> parentClass, boolean is_abstract, long cptr)
-            throws NoSuchMethodException, RuntimeException {
-        DynamicType.Builder<?> bb;
-        try {
-            bb = new ByteBuddy()
-                .with(new NamingStrategy.AbstractBase() {
-                    @Override
-                    public String name(TypeDescription superClass) {
-                        return className;
-                    }
-                })
-                .subclass(parentClass, ConstructorStrategy.Default.NO_CONSTRUCTORS);
-        } catch (NoClassDefFoundError e) {
-            throw new RuntimeException(String.format("qore-jni.jar module not in CLASSPATH; bytecode generation unavailable; " +
-                "cannot perform dynamic imports in Java"));
-        }
-
-        int modifiers = ACC_PUBLIC;
-        if (is_abstract) {
-            modifiers |= ACC_ABSTRACT;
-        }
-
-        bb = bb.modifiers(modifiers);
-
-        // add a static field for storing the class ptr
-        bb = (DynamicType.Builder<?>)bb.defineField(CLASS_FIELD, long.class,
-            Modifier.FINAL | Modifier.PUBLIC | Modifier.STATIC)
-            .value(cptr);
-
-        // create default constructor
-        List<Type> paramTypes = new ArrayList<Type>();
-        paramTypes.add(objArray);
-        bb = (DynamicType.Builder<?>)bb.defineConstructor(Modifier.PUBLIC)
-            .withParameters(paramTypes)
-            .throwing(Throwable.class)
-            .intercept(
-                MethodCall.invoke(parentClass.getConstructor(long.class, objArray))
-                .onSuper()
-                .with(cptr)
-                .withArgumentArray()
-            )
-            ;
-
-        return bb;
-    }
-
-    public Class<?> getClassFromBuilder(DynamicType.Builder<?> bb) {
-        return bb
-            .make()
-            .load(getClass().getClassLoader(), ClassLoadingStrategy.Default.WRAPPER)
-            .getLoaded();
-    }
-
     private Class<?> createJavaQoreClass(String name) throws ClassNotFoundException {
         String qname = "::" + name.substring(5).replace(".", "::");
-        Class<?> jcls = createJavaQoreClass0(pgm_ptr, qname, name);
+        Class<?> jcls;
+        if (pgm_ptr != 0) {
+            jcls = createJavaQoreClass0(pgm_ptr, qname, name);
+        } else {
+            jcls = null;
+        }
         if (jcls == null) {
             throw new ClassNotFoundException(String.format("could not find a Qore source class matching '%s' to create Java class '%s'",
                 qname, name));

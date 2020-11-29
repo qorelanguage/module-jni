@@ -16,6 +16,8 @@
 hashdecl JarClassInfo {
     # java name (ex: java/lang/Class)
     string jname;
+    # binary name (ex: java.lang.Class)
+    string bname;
     # C++ class variable name
     string cpp_var;
     # binary class data variable name
@@ -38,6 +40,7 @@ class MakeInc {
         date accum = 0s;
 
         const Opts = {
+            "test": "T,test",
             "verbose": "v,verbose:i+",
             "help": "h,help",
         };
@@ -101,7 +104,7 @@ class MakeInc {
             printf("generating %s: ", orig_outname);
         }
 
-        #pstart = now_us();
+        pstart = now_us();
 
         # scan dirs
         scanDirs(w, tmp.path);
@@ -118,21 +121,43 @@ class MakeInc {
         w.print("\n");
 
         # output global vars
-        map w.printf("GlobalReference<jclass> %s;\n", $1.class_data_var_name), jar_classes;
+        map w.printf("GlobalReference<jclass> %s;\n", $1.cpp_var), jar_classes, $1.bname !~ /\$/;
         w.print("\n");
 
         # output init func
-        w.print("static void native_jar_init(Env& env, jclass syscl) {\n");
-        w.print("    SimpleRefHolder<BinaryNode> b(new BinaryNode);\n    unsigned int size;\n");
+        w.print("static void native_jar_init(Env& env, jobject syscl) {\n");
+        w.print("    SimpleRefHolder<BinaryNode> b(new BinaryNode);\n    unsigned int size;\n    int rc;\n");
 
         foreach hash<JarClassInfo> info in (jar_classes) {
-            w.printf("\n    // create class %s\n", info.jname);
+            w.printf("\n    // create class %s in cache\n", info.bname);
             w.print("    b->clear();\n");
             w.printf("    b->preallocate(%d);\n    size = %d;\n", info.len, info.len);
-            w.printf("    BZ2_bzBuffToBuffDecompress((char*)b->getPtr(), &size, (char*)%s, %d, 0, 0);\n", info.cpp_var,
-                info.compressed_len);
-            w.printf("    %s = Globals::findDefineClass(env, \"%s\", syscl, (const unsigned char*)b->getPtr(), "
-                "b->size()).makeGlobal();\n", info.class_data_var_name, info.jname);
+            w.printf("    rc = BZ2_bzBuffToBuffDecompress((char*)b->getPtr(), &size, (char*)%s, %d, 0, 0);\n",
+                info.class_data_var_name, info.compressed_len);
+            w.printf("    assert(!rc);\n    assert(size == %d);\n", info.len);
+            w.print("    {\n");
+            w.print("        std::vector<jvalue> jargs(2);\n");
+            w.printf("        LocalReference<jstring> bname = env.newString(%y);\n", info.bname);
+            w.print("        jargs[0].l = bname;\n");
+            w.print("        LocalReference<jbyteArray> jbyte_code = QoreToJava::makeByteArray(**b);\n");
+            w.print("        jargs[1].l = jbyte_code;\n");
+            w.printf("        env.callVoidMethod(syscl, Globals::methodQoreURLClassLoaderAddPendingClass, "
+                "&jargs[0]);\n");
+            w.print("    }\n");
+        }
+
+        foreach hash<JarClassInfo> info in (jar_classes) {
+            if (info.bname =~ /\$/) {
+                continue;
+            }
+            w.printf("\n    // get class %s\n", info.bname);
+            w.print("    {\n");
+            w.print("        std::vector<jvalue> jargs(1);\n");
+            w.printf("        LocalReference<jstring> bname = env.newString(%y);\n", info.bname);
+            w.print("        jargs[0].l = bname;\n");
+            w.printf("        %s = env.callObjectMethod(syscl, Globals::methodQoreURLClassLoaderGetResolveClass, "
+                "&jargs[0]).as<jclass>().makeGlobal();\n", info.cpp_var);
+            w.print("    }\n");
         }
 
         w.print("}\n");
@@ -140,17 +165,14 @@ class MakeInc {
 
         # output cleanup func
         w.print("static void native_jar_cleanup() {\n");
-        map w.printf("    %s = nullptr;\n", $1.class_data_var_name), jar_classes;
+        map w.printf("    %s = nullptr;\n", $1.cpp_var), jar_classes, $1.bname !~ /\$/;
         w.print("}\n");
     }
 
     private scanDirs(StreamWriter w, string path, *string jpath) {
-        /*
-        # XXX DEBUG
-        if ((now_us() - pstart) > 2s) {
+        if (opts.test && (now_us() - pstart) > 2s) {
             return;
         }
-        */
 
         Dir d();
         d.chdir(path);
@@ -173,12 +195,9 @@ class MakeInc {
     }
 
     private processClass(StreamWriter w, string path, string jpath, string name) {
-        /*
-        # XXX DEBUG
-        if ((now_us() - pstart) > 2s) {
+        if (opts.test && (now_us() - pstart) > 2s) {
             return;
         }
-        */
         *string jname = jpath;
         if (exists jpath) {
             jname += "/";
@@ -193,17 +212,21 @@ class MakeInc {
             flush();
         }
 
+        string bname = jname;
+        bname =~ s/\//./g;
+
         string vname = jname;
         vname =~ s/[\/\$]/_/g;
-        string cpp_var = sprintf("java_%s_class_data", vname);
+        string class_data_var_name = sprintf("java_%s_class_data", vname);
 
         date start = now_us();
         int len;
-        int compressed_len = doClassFile(new FileInputStream(file), w, file, cpp_var, True, \len);
+        int compressed_len = doClassFile(new FileInputStream(file), w, file, class_data_var_name, True, \len);
         hash<JarClassInfo> info({
             "jname": jname,
-            "cpp_var": cpp_var,
-            "class_data_var_name": vname,
+            "bname": bname,
+            "cpp_var": vname,
+            "class_data_var_name": class_data_var_name,
             "len": len,
             "compressed_len": compressed_len,
         });

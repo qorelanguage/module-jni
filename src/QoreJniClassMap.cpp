@@ -1064,14 +1064,17 @@ JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni) : jni(n_jni
     if (!pgm) {
         pgm = jni_get_create_program(env);
     }
+    assert(pgm);
 
     // set up QoreURLClassLoader constructor args
-    jvalue jarg;
-    jarg.j = reinterpret_cast<long>(pgm);
-    assert(jarg.j);
+    {
+        std::vector<jvalue> jargs(2);
+        jargs[0].j = reinterpret_cast<long>(pgm);
+        jargs[1].l = Globals::syscl;
 
-    // create our custom classloader
-    classLoader = env.newObject(Globals::classQoreURLClassLoader, Globals::ctorQoreURLClassLoader, &jarg).makeGlobal();
+        // create our custom classloader
+        classLoader = env.newObject(Globals::classQoreURLClassLoader, Globals::ctorQoreURLClassLoader, &jargs[0]).makeGlobal();
+    }
 
     {
         // define the QoreJavaDynamicApi class using our new classloader

@@ -58,11 +58,19 @@ MACRO(GENERATE_JAVA _input)
     # generate rules for include files for inner classes (if any)
     foreach (it ${ARGN})
         #message(STATUS "IT: ${it}")
-        SET(_inc_infile ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${_base}$${it}.class)
-        SET(_inc_relinfile ${_pkgdir}/${_base}$${it}.class)
-        # we need cmake to replace the "$" signs in inner class filenames with "$$" so they will be valid Makefile targets
-        SET(_inc_infile_target ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${_base}$$${it}.class)
-        SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${_base}_${it}.inc)
+        if (${it} MATCHES "^[0-9]+$")
+            SET(_inc_infile ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${_base}$${it}.class)
+            SET(_inc_relinfile ${_pkgdir}/${_base}$${it}.class)
+            # we need cmake to replace the "$" signs in inner class filenames with "$$" so they will be valid Makefile targets
+            SET(_inc_infile_target ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${_base}$$${it}.class)
+            SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${_base}_${it}.inc)
+        else()
+            SET(_inc_infile ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${it}.class)
+            SET(_inc_relinfile ${_pkgdir}/${it}.class)
+            # we need cmake to replace the "$" signs in inner class filenames with "$$" so they will be valid Makefile targets
+            SET(_inc_infile_target ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${it}.class)
+            SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${it}.inc)
+        endif()
         add_custom_command(
             OUTPUT ${_inc_outfile}
             COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_inc_infile} ${_inc_outfile}
@@ -132,11 +140,13 @@ generate_java(org/qore/jni/QoreObject.java)
 generate_java(org/qore/jni/QoreClosure.java)
 generate_java(org/qore/jni/QoreObjectWrapper.java)
 generate_java(org/qore/jni/QoreInvocationHandler.java)
-generate_java(org/qore/jni/QoreURLClassLoader.java 1 2)
+generate_java(org/qore/jni/QoreURLClassLoader.java 1)
 generate_java(org/qore/jni/QoreRelativeTime.java)
 generate_java(org/qore/jni/QoreClosureMarker.java)
 generate_java(org/qore/jni/QoreJavaDynamicApi.java)
 generate_java(org/qore/jni/Hash.java)
+generate_java(org/qore/jni/JavaClassBuilder.java 1)
+generate_jar(${BYTE_BUDDY_JAR} JavaJarByteBuddy)
 
 # add Java sources without native methods
 add_java_source(org/qore/lang/AbstractIterator.java)
@@ -312,6 +322,7 @@ add_custom_target(QORE_INC_FILES DEPENDS ${QORE_INC_SRC})
 add_dependencies(${module_name} QORE_INC_FILES)
 
 target_link_libraries(${module_name} ${JNI_LIBRARIES} ${BZIP2_LIBRARIES})
+#target_link_libraries(${module_name} ${JNI_LIBRARIES})
 
 set(MODULE_DOX_INPUT ${CMAKE_CURRENT_BINARY_DIR}/mainpage.dox ${JAVA_JAR_SRC_STR} ${QPP_DOX})
 string(REPLACE ";" " " MODULE_DOX_INPUT "${MODULE_DOX_INPUT}")
