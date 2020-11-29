@@ -122,7 +122,7 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t arg
         }
     }
 
-    return std::move(jargs);
+    return jargs;
 }
 
 LocalReference<jobjectArray> BaseMethod::convertArgsToArray(const QoreListNode* args, size_t arg_offset, size_t array_offset) const {
@@ -234,9 +234,6 @@ QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreListNode* args,
 
 QoreValue BaseMethod::invokeStatic(const QoreListNode* args, int offset) const {
     Env env;
-
-    jclass static_cls = nullptr;
-    jmethodID static_method_id;
 
     JniExternalProgramData* jpc = jni_get_context();
     if (jpc) {
