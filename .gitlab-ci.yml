@@ -12,6 +12,8 @@ test:
     REPO_NAME: module-jni
     POSTGRES_PASSWORD: omq
     QORE_DB_CONNSTR: pgsql:postgres/omq@postgres%postgres
+    TZ: Europe/Prague
+    PGTZ: Europe/Prague
   script:
     - |
         curl "https://api.github.com/repos/qorelanguage/${REPO_NAME}/statuses/${CI_COMMIT_SHA}" \
