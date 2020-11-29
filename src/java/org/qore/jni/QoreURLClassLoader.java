@@ -67,6 +67,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         setContext();
     }
 
+    /*
     public URL findResource(final String name) {
         URL rv = super.findResource(name);
         System.out.printf("QoreURLClassLoader.findResource(%s): %s\n", name, rv);
@@ -78,6 +79,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         System.out.printf("QoreURLClassLoader.findResources(%s): %s\n", name, rv);
         return rv;
     }
+    */
 
     public void addPathOrig(String path) throws Exception {
         //debugLog("QoreURLClassLoader.addPath(): file://" + path);

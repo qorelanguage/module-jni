@@ -99,7 +99,7 @@ MACRO(GENERATE_JAR _input _output)
     )
 
     SET(QORE_INC_FILES ${QORE_INC_FILES} ${_inc_outfile})
-ENDMACRO(GENERATE_JAVA)
+ENDMACRO(GENERATE_JAR)
 
 # adds a make rule for java -> class generation annd class -> inc generation
 MACRO(ADD_JAVA_SOURCE _input)

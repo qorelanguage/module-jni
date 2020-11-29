@@ -320,9 +320,9 @@ public class Main inherits QUnit::Test {
         addTestCase("base test", \testJms());
 
         # ex: file:///home/user/glassfish4/glassfish/lib/gf-client.jar
-        *string jr = ARGV[0] ?? ENV.GLASSFISH_JAR;
+        *string jr = ARGV[0] ?? ENV.PAYARA_JAR;
         if (!jr) {
-            printf("missing glassfish JAR path; enter it on the command-line or use GLASSFISH_JAR\n");
+            printf("missing glassfish JAR path; enter it on the command-line or use PAYARA_JAR\n");
             exit(1);
         }
         jar = jr;
