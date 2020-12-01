@@ -37,6 +37,8 @@
 #include "QoreToJava.h"
 #include "QoreJniClassMap.h"
 
+#include <bzlib.h>
+
 namespace jni {
 
 // Qore initialization flag
@@ -785,6 +787,43 @@ static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jclass, jlong 
     return nullptr;
 }
 
+struct class_info_t {
+    unsigned compressed_len;
+    unsigned len;
+    unsigned char* byte_code;
+};
+
+typedef std::map<const char*, class_info_t, ltstr> cmap_t;
+
+DLLLOCAL extern cmap_t jar_cmap;
+
+static jobject qore_url_classloader_get_cached_class(JNIEnv* jenv, jclass jcls, jstring bin_name) {
+    Env env(jenv);
+    Env::GetStringUtfChars bname(env, bin_name);
+
+    cmap_t::const_iterator i = jar_cmap.find(bname.c_str());
+    if (i == jar_cmap.end()) {
+        //printd(LogLevel, "qore_url_classloader_get_cached_class() '%s' not found\n", bname.c_str());
+        return nullptr;
+    }
+
+    // decompress class data
+    SimpleRefHolder<BinaryNode> b(new BinaryNode);
+    b->preallocate(i->second.len);
+    unsigned size = i->second.len;
+    int rc = BZ2_bzBuffToBuffDecompress((char*)b->getPtr(), &size, (char*)i->second.byte_code, i->second.compressed_len, 0, 0);
+    assert(!rc);
+    assert(size == i->second.len);
+
+    LocalReference<jbyteArray> array = env.newByteArray(b->size()).as<jbyteArray>();
+    for (jsize j = 0; j < static_cast<jsize>(i->second.len); ++j) {
+        env.setByteArrayElement(array, j, ((const char*)b->getPtr())[j]);
+    }
+
+    //printd(LogLevel, "qore_url_classloader_get_cached_class() FOUND '%s'\n", bname.c_str());
+    return array.release();
+}
+
 static jclass JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv, jclass jcls, jlong ptr, jstring nspath, jstring jname) {
     assert(ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
@@ -840,6 +879,7 @@ static jclass JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv, 
         printd(0, "qore_url_classloader_create_java_qore_class() bb: %p\n", *bb);
 
         jargs[0].l = bb;
+        jargs[1].l = Globals::syscl;
         LocalReference<jclass> rv = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
             Globals::methodJavaClassBuilderGetClassFromBuilder, &jargs[0]).as<jclass>();
         printd(0, "qore_url_classloader_create_java_qore_class() rv: %p\n", *rv);
@@ -862,6 +902,7 @@ static jclass JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv, 
 
 static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass jcls, QoreClass* qcls, jobject args) {
     printd(0, "qore_object_create() jcls: %p qcls: %p, args: %p\n", jcls, qcls, args);
+    assert(false);
     return 0;
 }
 
@@ -1036,6 +1077,11 @@ static JNINativeMethod qoreClosureNativeMethods[] = {
 
 static JNINativeMethod qoreURLClassLoaderNativeMethods[] = {
     {
+        const_cast<char*>("getCachedClass0"),
+        const_cast<char*>("(Ljava/lang/String;)[B"),
+        reinterpret_cast<void*>(qore_url_classloader_get_cached_class),
+    },
+    {
         const_cast<char*>("createJavaQoreClass0"),
         const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;)Ljava/lang/Class;"),
         reinterpret_cast<void*>(qore_url_classloader_create_java_qore_class),
@@ -1046,6 +1092,28 @@ static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperNa
     LocalReference<jclass> wrapperClass = env.findClass(wrapperName);
     jfieldID typeFieldId = env.getStaticField(wrapperClass, "TYPE", "Ljava/lang/Class;");
     return std::move(env.getStaticObjectField(wrapperClass, typeFieldId).as<jclass>().makeGlobal());
+}
+
+// uncompress and create class
+static LocalReference<jclass> define_class(const char* bin_name, BinaryNode& dest, unsigned dest_len, const void* source_buf, unsigned source_len) {
+    dest.clear();
+    dest.preallocate(dest_len);
+#ifdef DEBUG
+    unsigned orig_size = dest_len;
+    int rc =
+#endif
+    BZ2_bzBuffToBuffDecompress((char*)dest.getPtr(), &dest_len, (char*)source_buf, source_len, 0, 0);
+    assert(!rc);
+    assert(dest_len == orig_size);
+
+    Env env;
+
+    std::vector<jvalue> jargs(2);
+    LocalReference<jstring> bname = env.newString(bin_name);
+    jargs[0].l = bname;
+    LocalReference<jbyteArray> jbyte_code = QoreToJava::makeByteArray(dest);
+    jargs[1].l = jbyte_code;
+    return env.callObjectMethod(Globals::syscl, Globals::methodQoreURLClassLoaderDefineClassUnconditional, &jargs[0]).as<jclass>();
 }
 
 #include "JavaClassQoreInvocationHandler.inc"
@@ -1174,7 +1242,7 @@ void Globals::init() {
     classQoreURLClassLoader = findDefineClass(env, "org.qore.jni.QoreURLClassLoader", nullptr,
         java_org_qore_jni_QoreURLClassLoader_class, java_org_qore_jni_QoreURLClassLoader_class_len).makeGlobal();
     methodQoreURLClassLoaderDefineClassUnconditional = env.getMethod(classQoreURLClassLoader, "defineClassUnconditional",
-        "(Ljava/lang/String;[BII)Ljava/lang/Class;");
+        "(Ljava/lang/String;[B)Ljava/lang/Class;");
     {
         jmethodID ctorQoreURLClassLoaderSys = env.getMethod(classQoreURLClassLoader, "<init>", "()V");
         syscl = env.newObject(classQoreURLClassLoader, ctorQoreURLClassLoaderSys, nullptr).makeGlobal();
@@ -1364,8 +1432,6 @@ void Globals::init() {
     ctorCharacter = env.getMethod(classCharacter, "<init>", "(C)V");
     methodCharacterCharValue = env.getMethod(classCharacter, "charValue", "()C");
 
-    native_jar_init(env, syscl);
-
     {
        std::vector<jvalue> jargs(2);
        LocalReference<jbyteArray> jbyte_code = env.newByteArray(java_org_qore_jni_JavaClassBuilder_1_class_len).as<jbyteArray>();
@@ -1398,7 +1464,7 @@ void Globals::init() {
     methodJavaClassBuilderGetClassBuilder = env.getStaticMethod(classJavaClassBuilder, "getClassBuilder",
         "(Ljava/lang/String;Ljava/lang/Class;ZJ)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderGetClassFromBuilder = env.getStaticMethod(classJavaClassBuilder, "getClassFromBuilder",
-        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;)Ljava/lang/Class;");
+        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/ClassLoader;)Ljava/lang/Class;");
 }
 
 void Globals::cleanup() {
@@ -1455,8 +1521,6 @@ void Globals::cleanup() {
     classDouble = nullptr;
     classFloat = nullptr;
     classCharacter = nullptr;
-
-    native_jar_cleanup();
 }
 
 Type Globals::getType(jclass cls) {

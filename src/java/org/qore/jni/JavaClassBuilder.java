@@ -97,10 +97,10 @@ class JavaClassBuilder {
         return bb;
     }
 
-    static public Class<?> getClassFromBuilder(DynamicType.Builder<?> bb) {
+    static public Class<?> getClassFromBuilder(DynamicType.Builder<?> bb, ClassLoader classLoader) {
         return bb
             .make()
-            .load(JavaClassBuilder.class.getClassLoader(), ClassLoadingStrategy.Default.WRAPPER)
+            .load(classLoader, ClassLoadingStrategy.Default.WRAPPER)
             .getLoaded();
     }
 }

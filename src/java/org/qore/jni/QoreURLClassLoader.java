@@ -150,24 +150,29 @@ public class QoreURLClassLoader extends URLClassLoader {
         } catch (ClassNotFoundException e) {
             if (name.startsWith("qore.") && name.length() > 5) {
                 return createJavaQoreClass(name);
+            } else {
+                byte[] byte_code = getCachedClass0(name);
+                if (byte_code != null) {
+                    return defineClassIntern(name, byte_code, 0, byte_code.length);
+                }
             }
             throw e;
         }
     }
 
-    /*
     public Class<?> loadClass(String name) throws ClassNotFoundException {
+        /*
         debugLog("loadClass: " + name);
         for (URL url : getURLs()) {
             debugLog(" + " + url.toString());
         }
+        */
         Class<?> rv = tryGetPendingClass(name);
         if (rv != null) {
             return rv;
         }
         return super.loadClass(name);
     }
-    */
 
     protected Class<?> defineClassIntern(String name, byte[] byte_code, int off, int len) throws ClassFormatError {
         Class<?> rv = defineClass(name, byte_code, off, len);
@@ -178,7 +183,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         return rv;
     }
 
-    public Class<?> defineClassUnconditional(String name, byte[] byte_code, int off, int len) throws ClassFormatError {
+    public Class<?> defineClassUnconditional(String name, byte[] byte_code) throws ClassFormatError {
         // create the class and return it
         return defineClassIntern(name, byte_code, 0, byte_code.length);
     }
@@ -361,5 +366,6 @@ public class QoreURLClassLoader extends URLClassLoader {
         }
     }
 
+    static private native byte[] getCachedClass0(String name);
     static private native Class<?> createJavaQoreClass0(long ptr, String qname, String name);
 }

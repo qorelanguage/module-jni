@@ -113,60 +113,11 @@ class MakeInc {
             print(" done\n");
         }
 
-        # XXX DEBUG
-        #date duration = now_us() - pstart;
-        #printf("t: %y d: %y (diff: %y)\n", duration, accum, duration - accum);
-
-        w.print("#include <bzlib.h>\n");
-        w.print("\n");
-
-        # output global vars
-        map w.printf("GlobalReference<jclass> %s;\n", $1.cpp_var), jar_classes, $1.bname !~ /\$/;
-        w.print("\n");
-
-        # output init func
-        w.print("static void native_jar_init(Env& env, jobject syscl) {\n");
-        w.print("    SimpleRefHolder<BinaryNode> b(new BinaryNode);\n    unsigned int size;\n    int rc;\n");
-
-        foreach hash<JarClassInfo> info in (jar_classes) {
-            w.printf("\n    // create class %s in cache\n", info.bname);
-            w.print("    b->clear();\n");
-            w.printf("    b->preallocate(%d);\n    size = %d;\n", info.len, info.len);
-            w.printf("    rc = BZ2_bzBuffToBuffDecompress((char*)b->getPtr(), &size, (char*)%s, %d, 0, 0);\n",
-                info.class_data_var_name, info.compressed_len);
-            w.printf("    assert(!rc);\n    assert(size == %d);\n", info.len);
-            w.print("    {\n");
-            w.print("        std::vector<jvalue> jargs(2);\n");
-            w.printf("        LocalReference<jstring> bname = env.newString(%y);\n", info.bname);
-            w.print("        jargs[0].l = bname;\n");
-            w.print("        LocalReference<jbyteArray> jbyte_code = QoreToJava::makeByteArray(**b);\n");
-            w.print("        jargs[1].l = jbyte_code;\n");
-            w.printf("        env.callVoidMethod(syscl, Globals::methodQoreURLClassLoaderAddPendingClass, "
-                "&jargs[0]);\n");
-            w.print("    }\n");
-        }
-
-        foreach hash<JarClassInfo> info in (jar_classes) {
-            if (info.bname =~ /\$/) {
-                continue;
-            }
-            w.printf("\n    // get class %s\n", info.bname);
-            w.print("    {\n");
-            w.print("        std::vector<jvalue> jargs(1);\n");
-            w.printf("        LocalReference<jstring> bname = env.newString(%y);\n", info.bname);
-            w.print("        jargs[0].l = bname;\n");
-            w.printf("        %s = env.callObjectMethod(syscl, Globals::methodQoreURLClassLoaderGetResolveClass, "
-                "&jargs[0]).as<jclass>().makeGlobal();\n", info.cpp_var);
-            w.print("    }\n");
-        }
-
-        w.print("}\n");
-        w.print("\n");
-
-        # output cleanup func
-        w.print("static void native_jar_cleanup() {\n");
-        map w.printf("    %s = nullptr;\n", $1.cpp_var), jar_classes, $1.bname !~ /\$/;
-        w.print("}\n");
+        # output class map
+        w.print("DLLLOCAL cmap_t jar_cmap = {\n");
+        map w.printf("    {%y, {%d, %d, %s}},\n", $1.bname, $1.compressed_len, $1.len, $1.class_data_var_name),
+            jar_classes;
+        w.print("};\n");
     }
 
     private scanDirs(StreamWriter w, string path, *string jpath) {

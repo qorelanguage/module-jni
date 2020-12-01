@@ -166,11 +166,11 @@ public:
     DLLLOCAL static jmethodID methodQoreURLClassLoaderDefineResolveClass;         // Class<?> QoreURLClassLoader.defineResolveClass​(String, byte[], int, int)
     DLLLOCAL static jmethodID methodQoreURLClassLoaderGetResolveClass;            // Class<?> QoreURLClassLoader.getResolveClass(String)
     DLLLOCAL static jmethodID methodQoreURLClassLoaderClearCache;                 // void QoreURLClassLoader.clearCache()
-    DLLLOCAL static jmethodID methodQoreURLClassLoaderDefineClassUnconditional;   // Class<?> QoreURLClassLoader.defineClassUnconditional(String, byte[], int, int)
+    DLLLOCAL static jmethodID methodQoreURLClassLoaderDefineClassUnconditional;   // Class<?> QoreURLClassLoader.defineClassUnconditional(String, byte[])
 
     DLLLOCAL static GlobalReference<jclass> classJavaClassBuilder;                // org.qore.jni.JavaClassBuilder
     DLLLOCAL static jmethodID methodJavaClassBuilderGetClassBuilder;              // static DynamicType.Builder<?> getClassBuilder(String, Class<?>, boolean, long)
-    DLLLOCAL static jmethodID methodJavaClassBuilderGetClassFromBuilder;          // static Class<?> getClassFromBuilder(DynamicType.Builder<?>)
+    DLLLOCAL static jmethodID methodJavaClassBuilderGetClassFromBuilder;          // static Class<?> getClassFromBuilder(DynamicType.Builder<?>, ClassLoader)
 
     DLLLOCAL static GlobalReference<jclass> classThread;                          // java.lang.Thread
     DLLLOCAL static jmethodID methodThreadCurrentThread;                          // Thread Thread.currentThread()
