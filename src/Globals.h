@@ -170,6 +170,9 @@ public:
 
     DLLLOCAL static GlobalReference<jclass> classJavaClassBuilder;                // org.qore.jni.JavaClassBuilder
     DLLLOCAL static jmethodID methodJavaClassBuilderGetClassBuilder;              // static DynamicType.Builder<?> getClassBuilder(String, Class<?>, boolean, long)
+    DLLLOCAL static jmethodID methodJavaClassBuilderAddConstructor;               // static DynamicType.Builder<?> addConstructor(DynamicType.Builder<?>, Class<?>, int, List<Type>)
+    DLLLOCAL static jmethodID methodJavaClassBuilderAddNormalMethod;              // static DynamicType.Builder<?> methodJavaClassBuilderAddNormalMethod(DynamicType.Builder<?>, String, int, Class<?>, List<Type>)
+    DLLLOCAL static jmethodID methodJavaClassBuilderAddStaticMethod;              // static DynamicType.Builder<?> methodJavaClassBuilderAddStaticMethod(DynamicType.Builder<?>, String, int, Class<?>, List<Type>)
     DLLLOCAL static jmethodID methodJavaClassBuilderGetClassFromBuilder;          // static Class<?> getClassFromBuilder(DynamicType.Builder<?>, ClassLoader)
 
     DLLLOCAL static GlobalReference<jclass> classThread;                          // java.lang.Thread

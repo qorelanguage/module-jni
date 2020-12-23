@@ -161,6 +161,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("jni test", "1.0") {
+        addTestCase("codegen test", \javaCodegenTest());
         addTestCase("code test", \testCode());
         addTestCase("smtpclient test", \smtpClientTest());
         addTestCase("mailmessage test", \mailMessageTest());
@@ -201,6 +202,13 @@ public class Main inherits QUnit::Test {
         if (m_options.verbose > 2) {
             vprintf("HTTP: " + fmt, argv);
         }
+    }
+
+    javaCodegenTest() {
+        lang::Class seqClass = load_class("qore/Qore/Thread/Sequence");
+        object obj = seqClass.getDeclaredConstructor().newInstance();
+        obj.next();
+        assertEq(1, obj.next());
     }
 
     testCode() {

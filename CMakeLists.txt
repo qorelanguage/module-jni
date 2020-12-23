@@ -93,7 +93,7 @@ MACRO(GENERATE_JAR _input _output)
     add_custom_command(
         OUTPUT ${_inc_outfile}
         COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_input} ${_inc_outfile}
-        DEPENDS ${_qore_jni_sentinel}
+        #DEPENDS ${_qore_jni_sentinel}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
