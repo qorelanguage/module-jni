@@ -47,6 +47,9 @@ public class QoreURLClassLoader extends URLClassLoader {
     private long pgm_ptr = 0;
     private boolean enable_cache = false;
 
+    // used to mark java class creation in progress; binary names used
+    private HashSet<String> classInProgress = new HashSet<String>();
+
     // cache of inner classes to resolve circular dependencies when injecting classes
     private HashMap<String, byte[]> pendingClasses = new HashMap<String, byte[]>();
 
@@ -149,7 +152,21 @@ public class QoreURLClassLoader extends URLClassLoader {
             return super.findClass(name);
         } catch (ClassNotFoundException e) {
             if (name.startsWith("qore.") && name.length() > 5) {
-                return createJavaQoreClass(name);
+                // check and set java class creation atomically
+                synchronized (this) {
+                    if (classInProgress.contains(name)) {
+                        throw e;
+                    }
+                    classInProgress.add(name);
+                }
+
+                // only remove from set if successful
+                rv = createJavaQoreClass(name);
+                // check and set java class creation atomically
+                synchronized (this) {
+                    classInProgress.remove(name);
+                }
+                return rv;
             } else {
                 byte[] byte_code = getCachedClass0(name);
                 if (byte_code != null) {

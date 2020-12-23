@@ -184,16 +184,16 @@ public:
     DLLLOCAL static jmethodID ctorHash;                                           // Hash()
     DLLLOCAL static jmethodID methodHashPut;                                      // Object Hash.put(Object K, Object V)
 
-    //DLLLOCAL static GlobalReference<jclass> classLinkedHashMap;                   // java.util.LinkedHashMap
-    //DLLLOCAL static jmethodID ctorLinkedHashMap;                                  // LinkedHashMap()
-    //DLLLOCAL static jmethodID methodLinkedHashMapPut;                             // Object LinkedHashMap.put(Object K, Object V)
-
     DLLLOCAL static GlobalReference<jclass> classMap;                             // java.util.Map
     DLLLOCAL static jmethodID methodMapEntrySet;                                  // Set<Map.Entry<K,V>> Map.entrySet()
 
     DLLLOCAL static GlobalReference<jclass> classList;                            // java.util.List
     DLLLOCAL static jmethodID methodListSize;                                     // int List.size()
     DLLLOCAL static jmethodID methodListGet;                                      // Object List.get(int index)
+
+    DLLLOCAL static GlobalReference<jclass> classArrayList;                       // java.util.ArrayList
+    DLLLOCAL static jmethodID ctorArrayList;                                      // ArrayList()
+    DLLLOCAL static jmethodID methodArrayListAdd;                                 // int ArrayList.add()
 
     DLLLOCAL static GlobalReference<jclass> classSet;                             // java.util.Set
     DLLLOCAL static jmethodID methodSetIterator;                                  // Set.iterator()

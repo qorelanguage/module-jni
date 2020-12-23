@@ -180,16 +180,16 @@ GlobalReference<jclass> Globals::classHash;
 jmethodID Globals::ctorHash;
 jmethodID Globals::methodHashPut;
 
-//GlobalReference<jclass> Globals::classLinkedHashMap;
-//jmethodID Globals::ctorLinkedHashMap;
-//jmethodID Globals::methodLinkedHashMapPut;
-
 GlobalReference<jclass> Globals::classMap;
 jmethodID Globals::methodMapEntrySet;
 
 GlobalReference<jclass> Globals::classList;
 jmethodID Globals::methodListSize;
 jmethodID Globals::methodListGet;
+
+GlobalReference<jclass> Globals::classArrayList;
+jmethodID Globals::ctorArrayList;
+jmethodID Globals::methodArrayListAdd;
 
 GlobalReference<jclass> Globals::classSet;
 jmethodID Globals::methodSetIterator;
@@ -883,131 +883,6 @@ static jobject JNICALL java_class_builder_do_static_call(JNIEnv* jenv, jclass jc
     return java_api_call_static_method_internal(jenv, nullptr, reinterpret_cast<jlong>(pgm), true, nullptr, mname, args, qc);
 }
 
-// ACC opcodes
-constexpr int ACC_PUBLIC = 0x0001; // class, field, method
-constexpr int ACC_PRIVATE = 0x0002; // class, field, method
-constexpr int ACC_PROTECTED = 0x0004; // class, field, method
-constexpr int ACC_STATIC = 0x0008; // field, method
-constexpr int ACC_FINAL = 0x0010; // class, field, method, parameter
-constexpr int ACC_SUPER = 0x0020; // class
-constexpr int ACC_SYNCHRONIZED = 0x0020; // method
-constexpr int ACC_VOLATILE = 0x0040; // field
-constexpr int ACC_BRIDGE = 0x0040; // method
-constexpr int ACC_VARARGS = 0x0080; // method
-constexpr int ACC_TRANSIENT = 0x0080; // field
-constexpr int ACC_NATIVE = 0x0100; // method
-constexpr int ACC_INTERFACE = 0x0200; // class
-constexpr int ACC_ABSTRACT = 0x0400; // class, method
-constexpr int ACC_STRICT = 0x0800; // method
-constexpr int ACC_SYNTHETIC = 0x1000; // class, field, method, parameter
-constexpr int ACC_ANNOTATION = 0x2000; // class
-constexpr int ACC_ENUM = 0x4000; // class(?) field inner
-constexpr int ACC_MANDATED = 0x8000; // parameter
-
-static int qore_jni_get_acc_visibility(const QoreMethod& m) {
-    switch (m.getAccess()) {
-        case Internal: return ACC_PRIVATE;
-        case Private: return ACC_PROTECTED;
-        default:
-            break;
-    }
-    return ACC_PUBLIC;
-}
-
-static jclass qore_jni_get_return_class(const QoreMethod& m) {
-    //const QoreTypeInfo* ti = m.getReturnTypeInfo();
-    return Globals::classObject;
-}
-
-static jobject qore_jni_get_java_params(const QoreMethod& m) {
-    return nullptr;
-}
-
-static int qore_url_classloader_create_java_qore_class_add_constructor(Env& env, const QoreClass& qcls, LocalReference<jobject>& bb, const QoreMethod& m, const QoreExternalVariant& v) {
-    printd(0, "qore_url_classloader_create_java_qore_class_add_constructor() adding Java constructor %s::%s(%s)\n",
-        qcls.getName(), qcls.getName(), v.getSignatureText());
-
-    std::vector<jvalue> jargs(4);
-    jargs[0].l = bb;
-    jargs[1].l = Globals::classQoreObjectBase;
-    jargs[2].i = qore_jni_get_acc_visibility(m);
-    jargs[3].l = qore_jni_get_java_params(m);
-
-    bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder, Globals::methodJavaClassBuilderAddConstructor,
-        &jargs[0]);
-    printd(0, "qore_url_classloader_create_java_qore_class_add_constructor() bb: %p\n", *bb);
-
-    return 0;
-}
-
-static int qore_url_classloader_create_java_qore_class_add_normal_method(Env& env, const QoreClass& qcls, LocalReference<jobject>& bb, const QoreMethod& m, const QoreExternalVariant& v) {
-    printd(0, "qore_url_classloader_create_java_qore_class() adding Java normal method %s::%s(%s)\n",
-        qcls.getName(), m.getName(), v.getSignatureText());
-
-    std::vector<jvalue> jargs(5);
-    jargs[0].l = bb;
-    LocalReference<jstring> mname = env.newString(m.getName());
-    jargs[1].l = mname;
-    jargs[2].i = qore_jni_get_acc_visibility(m);
-    jargs[3].l = qore_jni_get_return_class(m);
-    jargs[4].l = qore_jni_get_java_params(m);
-
-    bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
-        Globals::methodJavaClassBuilderAddNormalMethod, &jargs[0]);
-    printd(0, "qore_url_classloader_create_java_qore_class_add_normal_method() bb: %p\n", *bb);
-
-    return 0;
-}
-
-static int qore_url_classloader_create_java_qore_class_add_methods(Env& env, const QoreClass& qcls, LocalReference<jobject>& bb) {
-    QoreMethodIterator i(qcls);
-    while (i.next()) {
-        const QoreMethod* m = i.getMethod();
-        QoreExternalFunctionIterator vi(*m->getFunction());
-
-        bool _dbg_c = false;
-        bool _dbg_nm = false;
-
-        while (vi.next()) {
-            const QoreExternalVariant* v = vi.getVariant();
-            switch (m->getMethodType()) {
-                case MT_Constructor: {
-                    if (!_dbg_c) {
-                        _dbg_c = true;
-                    } else {
-                        break;
-                    }
-                    if (qore_url_classloader_create_java_qore_class_add_constructor(env, qcls, bb, *m, *v)) {
-                        return -1;
-                    }
-                    break;
-                };
-
-                case MT_Normal: {
-                    if (qore_url_classloader_create_java_qore_class_add_normal_method(env, qcls, bb, *m, *v)) {
-                        return -1;
-                    }
-                    break;
-                }
-
-                case MT_Static: {
-                    printd(0, "qore_url_classloader_create_java_qore_class() adding static method %s::%s(%s)\n",
-                        qcls.getName(), m->getName(), v->getSignatureText());
-                    break;
-                }
-
-                default: {
-                    printd(0, "qore_url_classloader_create_java_qore_class() ignoring method %s::%s(%s)\n",
-                        qcls.getName(), m->getName(), v->getSignatureText());
-                    break;
-                }
-            }
-        }
-    }
-
-    return 0;
-}
-
 static jclass JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv, jclass jcls, jlong ptr, jstring nspath, jstring jname) {
     assert(ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
@@ -1031,52 +906,17 @@ static jclass JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv, 
     }
 
     if (!Globals::classJavaClassBuilder) {
-        env.throwNew(env.findClass("java/lang/RuntimeException"), "qore-jni.jar module not in QORE_CLASSPATH; bytecode " \
-            "generation unavailable; cannot perform dynamic imports in Java");
+        env.throwNew(env.findClass("java/lang/RuntimeException"), "bytecode generation unavailable; cannot perform " \
+            "dynamic imports in Java");
         return nullptr;
     }
 
-    ExceptionSink xsink;
     try {
-        // set program context before converting arguments
-        QoreExternalProgramContextHelper pch(&xsink, pgm);
-        const QoreClass* qcls;
-        if (!xsink) {
-            qcls = pgm->findClass(qpath.c_str(), &xsink);
-        }
-        if (xsink) {
-            assert(!qcls);
-            throw XsinkException(xsink);
-        }
-        jlong cptr = reinterpret_cast<jlong>(qcls);
-
-        printd(0, "qore_url_classloader_create_java_qore_class() p: %p path: '%s': %p\n", pgm, qpath.c_str(), cptr);
-
-        std::vector<jvalue> jargs(4);
-        jargs[0].l = jname;
-        jargs[1].l = Globals::classQoreObjectBase;
-        jargs[2].z = false;
-        jargs[3].j = cptr;
-
-        LocalReference<jobject> bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
-            Globals::methodJavaClassBuilderGetClassBuilder, &jargs[0]);
-        printd(0, "qore_url_classloader_create_java_qore_class() bb: %p\n", *bb);
-
-        // add methods
-        if (qore_url_classloader_create_java_qore_class_add_methods(env, *qcls, bb)) {
-            return nullptr;
-        }
-
-        jargs[0].l = bb;
-        jargs[1].l = Globals::syscl;
-        LocalReference<jclass> rv = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
-            Globals::methodJavaClassBuilderGetClassFromBuilder, &jargs[0]).as<jclass>();
-        printd(0, "qore_url_classloader_create_java_qore_class() rv: %p\n", *rv);
-
-        return rv.release();
+        return QoreJniClassMap::getCreateJavaClass(qpath, pgm, jname).release();
     } catch (jni::Exception& e) {
+        ExceptionSink xsink;
         e.convert(&xsink);
-        QoreToJava::wrapException(xsink);
+        //QoreToJava::wrapException(xsink);
     } catch (const std::bad_alloc& e) {
         // translate OOM C++ exception to a Java exception
         env.throwNew(env.findClass("java/lang/OutOfMemoryError"), e.what());
@@ -1087,7 +927,7 @@ static jclass JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv, 
         // translate unknown C++ exception to a Java exception
         env.throwNew(env.findClass("java/lang/Error"), "Unknown exception type");
     }
-    return 0;
+    return nullptr;
 }
 
 static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass jcls, QoreClass* qcls, jobjectArray args) {
@@ -1630,16 +1470,16 @@ void Globals::init() {
     ctorHash = env.getMethod(classHash, "<init>", "()V");
     methodHashPut = env.getMethod(classHash, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 
-    //classLinkedHashMap = env.findClass("java/util/LinkedHashMap").makeGlobal();
-    //ctorLinkedHashMap = env.getMethod(classLinkedHashMap, "<init>", "()V");
-    //methodLinkedHashMapPut = env.getMethod(classLinkedHashMap, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
-
     classMap = env.findClass("java/util/Map").makeGlobal();
     methodMapEntrySet = env.getMethod(classMap, "entrySet", "()Ljava/util/Set;");
 
     classList = env.findClass("java/util/List").makeGlobal();
     methodListSize = env.getMethod(classList, "size", "()I");
     methodListGet = env.getMethod(classList, "get", "(I)Ljava/lang/Object;");
+
+    classArrayList = env.findClass("java/util/ArrayList").makeGlobal();
+    ctorArrayList = env.getMethod(classArrayList, "<init>", "()V");
+    methodArrayListAdd = env.getMethod(classArrayList, "add", "(Ljava/lang/Object;)Z");
 
     classSet = env.findClass("java/util/Set").makeGlobal();
     methodSetIterator = env.getMethod(classSet, "iterator", "()Ljava/util/Iterator;");
@@ -1784,9 +1624,9 @@ void Globals::cleanup() {
     classThread = nullptr;
     classHashMap = nullptr;
     classHash = nullptr;
-    //classLinkedHashMap = nullptr;
     classMap = nullptr;
     classList = nullptr;
+    classArrayList = nullptr;
     classSet = nullptr;
     classEntry = nullptr;
     classIterator = nullptr;

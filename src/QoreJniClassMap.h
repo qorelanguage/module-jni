@@ -154,10 +154,14 @@ public:
             : findCreateQoreClassInProgram(name, jpath, c);
     }
 
+    DLLLOCAL static LocalReference<jclass> getCreateJavaClass(const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname);
+
+    DLLLOCAL static LocalReference<jclass> getJavaType(const QoreTypeInfo* ti, QoreProgram* pgm);
+
 protected:
     // map of java class names to const QoreTypeInfo ptrs
     typedef std::map<const std::string, const QoreTypeInfo*> jtmap_t;
-    // map for Qore types rom Java classes
+    // map for Qore types from Java classes
     static jtmap_t jtmap;
 
     // struct of type info and primitive type descriptor strings
@@ -168,6 +172,14 @@ protected:
     // map of java primitive type names to type and descriptor info
     typedef std::map<const char*, struct qore_java_primitive_info_t, ltstr> jpmap_t;
     static jpmap_t jpmap;
+
+    // map of Qore base types to java classes
+    typedef std::map<qore_type_t, GlobalReference<jclass>> qt2jmap_t;
+    static qt2jmap_t qt2jmap;
+
+    // map of Qore classes to java classes
+    typedef std::map<const QoreClass*, GlobalReference<jclass>> q2jmap_t;
+    static q2jmap_t q2jmap;
 
     // parent namespace for jni module functionality
     QoreNamespace* default_jns = new QoreNamespace("Jni");
@@ -204,6 +216,9 @@ protected:
         @return the new builtin Qore class object wrapping the Java class
     */
     DLLLOCAL JniQoreClass* findCreateQoreClassInProgram(QoreString& name, const char* jpath, Class* c);
+
+    DLLLOCAL static LocalReference<jclass> getCreateJavaClassIntern(const QoreClass* qcls, QoreProgram* pgm,
+        jstring jname = nullptr);
 
 private:
     // initialization flag
