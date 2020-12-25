@@ -194,7 +194,7 @@ public class Main inherits QUnit::Test {
         addTestCase("special conversions test", \testSpecialConversions());
         addTestCase("api test", \testQoreJavaApi());
 
-        # Return for compatibility with test harness that checks return value.
+        # Return for compatibility with test harnesses that check the return value
         set_return_value(main());
     }
 
@@ -207,8 +207,13 @@ public class Main inherits QUnit::Test {
     javaCodegenTest() {
         lang::Class seqClass = load_class("qore/Qore/Thread/Sequence");
         object obj = seqClass.getDeclaredConstructor().newInstance();
+        assertEq("Sequence", obj.className());
         obj.next();
         assertEq(1, obj.next());
+
+        obj = seqClass.getDeclaredConstructor(load_class("java/lang/Integer")).newInstance(2);
+        obj.next();
+        assertEq(3, obj.next());
     }
 
     testCode() {

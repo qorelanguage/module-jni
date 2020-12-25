@@ -1312,7 +1312,7 @@ public:
     */
     DLLLOCAL LocalReference<jclass> findDefineClass(const char* name, jobject loader, const unsigned char* buf, jsize bufLen) {
         jclass c = env->FindClass(name);
-        if (c) { printd(0, "FOUND '%s': %p\n", name, c); }
+        //if (c) { printd(5, "FOUND '%s': %p\n", name, c); }
         if (!c) {
             c = env->DefineClass(name, loader, reinterpret_cast<const jbyte*>(buf), bufLen);
             if (!c) {

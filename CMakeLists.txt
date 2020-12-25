@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 2.8.13)
 
 project(qore-jni-module)
 
@@ -9,6 +9,11 @@ set (VERSION_PATCH 0)
 set (BYTE_BUDDY_JAR ${CMAKE_SOURCE_DIR}/byte-buddy/byte-buddy-1.10.18.jar)
 
 set(PROJECT_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+
+# enable RPATH in macos bins (OS requires this in any case)
+if (POLICY CMP0042)
+    cmake_policy(SET CMP0042 NEW)
+endif()
 
 find_package(Qore 0.9.5 REQUIRED)
 find_package(JNI REQUIRED)
@@ -101,7 +106,7 @@ MACRO(GENERATE_JAR _input _output)
     SET(QORE_INC_FILES ${QORE_INC_FILES} ${_inc_outfile})
 ENDMACRO(GENERATE_JAR)
 
-# adds a make rule for java -> class generation annd class -> inc generation
+# adds a make rule for java -> class generation and class -> inc generation
 MACRO(ADD_JAVA_SOURCE _input)
     GET_FILENAME_COMPONENT(_base ${_input} NAME_WE)
     GET_FILENAME_COMPONENT(_pkgdir ${_input} PATH)
@@ -131,6 +136,24 @@ MACRO(ADD_JAR_TARGETS)
     endforeach()
 ENDMACRO(ADD_JAR_TARGETS)
 
+# adds a make rule for java -> class generation for the compiler
+MACRO(ADD_JAVA_COMPILER_SOURCE _input)
+    GET_FILENAME_COMPONENT(_base ${_input} NAME_WE)
+    GET_FILENAME_COMPONENT(_pkgdir ${_input} PATH)
+    SET(_class_file ${_pkgdir}/${_base}.class)
+    SET(JAVA_JAR_COMPILER_CLASSES ${JAVA_JAR_COMPILER_CLASSES} ${_class_file})
+    SET(JAVA_JAR_COMPILER_SRC ${JAVA_JAR_COMPILER_SRC} ${CMAKE_SOURCE_DIR}/src/java/${_input})
+
+    # issue #3158: get list of source files for documentation
+    string (REPLACE ";" " " JAVA_JAR_COMPILER_SRC_STR "${JAVA_JAR_COMPILER_SRC}")
+
+    # generate rules for inner classes (if any)
+    foreach (it ${ARGN})
+        SET(_inc_relinfile ${_pkgdir}/${_base}$${it}.class)
+        SET(JAVA_JAR_COMPILER_CLASSES ${JAVA_JAR_COMPILER_CLASSES} ${_inc_relinfile})
+    endforeach()
+ENDMACRO(ADD_JAVA_COMPILER_SOURCE)
+
 # Java sources built in to the binary module with an indication of inner classes, if any
 generate_java(org/qore/jni/QoreJavaApi.java)
 generate_java(org/qore/jni/QoreExceptionWrapper.java)
@@ -140,7 +163,7 @@ generate_java(org/qore/jni/QoreObject.java)
 generate_java(org/qore/jni/QoreClosure.java)
 generate_java(org/qore/jni/QoreObjectWrapper.java)
 generate_java(org/qore/jni/QoreInvocationHandler.java)
-generate_java(org/qore/jni/QoreURLClassLoader.java 1)
+generate_java(org/qore/jni/QoreURLClassLoader.java 1 2 BooleanWrapper)
 generate_java(org/qore/jni/QoreRelativeTime.java)
 generate_java(org/qore/jni/QoreClosureMarker.java)
 generate_java(org/qore/jni/QoreJavaDynamicApi.java)
@@ -198,6 +221,13 @@ add_java_source(org/qore/lang/mailmessage/Attachment.java)
 add_java_source(org/qore/lang/mailmessage/Part.java)
 add_java_source(org/qore/lang/smtpclient/SmtpClient.java)
 
+add_java_compiler_source(org/qore/jni/compiler/CustomJavaFileObject.java)
+add_java_compiler_source(org/qore/jni/compiler/PackageInternalsFinder.java)
+add_java_compiler_source(org/qore/jni/compiler/QoreJavaClassObject.java)
+add_java_compiler_source(org/qore/jni/compiler/QoreJavaCompiler.java)
+add_java_compiler_source(org/qore/jni/compiler/QoreJavaCompilerException.java)
+add_java_compiler_source(org/qore/jni/compiler/QoreJavaFileManager.java)
+
 #message(STATUS "MESSAGE Src: ${JAVA_JAR_SRC}")
 #message(STATUS "STR: ${JAVA_JAR_SRC_STR}")
 #message(STATUS "MESSAGE Classes: ${JAVA_JAR_CLASSES}")
@@ -235,8 +265,16 @@ add_custom_command(
 )
 
 # build and install this jar file so that java code using native classes can be compiled
-add_custom_target(qore-jni ALL DEPENDS qore-jni.jar)
+add_custom_target(qore-jni ALL DEPENDS qore-jni.jar qore-jni-compiler.jar)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qore-jni.jar DESTINATION ${CMAKE_INSTALL_PREFIX}/share/qore/java)
+
+add_jar(qore-jni-compiler ${JAVA_JAR_COMPILER_SRC}
+    INCLUDE_JARS qore-jni.jar
+)
+
+add_dependencies(qore-jni-compiler qore-jni)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qore-jni-compiler.jar DESTINATION ${CMAKE_INSTALL_PREFIX}/share/qore/java)
 
 set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/Callbacks.java

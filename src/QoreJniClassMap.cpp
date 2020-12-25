@@ -954,14 +954,14 @@ static int qore_jni_get_acc_visibility(const QoreMethod& m, const QoreExternalMe
 
 static LocalReference<jclass> qore_jni_get_return_class(const QoreMethod& m, const QoreExternalMethodVariant& v, QoreProgram* pgm) {
     const QoreTypeInfo* ti = v.getReturnTypeInfo();
-    //return env.findClass("java/lang/Integer").release();
     return QoreJniClassMap::getJavaType(ti, pgm);
 }
 
 // returns an ArrayList<Type> object or null
-static LocalReference<jobject> qore_jni_get_java_params(const QoreMethod& m, const QoreExternalMethodVariant& v,
-        QoreProgram* pgm) {
+static LocalReference<jobject> qore_jni_get_java_params(Env& env, const QoreMethod& m, const QoreExternalMethodVariant& v,
+        QoreProgram* pgm, unsigned& len) {
     const type_vec_t& params = v.getParamTypeList();
+    len = params.size();
     if (params.empty()) {
         return nullptr;
     }
@@ -969,7 +969,6 @@ static LocalReference<jobject> qore_jni_get_java_params(const QoreMethod& m, con
     printd(0, "qore_jni_get_java_params() %s::%s() %d param(s)\n", m.getClassName(), m.getName(), (int)params.size());
 
     // create parameter list
-    Env env;
     LocalReference<jobject> plist = env.newObject(Globals::classArrayList, Globals::ctorArrayList, nullptr);
 
     for (const QoreTypeInfo* i : params) {
@@ -984,23 +983,55 @@ static LocalReference<jobject> qore_jni_get_java_params(const QoreMethod& m, con
     return plist.release();
 }
 
+static void shorten_params(Env& env, LocalReference<jobject>& params, unsigned len) {
+    jvalue jarg;
+    jarg.i = (int)len;
+    env.callObjectMethod(Globals::classArrayList, Globals::methodArrayListRemove, &jarg);
+}
+
+static bool check_optional_last_param(Env& env, const QoreExternalMethodVariant& v, LocalReference<jobject>& params,
+        unsigned& len) {
+    --len;
+    const type_vec_t& qore_params = v.getParamTypeList();
+    assert(qore_params.size() > len);
+    // if the type accepts NOTHING, then it's optional
+    if (qore_type_is_assignable_from(qore_params[len], QoreValue())) {
+        shorten_params(env, params, len);
+        return true;
+    }
+
+    const arg_vec_t& def_args = v.getDefaultArgList();
+    if (def_args.size() > len && def_args[len]) {
+        shorten_params(env, params, len);
+        return true;
+    }
+    return false;
+}
+
 static int qore_url_classloader_create_java_qore_class_add_constructor(Env& env, const QoreClass& qcls,
         LocalReference<jobject>& bb, const QoreMethod& m, const QoreExternalMethodVariant& v, QoreProgram* pgm) {
     printd(0, "qore_url_classloader_create_java_qore_class_add_constructor() adding Java constructor %s::%s(%s)\n",
         qcls.getName(), qcls.getName(), v.getSignatureText());
 
     // first get the params
-    LocalReference<jobject> params = qore_jni_get_java_params(m, v, pgm).release();
+    unsigned len;
+    LocalReference<jobject> params = qore_jni_get_java_params(env, m, v, pgm, len).release();
 
-    std::vector<jvalue> jargs(4);
-    jargs[0].l = bb;
-    jargs[1].l = Globals::classQoreObjectBase;
-    jargs[2].i = qore_jni_get_acc_visibility(m, v);
-    jargs[3].l = params;
+    while (true) {
+        std::vector<jvalue> jargs(4);
+        jargs[0].l = bb;
+        jargs[1].l = Globals::classQoreObjectBase;
+        jargs[2].i = qore_jni_get_acc_visibility(m, v);
+        jargs[3].l = params;
 
-    bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder, Globals::methodJavaClassBuilderAddConstructor,
-        &jargs[0]);
-    printd(0, "qore_url_classloader_create_java_qore_class_add_constructor() bb: %p\n", (jobject)bb);
+        bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder, Globals::methodJavaClassBuilderAddConstructor,
+            &jargs[0]);
+        printd(0, "qore_url_classloader_create_java_qore_class_add_constructor() bb: %p\n", (jobject)bb);
+
+        if (!params || !len || !check_optional_last_param(env, v, params, len)) {
+            break;
+        }
+    }
 
     return 0;
 }
@@ -1011,21 +1042,60 @@ static int qore_url_classloader_create_java_qore_class_add_normal_method(Env& en
         qore_type_get_name(v.getReturnTypeInfo()), qcls.getName(), m.getName(), v.getSignatureText());
 
     // first get the params
-    LocalReference<jobject> params = qore_jni_get_java_params(m, v, pgm).release();
+    unsigned len;
+    LocalReference<jobject> params = qore_jni_get_java_params(env, m, v, pgm, len).release();
 
-    std::vector<jvalue> jargs(5);
-    jargs[0].l = bb;
-    LocalReference<jstring> mname = env.newString(m.getName());
-    jargs[1].l = mname;
-    jargs[2].i = qore_jni_get_acc_visibility(m, v);
-    LocalReference<jclass> return_type = qore_jni_get_return_class(m, v, pgm);
-    jargs[3].l = return_type;
-    jargs[4].l = params;
+    while (true) {
+        std::vector<jvalue> jargs(5);
+        jargs[0].l = bb;
+        LocalReference<jstring> mname = env.newString(m.getName());
+        jargs[1].l = mname;
+        jargs[2].i = qore_jni_get_acc_visibility(m, v);
+        LocalReference<jclass> return_type = qore_jni_get_return_class(m, v, pgm);
+        jargs[3].l = return_type;
+        jargs[4].l = params;
 
-    printd(0, "qore_url_classloader_create_java_qore_class_add_normal_method() about to call bb: %p\n", (jobject)bb);
-    bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
-        Globals::methodJavaClassBuilderAddNormalMethod, &jargs[0]);
-    printd(0, "qore_url_classloader_create_java_qore_class_add_normal_method() bb: %p\n", (jobject)bb);
+        printd(0, "qore_url_classloader_create_java_qore_class_add_normal_method() about to call bb: %p\n", (jobject)bb);
+        bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
+            Globals::methodJavaClassBuilderAddNormalMethod, &jargs[0]);
+        printd(0, "qore_url_classloader_create_java_qore_class_add_normal_method() bb: %p\n", (jobject)bb);
+
+        if (!params || !len || !check_optional_last_param(env, v, params, len)) {
+            break;
+        }
+    }
+
+    return 0;
+}
+
+static int qore_url_classloader_create_java_qore_class_add_static_method(Env& env, const QoreClass& qcls,
+        LocalReference<jobject>& bb, const QoreMethod& m, const QoreExternalMethodVariant& v, QoreProgram* pgm) {
+    printd(0, "qore_url_classloader_create_java_qore_class_add_static_method() adding Java static method %s %s::%s(%s)\n",
+        qore_type_get_name(v.getReturnTypeInfo()), qcls.getName(), m.getName(), v.getSignatureText());
+
+    // first get the params
+    unsigned len;
+    LocalReference<jobject> params = qore_jni_get_java_params(env, m, v, pgm, len).release();
+
+    while (true) {
+        std::vector<jvalue> jargs(5);
+        jargs[0].l = bb;
+        LocalReference<jstring> mname = env.newString(m.getName());
+        jargs[1].l = mname;
+        jargs[2].i = qore_jni_get_acc_visibility(m, v);
+        LocalReference<jclass> return_type = qore_jni_get_return_class(m, v, pgm);
+        jargs[3].l = return_type;
+        jargs[4].l = params;
+
+        printd(0, "qore_url_classloader_create_java_qore_class_add_static_method() about to call bb: %p\n", (jobject)bb);
+        bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
+            Globals::methodJavaClassBuilderAddStaticMethod, &jargs[0]);
+        printd(0, "qore_url_classloader_create_java_qore_class_add_static_method() bb: %p\n", (jobject)bb);
+
+        if (!params || !len || !check_optional_last_param(env, v, params, len)) {
+            break;
+        }
+    }
 
     return 0;
 }
@@ -1057,8 +1127,9 @@ static int qore_url_classloader_create_java_qore_class_add_methods(Env& env, con
                 }
 
                 case MT_Static: {
-                    printd(0, "qore_url_classloader_create_java_qore_class() adding static method %s::%s(%s)\n",
-                        qcls.getName(), m->getName(), v->getSignatureText());
+                    if (qore_url_classloader_create_java_qore_class_add_normal_method(env, qcls, bb, *m, *v, pgm)) {
+                        return -1;
+                    }
                     break;
                 }
 
@@ -1141,7 +1212,7 @@ LocalReference<jclass> QoreJniClassMap::getCreateJavaClassIntern(const QoreClass
             return nullptr;
         }
 
-        printd(0, "QoreJniClassMap::getCreateJavaClassIntern() methods added bb: %p\n", (jobject)bb);
+        printd(0, "QoreJniClassMap::getCreateJavaClassIntern() methods added bb: %p; building class with syscl: %p\n", (jobject)bb, (jobject)Globals::syscl);
 
         jargs[0].l = bb;
         jargs[1].l = Globals::syscl;
@@ -1149,12 +1220,61 @@ LocalReference<jclass> QoreJniClassMap::getCreateJavaClassIntern(const QoreClass
             Globals::methodJavaClassBuilderGetClassFromBuilder, &jargs[0]).as<jclass>();
 
         i->second = rv.makeGlobal();
-        printd(0, "QoreJniClassMap::getCreateJavaClassIntern() rv: %p\n", *rv);
+        printd(0, "QoreJniClassMap::getCreateJavaClassIntern() rv: %p\n", (jobject)rv);
         return rv;
     } catch (...) {
         q2jmap.erase(i);
         throw;
     }
+}
+
+LocalReference<jbyteArray> QoreJniClassMap::loadQoreClass(Env& env, const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname) {
+    ExceptionSink xsink;
+    // set program context (and read lock) before calling QoreProgram::findClass()
+    QoreExternalProgramContextHelper pch(&xsink, pgm);
+    const QoreClass* qcls;
+    if (!xsink) {
+        qcls = pgm->findClass(qpath.c_str(), &xsink);
+    }
+    if (xsink) {
+        assert(!qcls);
+        throw XsinkException(xsink);
+    }
+    if (!qcls) {
+        xsink.raiseException("CLASS-NOT-FOUND", "cannot find Qore class '%s'", qpath.c_str());
+        throw XsinkException(xsink);
+    }
+
+    // ensure exclusive access while creating java classes
+    QoreJniAutoLocker al(m);
+
+    jlong cptr = reinterpret_cast<jlong>(qcls);
+    printd(0, "QoreJniClassMap::loadQoreClass() p: %p path: '%s': %p\n", pgm, qcls->getName(), cptr);
+
+    std::vector<jvalue> jargs(4);
+    jargs[0].l = jname;
+    jargs[1].l = Globals::classQoreObjectBase;
+    jargs[2].z = false;
+    jargs[3].j = cptr;
+
+    LocalReference<jobject> bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
+        Globals::methodJavaClassBuilderGetClassBuilder, &jargs[0]);
+    printd(0, "QoreJniClassMap::loadQoreClass() bb: %p\n", (jobject)bb);
+
+    // add methods
+    if (qore_url_classloader_create_java_qore_class_add_methods(env, *qcls, bb, pgm)) {
+        printd(0, "QoreJniClassMap::loadQoreClass() failed to add members\n");
+        return nullptr;
+    }
+
+    printd(0, "QoreJniClassMap::loadQoreClass() methods added bb: %p\n", (jobject)bb);
+
+    jargs[0].l = bb;
+    LocalReference<jbyteArray> rv = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
+        Globals::methodJavaClassBuilderGetByteCodeFromBuilder, &jargs[0]).as<jbyteArray>();
+
+    printd(0, "QoreJniClassMap::loadQoreClass() rv: %p\n", (jobject)rv);
+    return rv;
 }
 
 LocalReference<jclass> QoreJniClassMap::getJavaType(const QoreTypeInfo* ti, QoreProgram* pgm) {
@@ -1319,7 +1439,6 @@ void QoreJniClassMap::doFields(JniQoreClass& qc, jni::Class* jc) {
             printd(LogLevel, "+ adding static field %s %s %s.%s (%s)\n", access_str(field->getAccess()), typeInfoGetName(fieldTypeInfo), qc.getName(), fname.c_str(), field->isFinal() ? "const" : "var");
 
             QoreValue v(field->getStatic());
-
             if (field->isFinal()) {
                 if (v.isNothing())
                 v.assign(0ll);

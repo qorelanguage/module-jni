@@ -174,6 +174,7 @@ public:
     DLLLOCAL static jmethodID methodJavaClassBuilderAddNormalMethod;              // static DynamicType.Builder<?> methodJavaClassBuilderAddNormalMethod(DynamicType.Builder<?>, String, int, Class<?>, List<Type>)
     DLLLOCAL static jmethodID methodJavaClassBuilderAddStaticMethod;              // static DynamicType.Builder<?> methodJavaClassBuilderAddStaticMethod(DynamicType.Builder<?>, String, int, Class<?>, List<Type>)
     DLLLOCAL static jmethodID methodJavaClassBuilderGetClassFromBuilder;          // static Class<?> getClassFromBuilder(DynamicType.Builder<?>, ClassLoader)
+    DLLLOCAL static jmethodID methodJavaClassBuilderGetByteCodeFromBuilder;       // static byte[] getByteCodeFromBuilder(DynamicType.Builder<?>)
 
     DLLLOCAL static GlobalReference<jclass> classThread;                          // java.lang.Thread
     DLLLOCAL static jmethodID methodThreadCurrentThread;                          // Thread Thread.currentThread()
@@ -194,6 +195,7 @@ public:
     DLLLOCAL static GlobalReference<jclass> classArrayList;                       // java.util.ArrayList
     DLLLOCAL static jmethodID ctorArrayList;                                      // ArrayList()
     DLLLOCAL static jmethodID methodArrayListAdd;                                 // int ArrayList.add()
+    DLLLOCAL static jmethodID methodArrayListRemove;                              // Object ArrayList.remove(int)
 
     DLLLOCAL static GlobalReference<jclass> classSet;                             // java.util.Set
     DLLLOCAL static jmethodID methodSetIterator;                                  // Set.iterator()
@@ -260,9 +262,19 @@ public:
     DLLLOCAL static jmethodID ctorCharacter;                                      // Character(char)
     DLLLOCAL static jmethodID methodCharacterCharValue;                           // char Character.charValue()
 
+    DLLLOCAL static GlobalReference<jclass> classBooleanWrapper;                  // org.qore.jni.BooleanWrapper
+    DLLLOCAL static jmethodID methodBooleanWrapperSetTrue;                        // setTrue()
+
     DLLLOCAL static void init();
     DLLLOCAL static void cleanup();
     DLLLOCAL static Type getType(jclass cls);
+
+    DLLLOCAL static jlong getContextProgram(jobject new_syscl, bool& created);
+    DLLLOCAL static void clearGlobalContext() {
+        if (qph) {
+            qph.reset();
+        }
+    }
 
     DLLLOCAL static void setAlreadyInitialized() {
         assert(!already_initialized);
@@ -279,7 +291,12 @@ public:
         jsize bufLen);
 
 private:
+    DLLLOCAL static ExceptionSink global_xsink;
+    DLLLOCAL static std::unique_ptr<QoreProgramHelper> qph;
+
     DLLLOCAL static bool already_initialized;
+
+    DLLLOCAL static void defineQoreURLClassLoader(Env& env);
 };
 
 class QoreJniStackLocationHelper : public QoreExternalRuntimeStackLocationHelper {

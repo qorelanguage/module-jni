@@ -4,9 +4,13 @@ package org.qore.jni;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.modifier.Ownership;
@@ -25,6 +29,7 @@ public class JavaClassBuilder {
     private static Class objArray;
     private static Method mStaticCall;
     private static Method mNormalCall;
+    //private static Path tmpDir;
     private static final String CLASS_FIELD = "qore_cls_ptr";
 
     // copied from org.objectweb.asm.Opcodes
@@ -82,21 +87,6 @@ public class JavaClassBuilder {
         bb = (DynamicType.Builder<?>)bb.defineField(CLASS_FIELD, long.class,
             Modifier.FINAL | Modifier.PUBLIC | Modifier.STATIC)
             .value(cptr);
-
-        /*
-        // create default constructor
-        List<Type> paramTypes = new ArrayList<Type>();
-        paramTypes.add(objArray);
-        bb = (DynamicType.Builder<?>)bb.defineConstructor(Modifier.PUBLIC)
-            .withParameters(paramTypes)
-            .throwing(Throwable.class)
-            .intercept(
-                MethodCall.invoke(parentClass.getConstructor(long.class, objArray))
-                .onSuper()
-                .with(cptr)
-                .withArgumentArray()
-            );
-        */
 
         return bb;
     }
@@ -179,8 +169,7 @@ public class JavaClassBuilder {
                 .withField(CLASS_FIELD)
                 .withAllArguments()
                 .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)
-            )
-            ;
+            );
     }
 
     static public Class<?> getClassFromBuilder(DynamicType.Builder<?> bb, ClassLoader classLoader) {
@@ -189,6 +178,68 @@ public class JavaClassBuilder {
             .load(classLoader, ClassLoadingStrategy.Default.WRAPPER)
             .getLoaded();
     }
+
+    static public byte[] getByteCodeFromBuilder(DynamicType.Builder<?> bb) {
+        return bb
+            .make()
+            .getBytes();
+    }
+
+    /*
+    static public String createClassFileFromBuilder(DynamicType.Builder<?> bb) {
+        checkTempDirectory();
+        bb.make().saveIn(tmpDir, xxx);
+    }
+
+    static public String getTempDirectoryPath() {
+        if (tmpDir == null) {
+            return null;
+        }
+        return tmpDir.toString();
+    }
+
+    static private synchronized void checkTempDirectory() {
+        if (tmpDir) {
+            return;
+        }
+
+        // create the temporary directory
+        tmpDir = createTempDirectory();
+        // add a shutdown hook to delete all files in the temporary dir on exit
+        Runtime.getRuntime().addShutdownHook(new Thread(
+            new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Files.walkFileTree(tmpDir, new SimpleFileVisitor<Path>() {
+                            @Override
+                            public FileVisitResult visitFile(Path file,
+                                    @SuppressWarnings("unused") BasicFileAttributes attrs)
+                                    throws IOException {
+                                // XXX DEBUG
+                                System.out.println("deleting: " + file.toString());
+
+                                Files.delete(file);
+                                return FileVisitResult.CONTINUE;
+                            }
+                            @Override
+                            public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
+                                if (e == null) {
+                                    Files.delete(dir);
+                                    return FileVisitResult.CONTINUE;
+                                }
+                                // directory iteration failed
+                                throw e;
+                            }
+                        });
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to delete " + tmpDir, e);
+                    }
+                }
+            }
+        ));
+    }
+    */
 
     /** makes a static method call
      *
@@ -230,6 +281,6 @@ public class JavaClassBuilder {
         return Visibility.PRIVATE;
     }
 
-    private static native Object doStaticCall0(String methodName, long qclsptr, Object... args);
-    private static native Object doNormalCall0(String methodName, long qobjptr, Object... args);
+    private static native Object doStaticCall0(String methodName, long qclsptr, Object... args) throws Throwable;
+    private static native Object doNormalCall0(String methodName, long qobjptr, Object... args) throws Throwable;
 }

@@ -156,6 +156,8 @@ public:
 
     DLLLOCAL static LocalReference<jclass> getCreateJavaClass(const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname);
 
+    DLLLOCAL static LocalReference<jbyteArray> loadQoreClass(Env& env, const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname);
+
     DLLLOCAL static LocalReference<jclass> getJavaType(const QoreTypeInfo* ti, QoreProgram* pgm);
 
 protected:

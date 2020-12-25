@@ -118,7 +118,7 @@ static QoreStringNode* jni_module_init() {
     if (jni_init_failed) {
         return new QoreStringNode("jni module initialization failed");
     }
-    printd(LogLevel, "jni_module_init()\n");
+    printd(0, "jni_module_init()\n");
 
     jni::jni_qore_init = true;
 
@@ -163,7 +163,7 @@ static QoreStringNode* jni_module_init() {
         return new QoreStringNode("JVM initialization failed due to an unknown error");
     }
 
-   //printd(5, "jni_module_init() initialized JVM\n");
+   printd(0, "jni_module_init() initialized JVM\n");
 
 #ifndef Q_WINDOWS
     {
@@ -241,6 +241,7 @@ static void jni_module_ns_init(QoreNamespace* rns, QoreNamespace* qns) {
 
 static void jni_module_delete() {
     // clear all objects from stored classes before destroying the JVM (releases all global references)
+    Globals::clearGlobalContext();
     {
         ExceptionSink xsink;
         // delete any Program object
