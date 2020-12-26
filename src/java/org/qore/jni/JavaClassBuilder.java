@@ -250,7 +250,7 @@ public class JavaClassBuilder {
      */
     @RuntimeType
     public static Object doStaticCall(String methodName, long qclsptr, @Argument(0) Object... args) throws Throwable {
-        System.out.println(String.format("JavaClassBuilder::doStaticCall() %s() cptr: %d args: %s", methodName, qclsptr, Arrays.toString(args)));
+        //System.out.println(String.format("JavaClassBuilder::doStaticCall() %s() cptr: %d args: %s", methodName, qclsptr, Arrays.toString(args)));
         return doStaticCall0(methodName, qclsptr, args);
     }
 
@@ -264,7 +264,7 @@ public class JavaClassBuilder {
      */
     @RuntimeType
     public static Object doNormalCall(String methodName, long qobjptr, @Argument(0) Object... args) throws Throwable {
-        System.out.println(String.format("JavaClassBuilder::doNormalCall() %s() ptr: %d args: %s", methodName, qobjptr, Arrays.toString(args)));
+        //System.out.println(String.format("JavaClassBuilder::doNormalCall() %s() ptr: %d args: %s", methodName, qobjptr, Arrays.toString(args)));
         return doNormalCall0(methodName, qobjptr, args);
     }
 

@@ -118,7 +118,7 @@ static QoreStringNode* jni_module_init() {
     if (jni_init_failed) {
         return new QoreStringNode("jni module initialization failed");
     }
-    printd(0, "jni_module_init()\n");
+    printd(5, "jni_module_init()\n");
 
     jni::jni_qore_init = true;
 
@@ -163,7 +163,7 @@ static QoreStringNode* jni_module_init() {
         return new QoreStringNode("JVM initialization failed due to an unknown error");
     }
 
-   printd(0, "jni_module_init() initialized JVM\n");
+   printd(5, "jni_module_init() initialized JVM\n");
 
 #ifndef Q_WINDOWS
     {

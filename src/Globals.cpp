@@ -261,6 +261,8 @@ GlobalReference<jclass> Globals::classCharacter;
 jmethodID Globals::ctorCharacter;
 jmethodID Globals::methodCharacterCharValue;
 
+GlobalReference<jclass> Globals::classCharSequence;
+
 GlobalReference<jclass> Globals::classBooleanWrapper;
 jmethodID Globals::methodBooleanWrapperSetTrue;
 
@@ -318,9 +320,12 @@ static int save_object_thread(Env& env, const QoreValue& rv, QoreProgram* pgm, E
             QoreToJava::wrapException(xsink);
             return -1;
         }
-        //printd(5, "save_object() domain: '%s' obj: %p %s\n", domain_name, rv.get<QoreObject>(), rv.get<QoreObject>()->getClassName());
+#ifdef DEBUG
+        const QoreObject* obj = rv.get<QoreObject>();
+        printd(5, "save_object() domain: '%s' obj: %p %s (refs: %d)\n", domain_name, obj, obj->getClassName(), obj->reference_count());
+#endif
     } else {
-        //printd(5, "save_object() NOT SAVING domain: '%s' HAS KEY v: %s (kv: %s)\n", domain_name, rv.getFullTypeName(), kv.getFullTypeName());
+        printd(5, "save_object() NOT SAVING domain: '%s' HAS KEY v: %s (kv: %s)\n", domain_name, rv.getFullTypeName(), kv.getFullTypeName());
     }
     return 0;
 }
@@ -838,7 +843,7 @@ static jobject qore_url_classloader_get_cached_class(JNIEnv* jenv, jclass jcls, 
 }
 
 static jobject JNICALL java_class_builder_do_normal_call(JNIEnv* jenv, jclass jcls, jstring mname, jlong qobj, jobjectArray args) {
-    printd(0, "java_class_builder_do_normal_call() jcls: %p qobj: %p, args: %p\n", jcls, qobj, args);
+    printd(5, "java_class_builder_do_normal_call() jcls: %p qobj: %p, args: %p\n", jcls, qobj, args);
 
     Env env(jenv);
 
@@ -865,7 +870,7 @@ static jobject JNICALL java_class_builder_do_normal_call(JNIEnv* jenv, jclass jc
 }
 
 static jobject JNICALL java_class_builder_do_static_call(JNIEnv* jenv, jclass jcls, jstring mname, jlong qcls, jobjectArray args) {
-    printd(0, "java_class_builder_do_static_call() jcls: %p qcls: %p, args: %p\n", jcls, qcls, args);
+    printd(5, "java_class_builder_do_static_call() jcls: %p qcls: %p, args: %p\n", jcls, qcls, args);
 
     Env env(jenv);
 
@@ -1091,7 +1096,7 @@ static jobject JNICALL qore_url_classloader_dummy(JNIEnv* jenv, jclass jcls) {
 }
 
 static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass jcls, QoreClass* qcls, jobjectArray args) {
-    printd(0, "qore_object_create() jcls: %p qcls: %p, args: %p\n", jcls, qcls, args);
+    printd(5, "qore_object_create() jcls: %p qcls: %p, args: %p\n", jcls, qcls, args);
 
     Env env(jenv);
 
@@ -1147,9 +1152,12 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass jcls, QoreClass* qc
             return 0;
         }
 
-        printd(0, "qore_object_create() created %s: %p\n", qc->getName(), obj->get<const QoreObject>());
+        printd(5, "qore_object_create() created %s: %p\n", qc->getName(), obj->get<const QoreObject>());
         assert(obj);
-        return reinterpret_cast<jlong>(obj->get<const QoreObject>());
+        // increment weak ref count for assignment to QoreObjectBase
+        const QoreObject* qobj = obj->get<const QoreObject>();
+        qobj->tRef();
+        return reinterpret_cast<jlong>(qobj);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(xsink);
@@ -1424,8 +1432,10 @@ static LocalReference<jclass> define_class(const char* bin_name, BinaryNode& des
 #include "JavaClassQoreClosure.inc"
 #include "JavaClassQoreObjectWrapper.inc"
 #include "JavaClassQoreClosureMarker.inc"
+#include "JavaClassBooleanWrapper.inc"
 #include "JavaClassQoreURLClassLoader.inc"
 #include "JavaClassQoreURLClassLoader_1.inc"
+#include "JavaClassQoreURLClassLoader_2.inc"
 #include "JavaClassJavaClassBuilder.inc"
 #include "JavaClassJavaClassBuilder_1.inc"
 #include "JavaClassQoreJavaApi.inc"
@@ -1489,8 +1499,12 @@ constexpr const char* INIT_PROP_NAME = "qore.QoreURLClassLoader.init";
 void Globals::defineQoreURLClassLoader(Env& env) {
     //printd(5, "defineQoreURLClassLoader() starting\n");
 
+    findDefineClass(env, "org.qore.jni.BooleanWrapper", nullptr,
+        java_org_qore_jni_BooleanWrapper_class, java_org_qore_jni_BooleanWrapper_class_len).makeGlobal();
     findDefineClass(env, "org.qore.jni.QoreURLClassLoader$1", nullptr, java_org_qore_jni_QoreURLClassLoader_1_class,
         java_org_qore_jni_QoreURLClassLoader_1_class_len);
+    findDefineClass(env, "org.qore.jni.QoreURLClassLoader$2", nullptr, java_org_qore_jni_QoreURLClassLoader_2_class,
+        java_org_qore_jni_QoreURLClassLoader_2_class_len);
 
     // create our class loader to load module classes
     classQoreURLClassLoader = findDefineClass(env, "org.qore.jni.QoreURLClassLoader", nullptr,
@@ -1542,12 +1556,12 @@ void Globals::init() {
             Env::GetStringUtfChars strval(env, val);
             if (!strcmp(strval.c_str(), "true")) {
                 bootstrap = true;
-                printd(0, "Globals::init() %s = %s\n", INIT_PROP_NAME, strval.c_str());
+                printd(5, "Globals::init() %s = %s\n", INIT_PROP_NAME, strval.c_str());
             }
         }
 
         if (!bootstrap) {
-            printd(0, "Globals::init() non-bootstrap init\n");
+            printd(5, "Globals::init() non-bootstrap init\n");
         }
     }
 
@@ -1599,7 +1613,7 @@ void Globals::init() {
     env.registerNatives(classQoreObjectBase, qoreObjectBaseNativeMethods,
         sizeof(qoreObjectBaseNativeMethods) / sizeof(JNINativeMethod));
 
-    printd(0, "QoreObjectBase: %p\n", (jclass)classQoreObjectBase);
+    //printd(5, "QoreObjectBase: %p\n", (jclass)classQoreObjectBase);
 
     classQoreObject = findDefineClass(env, "org.qore.jni.QoreObject", nullptr, java_org_qore_jni_QoreObject_class,
         java_org_qore_jni_QoreObject_class_len).makeGlobal();
@@ -1762,6 +1776,8 @@ void Globals::init() {
     ctorCharacter = env.getMethod(classCharacter, "<init>", "(C)V");
     methodCharacterCharValue = env.getMethod(classCharacter, "charValue", "()C");
 
+    classCharSequence = env.findClass("java/lang/CharSequence").makeGlobal();
+
     classBooleanWrapper = env.findClass("org/qore/jni/BooleanWrapper").makeGlobal();
     methodBooleanWrapperSetTrue = env.getMethod(classBooleanWrapper, "setTrue", "()V");
 
@@ -1772,7 +1788,7 @@ void Globals::init() {
     if (bootstrap) {
         classJavaClassBuilder = env.findClass("org/qore/jni/JavaClassBuilder").makeGlobal();
     } else {
-        printd(0, "Globals::init() creating syscl\n");
+        printd(5, "Globals::init() creating syscl\n");
         jmethodID ctorQoreURLClassLoaderSys = env.getMethod(classQoreURLClassLoader, "<init>", "()V");
         syscl = env.newObject(classQoreURLClassLoader, ctorQoreURLClassLoaderSys, nullptr).makeGlobal();
 
@@ -1877,6 +1893,7 @@ void Globals::cleanup() {
     classDouble = nullptr;
     classFloat = nullptr;
     classCharacter = nullptr;
+    classCharSequence = nullptr;
     classBooleanWrapper = nullptr;
 }
 
@@ -1923,7 +1940,7 @@ jlong Globals::getContextProgram(jobject new_syscl, bool& created) {
         rns->addNamespace(jnins);
         (*qph)->setExternalData("jni", new JniExternalProgramData(jnins));
 
-        printd(0, "Globals::getContextProgram() new_sycl: %p syscl: %p\n", new_syscl, (jobject)syscl);
+        printd(5, "Globals::getContextProgram() new_sycl: %p syscl: %p\n", new_syscl, (jobject)syscl);
         if (new_syscl && !syscl) {
             syscl = GlobalReference<jobject>::fromLocal(new_syscl);
             created = true;

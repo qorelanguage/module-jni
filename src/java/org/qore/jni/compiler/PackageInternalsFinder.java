@@ -15,9 +15,10 @@ import javax.tools.JavaFileObject;
 import org.qore.jni.QoreURLClassLoader;
 
 /**
-* @author atamur
-* @since 15-Oct-2009
-*/
+ * based on source code by:
+ * @author atamur
+ * @since 15-Oct-2009
+ */
 class PackageInternalsFinder {
     private QoreURLClassLoader classLoader;
     private static final String CLASS_FILE_EXTENSION = ".class";
@@ -49,7 +50,6 @@ class PackageInternalsFinder {
         return result;
     }
 
-    ///*
     private Collection<JavaFileObject> listUnder(String packageName, URL packageFolderURL) {
         File directory = new File(packageFolderURL.getFile());
         if (directory.isDirectory()) {
@@ -105,5 +105,4 @@ class PackageInternalsFinder {
 
         return result;
     }
-    //*/
 }

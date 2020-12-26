@@ -20,10 +20,14 @@
 %module-cmd(jni) add-relative-classpath qore-jni-test.jar
 # warning: hardcoded build directory
 %module-cmd(jni) add-relative-classpath ../build/qore-jni.jar
+%module-cmd(jni) add-relative-classpath ../build/qore-jni-compiler.jar
+
 %module-cmd(jni) import java.lang.reflect.*
 %module-cmd(jni) import java.lang.invoke.*
 %module-cmd(jni) import org.qore.jni.test.Fields
 %module-cmd(jni) import org.qore.jni.test.QoreJavaApiTest
+
+%module-cmd(jni) import org.qore.jni.compiler.QoreJavaCompiler
 
 %module-cmd(jni) import org.qore.lang.*
 %module-cmd(jni) import org.qore.lang.sqlutil.*
@@ -205,15 +209,25 @@ public class Main inherits QUnit::Test {
     }
 
     javaCodegenTest() {
-        lang::Class seqClass = load_class("qore/Qore/Thread/Sequence");
-        object obj = seqClass.getDeclaredConstructor().newInstance();
-        assertEq("Sequence", obj.className());
-        obj.next();
-        assertEq(1, obj.next());
+        {
+            lang::Class seqClass = load_class("qore/Qore/Thread/Sequence");
+            object obj = seqClass.getDeclaredConstructor().newInstance();
+            assertEq("Sequence", obj.className());
+            obj.next();
+            assertEq(1, obj.next());
 
-        obj = seqClass.getDeclaredConstructor(load_class("java/lang/Integer")).newInstance(2);
-        obj.next();
-        assertEq(3, obj.next());
+            obj = seqClass.getDeclaredConstructor(load_class("java/lang/Integer")).newInstance(2);
+            obj.next();
+            assertEq(3, obj.next());
+        }
+
+        {
+            # compile and load QoreDynamicTest.java
+            QoreJavaCompiler compiler();
+            lang::Class newClass = compiler.compile("QoreDynamicTest", File::readTextFile(get_script_dir() + "/QoreDynamicTest.java"));
+            reflect::Method m = newClass.getMethod("test0");
+            assertEq(1, m.invoke());
+        }
     }
 
     testCode() {
@@ -857,7 +871,7 @@ lorem ipsum\r
             assertTrue(False);
         } catch (hash<ExceptionInfo> ex) {
             assertEq("QoreJavaApiTest.java", ex.file);
-            assertEq(84, ex.line);
+            assertEq(86, ex.line);
         }
 
         # test Hash APIs

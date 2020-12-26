@@ -262,8 +262,11 @@ public:
     DLLLOCAL static jmethodID ctorCharacter;                                      // Character(char)
     DLLLOCAL static jmethodID methodCharacterCharValue;                           // char Character.charValue()
 
+    DLLLOCAL static GlobalReference<jclass> classCharSequence;                    // java.lang.CharSequence
+
     DLLLOCAL static GlobalReference<jclass> classBooleanWrapper;                  // org.qore.jni.BooleanWrapper
     DLLLOCAL static jmethodID methodBooleanWrapperSetTrue;                        // setTrue()
+
 
     DLLLOCAL static void init();
     DLLLOCAL static void cleanup();

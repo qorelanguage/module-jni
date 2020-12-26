@@ -91,7 +91,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         //setContext();
         enable_cache = true;
         setContextProgram(this);
-        System.out.println("QoreURLClassLoader(ClassLoader parent: " + (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")");
+        //System.out.println("QoreURLClassLoader(ClassLoader parent: " + (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")");
     }
 
     // constructor for using this class as the boot classloader for the module
@@ -100,7 +100,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         setContext();
         enable_cache = true;
         setContextProgram(this);
-        System.out.println("QoreURLClassLoader()");
+        //System.out.println("QoreURLClassLoader()");
     }
 
     public QoreURLClassLoader(long p_ptr, ClassLoader parent) {
@@ -108,7 +108,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         // set the current classloader as the thread context classloader
         pgm_ptr = p_ptr;
         setContext();
-        System.out.println("QoreURLClassLoader(long p_ptr = " + p_ptr + ", ClassLoader parent: " + (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")");
+        //System.out.println("QoreURLClassLoader(long p_ptr = " + p_ptr + ", ClassLoader parent: " + (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")");
     }
 
     public QoreURLClassLoader​(String name, ClassLoader parent) {
@@ -116,7 +116,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         setContext();
         enable_cache = true;
         setContextProgram(this);
-        System.out.println("QoreURLClassLoader(String name: " + name + ", ClassLoader parent: " + (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")");
+        //System.out.println("QoreURLClassLoader(String name: " + name + ", ClassLoader parent: " + (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")");
     }
 
     /*
@@ -131,18 +131,8 @@ public class QoreURLClassLoader extends URLClassLoader {
         System.out.printf("QoreURLClassLoader.findResources(%s): %s\n", name, rv);
         return rv;
     }
-    */
 
-    /*
     public Enumeration<URL> getResources​(String name) throws IOException {
-        // XXX DEBUG
-        if (name.equals("qore/Qore/Thread")) {
-            ArrayList<URL> rv = new ArrayList<URL>();
-            rv.add(new URL("file", null, 0, name + ".jar"));
-            System.out.println("getResources(" + name + ") rv: " + rv.toString());
-            return Collections.enumeration(rv);
-        }
-
         Enumeration<URL> rv = super.getResources(name);
         System.out.println("getResources(" + name + ") rv: " + rv.toString());
         return rv;
@@ -201,10 +191,8 @@ public class QoreURLClassLoader extends URLClassLoader {
     }
 
     protected Class<?> findClass(String name) throws ClassNotFoundException {
-        debugLog("findClass: " + name);
-
+        //debugLog("findClass: " + name);
         /*
-        debugLog("findClass: " + name);
         for (URL url : getURLs()) {
             debugLog(" + " + url.toString());
         }
@@ -217,7 +205,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         try {
             return super.findClass(name);
         } catch (ClassNotFoundException e) {
-            System.out.println("findClass() error: " + e.toString());
+            //System.out.println("findClass() error: " + e.toString());
             if (name.startsWith("qore.") && name.length() > 5) {
                 // check and set java class creation atomically
                 synchronized (this) {
@@ -265,7 +253,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     */
 
     public Class<?> loadClass(String name) throws ClassNotFoundException {
-        debugLog("loadClass: " + name);
+        //debugLog("loadClass: " + name);
         /*
         for (URL url : getURLs()) {
             debugLog(" + " + url.toString());
@@ -528,16 +516,4 @@ public class QoreURLClassLoader extends URLClassLoader {
     static private native long getContextProgram0(QoreURLClassLoader syscl, BooleanWrapper created);
     static private native void shutdownContext0();
     static private native void dummy0();
-}
-
-class BooleanWrapper {
-    public boolean val;
-
-    BooleanWrapper() {
-        val = false;
-    }
-
-    public void setTrue() {
-        val = true;
-    }
 }

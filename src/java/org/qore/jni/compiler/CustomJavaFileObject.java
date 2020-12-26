@@ -9,9 +9,10 @@ import javax.lang.model.element.Modifier;
 import org.qore.jni.QoreURLClassLoader;
 
 /**
-* @author atamur
-* @since 15-Oct-2009
-*/
+ * based on source code by:
+ * @author atamur
+ * @since 15-Oct-2009
+ */
 class CustomJavaFileObject implements JavaFileObject {
     private final String binaryName;
     private final URI uri;
