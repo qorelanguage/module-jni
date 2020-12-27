@@ -228,6 +228,7 @@ add_java_compiler_source(org/qore/jni/compiler/QoreJavaClassObject.java)
 add_java_compiler_source(org/qore/jni/compiler/QoreJavaCompiler.java)
 add_java_compiler_source(org/qore/jni/compiler/QoreJavaCompilerException.java)
 add_java_compiler_source(org/qore/jni/compiler/QoreJavaFileManager.java)
+add_java_compiler_source(org/qore/jni/compiler/CompilerOutput.java)
 
 #message(STATUS "MESSAGE Src: ${JAVA_JAR_SRC}")
 #message(STATUS "STR: ${JAVA_JAR_SRC_STR}")

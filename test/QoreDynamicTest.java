@@ -1,4 +1,5 @@
 
+package org.qore.test;
 
 import qore.Qore.Thread.Sequence;
 
@@ -8,4 +9,24 @@ public class QoreDynamicTest {
         seq.next();
         return seq.getCurrent();
     }
+
+    public static void test1() {
+        /*
+        LambdaTest t = () -> {
+            return "test";
+        };
+        */
+
+        LambdaTest t = new LambdaTest() {
+            public String get() {
+                return "test";
+            }
+        };
+
+        System.out.println(t.get());
+    }
+}
+
+interface LambdaTest {
+    public String get();
 }

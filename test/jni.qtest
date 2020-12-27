@@ -28,6 +28,7 @@
 %module-cmd(jni) import org.qore.jni.test.QoreJavaApiTest
 
 %module-cmd(jni) import org.qore.jni.compiler.QoreJavaCompiler
+%module-cmd(jni) import org.qore.jni.compiler.CompilerOutput
 
 %module-cmd(jni) import org.qore.lang.*
 %module-cmd(jni) import org.qore.lang.sqlutil.*
@@ -224,8 +225,11 @@ public class Main inherits QUnit::Test {
         {
             # compile and load QoreDynamicTest.java
             QoreJavaCompiler compiler();
-            lang::Class newClass = compiler.compile("QoreDynamicTest", File::readTextFile(get_script_dir() + "/QoreDynamicTest.java"));
-            reflect::Method m = newClass.getMethod("test0");
+            compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest",
+                File::readTextFile(get_script_dir() + "/QoreDynamicTest.java"));
+            binary fdata = newClassData.file.openInputStream().readAllBytes();
+            assertGt(0, fdata.size());
+            reflect::Method m = newClassData.cls.getMethod("test0");
             assertEq(1, m.invoke());
         }
     }
