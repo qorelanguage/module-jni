@@ -899,7 +899,7 @@ static jobject JNICALL java_class_builder_do_static_call(JNIEnv* jenv, jclass jc
     return java_api_call_static_method_internal(jenv, nullptr, reinterpret_cast<jlong>(pgm), true, nullptr, mname, args, qc);
 }
 
-static jobject JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv, jclass jcls, jlong ptr,
+static jobject JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv, jobject class_loader, jlong ptr,
         jstring nspath, jstring jname, jboolean need_byte_code) {
     assert(ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
@@ -929,7 +929,7 @@ static jobject JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv,
     }
 
     try {
-        return QoreJniClassMap::getCreateJavaClass(env, Globals::syscl, qpath, pgm, jname, need_byte_code).release();
+        return QoreJniClassMap::getCreateJavaClass(env, class_loader, qpath, pgm, jname, need_byte_code).release();
     } catch (jni::Exception& e) {
         ExceptionSink xsink;
         e.convert(&xsink);

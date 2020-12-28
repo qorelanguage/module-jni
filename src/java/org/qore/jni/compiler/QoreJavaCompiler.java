@@ -89,7 +89,9 @@ public class QoreJavaCompiler<T> {
      * @throws IllegalStateException if the Java compiler cannot be loaded.
      */
     public QoreJavaCompiler() {
-        this(new QoreURLClassLoader(), null);
+        this(null);
+        //System.out.printf("QoreJavaCompiler()\n");
+        //Thread.dumpStack();
     }
 
     /**

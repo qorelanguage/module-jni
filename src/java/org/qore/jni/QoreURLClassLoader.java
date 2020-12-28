@@ -473,18 +473,6 @@ public class QoreURLClassLoader extends URLClassLoader {
                     rv = createJavaQoreClass0(pgm_ptr, qname, bin_name, need_byte_code);
                 } catch (RuntimeException e) {
                     throw e;
-                } catch (NoClassDefFoundError e) {
-                    /*
-                    if (need_byte_code) {
-                        System.out.printf("trying to get %s\n", bin_name);
-                        byte[] byte_code = getCachedClass0(bin_name);
-                        System.out.printf("%s: GOT %d bytes\n", bin_name, byte_code == null ? 0 : byte_code.length);
-                        if (byte_code != null) {
-                            return new QoreJavaDynamicClassData<Object>(null, byte_code);
-                        }
-                    }
-                    */
-                    throw e;
                 } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }
@@ -534,7 +522,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     }
 
     static private native byte[] getCachedClass0(String name);
-    static private native QoreJavaDynamicClassData<?> createJavaQoreClass0(long ptr, String qname, String name,
+    private native QoreJavaDynamicClassData<?> createJavaQoreClass0(long ptr, String qname, String name,
             boolean need_byte_code) throws Throwable;
     static private native void getClassNamesInNamespace0(long ptr, String packageName, ArrayList<String> result);
     static private native long getContextProgram0(QoreURLClassLoader syscl, BooleanWrapper created);
