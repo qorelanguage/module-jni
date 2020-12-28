@@ -10,23 +10,23 @@ public class QoreDynamicTest {
         return seq.getCurrent();
     }
 
-    public static void test1() {
-        /*
-        LambdaTest t = () -> {
-            return "test";
-        };
-        */
+    public static int test1(int start) throws Throwable {
+        Sequence seq = new Sequence(start);
+        seq.next();
+        return seq.getCurrent();
+    }
 
-        LambdaTest t = new LambdaTest() {
+    public static String test2() {
+        InnerClassTest t = new InnerClassTest() {
             public String get() {
                 return "test";
             }
         };
 
-        System.out.println(t.get());
+        return t.get();
     }
 }
 
-interface LambdaTest {
+interface InnerClassTest {
     public String get();
 }

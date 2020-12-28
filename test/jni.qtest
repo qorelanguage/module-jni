@@ -231,6 +231,24 @@ public class Main inherits QUnit::Test {
             assertGt(0, fdata.size());
             reflect::Method m = newClassData.cls.getMethod("test0");
             assertEq(1, m.invoke());
+            m = newClassData.cls.getMethod("test1", Integer::TYPE);
+            assertEq(11, m.invoke(NOTHING, 10));
+            m = newClassData.cls.getMethod("test2");
+            assertEq("test", m.invoke());
+        }
+
+        {
+            # compile and load QoreDynamicTest1.java
+            QoreJavaCompiler compiler();
+            compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest2",
+                File::readTextFile(get_script_dir() + "/QoreDynamicTest2.java"));
+            binary fdata = newClassData.file.openInputStream().readAllBytes();
+            assertGt(0, fdata.size());
+            reflect::Method m = newClassData.cls.getMethod("test0");
+            auto i = m.invoke();
+            assertEq("QoreIteratorTest", i.className());
+            list<auto> l = map $1, i;
+            assertEq(("one", "two", "three"), l);
         }
     }
 
@@ -398,7 +416,7 @@ lorem ipsum\r
         set_save_object_callback(callback);
         on_exit set_save_object_callback();
         assertEq("test-y", QoreJavaApiTest::objectLifecycleTest("test"));
-        printf("object_cache: %N\n", object_cache);
+        #printf("object_cache: %N\n", object_cache);
         assertEq(1, object_cache.size());
     }
 

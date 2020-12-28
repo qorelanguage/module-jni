@@ -142,23 +142,23 @@ public:
     DLLLOCAL jclass findLoadClass(const char* name);
     DLLLOCAL jclass findLoadClass(const QoreString& name);
 
-    DLLLOCAL JniQoreClass* findCreateQoreClass(LocalReference<jclass>& jc);
+    DLLLOCAL JniQoreClass* findCreateQoreClass(LocalReference<jclass>& jc, const QoreClass* qore_parent = nullptr);
 
     // create the Qore class from the Java dot name (ex: java.lang.Object)
     DLLLOCAL JniQoreClass* findCreateQoreClass(const char* name);
 
-    DLLLOCAL JniQoreClass* findCreateQoreClass(QoreString& name, const char* jpath, Class* c, bool base) {
+    DLLLOCAL JniQoreClass* findCreateQoreClass(QoreString& name, const char* jpath, Class* c, bool base,
+            const QoreClass* qore_parent = nullptr) {
         //printd(5, "QoreJniClassMap::findCreateQoreClass() '%s' base: %d\n", jpath, base);
         return base
-            ? findCreateQoreClassInBase(name, jpath, c)
-            : findCreateQoreClassInProgram(name, jpath, c);
+            ? findCreateQoreClassInBase(name, jpath, c, qore_parent)
+            : findCreateQoreClassInProgram(name, jpath, c, qore_parent);
     }
 
-    DLLLOCAL static LocalReference<jclass> getCreateJavaClass(const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname);
+    DLLLOCAL static LocalReference<jobject> getCreateJavaClass(Env& env, const Env::GetStringUtfChars& qpath,
+            QoreProgram* pgm, jstring jname, jboolean need_byte_code);
 
-    DLLLOCAL static LocalReference<jbyteArray> loadQoreClass(Env& env, const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname);
-
-    DLLLOCAL static LocalReference<jclass> getJavaType(const QoreTypeInfo* ti, QoreProgram* pgm);
+    DLLLOCAL static LocalReference<jclass> getJavaType(Env& env, const QoreTypeInfo* ti, QoreProgram* pgm);
 
 protected:
     // map of java class names to const QoreTypeInfo ptrs
@@ -179,7 +179,7 @@ protected:
     typedef std::map<qore_type_t, GlobalReference<jclass>> qt2jmap_t;
     static qt2jmap_t qt2jmap;
 
-    // map of Qore classes to java classes
+    // map of Qore classes to java classes; bin name -> jclass
     typedef std::map<const QoreClass*, GlobalReference<jclass>> q2jmap_t;
     static q2jmap_t q2jmap;
 
@@ -207,7 +207,8 @@ protected:
 
     DLLLOCAL JniQoreClass* createClassInNamespace(QoreNamespace* ns, QoreNamespace& jns, const char* jpath,
         Class* jc, JniQoreClass* qc, QoreJniClassMapBase& map);
-    DLLLOCAL JniQoreClass* findCreateQoreClassInBase(QoreString& name, const char* jpath, Class* c);
+    DLLLOCAL JniQoreClass* findCreateQoreClassInBase(QoreString& name, const char* jpath, Class* c,
+            const QoreClass* qore_parent = nullptr);
     DLLLOCAL Class* loadClass(const char* name, bool& base);
 
     /** @param name an input/output variable, on input it is the java name for the class, which could
@@ -217,10 +218,11 @@ protected:
 
         @return the new builtin Qore class object wrapping the Java class
     */
-    DLLLOCAL JniQoreClass* findCreateQoreClassInProgram(QoreString& name, const char* jpath, Class* c);
+    DLLLOCAL JniQoreClass* findCreateQoreClassInProgram(QoreString& name, const char* jpath, Class* c,
+            const QoreClass* qore_parent = nullptr);
 
-    DLLLOCAL static LocalReference<jclass> getCreateJavaClassIntern(const QoreClass* qcls, QoreProgram* pgm,
-        jstring jname = nullptr);
+    DLLLOCAL static LocalReference<jobject> getCreateJavaClassIntern(Env& env, const QoreClass* qcls,
+        QoreProgram* pgm, jstring jname = nullptr, jboolean need_byte_code = false);
 
 private:
     // initialization flag

@@ -125,35 +125,42 @@ public class JavaClassBuilder {
 
     // add normal method
     static public DynamicType.Builder<?> addNormalMethod(DynamicType.Builder<?> bb, String methodName, int visibility,
-            Class<?> returnType, List<Type> paramTypes) {
+            Class<?> returnType, List<Type> paramTypes, boolean isAbstract) {
         if (paramTypes == null) {
             paramTypes = new ArrayList<Type>();
         }
 
-        if (paramTypes.size() == 0) {
-            return (DynamicType.Builder<?>)bb.defineMethod(methodName, returnType, getVisibility(visibility),
-                Ownership.MEMBER)
-                .withParameters(paramTypes)
-                .throwing(Throwable.class)
-                .intercept(
+        DynamicType.Builder.MethodDefinition.ExceptionDefinition<?> eb =
+            bb.defineMethod(methodName, returnType, getVisibility(visibility),
+            Ownership.MEMBER)
+            .withParameters(paramTypes)
+            .throwing(Throwable.class);
+
+        if (isAbstract) {
+            try {
+                bb = (DynamicType.Builder<?>)eb.withoutCode();
+            } catch (Throwable e) {
+                System.out.println(e.toString());
+                throw e;
+            }
+        } else if (paramTypes.size() == 0) {
+            bb = (DynamicType.Builder<?>)eb.intercept(
                     MethodCall.invoke(mNormalCall)
                     .with(methodName)
                     .withField("obj")
                     .with((Object)null)
                     .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)
                 );
+        } else {
+            bb = (DynamicType.Builder<?>)eb.intercept(
+                    MethodCall.invoke(mNormalCall)
+                    .with(methodName)
+                    .withField("obj")
+                    .withAllArguments()
+                    .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)
+            );
         }
-        return (DynamicType.Builder<?>)bb.defineMethod(methodName, returnType, getVisibility(visibility),
-            Ownership.MEMBER)
-            .withParameters(paramTypes)
-            .throwing(Throwable.class)
-            .intercept(
-                MethodCall.invoke(mNormalCall)
-                .with(methodName)
-                .withField("obj")
-                .withAllArguments()
-                .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)
-        );
+        return bb;
     }
 
     // add static method
@@ -172,74 +179,12 @@ public class JavaClassBuilder {
             );
     }
 
-    static public Class<?> getClassFromBuilder(DynamicType.Builder<?> bb, ClassLoader classLoader) {
-        return bb
-            .make()
-            .load(classLoader, ClassLoadingStrategy.Default.WRAPPER)
-            .getLoaded();
+    @SuppressWarnings("unchecked")
+    static public QoreJavaDynamicClassData<?> getClassFromBuilder(DynamicType.Builder<?> bb, ClassLoader classLoader) {
+        DynamicType.Unloaded<?> unloaded = bb.make();
+        byte[] byte_code = unloaded.getBytes();
+        return new QoreJavaDynamicClassData(unloaded.load(classLoader, ClassLoadingStrategy.Default.WRAPPER).getLoaded(), byte_code);
     }
-
-    static public byte[] getByteCodeFromBuilder(DynamicType.Builder<?> bb) {
-        return bb
-            .make()
-            .getBytes();
-    }
-
-    /*
-    static public String createClassFileFromBuilder(DynamicType.Builder<?> bb) {
-        checkTempDirectory();
-        bb.make().saveIn(tmpDir, xxx);
-    }
-
-    static public String getTempDirectoryPath() {
-        if (tmpDir == null) {
-            return null;
-        }
-        return tmpDir.toString();
-    }
-
-    static private synchronized void checkTempDirectory() {
-        if (tmpDir) {
-            return;
-        }
-
-        // create the temporary directory
-        tmpDir = createTempDirectory();
-        // add a shutdown hook to delete all files in the temporary dir on exit
-        Runtime.getRuntime().addShutdownHook(new Thread(
-            new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Files.walkFileTree(tmpDir, new SimpleFileVisitor<Path>() {
-                            @Override
-                            public FileVisitResult visitFile(Path file,
-                                    @SuppressWarnings("unused") BasicFileAttributes attrs)
-                                    throws IOException {
-                                // XXX DEBUG
-                                System.out.println("deleting: " + file.toString());
-
-                                Files.delete(file);
-                                return FileVisitResult.CONTINUE;
-                            }
-                            @Override
-                            public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
-                                if (e == null) {
-                                    Files.delete(dir);
-                                    return FileVisitResult.CONTINUE;
-                                }
-                                // directory iteration failed
-                                throw e;
-                            }
-                        });
-                    } catch (IOException e) {
-                        throw new RuntimeException("Failed to delete " + tmpDir, e);
-                    }
-                }
-            }
-        ));
-    }
-    */
 
     /** makes a static method call
      *
