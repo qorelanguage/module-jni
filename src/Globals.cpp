@@ -929,7 +929,7 @@ static jobject JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv,
     }
 
     try {
-        return QoreJniClassMap::getCreateJavaClass(env, qpath, pgm, jname, need_byte_code).release();
+        return QoreJniClassMap::getCreateJavaClass(env, Globals::syscl, qpath, pgm, jname, need_byte_code).release();
     } catch (jni::Exception& e) {
         ExceptionSink xsink;
         e.convert(&xsink);
@@ -1487,8 +1487,9 @@ void Globals::defineQoreURLClassLoader(Env& env) {
     ctorQoreJavaDynamicClassData = env.getMethod(classQoreJavaDynamicClassData, "<init>", "(Ljava/lang/Class;[B)V");
     fieldQoreJavaDynamicClassDataCls = env.getField(classQoreJavaDynamicClassData, "cls", "Ljava/lang/Class;");
 
-    findDefineClass(env, "org.qore.jni.BooleanWrapper", nullptr,
+    classBooleanWrapper = findDefineClass(env, "org.qore.jni.BooleanWrapper", nullptr,
         java_org_qore_jni_BooleanWrapper_class, java_org_qore_jni_BooleanWrapper_class_len).makeGlobal();
+    methodBooleanWrapperSetTrue = env.getMethod(classBooleanWrapper, "setTrue", "()V");
     findDefineClass(env, "org.qore.jni.QoreURLClassLoader$1", nullptr, java_org_qore_jni_QoreURLClassLoader_1_class,
         java_org_qore_jni_QoreURLClassLoader_1_class_len);
     findDefineClass(env, "org.qore.jni.QoreURLClassLoader$2", nullptr, java_org_qore_jni_QoreURLClassLoader_2_class,
@@ -1548,9 +1549,7 @@ void Globals::init() {
             }
         }
 
-        if (!bootstrap) {
-            printd(5, "Globals::init() non-bootstrap init\n");
-        }
+        printd(5, "Globals::init() %sbootstrap init\n", bootstrap ? "" : "non-");
     }
 
     // get exception info second
@@ -1766,15 +1765,14 @@ void Globals::init() {
 
     classCharSequence = env.findClass("java/lang/CharSequence").makeGlobal();
 
-    classBooleanWrapper = env.findClass("org/qore/jni/BooleanWrapper").makeGlobal();
-    methodBooleanWrapperSetTrue = env.getMethod(classBooleanWrapper, "setTrue", "()V");
-
-    if (!classQoreURLClassLoader) {
-        defineQoreURLClassLoader(env);
-    }
+    assert(!classQoreURLClassLoader);
+    defineQoreURLClassLoader(env);
 
     if (bootstrap) {
         classJavaClassBuilder = env.findClass("org/qore/jni/JavaClassBuilder").makeGlobal();
+
+        jmethodID ctorQoreURLClassLoaderSys = env.getMethod(classQoreURLClassLoader, "<init>", "()V");
+        syscl = env.newObject(classQoreURLClassLoader, ctorQoreURLClassLoaderSys, nullptr).makeGlobal();
     } else {
         printd(5, "Globals::init() creating syscl\n");
         jmethodID ctorQoreURLClassLoaderSys = env.getMethod(classQoreURLClassLoader, "<init>", "(J)V");

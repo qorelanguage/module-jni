@@ -90,7 +90,6 @@ public class QoreURLClassLoader extends URLClassLoader {
     // constructor for using this class as the boot classloader
     public QoreURLClassLoader(ClassLoader parent) {
         super("QoreURLClassLoader", new URL[]{}, parent);
-        //setContext();
         enable_cache = true;
         setContextProgram(this);
         //debugLog("QoreURLClassLoader(ClassLoader parent: " + (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")");
@@ -110,7 +109,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
         setContext();
         pgm_ptr = p_ptr;
-        //debugLog("QoreURLClassLoader()");
+        //debugLog("QoreURLClassLoader(ptr: " + p_ptr + ")");
     }
 
     public QoreURLClassLoader(long p_ptr, ClassLoader parent) {
@@ -473,6 +472,18 @@ public class QoreURLClassLoader extends URLClassLoader {
                 try {
                     rv = createJavaQoreClass0(pgm_ptr, qname, bin_name, need_byte_code);
                 } catch (RuntimeException e) {
+                    throw e;
+                } catch (NoClassDefFoundError e) {
+                    /*
+                    if (need_byte_code) {
+                        System.out.printf("trying to get %s\n", bin_name);
+                        byte[] byte_code = getCachedClass0(bin_name);
+                        System.out.printf("%s: GOT %d bytes\n", bin_name, byte_code == null ? 0 : byte_code.length);
+                        if (byte_code != null) {
+                            return new QoreJavaDynamicClassData<Object>(null, byte_code);
+                        }
+                    }
+                    */
                     throw e;
                 } catch (Throwable e) {
                     throw new RuntimeException(e);

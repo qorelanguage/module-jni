@@ -238,6 +238,14 @@ public class QoreJavaCompiler<T> {
         classes.put(qualifiedClassName, javaSource);
         Map<String, CompilerOutput<T>> compiled = compile(classes, diagnosticsList);
         CompilerOutput<T> newClassOutput = compiled.get(qualifiedClassName);
+        if (newClassOutput == null) {
+            throw new QoreJavaCompilerException(
+                String.format("Compilation succeeded, but requested class '%s' is " +
+                    "not present; byte code for the following classes was produced: %s", qualifiedClassName,
+                    compiled.keySet()),
+                classes.keySet(), diagnostics
+            );
+        }
         return castable(newClassOutput, types);
     }
 

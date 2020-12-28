@@ -155,8 +155,8 @@ public:
             : findCreateQoreClassInProgram(name, jpath, c, qore_parent);
     }
 
-    DLLLOCAL static LocalReference<jobject> getCreateJavaClass(Env& env, const Env::GetStringUtfChars& qpath,
-            QoreProgram* pgm, jstring jname, jboolean need_byte_code);
+    DLLLOCAL static LocalReference<jobject> getCreateJavaClass(Env& env, jobject class_loader,
+            const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname, jboolean need_byte_code);
 
     DLLLOCAL static LocalReference<jclass> getJavaType(Env& env, const QoreTypeInfo* ti, QoreProgram* pgm);
 
@@ -221,8 +221,8 @@ protected:
     DLLLOCAL JniQoreClass* findCreateQoreClassInProgram(QoreString& name, const char* jpath, Class* c,
             const QoreClass* qore_parent = nullptr);
 
-    DLLLOCAL static LocalReference<jobject> getCreateJavaClassIntern(Env& env, const QoreClass* qcls,
-        QoreProgram* pgm, jstring jname = nullptr, jboolean need_byte_code = false);
+    DLLLOCAL static LocalReference<jobject> getCreateJavaClassIntern(Env& env, jobject class_loader,
+        const QoreClass* qcls, QoreProgram* pgm, jstring jname = nullptr, jboolean need_byte_code = false);
 
 private:
     // initialization flag
