@@ -169,7 +169,7 @@ generate_java(org/qore/jni/QoreJavaDynamicClassData.java)
 generate_java(org/qore/jni/QoreRelativeTime.java)
 generate_java(org/qore/jni/QoreClosureMarker.java)
 generate_java(org/qore/jni/QoreJavaDynamicApi.java)
-generate_java(org/qore/jni/Hash.java)
+generate_java(org/qore/jni/Hash.java 1 2 3 4 5 6 7 8 9 10)
 generate_java(org/qore/jni/JavaClassBuilder.java 1)
 generate_jar(${BYTE_BUDDY_JAR} JavaJarByteBuddy)
 

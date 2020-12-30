@@ -1424,6 +1424,16 @@ static LocalReference<jclass> define_class(const char* bin_name, BinaryNode& des
 #include "JavaClassQoreJavaApi.inc"
 #include "JavaClassQoreRelativeTime.inc"
 #include "JavaClassHash.inc"
+#include "JavaClassHash_1.inc"
+#include "JavaClassHash_2.inc"
+#include "JavaClassHash_3.inc"
+#include "JavaClassHash_4.inc"
+#include "JavaClassHash_5.inc"
+#include "JavaClassHash_6.inc"
+#include "JavaClassHash_7.inc"
+#include "JavaClassHash_8.inc"
+#include "JavaClassHash_9.inc"
+#include "JavaClassHash_10.inc"
 #include "JavaJarByteBuddy.inc"
 
 // calling Env::FindClass() when the class is not available will cause the class lookup to fail later after we define it
@@ -1681,9 +1691,32 @@ void Globals::init() {
     methodThreadGetContextClassLoader = env.getMethod(classThread, "getContextClassLoader", "()Ljava/lang/ClassLoader;");
 
     classHashMap = env.findClass("java/util/HashMap").makeGlobal();
-    classHash = findDefineClass(env, "org.qore.jni.Hash", nullptr, java_org_qore_jni_Hash_class, java_org_qore_jni_Hash_class_len).makeGlobal();
+
+    classHash = findDefineClass(env, "org.qore.jni.Hash", nullptr, java_org_qore_jni_Hash_class,
+        java_org_qore_jni_Hash_class_len).makeGlobal();
     ctorHash = env.getMethod(classHash, "<init>", "()V");
     methodHashPut = env.getMethod(classHash, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+
+    findDefineClass(env, "org.qore.jni.Hash$1", nullptr, java_org_qore_jni_Hash_1_class,
+        java_org_qore_jni_Hash_1_class_len).makeGlobal();
+    findDefineClass(env, "org.qore.jni.Hash$2", nullptr, java_org_qore_jni_Hash_2_class,
+        java_org_qore_jni_Hash_2_class_len).makeGlobal();
+    findDefineClass(env, "org.qore.jni.Hash$3", nullptr, java_org_qore_jni_Hash_3_class,
+        java_org_qore_jni_Hash_3_class_len).makeGlobal();
+    findDefineClass(env, "org.qore.jni.Hash$4", nullptr, java_org_qore_jni_Hash_4_class,
+        java_org_qore_jni_Hash_4_class_len).makeGlobal();
+    findDefineClass(env, "org.qore.jni.Hash$5", nullptr, java_org_qore_jni_Hash_5_class,
+        java_org_qore_jni_Hash_5_class_len).makeGlobal();
+    findDefineClass(env, "org.qore.jni.Hash$6", nullptr, java_org_qore_jni_Hash_6_class,
+        java_org_qore_jni_Hash_6_class_len).makeGlobal();
+    findDefineClass(env, "org.qore.jni.Hash$7", nullptr, java_org_qore_jni_Hash_7_class,
+        java_org_qore_jni_Hash_7_class_len).makeGlobal();
+    findDefineClass(env, "org.qore.jni.Hash$8", nullptr, java_org_qore_jni_Hash_8_class,
+        java_org_qore_jni_Hash_8_class_len).makeGlobal();
+    findDefineClass(env, "org.qore.jni.Hash$9", nullptr, java_org_qore_jni_Hash_9_class,
+        java_org_qore_jni_Hash_9_class_len).makeGlobal();
+    findDefineClass(env, "org.qore.jni.Hash$10", nullptr, java_org_qore_jni_Hash_10_class,
+        java_org_qore_jni_Hash_10_class_len).makeGlobal();
 
     classMap = env.findClass("java/util/Map").makeGlobal();
     methodMapEntrySet = env.getMethod(classMap, "entrySet", "()Ljava/util/Set;");
