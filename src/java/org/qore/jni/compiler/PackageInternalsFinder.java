@@ -8,6 +8,7 @@ import java.util.jar.JarEntry;
 import java.io.IOException;
 import java.io.File;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.JarURLConnection;
 import java.net.URI;
 import javax.tools.JavaFileObject;
@@ -65,7 +66,14 @@ class PackageInternalsFinder {
         try {
             String jarUri = packageFolderURL.toExternalForm().split("!")[0];
 
-            JarURLConnection jarConn = (JarURLConnection) packageFolderURL.openConnection();
+            URLConnection conn = packageFolderURL.openConnection();
+            // in case of a local file, such as the compiled bytecode for classes put into a jar, the connection
+            // returned may be of private type "sun.net.www.protocol.file.FileURLConnection"; in case it's not a
+            // "JarURLConnection" object, we skip it without throwing an exception
+            if (!(conn instanceof JarURLConnection)) {
+                return result;
+            }
+            JarURLConnection jarConn = (JarURLConnection)conn;
             String rootEntryName = jarConn.getEntryName();
             int rootEnd = rootEntryName.length()+1;
 

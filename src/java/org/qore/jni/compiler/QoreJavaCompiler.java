@@ -514,8 +514,7 @@ final class FileManagerImpl extends ForwardingJavaFileManager<JavaFileManager> {
     @Override
     public Iterable<JavaFileObject> list(Location location, String packageName,
                                          Set<Kind> kinds, boolean recurse) throws IOException {
-        Iterable<JavaFileObject> result = super.list(location, packageName, kinds,
-                recurse);
+        Iterable<JavaFileObject> result = super.list(location, packageName, kinds, recurse);
         ArrayList<JavaFileObject> files = new ArrayList<JavaFileObject>();
         if (location == StandardLocation.CLASS_PATH
                 && kinds.contains(JavaFileObject.Kind.CLASS)) {

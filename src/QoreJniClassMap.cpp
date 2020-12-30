@@ -280,9 +280,9 @@ void QoreJniClassMap::initBackground() {
 
     // initialize Qore base type -> java class map
     Env env;
-    qt2jmap[NT_INT] = env.findClass("java/lang/Integer").makeGlobal();
-    qt2jmap[NT_FLOAT] = env.findClass("java/lang/Double").makeGlobal();
-    qt2jmap[NT_BOOLEAN] = env.findClass("java/lang/Boolean").makeGlobal();
+    qt2jmap[NT_INT] = GlobalReference<jclass>((jclass)Globals::classPrimitiveInt);
+    qt2jmap[NT_FLOAT] = GlobalReference<jclass>((jclass)Globals::classPrimitiveDouble);
+    qt2jmap[NT_BOOLEAN] = GlobalReference<jclass>((jclass)Globals::classPrimitiveBoolean);
     qt2jmap[NT_STRING] = env.findClass("java/lang/String").makeGlobal();
     qt2jmap[NT_DATE] = env.findClass("java/time/ZonedDateTime").makeGlobal();
     qt2jmap[NT_NUMBER] = env.findClass("java/math/BigDecimal").makeGlobal();

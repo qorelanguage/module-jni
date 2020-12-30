@@ -19,7 +19,7 @@ class QoreIteratorTest extends AbstractIterator {
         this.i = i;
     }
 
-    public Boolean next() {
+    public boolean next() {
         return i.hasNext();
     }
 
@@ -27,7 +27,7 @@ class QoreIteratorTest extends AbstractIterator {
         return i.next();
     }
 
-    public Boolean valid() {
+    public boolean valid() {
         return true;
     }
 }

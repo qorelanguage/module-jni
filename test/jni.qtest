@@ -217,7 +217,7 @@ public class Main inherits QUnit::Test {
             obj.next();
             assertEq(1, obj.next());
 
-            obj = seqClass.getDeclaredConstructor(load_class("java/lang/Integer")).newInstance(2);
+            obj = seqClass.getDeclaredConstructor(Integer::TYPE).newInstance(2);
             obj.next();
             assertEq(3, obj.next());
         }

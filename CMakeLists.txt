@@ -273,6 +273,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qore-jni.jar DESTINATION ${CMAKE_INSTA
 
 add_jar(qore-jni-compiler ${JAVA_JAR_COMPILER_SRC}
     INCLUDE_JARS qore-jni.jar
+    DEPENDS qore-jni.jar
 )
 
 add_dependencies(qore-jni-compiler qore-jni)
