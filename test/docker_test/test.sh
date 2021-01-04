@@ -55,10 +55,10 @@ chown -R qore:qore ${MODULE_SRC_DIR} /home/qore
 echo && echo "-- starting Payara --"
 gosu qore:qore ${PAYARA_HOME}/bin/asadmin start-domain domain1
 sleep 5
-#
+
 # create Payara queue named abc, needed for the tests
 gosu qore:qore ${PAYARA_HOME}/bin/asadmin create-jms-resource --restype javax.jms.Queue abc
-#
+
 # run the tests
 export QORE_MODULE_DIR=${MODULE_SRC_DIR}/qlib:${QORE_MODULE_DIR}
 cd ${MODULE_SRC_DIR}

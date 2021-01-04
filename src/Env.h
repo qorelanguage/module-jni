@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -1312,6 +1312,7 @@ public:
     */
     DLLLOCAL LocalReference<jclass> findDefineClass(const char* name, jobject loader, const unsigned char* buf, jsize bufLen) {
         jclass c = env->FindClass(name);
+        //if (c) { printd(5, "FOUND '%s': %p\n", name, c); }
         if (!c) {
             c = env->DefineClass(name, loader, reinterpret_cast<const jbyte*>(buf), bufLen);
             if (!c) {

@@ -1,0 +1,54 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%requires qore >= 0.9.9
+
+%requires Util
+
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+%exec-class MakeInc
+
+%requires Util
+%requires FsUtil
+
+class MakeInc {
+    private {
+        const Opts = {
+            "output": "o,output=s",
+            "verbose": "v,verbose:i+",
+            "help": "h,help",
+        };
+
+        const TmpName = "jar.tmp";
+    }
+
+    constructor() {
+        GetOpt g(Opts);
+        hash<auto> opts = g.parse3(\ARGV);
+        if (opts.help || !opts.output || (ARGV.size() < 2)) {
+            usage();
+        }
+
+        TmpDir tdir("", "", ".");
+        chdir(tdir.path);
+        string args = opts.verbose ? "-uo" : "-uoq";
+        map system("unzip " + args + " " + (absolute_path($1) ? $1 : ("../" + $1))), ARGV;
+        chdir("..");
+        args = opts.verbose ? "cvf" : "cf";
+        system(sprintf("jar " + args + " %s -C %s .", opts.output, tdir.path));
+    }
+
+    static usage() {
+        printf("usage: %s -o=<arg> [options] input_jar1 input_jar2 ...
+ -h,--help           this help text
+ -o,--output=ARG     the output JAR name
+ -v,--verbose[=ARG]  verbosity level
+",
+               get_script_name());
+        exit(1);
+    }
+}

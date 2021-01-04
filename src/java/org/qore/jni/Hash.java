@@ -230,4 +230,211 @@ public class Hash extends LinkedHashMap<String, Object> {
     public String getAsString(String key) {
         return String.valueOf(get(key));
     }
+
+    //! Returns a modifiable map of zero entries
+    /** @since jni 2.0
+     */
+    public static Hash of() {
+        return new Hash();
+    }
+
+    //! Returns a modifiable map of one entry
+    /** @since jni 2.0
+     */
+    public static Hash of(String k0, Object v0) {
+        return new Hash() {
+            {
+                put(k0, v0);
+            }
+        };
+    }
+
+    //! Returns a modifiable map of two entries
+    /** @since jni 2.0
+     */
+    public static Hash of(String k0, Object v0,
+            String k1, Object v1) {
+        return new Hash() {
+            {
+                put(k0, v0);
+                put(k1, v1);
+            }
+        };
+    }
+
+    //! Returns a modifiable map of three entries
+    /** @since jni 2.0
+     */
+    public static Hash of(String k0, Object v0,
+            String k1, Object v1,
+            String k2, Object v2) {
+        return new Hash() {
+            {
+                put(k0, v0);
+                put(k1, v1);
+                put(k2, v2);
+            }
+        };
+    }
+
+    //! Returns a modifiable map of four entries
+    /** @since jni 2.0
+     */
+    public static Hash of(String k0, Object v0,
+            String k1, Object v1,
+            String k2, Object v2,
+            String k3, Object v3) {
+        return new Hash() {
+            {
+                put(k0, v0);
+                put(k1, v1);
+                put(k2, v2);
+                put(k3, v3);
+            }
+        };
+    }
+
+    //! Returns a modifiable map of five entries
+    /** @since jni 2.0
+     */
+    public static Hash of(String k0, Object v0,
+            String k1, Object v1,
+            String k2, Object v2,
+            String k3, Object v3,
+            String k4, Object v4) {
+        return new Hash() {
+            {
+                put(k0, v0);
+                put(k1, v1);
+                put(k2, v2);
+                put(k3, v3);
+                put(k4, v4);
+            }
+        };
+    }
+
+    //! Returns a modifiable map of six entries
+    /** @since jni 2.0
+     */
+    public static Hash of(String k0, Object v0,
+            String k1, Object v1,
+            String k2, Object v2,
+            String k3, Object v3,
+            String k4, Object v4,
+            String k5, Object v5) {
+        return new Hash() {
+            {
+                put(k0, v0);
+                put(k1, v1);
+                put(k2, v2);
+                put(k3, v3);
+                put(k4, v4);
+                put(k5, v5);
+            }
+        };
+    }
+
+    //! Returns a modifiable map of seven entries
+    /** @since jni 2.0
+     */
+    public static Hash of(String k0, Object v0,
+            String k1, Object v1,
+            String k2, Object v2,
+            String k3, Object v3,
+            String k4, Object v4,
+            String k5, Object v5,
+            String k6, Object v6) {
+        return new Hash() {
+            {
+                put(k0, v0);
+                put(k1, v1);
+                put(k2, v2);
+                put(k3, v3);
+                put(k4, v4);
+                put(k5, v5);
+                put(k6, v6);
+            }
+        };
+    }
+
+    //! Returns a modifiable map of eight entries
+    /** @since jni 2.0
+     */
+    public static Hash of(String k0, Object v0,
+            String k1, Object v1,
+            String k2, Object v2,
+            String k3, Object v3,
+            String k4, Object v4,
+            String k5, Object v5,
+            String k6, Object v6,
+            String k7, Object v7) {
+        return new Hash() {
+            {
+                put(k0, v0);
+                put(k1, v1);
+                put(k2, v2);
+                put(k3, v3);
+                put(k4, v4);
+                put(k5, v5);
+                put(k6, v6);
+                put(k7, v7);
+            }
+        };
+    }
+
+    //! Returns a modifiable map of nine entries
+    /** @since jni 2.0
+     */
+    public static Hash of(String k0, Object v0,
+            String k1, Object v1,
+            String k2, Object v2,
+            String k3, Object v3,
+            String k4, Object v4,
+            String k5, Object v5,
+            String k6, Object v6,
+            String k7, Object v7,
+            String k8, Object v8) {
+        return new Hash() {
+            {
+                put(k0, v0);
+                put(k1, v1);
+                put(k2, v2);
+                put(k3, v3);
+                put(k4, v4);
+                put(k5, v5);
+                put(k6, v6);
+                put(k7, v7);
+                put(k8, v8);
+            }
+        };
+    }
+
+    //! Returns a modifiable map of ten entries
+    /** @since jni 2.0
+     */
+    public static Hash of(String k0, Object v0,
+            String k1, Object v1,
+            String k2, Object v2,
+            String k3, Object v3,
+            String k4, Object v4,
+            String k5, Object v5,
+            String k6, Object v6,
+            String k7, Object v7,
+            String k8, Object v8,
+            String k9, Object v9) {
+        return new Hash() {
+            {
+                put(k0, v0);
+                put(k1, v1);
+                put(k2, v2);
+                put(k3, v3);
+                put(k4, v4);
+                put(k5, v5);
+                put(k6, v6);
+                put(k7, v7);
+                put(k8, v8);
+                put(k9, v9);
+            }
+        };
+    }
 }

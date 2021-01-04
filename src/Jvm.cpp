@@ -40,7 +40,7 @@ QoreStringNode* Jvm::createVM() {
     assert(vm == nullptr);
 
     JavaVMInitArgs vm_args;
-    vm_args.version = JNI_VERSION_1_6;
+    vm_args.version = JNI_VERSION_10;
     vm_args.ignoreUnrecognized = false;
     vm_args.nOptions = 0;
 
@@ -57,6 +57,13 @@ QoreStringNode* Jvm::createVM() {
             }
         }
     }
+#ifdef QORE_JNI_SUPPORT_CLASSPATH
+    // this is disabled, because we use our own URLClassloader now to load all classes
+    QoreString classpath;
+    if (!SystemEnvironment::get("QORE_CLASSPATH", classpath)) {
+        ++num_options;
+    }
+#endif
     JavaVMOption options[num_options];
     // "reduced signals"
     options[vm_args.nOptions++].optionString = (char*)"-Xrs";
@@ -64,6 +71,13 @@ QoreStringNode* Jvm::createVM() {
         // disable JIT
         options[vm_args.nOptions++].optionString = (char*)"-Xint";
     }
+#ifdef QORE_JNI_SUPPORT_CLASSPATH
+    if (!classpath.empty()) {
+        classpath.prepend("-Djava.class.path=");
+        options[vm_args.nOptions++].optionString = (char*)classpath.c_str();
+        printd(LogLevel, "classpath: '%s'\n", classpath.c_str());
+    }
+#endif
 
     vm_args.options = options;
 

@@ -94,10 +94,10 @@ public class Main inherits QUnit::Test {
 
     jniCompatHashMapTest() {
         auto l = QoreJavaApiTest::testObject6();
-        assertEq("object<HashMap>", l[0].fullType());
-        assertEq("HashMap", l[0].className());
+        assertEq("object<Hash>", l[0].fullType());
+        assertEq("Hash", l[0].className());
 
         auto hm = QoreJavaApiTest::callFunctionTest();
-        assertEq("object<LinkedHashMap>", hm.fullType());
+        assertEq("object<Hash>", hm.fullType());
     }
 }

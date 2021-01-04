@@ -1,9 +1,10 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%requires qore >= 0.8.13
+%requires qore >= 0.9.9
 
 %requires Util
+%requires FsUtil
 
 %new-style
 %strict-args
@@ -12,12 +13,37 @@
 
 %exec-class MakeInc
 
+hashdecl JarClassInfo {
+    # java name (ex: java/lang/Class)
+    string jname;
+    # binary name (ex: java.lang.Class)
+    string bname;
+    # C++ class variable name
+    string cpp_var;
+    # binary class data variable name
+    string class_data_var_name;
+    # length of class data
+    int len;
+    # length of compressed data
+    int compressed_len;
+}
+
 class MakeInc {
     private {
-        const Opts = (
+        # command-line options
+        hash<auto> opts;
+
+        # list of classes
+        list<hash<JarClassInfo>> jar_classes;
+
+        date pstart;
+        date accum = 0s;
+
+        const Opts = {
+            "test": "T,test",
             "verbose": "v,verbose:i+",
             "help": "h,help",
-            );
+        };
 
         const BlockSize = 4096;
         const LineSize = 12;
@@ -25,67 +51,208 @@ class MakeInc {
 
     constructor() {
         GetOpt g(Opts);
-        hash opts = g.parse3(\ARGV);
-        if (opts.help)
-            usage();
+        opts = g.parse3(\ARGV);
         *string file = shift ARGV;
-        if (!file)
+        if (opts.help || !exists file) {
             usage();
+        }
 
         *string outname = shift ARGV;
         if (exists outname) {
-            if (is_dir(outname))
+            if (is_dir(outname)) {
                 outname = dirname(outname) + DirSep + basename(getName(file));
+            }
+        } else {
+            outname = getName(file);
         }
-        else
-            outname = getName(outname);
 
-        if (opts.verbose)
+        if (file =~ /\.class$/) {
+            doClass(file, outname);
+        } else if (file =~ /\.jar$/) {
+            doJar(file, outname);
+        } else {
+            printf("%y: unrecognized file type\n", file);
+        }
+    }
+
+    private doJar(string file, string outname) {
+        if (opts.verbose) {
             printf("processing %s -> %s\n", file, outname);
+        }
 
-        string name = basename(file);
-        {
-            int i = name.rfind(".");
-            if (i != -1)
-                splice name, i;
+        string orig_outname = outname;
+
+        # get abolute paths to files
+        file = normalize_dir(file);
+        outname = normalize_dir(outname);
+
+        TmpDir tmp();
+
+        # unzip jar
+        chdir(tmp.path);
+        string cmd = "unzip ";
+        if (opts.verbose < 2) {
+            cmd += "-q ";
+        }
+        cmd += sprintf("%y", file);
+        system(cmd);
+
+        #FileInputStream f(file);
+        StreamWriter w(new FileOutputStream(outname));
+
+        if (!opts.verbose) {
+            printf("generating %s: ", orig_outname);
+        }
+
+        pstart = now_us();
+
+        # scan dirs
+        scanDirs(w, tmp.path);
+
+        if (!opts.verbose) {
+            print(" done\n");
+        }
+
+        # output class map
+        w.print("DLLLOCAL cmap_t jar_cmap = {\n");
+        map w.printf("    {%y, {%d, %d, %s}},\n", $1.bname, $1.compressed_len, $1.len, $1.class_data_var_name),
+            jar_classes;
+        w.print("};\n");
+    }
+
+    private scanDirs(StreamWriter w, string path, *string jpath) {
+        if (opts.test && (now_us() - pstart) > 2s) {
+            return;
+        }
+
+        Dir d();
+        d.chdir(path);
+
+        list<string> targ = d.listDirs("^(?!.*?META-INF).*$");
+        foreach string name in (targ) {
+            *string njpath = jpath;
+            if (exists jpath) {
+                njpath += "/";
+            }
+            njpath += name;
+            scanDirs(w, path + "/" + name, njpath);
+        }
+
+        # process inner classes first
+        targ = d.listFiles(".*\\$.*\\.class$");
+        map processClass(w, path, jpath, $1), targ;
+        targ = d.listFiles("^(?!.*?\\$).*\\.class$");
+        map processClass(w, path, jpath, $1), targ;
+    }
+
+    private processClass(StreamWriter w, string path, string jpath, string name) {
+        if (opts.test && (now_us() - pstart) > 2s) {
+            return;
+        }
+        *string jname = jpath;
+        if (exists jpath) {
+            jname += "/";
+        }
+        jname += name;
+        jname =~ s/\.class$//;
+        string file = path + "/" + name;
+        if (opts.verbose) {
+            printf("processing %y: ", jname);
+        } else {
+            print(".");
+            flush();
+        }
+
+        string bname = jname;
+        bname =~ s/\//./g;
+
+        string vname = jname;
+        vname =~ s/[\/\$]/_/g;
+        string class_data_var_name = sprintf("java_%s_class_data", vname);
+
+        date start = now_us();
+        int len;
+        int compressed_len = doClassFile(new FileInputStream(file), w, file, class_data_var_name, True, \len);
+        hash<JarClassInfo> info({
+            "jname": jname,
+            "bname": bname,
+            "cpp_var": vname,
+            "class_data_var_name": class_data_var_name,
+            "len": len,
+            "compressed_len": compressed_len,
+        });
+        w.print("\n");
+
+        # XXX DEBUG
+        date delta = now_us() - start;
+        accum += delta;
+
+        if (opts.verbose) {
+            # XXX DEBUG
+            printf("%y ", delta);
+            printf("%d bytes\n", info.len);
+        }
+
+        jar_classes += info;
+    }
+
+    private doClass(string file, string outname) {
+        if (opts.verbose) {
+            printf("processing %s -> %s\n", file, outname);
         }
 
         FileInputStream f(file);
-
         StreamWriter w(new FileOutputStream(outname));
 
-        name =~ s/\$/_/g;
-
-        w.printf("//generated from %s\nstatic unsigned char java_org_qore_jni_%s_class[] = {", file, name);
-
-        # character count
-        int cc = 0;
-        int tc = 0;
-
-        while (True) {
-            *binary b = f.read(BlockSize);
-            if (!b)
-                break;
-            for (int i = 0; i < b.size(); ++i) {
-                if (tc)
-                    w.write(",");
-                if (!(cc % LineSize)) {
-                    cc = 0;
-                    w.write("\n ");
-                }
-                w.printf(" 0x%02x", b[i]);
-                ++cc;
-                ++tc;
+        string cpp_var = basename(file);
+        {
+            int i = cpp_var.rfind(".");
+            if (i != -1) {
+                splice cpp_var, i;
             }
         }
+        cpp_var =~ s/\$/_/g;
+        cpp_var = sprintf("java_org_qore_jni_%s_class", cpp_var);
+
+        int len = doClassFile(f, w, file, cpp_var);
 
         string oname = basename(file);
         oname =~ s/[\.\$]/_/g;
-        w.printf("\n};\nstatic unsigned int java_org_qore_jni_%s_len = %d;\n", oname, tc);
+        w.printf("\nstatic unsigned int java_org_qore_jni_%s_len = %d;\n", oname, len);
+    }
+
+    private int doClassFile(InputStream f, StreamWriter w, string file, string cpp_var, *bool compress, *reference<int> orig_size) {
+        w.printf("// generated from %s\nstatic unsigned char %s[] = {", file, cpp_var);
+
+        # character count
+        int cc = 0;
+
+        hash<StatInfo> statinfo = hstat(file);
+        *binary b = f.read(statinfo.size);
+        if (!b)
+            return 0;
+        if (compress) {
+            orig_size = b.size();
+            # compress data
+            b = bzip2(b, 9);
+        }
+        int size = b.size();
+        for (int i = 0; i < size; ++i) {
+            if (!(cc % LineSize)) {
+                cc = 0;
+                w.write("\n ");
+            }
+            w.printf(" 0x%02x,", b[i]);
+            ++cc;
+        }
+
+        w.print("\n};\n");
+
+        return size;
     }
 
     static usage() {
-        printf("usage: %s [options]
+        printf("usage: %s [options] class|jar [output_file]
  -h,--help           this help text
  -v,--verbose[=ARG]  verbosity level
 ",

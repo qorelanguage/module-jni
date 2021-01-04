@@ -20,10 +20,15 @@
 %module-cmd(jni) add-relative-classpath qore-jni-test.jar
 # warning: hardcoded build directory
 %module-cmd(jni) add-relative-classpath ../build/qore-jni.jar
+%module-cmd(jni) add-relative-classpath ../build/qore-jni-compiler.jar
+
 %module-cmd(jni) import java.lang.reflect.*
 %module-cmd(jni) import java.lang.invoke.*
 %module-cmd(jni) import org.qore.jni.test.Fields
 %module-cmd(jni) import org.qore.jni.test.QoreJavaApiTest
+
+%module-cmd(jni) import org.qore.jni.compiler.QoreJavaCompiler
+%module-cmd(jni) import org.qore.jni.compiler.CompilerOutput
 
 %module-cmd(jni) import org.qore.lang.*
 %module-cmd(jni) import org.qore.lang.sqlutil.*
@@ -161,6 +166,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("jni test", "1.0") {
+        addTestCase("codegen test", \javaCodegenTest());
         addTestCase("code test", \testCode());
         addTestCase("smtpclient test", \smtpClientTest());
         addTestCase("mailmessage test", \mailMessageTest());
@@ -193,13 +199,86 @@ public class Main inherits QUnit::Test {
         addTestCase("special conversions test", \testSpecialConversions());
         addTestCase("api test", \testQoreJavaApi());
 
-        # Return for compatibility with test harness that checks return value.
+        # Return for compatibility with test harnesses that check the return value
         set_return_value(main());
     }
 
     log(string fmt) {
         if (m_options.verbose > 2) {
             vprintf("HTTP: " + fmt, argv);
+        }
+    }
+
+    javaCodegenTest() {
+        {
+            lang::Class seqClass = load_class("qore/Qore/Thread/Sequence");
+            object obj = seqClass.getDeclaredConstructor().newInstance();
+            assertEq("Sequence", obj.className());
+            obj.next();
+            assertEq(1, obj.next());
+
+            obj = seqClass.getDeclaredConstructor(Integer::TYPE).newInstance(2);
+            obj.next();
+            assertEq(3, obj.next());
+        }
+
+        {
+            # compile and execute QoreDynamicTest.java
+            QoreJavaCompiler compiler();
+            compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest",
+                File::readTextFile(get_script_dir() + "/QoreDynamicTest.java"));
+            binary fdata = newClassData.file.openInputStream().readAllBytes();
+            assertGt(0, fdata.size());
+            reflect::Method m = newClassData.cls.getMethod("test0");
+            assertEq(1, m.invoke());
+            m = newClassData.cls.getMethod("test1", Integer::TYPE);
+            assertEq(11, m.invoke(NOTHING, 10));
+            m = newClassData.cls.getMethod("test2");
+            assertEq("test", m.invoke());
+        }
+
+        {
+            # compile and execute QoreDynamicTest2.java
+            QoreJavaCompiler compiler();
+            DiagnosticCollector diags();
+            compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest2",
+                cast<CharSequence>(new String(File::readTextFile(get_script_dir() + "/QoreDynamicTest2.java"))), diags, NOTHING);
+            binary fdata = newClassData.file.openInputStream().readAllBytes();
+            assertGt(0, fdata.size());
+            reflect::Method m = newClassData.cls.getMethod("test0");
+            auto i = m.invoke();
+            assertEq("QoreIteratorTest", i.className());
+            assertTrue(i instanceof AbstractIterator);
+            list<auto> l = map $1, i;
+            assertEq(("one", "two", "three"), l);
+        }
+
+        {
+            # compile and execute QoreDynamicTest3.java
+            QoreJavaCompiler compiler();
+            compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest3",
+                File::readTextFile(get_script_dir() + "/QoreDynamicTest3.java"));
+            binary fdata = newClassData.file.openInputStream().readAllBytes();
+            assertGt(0, fdata.size());
+            reflect::Method m = newClassData.cls.getMethod("test0", load_class("java/lang/String"));
+            auto h = m.invoke(NOTHING, get_script_path());
+            on_error printf("h: %N\n", h);
+            assertEq("hash<auto>", h.fullType());
+            assertEq("REGULAR", h.type);
+        }
+
+        {
+            # compile and execute QoreDynamicTest4.java
+            QoreJavaCompiler compiler();
+            compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest4",
+                File::readTextFile(get_script_dir() + "/QoreDynamicTest4.java"));
+            binary fdata = newClassData.file.openInputStream().readAllBytes();
+            assertGt(0, fdata.size());
+            reflect::Method m = newClassData.cls.getMethod("test0", load_class("java/lang/String"));
+            auto stream = m.invoke(NOTHING, "testing");
+            on_error printf("h: %N\n", stream);
+            assertEq("object<QoreDynamicTest4>", stream.fullType());
+            assertEq("testing", stream.getData());
         }
     }
 
@@ -367,7 +446,7 @@ lorem ipsum\r
         set_save_object_callback(callback);
         on_exit set_save_object_callback();
         assertEq("test-y", QoreJavaApiTest::objectLifecycleTest("test"));
-        printf("object_cache: %N\n", object_cache);
+        #printf("object_cache: %N\n", object_cache);
         assertEq(1, object_cache.size());
     }
 
@@ -844,7 +923,7 @@ lorem ipsum\r
             assertTrue(False);
         } catch (hash<ExceptionInfo> ex) {
             assertEq("QoreJavaApiTest.java", ex.file);
-            assertEq(84, ex.line);
+            assertEq(86, ex.line);
         }
 
         # test Hash APIs
@@ -1226,14 +1305,7 @@ lorem ipsum\r
         callInThread.invoke(NOTHING, o);
         usleep(200ms);
         assertEq(3, i);
-        try {
-            callNow.invoke(NOTHING, o);
-            assertEq(False, True);
-        } catch (hash<ExceptionInfo> ex) {
-            assertEq(ex.err, "JNI-ERROR");
-            assertEq(True, ex.desc =~ /java.lang.reflect.InvocationTargetException/);
-            assertEq("CALLBACK-ERROR", ex.arg.getTargetException().getMessage());
-        }
+        assertThrows("CALLBACK-ERROR", \callNow.invoke(), (NOTHING, o));
         assertThrows("CALLBACK-ERROR", \invoke(), (callNow, NOTHING, o));
         assertThrows("CALLBACK-ERROR", \invoke_nonvirtual(), (callNow, NOTHING, o));
         try {

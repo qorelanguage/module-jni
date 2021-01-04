@@ -71,7 +71,6 @@ Jni::java::lang::Class load_class(string name) {
         return new QoreObject(QC_CLASS, jni::jni_get_program_context(), new QoreJniPrivateData(qjcm.findLoadClass(*name)));
     } catch (jni::Exception& e) {
         e.convert(xsink);
-        return QoreValue();
     }
 }
 
