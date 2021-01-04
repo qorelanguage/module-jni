@@ -23,7 +23,10 @@ import net.bytebuddy.implementation.bind.annotation.Argument;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.implementation.MethodCall;
+import net.bytebuddy.implementation.FixedValue;
 import net.bytebuddy.NamingStrategy;
+
+import org.qore.jni.QoreURLClassLoader;
 
 public class JavaClassBuilder {
     private static Class objArray;
@@ -43,15 +46,13 @@ public class JavaClassBuilder {
         try {
             objArray = Class.forName("[L" + Object.class.getCanonicalName() + ";");
 
-            Class<?>[] args = new Class<?>[3];
+            Class<?>[] args = new Class<?>[5];
             args[0] = String.class;
-            args[1] = long.class;
-            args[2] = objArray;
+            args[1] = Long.TYPE;
+            args[2] = Long.TYPE;
+            args[3] = Long.TYPE;
+            args[4] = objArray;
             mStaticCall = JavaClassBuilder.class.getDeclaredMethod("doStaticCall", args);
-
-            args[0] = String.class;
-            args[1] = long.class;
-            args[2] = objArray;
             mNormalCall = JavaClassBuilder.class.getDeclaredMethod("doNormalCall", args);
         } catch (Throwable e) {
             throw new ExceptionInInitializerError(e);
@@ -71,7 +72,7 @@ public class JavaClassBuilder {
                 })
                 .subclass(parentClass, ConstructorStrategy.Default.NO_CONSTRUCTORS);
         } catch (NoClassDefFoundError e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             throw new RuntimeException(String.format("qore-jni.jar module not in QORE_CLASSPATH; bytecode " +
                 "generation unavailable; cannot perform dynamic imports in Java", e));
         }
@@ -84,26 +85,39 @@ public class JavaClassBuilder {
         bb = bb.modifiers(modifiers);
 
         // add a static field for storing the class ptr
-        bb = (DynamicType.Builder<?>)bb.defineField(CLASS_FIELD, long.class,
+        bb = (DynamicType.Builder<?>)bb.defineField(CLASS_FIELD, Long.TYPE,
             Modifier.FINAL | Modifier.PUBLIC | Modifier.STATIC)
             .value(cptr);
 
-        return bb;
+        // add default constructor
+        ArrayList<Type> paramTypes = new ArrayList<Type>();
+        paramTypes.add(Long.TYPE);
+        paramTypes.add(objArray);
+
+        return (DynamicType.Builder<?>)bb.defineConstructor(Visibility.PUBLIC)
+                .withParameters(paramTypes)
+                .throwing(Throwable.class)
+                .intercept(
+                    MethodCall.invoke(parentClass.getConstructor(Long.TYPE, objArray))
+                    .onSuper()
+                    .withAllArguments()
+                );
     }
 
-    // add normal method
-    static public DynamicType.Builder<?> addConstructor(DynamicType.Builder<?> bb, Class<?> parentClass, int visibility,
-            List<Type> paramTypes) {
+    // add a constructor
+    static public DynamicType.Builder<?> addConstructor(DynamicType.Builder<?> bb, Class<?> parentClass, long vptr,
+            int visibility, List<Type> paramTypes) {
         if (paramTypes == null) {
             paramTypes = new ArrayList<Type>();
         }
+
         try {
             if (paramTypes.size() == 0) {
                 return (DynamicType.Builder<?>)bb.defineConstructor(getVisibility(visibility))
                     .withParameters(paramTypes)
                     .throwing(Throwable.class)
                     .intercept(
-                        MethodCall.invoke(parentClass.getConstructor(long.class, objArray))
+                        MethodCall.invoke(parentClass.getConstructor(Long.TYPE, objArray))
                         .onSuper()
                         .withField(CLASS_FIELD)
                         .with((Object)null)
@@ -113,7 +127,7 @@ public class JavaClassBuilder {
                 .withParameters(paramTypes)
                 .throwing(Throwable.class)
                 .intercept(
-                    MethodCall.invoke(parentClass.getConstructor(long.class, objArray))
+                    MethodCall.invoke(parentClass.getConstructor(Long.TYPE, objArray))
                     .onSuper()
                     .withField(CLASS_FIELD)
                     .withArgumentArray()
@@ -124,8 +138,8 @@ public class JavaClassBuilder {
     }
 
     // add normal method
-    static public DynamicType.Builder<?> addNormalMethod(DynamicType.Builder<?> bb, String methodName, int visibility,
-            Class<?> returnType, List<Type> paramTypes, boolean isAbstract) {
+    static public DynamicType.Builder<?> addNormalMethod(DynamicType.Builder<?> bb, String methodName, long mptr, long vptr,
+            int visibility, Class<?> returnType, List<Type> paramTypes, boolean isAbstract) {
         if (paramTypes == null) {
             paramTypes = new ArrayList<Type>();
         }
@@ -140,7 +154,7 @@ public class JavaClassBuilder {
             try {
                 bb = (DynamicType.Builder<?>)eb.withoutCode();
             } catch (Throwable e) {
-                System.out.println(e.toString());
+                //System.out.println(e.toString());
                 throw e;
             }
         } else if (paramTypes.size() == 0) {
@@ -148,6 +162,8 @@ public class JavaClassBuilder {
                     MethodCall.invoke(mNormalCall)
                     .with(methodName)
                     .withField("obj")
+                    .with(mptr)
+                    .with(vptr)
                     .with((Object)null)
                     .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)
                 );
@@ -156,7 +172,9 @@ public class JavaClassBuilder {
                     MethodCall.invoke(mNormalCall)
                     .with(methodName)
                     .withField("obj")
-                    .withAllArguments()
+                    .with(mptr)
+                    .with(vptr)
+                    .withArgumentArray()
                     .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)
             );
         }
@@ -164,8 +182,11 @@ public class JavaClassBuilder {
     }
 
     // add static method
-    static public DynamicType.Builder<?> addStaticMethod(DynamicType.Builder<?> bb, String methodName, int visibility,
-            Class<?> returnType, List<Type> paramTypes) {
+    static public DynamicType.Builder<?> addStaticMethod(DynamicType.Builder<?> bb, String methodName, long mptr,
+            long vptr, int visibility, Class<?> returnType, List<Type> paramTypes) {
+        if (paramTypes == null) {
+            paramTypes = new ArrayList<Type>();
+        }
         return (DynamicType.Builder<?>)bb.defineMethod(methodName, returnType, getVisibility(visibility),
             Ownership.STATIC)
             .withParameters(paramTypes)
@@ -174,16 +195,25 @@ public class JavaClassBuilder {
                 MethodCall.invoke(mStaticCall)
                 .with(methodName)
                 .withField(CLASS_FIELD)
-                .withAllArguments()
+                .with(mptr)
+                .with(vptr)
+                .withArgumentArray()
                 .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)
             );
     }
 
     @SuppressWarnings("unchecked")
-    static public QoreJavaDynamicClassData<?> getClassFromBuilder(DynamicType.Builder<?> bb, ClassLoader classLoader) {
+    static public QoreJavaDynamicClassData<?> getClassFromBuilder(DynamicType.Builder<?> bb, QoreURLClassLoader classLoader, String bin_name) {
         DynamicType.Unloaded<?> unloaded = bb.make();
         byte[] byte_code = unloaded.getBytes();
-        return new QoreJavaDynamicClassData(unloaded.load(classLoader, ClassLoadingStrategy.Default.WRAPPER).getLoaded(), byte_code);
+        //System.out.printf("JavaClassBuilder.getClassFromBuilder() adding pending '%s'\n", bin_name);
+        classLoader.addPendingClass(bin_name, byte_code);
+        try {
+            return new QoreJavaDynamicClassData(classLoader.loadClass(bin_name), byte_code);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        //return new QoreJavaDynamicClassData(unloaded.load(classLoader, ClassLoadingStrategy.Default.WRAPPER).getLoaded(), byte_code);
     }
 
     /** makes a static method call
@@ -194,9 +224,9 @@ public class JavaClassBuilder {
      * @throws Throwable any exception thrown in Qore
      */
     @RuntimeType
-    public static Object doStaticCall(String methodName, long qclsptr, @Argument(0) Object... args) throws Throwable {
+    public static Object doStaticCall(String methodName, long qclsptr, long mptr, long vptr, @Argument(0) Object... args) throws Throwable {
         //System.out.println(String.format("JavaClassBuilder::doStaticCall() %s() cptr: %d args: %s", methodName, qclsptr, Arrays.toString(args)));
-        return doStaticCall0(methodName, qclsptr, args);
+        return doStaticCall0(methodName, qclsptr, mptr, vptr, args);
     }
 
     /** makes a normal method call
@@ -208,9 +238,9 @@ public class JavaClassBuilder {
      * @throws Throwable any exception thrown in Qore
      */
     @RuntimeType
-    public static Object doNormalCall(String methodName, long qobjptr, @Argument(0) Object... args) throws Throwable {
+    public static Object doNormalCall(String methodName, long qobjptr, long mptr, long vptr, @Argument(0) Object... args) throws Throwable {
         //System.out.println(String.format("JavaClassBuilder::doNormalCall() %s() ptr: %d args: %s", methodName, qobjptr, Arrays.toString(args)));
-        return doNormalCall0(methodName, qobjptr, args);
+        return doNormalCall0(methodName, qobjptr, mptr, vptr, args);
     }
 
     static private Visibility getVisibility(int visibility) {
@@ -226,6 +256,6 @@ public class JavaClassBuilder {
         return Visibility.PRIVATE;
     }
 
-    private static native Object doStaticCall0(String methodName, long qclsptr, Object... args) throws Throwable;
-    private static native Object doNormalCall0(String methodName, long qobjptr, Object... args) throws Throwable;
+    private static native Object doStaticCall0(String methodName, long qclsptr, long mptr, long vptr, Object... args) throws Throwable;
+    private static native Object doNormalCall0(String methodName, long qobjptr, long mptr, long vptr, Object... args) throws Throwable;
 }

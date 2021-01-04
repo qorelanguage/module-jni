@@ -38,7 +38,11 @@ public class QoreJavaDynamicApi {
             m.trySetAccessible();
             return m.invoke(obj, args);
         } catch (InvocationTargetException e) {
-            throw e.getCause();
+            Throwable e0 = e;
+            while (e0 instanceof InvocationTargetException) {
+                e0 = e0.getCause();
+            }
+            throw e0;
         }
     }
 

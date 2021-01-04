@@ -53,7 +53,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     private boolean enable_cache = false;
 
     // used to mark java class creation in progress; binary names used
-    private static HashSet<String> classInProgress = new HashSet<String>();
+    private HashSet<String> classInProgress = new HashSet<String>();
 
     // cache of inner classes to resolve circular dependencies when injecting classes
     private HashMap<String, byte[]> pendingClasses = new HashMap<String, byte[]>();
@@ -62,8 +62,8 @@ public class QoreURLClassLoader extends URLClassLoader {
     private HashMap<String, Class<?>> classCache = new HashMap<String, Class<?>>();
 
     // cache of dynamically generated class info; binary name -> class data
-    private static HashMap<String, QoreJavaDynamicClassData<?>> dynamicCache =
-        new HashMap<String, QoreJavaDynamicClassData<?>>();
+    private HashMap<String, QoreJavaDynamicClassData<?>> dynamicCache =
+    new HashMap<String, QoreJavaDynamicClassData<?>>();
 
     // static initialization
     static {
@@ -154,12 +154,12 @@ public class QoreURLClassLoader extends URLClassLoader {
     }
 
     // adds byte code for an inner class to the byte code cache; requires a dot name (ex: \c my.package.MyClass$1)
-    public void addPendingClass(String name, byte[] byte_code) {
+    public void addPendingClass(String bin_name, byte[] byte_code) {
         if (byte_code == null) {
             throw new RuntimeException("QoreURLClassLoader.addPendingClass() called with null byte_code");
         }
-        pendingClasses.put(name, byte_code);
-        //debugLog("addPendingClass: " + name + " len: " + byte_code.length + " hm size: " + pendingClasses.size());
+        pendingClasses.put(bin_name, byte_code);
+        //debugLog("addPendingClass: " + bin_name + " len: " + byte_code.length + " hm size: " + pendingClasses.size());
     }
 
     public Class<?> getResolveClass(String name) throws ClassNotFoundException {
@@ -199,68 +199,62 @@ public class QoreURLClassLoader extends URLClassLoader {
         return defineClassIntern(name, byte_code, 0, byte_code.length);
     }
 
-    protected Class<?> findClass(String name) throws ClassNotFoundException {
+    protected Class<?> findClass(String bin_name) throws ClassNotFoundException {
         //debugLog("findClass: " + name);
         /*
         for (URL url : getURLs()) {
             debugLog(" + " + url.toString());
         }
         */
-        Class<?> rv = tryGetPendingClass(name);
+        Class<?> rv = tryGetPendingClass(bin_name);
         if (rv != null) {
             return rv;
         }
 
         try {
-            return super.findClass(name);
+            return super.findClass(bin_name);
         } catch (ClassNotFoundException e) {
             //System.out.println("findClass() error: " + e.toString());
-            if (name.startsWith("qore.") && name.length() > 5) {
-                // check and set java class creation atomically
-                if (markInProgress(name)) {
-                    throw e;
-                }
-
+            if (bin_name.startsWith("qore.") && bin_name.length() > 5) {
                 // only remove from set if successful
                 try {
-                    rv = createJavaQoreClass(name, false).cls;
+                    rv = createJavaQoreClass(bin_name, false).cls;
                 } catch (RuntimeException e1) {
                     throw e1;
                 } catch (Throwable e1) {
                     throw new RuntimeException(e1);
                 }
-                // remove marker from set atomically - only if the above call was successful
-                removeInProgress(name);
+                //System.out.printf("fincClass() %s returning %s\n", bin_name, rv);
                 return rv;
             } else {
                 byte[] byte_code;
                 try {
-                    byte_code = getCachedClass0(name);
+                    byte_code = getCachedClass0(bin_name);
                 } catch (RuntimeException e1) {
                     throw e1;
                 } catch (Throwable e1) {
                     throw new RuntimeException(e1);
                 }
                 if (byte_code != null) {
-                    return defineClassIntern(name, byte_code, 0, byte_code.length);
+                    return defineClassIntern(bin_name, byte_code, 0, byte_code.length);
                 }
             }
             throw e;
         }
     }
 
-    private synchronized boolean markInProgress(String name) {
-        if (classInProgress.contains(name)) {
+    private synchronized boolean markInProgress(String bin_name) {
+        if (classInProgress.contains(bin_name)) {
             return true;
         }
-        classInProgress.add(name);
-        //debugLog("marked in progress " + name);
+        classInProgress.add(bin_name);
+        //debugLog("marked in progress " + bin_name);
         return false;
     }
 
-    private synchronized void removeInProgress(String name) {
-        classInProgress.remove(name);
-        //debugLog("removed in progress " + name);
+    private synchronized void removeInProgress(String bin_name) {
+        classInProgress.remove(bin_name);
+        //debugLog("removed in progress " + bin_name);
     }
 
     /*
@@ -270,18 +264,31 @@ public class QoreURLClassLoader extends URLClassLoader {
     }
     */
 
-    public Class<?> loadClass(String name) throws ClassNotFoundException {
-        //debugLog("loadClass: " + name);
+    public Class<?> loadClass(String bin_name) throws ClassNotFoundException {
+        //debugLog("loadClass: " + bin_name);
         /*
         for (URL url : getURLs()) {
             debugLog(" + " + url.toString());
         }
         */
-        Class<?> rv = tryGetPendingClass(name);
+        Class<?> rv = tryGetPendingClass(bin_name);
         if (rv != null) {
             return rv;
         }
-        return super.loadClass(name);
+
+        if (bin_name.startsWith("qore.") && bin_name.length() > 5) {
+            try {
+                return createJavaQoreClass(bin_name, false).cls;
+            } catch (ClassNotFoundException e) {
+                throw e;
+            } catch (RuntimeException e1) {
+                throw e1;
+            } catch (Throwable e1) {
+                throw new RuntimeException(e1);
+            }
+        }
+
+        return super.loadClass(bin_name);
     }
 
     protected Class<?> defineClassIntern(String name, byte[] byte_code, int off, int len) throws ClassFormatError {
@@ -289,6 +296,8 @@ public class QoreURLClassLoader extends URLClassLoader {
         if (enable_cache) {
             classCache.put(name, rv);
             //debugLog("QoreURLClassLoader.defineClassIntern() caching " + name);
+        } else {
+            //debugLog("QoreURLClassLoader.defineClassIntern() not caching " + name);
         }
         return rv;
     }
@@ -302,6 +311,10 @@ public class QoreURLClassLoader extends URLClassLoader {
         Class<?> rv = defineClassIntern(name, b, off, len);
         resolveClass(rv);
         return rv;
+    }
+
+    public long getPtr() {
+        return pgm_ptr;
     }
 
     public static long getProgramPtr() {
@@ -384,13 +397,11 @@ public class QoreURLClassLoader extends URLClassLoader {
         //infoLog("Class loader is using classpath: \"" + classPath + "\".");
     }
 
-    public ArrayList<String> getClassNamesInNamespace(String packageName) {
+    public ArrayList<String> getClassesInNamespace(String packageName) {
         ArrayList<String> rv = new ArrayList<String>();
         String qname = packageName.substring(4).replace(".", "::");
-        getClassNamesInNamespace0(pgm_ptr, qname, rv);
+        getClassesInNamespace0(pgm_ptr, qname, rv);
         return rv;
-        //URI uri = URI.create("file:" + packageName + ".Sequence");
-        //result.add(new QoreJavaClassObject("qore.Qore.Thread.Sequence", classLoader));
     }
 
     static boolean isLoadable(String name) {
@@ -457,39 +468,54 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     public synchronized QoreJavaDynamicClassData<?> createJavaQoreClass(String bin_name, boolean need_byte_code) throws ClassNotFoundException {
         //debugLog(String.format("QoreURLClassLoader.createJavaQoreClass() call: '%s' need_byte_code: %s", bin_name, need_byte_code));
+        //Thread.dumpStack();
         QoreJavaDynamicClassData<?> rv = dynamicCache.get(bin_name);
         if (rv == null) {
-            markInProgress(bin_name);
-            String qname = "::";
-            if (bin_name.startsWith("qore.")) {
-                qname += bin_name.substring(5);
-            } else {
-                qname += bin_name;
+            if (markInProgress(bin_name)) {
+                throw new ClassNotFoundException(String.format("%s is already being created", bin_name));
             }
-            qname = qname.replaceAll("\\.", "::");
-            //debugLog(String.format("QoreURLClassLoader.createJavaQoreClass() bin_name: %s qname: %s", bin_name, qname));
-            if (pgm_ptr != 0) {
-                try {
-                    rv = createJavaQoreClass0(pgm_ptr, qname, bin_name, need_byte_code);
-                } catch (RuntimeException e) {
-                    throw e;
-                } catch (Throwable e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                debugLog("QoreURLClassLoader.createJavaQoreClass(" + bin_name + ") called with no Qore program context");
+            try {
+                rv = createJavaQoreClassIntern(bin_name, need_byte_code);
+            } finally {
+                removeInProgress(bin_name);
             }
-            if (rv == null) {
-                throw new ClassNotFoundException(String.format("could not find a Qore source class matching '%s' to " +
-                    "create Java class '%s'", qname, bin_name));
-            }
-            dynamicCache.put(bin_name, rv);
-            //debugLog(String.format("QoreURLClassLoader.createJavaQoreClass() created/cached %s: %s", bin_name, rv.toString()));
-            // remove in progress only if successful
-            removeInProgress(bin_name);
-        } else {
-            //debugLog(String.format("QoreURLClassLoader.createJavaQoreClass() got from cache %s: %s", bin_name, rv.toString()));
         }
+        return rv;
+    }
+
+    private QoreJavaDynamicClassData<?> createJavaQoreClassIntern(String bin_name, boolean need_byte_code) throws ClassNotFoundException {
+        String qname = "::";
+        if (bin_name.startsWith("qore.")) {
+            qname += bin_name.substring(5);
+        } else {
+            qname += bin_name;
+        }
+        qname = qname.replaceAll("\\.", "::");
+        //debugLog(String.format("QoreURLClassLoader.createJavaQoreClass() bin_name: %s qname: %s", bin_name, qname));
+        BooleanWrapper builtin = new BooleanWrapper();
+        QoreJavaDynamicClassData<?> rv;
+        if (pgm_ptr != 0) {
+            try {
+                rv = createJavaQoreClass0(pgm_ptr, qname, bin_name, need_byte_code, builtin);
+            } catch (ClassNotFoundException e) {
+                throw e;
+            } catch (RuntimeException e) {
+                //e.printStackTrace();
+                throw e;
+            } catch (Throwable e) {
+                //e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        } else {
+            rv = null;
+            debugLog("QoreURLClassLoader.createJavaQoreClass(" + bin_name + ") called with no Qore program context");
+        }
+        if (rv == null) {
+            throw new ClassNotFoundException(String.format("could not find a Qore source class matching '%s' to " +
+                "create Java class '%s'", qname, bin_name));
+        }
+        dynamicCache.put(bin_name, rv);
+        //debugLog(String.format("QoreURLClassLoader.createJavaQoreClass() created/cached %s: %s", bin_name, rv.toString()));
         return rv;
     }
 
@@ -523,9 +549,10 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     static private native byte[] getCachedClass0(String name);
     private native QoreJavaDynamicClassData<?> createJavaQoreClass0(long ptr, String qname, String name,
-            boolean need_byte_code) throws Throwable;
-    static private native void getClassNamesInNamespace0(long ptr, String packageName, ArrayList<String> result);
+            boolean need_byte_code, BooleanWrapper builtin) throws Throwable;
+    static private native void getClassesInNamespace0(long ptr, String packageName, ArrayList<String> result);
     static private native long getContextProgram0(QoreURLClassLoader syscl, BooleanWrapper created);
     static private native void shutdownContext0();
     static private native void dummy0();
+    static private native void debug0(long ptr);
 }

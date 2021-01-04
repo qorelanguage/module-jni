@@ -60,9 +60,9 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
         return QoreValue(new QoreNumberNode(chars.c_str()));
     }
 
-    if (env.isInstanceOf(v, Globals::classQoreObject)) {
+    if (env.isInstanceOf(v, Globals::classQoreObjectBase)) {
         QoreObject* obj = reinterpret_cast<QoreObject*>(env.callLongMethod(v,
-            Globals::methodQoreObjectGet, nullptr));
+            Globals::methodQoreObjectBaseGet, nullptr));
         return obj->refSelf();
     }
 

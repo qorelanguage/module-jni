@@ -190,9 +190,16 @@ public:
         }
     }
 
+    DLLLOCAL const char* what(QoreString& str) {
+        str.sprintf("%s: %s", err.c_str(), desc.c_str());
+        return str.c_str();
+    }
+
     DLLLOCAL void convert(ExceptionSink *xsink) override {
         xsink->raiseException(err.c_str(), desc.c_str());
     }
+
+
 
 private:
     std::string err;

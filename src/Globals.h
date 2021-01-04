@@ -62,12 +62,16 @@ public:
     DLLLOCAL static GlobalReference<jclass> classPrimitiveFloat;                  // class for the primitive type float
     DLLLOCAL static GlobalReference<jclass> classPrimitiveDouble;                 // class for the primitive type double
 
+    DLLLOCAL static GlobalReference<jclass> arrayClassByte;                       // class for byte[]
+
     DLLLOCAL static GlobalReference<jclass> classSystem;                          // java.lang.System
     DLLLOCAL static jmethodID methodSystemSetProperty;                            // String System.setProperty()
     DLLLOCAL static jmethodID methodSystemGetProperty;                            // String System.getProperty()
 
     DLLLOCAL static GlobalReference<jclass> classObject;                          // java.lang.Object
+    DLLLOCAL static jmethodID methodObjectClone;                                  // Object Object.clone()
     DLLLOCAL static jmethodID methodObjectGetClass;                               // Class<?> Object.getClass()
+    DLLLOCAL static jmethodID methodObjectEquals;                                 // boolean equals(Object)
 
     DLLLOCAL static GlobalReference<jclass> classClass;                           // java.lang.Class
     DLLLOCAL static jmethodID methodClassIsArray;                                 // boolean Class.isArray()
@@ -83,6 +87,8 @@ public:
     DLLLOCAL static jmethodID methodClassGetDeclaredMethods;                      // Method[] Class.getDeclaredMethods()
     DLLLOCAL static jmethodID methodClassGetCanonicalName;                        // String Class.getCanonicalName()
     DLLLOCAL static jmethodID methodClassGetDeclaredField;                        // Field Class.getField()
+    DLLLOCAL static jmethodID methodClassIsAssignableFrom;                        // boolean Class.isAsignableFrom(Class)
+    DLLLOCAL static jmethodID methodClassGetMethod;                               // Method Class.getMethod(String, Class[])
 
     DLLLOCAL static GlobalReference<jclass> classThrowable;                       // java.lang.Throwable
     DLLLOCAL static jmethodID methodThrowableGetMessage;                          // String Throwable.getMessage()
@@ -137,10 +143,12 @@ public:
     DLLLOCAL static jmethodID methodQoreExceptionGetArg;                          // String QoreException.getArg()
 
     DLLLOCAL static GlobalReference<jclass> classQoreObjectBase;                  // org.qore.jni.QoreObjectBase
+    DLLLOCAL static jmethodID methodQoreObjectBaseGet;                            // long get()
+
+    DLLLOCAL static GlobalReference<jclass> classQoreJavaClassBase;               // org.qore.jni.QoreJavaClassBase
 
     DLLLOCAL static GlobalReference<jclass> classQoreObject;                      // org.qore.jni.QoreObject
     DLLLOCAL static jmethodID ctorQoreObject;                                     // QoreObject(long)
-    DLLLOCAL static jmethodID methodQoreObjectGet;                                // long QoreObject.get()
 
     DLLLOCAL static GlobalReference<jclass> classQoreClosure;                     // org.qore.jni.QoreClosure
     DLLLOCAL static jmethodID ctorQoreClosure;                                    // QoreClosure(long)
@@ -167,6 +175,9 @@ public:
     DLLLOCAL static jmethodID methodQoreURLClassLoaderGetResolveClass;            // Class<?> QoreURLClassLoader.getResolveClass(String)
     DLLLOCAL static jmethodID methodQoreURLClassLoaderClearCache;                 // void QoreURLClassLoader.clearCache()
     DLLLOCAL static jmethodID methodQoreURLClassLoaderDefineClassUnconditional;   // Class<?> QoreURLClassLoader.defineClassUnconditional(String, byte[])
+    DLLLOCAL static jmethodID methodQoreURLClassLoaderCreateJavaQoreClass;        // QoreJavaDynamicClassData<?> createJavaQoreClass(String, boolean)
+    DLLLOCAL static jmethodID methodQoreURLClassLoaderGetPtr;                     // long getPtr()
+    DLLLOCAL static jmethodID methodQoreURLClassLoaderGetCurrent;                 // OoreURLClassLoader getCurrent()
 
     DLLLOCAL static GlobalReference<jclass> classQoreJavaDynamicClassData;        // org.qore.jni.QoreJavaDynamicClassData
     DLLLOCAL static jmethodID ctorQoreJavaDynamicClassData;                       // QoreJavaDynamicClassData(Class<T>, byte[])
@@ -174,9 +185,9 @@ public:
 
     DLLLOCAL static GlobalReference<jclass> classJavaClassBuilder;                // org.qore.jni.JavaClassBuilder
     DLLLOCAL static jmethodID methodJavaClassBuilderGetClassBuilder;              // static DynamicType.Builder<?> getClassBuilder(String, Class<?>, boolean, long)
-    DLLLOCAL static jmethodID methodJavaClassBuilderAddConstructor;               // static DynamicType.Builder<?> addConstructor(DynamicType.Builder<?>, Class<?>, int, List<Type>)
-    DLLLOCAL static jmethodID methodJavaClassBuilderAddNormalMethod;              // static DynamicType.Builder<?> methodJavaClassBuilderAddNormalMethod(DynamicType.Builder<?>, String, int, Class<?>, List<Type>, boolean)
-    DLLLOCAL static jmethodID methodJavaClassBuilderAddStaticMethod;              // static DynamicType.Builder<?> methodJavaClassBuilderAddStaticMethod(DynamicType.Builder<?>, String, int, Class<?>, List<Type>)
+    DLLLOCAL static jmethodID methodJavaClassBuilderAddConstructor;               // static DynamicType.Builder<?> addConstructor(DynamicType.Builder<?>, Class<?>, long, int, List<Type>)
+    DLLLOCAL static jmethodID methodJavaClassBuilderAddNormalMethod;              // static DynamicType.Builder<?> methodJavaClassBuilderAddNormalMethod(DynamicType.Builder<?>, String, long, long, int, Class<?>, List<Type>, boolean)
+    DLLLOCAL static jmethodID methodJavaClassBuilderAddStaticMethod;              // static DynamicType.Builder<?> methodJavaClassBuilderAddStaticMethod(DynamicType.Builder<?>, String, long, long, int, Class<?>, List<Type>)
     DLLLOCAL static jmethodID methodJavaClassBuilderGetClassFromBuilder;          // static Class<?> getClassFromBuilder(DynamicType.Builder<?>, ClassLoader)
 
     DLLLOCAL static GlobalReference<jclass> classThread;                          // java.lang.Thread
@@ -197,8 +208,11 @@ public:
 
     DLLLOCAL static GlobalReference<jclass> classArrayList;                       // java.util.ArrayList
     DLLLOCAL static jmethodID ctorArrayList;                                      // ArrayList()
-    DLLLOCAL static jmethodID methodArrayListAdd;                                 // int ArrayList.add()
+    DLLLOCAL static jmethodID methodArrayListAdd;                                 // int ArrayList.add(Object)
+    DLLLOCAL static jmethodID methodArrayListGet;                                 // Object ArrayList.get(int)
     DLLLOCAL static jmethodID methodArrayListRemove;                              // Object ArrayList.remove(int)
+    DLLLOCAL static jmethodID methodArrayListSize;                                // int ArrayList.size()
+    DLLLOCAL static jmethodID methodArrayListToArray;                             // Object[] ArrayList.toArray()
 
     DLLLOCAL static GlobalReference<jclass> classSet;                             // java.util.Set
     DLLLOCAL static jmethodID methodSetIterator;                                  // Set.iterator()
@@ -270,6 +284,7 @@ public:
     DLLLOCAL static GlobalReference<jclass> classBooleanWrapper;                  // org.qore.jni.BooleanWrapper
     DLLLOCAL static jmethodID methodBooleanWrapperSetTrue;                        // setTrue()
 
+    DLLLOCAL static GlobalReference<jclass> getQoreJavaClassBase(Env& env, jobject classLoader);
 
     DLLLOCAL static void init();
     DLLLOCAL static void cleanup();

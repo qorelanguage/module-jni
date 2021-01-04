@@ -32,7 +32,7 @@ class PackageInternalsFinder {
         ArrayList<JavaFileObject> result = new ArrayList<JavaFileObject>();
 
         if (packageName.startsWith("qore.") && packageName.length() > 5) {
-            for (String bin_name : classLoader.getClassNamesInNamespace(packageName)) {
+            for (String bin_name : classLoader.getClassesInNamespace(packageName)) {
                 result.add(new QoreJavaClassObject(bin_name, classLoader));
             }
         }

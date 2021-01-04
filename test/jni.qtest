@@ -223,7 +223,7 @@ public class Main inherits QUnit::Test {
         }
 
         {
-            # compile and load QoreDynamicTest.java
+            # compile and execute QoreDynamicTest.java
             QoreJavaCompiler compiler();
             compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest",
                 File::readTextFile(get_script_dir() + "/QoreDynamicTest.java"));
@@ -238,17 +238,47 @@ public class Main inherits QUnit::Test {
         }
 
         {
-            # compile and load QoreDynamicTest1.java
+            # compile and execute QoreDynamicTest2.java
             QoreJavaCompiler compiler();
+            DiagnosticCollector diags();
             compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest2",
-                File::readTextFile(get_script_dir() + "/QoreDynamicTest2.java"));
+                cast<CharSequence>(new String(File::readTextFile(get_script_dir() + "/QoreDynamicTest2.java"))), diags, NOTHING);
             binary fdata = newClassData.file.openInputStream().readAllBytes();
             assertGt(0, fdata.size());
             reflect::Method m = newClassData.cls.getMethod("test0");
             auto i = m.invoke();
             assertEq("QoreIteratorTest", i.className());
+            assertTrue(i instanceof AbstractIterator);
             list<auto> l = map $1, i;
             assertEq(("one", "two", "three"), l);
+        }
+
+        {
+            # compile and execute QoreDynamicTest3.java
+            QoreJavaCompiler compiler();
+            compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest3",
+                File::readTextFile(get_script_dir() + "/QoreDynamicTest3.java"));
+            binary fdata = newClassData.file.openInputStream().readAllBytes();
+            assertGt(0, fdata.size());
+            reflect::Method m = newClassData.cls.getMethod("test0", load_class("java/lang/String"));
+            auto h = m.invoke(NOTHING, get_script_path());
+            on_error printf("h: %N\n", h);
+            assertEq("hash<auto>", h.fullType());
+            assertEq("REGULAR", h.type);
+        }
+
+        {
+            # compile and execute QoreDynamicTest4.java
+            QoreJavaCompiler compiler();
+            compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest4",
+                File::readTextFile(get_script_dir() + "/QoreDynamicTest4.java"));
+            binary fdata = newClassData.file.openInputStream().readAllBytes();
+            assertGt(0, fdata.size());
+            reflect::Method m = newClassData.cls.getMethod("test0", load_class("java/lang/String"));
+            auto stream = m.invoke(NOTHING, "testing");
+            on_error printf("h: %N\n", stream);
+            assertEq("object<QoreDynamicTest4>", stream.fullType());
+            assertEq("testing", stream.getData());
         }
     }
 
@@ -1275,14 +1305,7 @@ lorem ipsum\r
         callInThread.invoke(NOTHING, o);
         usleep(200ms);
         assertEq(3, i);
-        try {
-            callNow.invoke(NOTHING, o);
-            assertEq(False, True);
-        } catch (hash<ExceptionInfo> ex) {
-            assertEq(ex.err, "JNI-ERROR");
-            assertEq(True, ex.desc =~ /java.lang.reflect.InvocationTargetException/);
-            assertEq("CALLBACK-ERROR", ex.arg.getTargetException().getMessage());
-        }
+        assertThrows("CALLBACK-ERROR", \callNow.invoke(), (NOTHING, o));
         assertThrows("CALLBACK-ERROR", \invoke(), (callNow, NOTHING, o));
         assertThrows("CALLBACK-ERROR", \invoke_nonvirtual(), (callNow, NOTHING, o));
         try {
