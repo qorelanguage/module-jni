@@ -11,7 +11,11 @@ import org.qore.jni.QoreClosure;
 //! Java AbstractDataProcessor class
 /**
     @since jni 1.2
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.DataProvider.AbstractDataProcessor;</tt>
 */
+@Deprecated
 public abstract class AbstractDataProcessor {
     //! Returns the expected type of data to be submitted, if available
     /** @return the expected type of data to be submitted, if available

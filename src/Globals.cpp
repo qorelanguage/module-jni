@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -929,13 +929,28 @@ static jobject JNICALL java_class_builder_do_static_call(JNIEnv* jenv, jclass jc
         reinterpret_cast<const QoreExternalMethodVariant*>(vptr));
 }
 
+static int load_module(Env& env, Env::GetStringUtfChars& mod_str, jstring qore_module, QoreProgram* pgm) {
+    mod_str.set(qore_module);
+    ExceptionSink xsink;
+    if (ModuleManager::runTimeLoadModule(mod_str.c_str(), pgm, &xsink)) {
+        const char* err = xsink.getExceptionErr().get<const QoreStringNode>()->c_str();
+        const char* desc = xsink.getExceptionDesc().get<const QoreStringNode>()->c_str();
+        QoreStringMaker errdesc("%s: %s", err, desc);
+        env.throwNew(env.findClass("java/lang/ClassNotFoundException"), errdesc.c_str());
+        //printd(5, "load_module() '%s': %s\n", mod_str.c_str(), errdesc.c_str());
+        return -1;
+    }
+
+    //printd(5, "load_module() '%s': OK\n", mod_str.c_str());
+    return 0;
+}
+
 static jobject JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv, jobject class_loader, jlong ptr,
-        jstring nspath, jstring jname, jboolean need_byte_code, jobject builtin) {
+        jstring nspath, jstring jname, jboolean need_byte_code, jstring qore_module) {
     assert(ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
     Env env(jenv);
     Env::GetStringUtfChars qpath(env, nspath);
-    //printd(LogLevel, "qore_url_classloader_create_java_qore_class() p: %p path: '%s'\n", pgm, qpath.c_str());
 
     // must ensure that the thread is attached before calling Qore APIs
     QoreThreadAttachHelper attach_helper;
@@ -958,8 +973,15 @@ static jobject JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv,
         return nullptr;
     }
 
+    Env::GetStringUtfChars mod_str(env);
+    if (qore_module && load_module(env, mod_str, qore_module, pgm)) {
+        return nullptr;
+    }
+
+    printd(5, "qore_url_classloader_create_java_qore_class() p: %p path: '%s' (mod: %p)\n", pgm, qpath.c_str(), qore_module);
+
     try {
-        return jpc->getCreateJavaClass(env, class_loader, qpath, pgm, jname, need_byte_code, builtin).release();
+        return jpc->getCreateJavaClass(env, class_loader, qpath, pgm, jname, need_byte_code).release();
     } catch (jni::QoreJniException& e) {
         QoreString buf;
         env.throwNew(env.findClass("java/lang/RuntimeException"), e.what(buf));
@@ -980,7 +1002,99 @@ static jobject JNICALL qore_url_classloader_create_java_qore_class(JNIEnv* jenv,
     return nullptr;
 }
 
-static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jenv, jclass jcls, jlong ptr, jstring qname, jobject arraylist) {
+typedef std::map<const char*, const QoreListNode*, ltstr> mod_dep_map_t;
+static bool is_module(const QoreNamespace* parent, const char* name, const QoreHashNode* all_mod_info,
+        mod_dep_map_t& mod_dep_map) {
+    const char* mod = parent->getModuleName();
+    if (!mod) {
+        return false;
+    }
+    if (!strcmp(mod, name)) {
+        return true;
+    }
+
+    if (!all_mod_info) {
+        return false;
+    }
+
+    const QoreListNode* reexport_list = nullptr;
+
+    // see if we have the reexport list already
+    mod_dep_map_t::iterator i = mod_dep_map.lower_bound(mod);
+    if (i == mod_dep_map.end() || !strcmp(i->first, mod)) {
+        const QoreHashNode* mod_info = all_mod_info->getKeyValue(name).get<QoreHashNode>();
+        if (!mod_info) {
+            return false;
+        }
+        reexport_list = mod_info->getKeyValue("reexported-modules").get<QoreListNode>();
+        if (!reexport_list) {
+            return false;
+        }
+        mod_dep_map.insert(i, mod_dep_map_t::value_type(mod, reexport_list));
+    } else {
+        reexport_list = i->second;
+    }
+
+    ConstListIterator li(reexport_list);
+    while (li.next()) {
+        const QoreValue v = li.getValue();
+        if (v.getType() == NT_STRING && (*v.get<const QoreStringNode>() == mod)) {
+            return true;
+        }
+    }
+
+    //printd(5, "is_module() NOT parent: '%s' mod: %s; not in reexport list\n", parent->getName(), mod ? mod : "n/a");
+    return false;
+}
+
+static const QoreNamespace* get_module_root_ns_intern(const char* name, const QoreNamespace& root_ns,
+        const QoreHashNode* all_mod_info, mod_dep_map_t& mod_dep_map, bool check_mod) {
+    QoreNamespaceConstIterator i(root_ns);
+    while (i.next()) {
+        const QoreNamespace* ns = &i.get();
+        if (!check_mod) {
+            if (!strcmp(ns->getName(), name)) {
+                return ns;
+            }
+            continue;
+        }
+
+        const char* mod = ns->getModuleName();
+        if (!mod || strcmp(mod, name)) {
+            continue;
+        }
+        //printd(5, "get_module_root_ns_intern('%s') found\n", name);
+        // try to find parent ns
+        while (true) {
+            const QoreNamespace* parent = ns->getParent();
+            if (!is_module(parent, name, all_mod_info, mod_dep_map)) {
+                //printd(5, "get_module_root_ns_intern('%s') invalid parent '%s'\n", name, parent->getName());
+                break;
+            }
+            ns = parent;
+            //printd(5, "get_module_root_ns_intern('%s') got parent '%s'\n", name, ns->getName());
+        }
+        //printd(5, "get_module_root_ns_intern('%s') returning '%s'\n", name, ns->getName());
+        return ns;
+    }
+    return nullptr;
+}
+
+static const QoreNamespace* get_module_root_ns(const char* name, QoreProgram* mod_pgm) {
+    ReferenceHolder<QoreHashNode> all_mod_info(MM.getModuleHash(), nullptr);
+    mod_dep_map_t mod_dep_map;
+
+    // otherwise look for a public namespace and then find the ealiest ancestor provided by the module
+    const QoreNamespace* root_ns = mod_pgm->getRootNS();
+    const QoreNamespace* rv = get_module_root_ns_intern(name, *root_ns, *all_mod_info, mod_dep_map, true);
+    if (!rv) {
+        rv = get_module_root_ns_intern(name, *root_ns, *all_mod_info, mod_dep_map, false);
+    }
+    return rv;
+}
+
+static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jenv, jclass jcls, jlong ptr,
+        jstring qname, jstring qore_module, jobject arraylist) {
     Env env(jenv);
     QoreThreadAttachHelper attach_helper;
     try {
@@ -990,11 +1104,17 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
         return nullptr;
     }
 
+    assert(ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
 
     JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
     if (!jpc) {
         env.throwNew(env.findClass("java/lang/RuntimeException"), "No JNI context for Qore Program");
+        return nullptr;
+    }
+
+    Env::GetStringUtfChars mod_str(env);
+    if (qore_module && load_module(env, mod_str, qore_module, pgm )) {
         return nullptr;
     }
 
@@ -1006,23 +1126,39 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
             throw XsinkException(xsink);
         }
 
-        Env::GetStringUtfChars nsname(env, qname);
-        //QoreString nspath(nsname.c_str());
-        const QoreNamespace* ns = pgm->findNamespace(nsname.c_str());
+        const QoreNamespace* ns;
+        Env::GetStringUtfChars nsname(env);
+        if (qname) {
+            nsname.set(qname);
+            //QoreString nspath(nsname.c_str());
+            ns = pgm->findNamespace(nsname.c_str());
+        } else {
+            assert(qore_module);
+            ns = get_module_root_ns(mod_str.c_str(), pgm);
+        }
 
         //printd(5, "qore_url_classloader_get_class_names_in_namespace() %s: %p\n", nsname.c_str(), ns);
         if (ns) {
             QoreNamespaceClassIterator i(*ns);
             while (i.next()) {
                 const QoreClass& qc = i.get();
-                // get Qore namespace path and convert to a Java binary name
-                std::string pname = qc.getNamespacePath();
-                size_t start_pos = 0;
-                while ((start_pos = pname.find("::", start_pos)) != std::string::npos) {
-                    pname.replace(start_pos, 2, ".");
-                    ++start_pos;
+                std::string pname;
+                if (qore_module) {
+                    pname = "qoremod.";
+                    pname += mod_str.c_str();
+                    pname += ".";
+                    pname += qc.getName();
+                    //printd(5, "pname: '%s'\n", pname.c_str());
+                } else {
+                    // get Qore namespace path and convert to a Java binary name
+                    pname = qc.getNamespacePath();
+                    size_t start_pos = 0;
+                    while ((start_pos = pname.find("::", start_pos)) != std::string::npos) {
+                        pname.replace(start_pos, 2, ".");
+                        ++start_pos;
+                    }
+                    pname.insert(0, "qore.");
                 }
-                pname.insert(0, "qore.");
                 //printd(5, "qore_url_classloader_get_class_names_in_namespace() %s: qc: %p (%s -> %s)\n", nsname.c_str(), &qc, qc.getName(), pname.c_str());
                 // add to the ArrayList<String> var
                 LocalReference<jstring> bin_name = env.newString(pname.c_str());
@@ -1130,6 +1266,8 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreC
         QoreString jcname(cname.c_str());
         if (!strncmp(jcname.c_str(), "qore.", 5)) {
             jcname.replace(0, 4, "");
+        } else if (!strncmp(jcname.c_str(), "qoremod.", 8)) {
+            jcname.replace(0, 7, "");
         } else {
             jcname.prepend("::");
         }
@@ -1144,7 +1282,8 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreC
         } else {
             jqc = qc;
         }
-        //printd(5, "qore_object_create() executing constructor for Qore class '%s', Java class '%s'\n", qpath.c_str(), jcname.c_str());
+        printd(5, "qore_object_create() executing constructor for Qore class '%s' (%s), Java class '%s' (%s)\n",
+            qpath.c_str(), qc->getName(), jcname.c_str(), jqc->getName());
 
         // ensure class can be instantiated
         if (jqc->runtimeCheckInstantiateClass(&xsink)) {
@@ -1165,15 +1304,13 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreC
         }
 
         ValueHolder obj(qc->execConstructor(*jqc, *qore_args, true, &xsink), &xsink);
-        if (!xsink) {
-            assert(obj);
-            save_object(env, *obj, pgm, xsink);
-        }
-
         if (xsink) {
             QoreToJava::wrapException(xsink);
             return 0;
         }
+
+        assert(obj);
+        save_object(env, *obj, pgm, xsink);
 
         printd(5, "qore_object_create() created %s: %p\n", jqc->getName(), obj->get<const QoreObject>());
         assert(obj);
@@ -1385,12 +1522,12 @@ static JNINativeMethod qoreURLClassLoaderNativeMethods[] = {
     },
     {
         const_cast<char*>("createJavaQoreClass0"),
-        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;ZLorg/qore/jni/BooleanWrapper;)Lorg/qore/jni/QoreJavaDynamicClassData;"),
+        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;ZLjava/lang/String;)Lorg/qore/jni/QoreJavaDynamicClassData;"),
         reinterpret_cast<void*>(qore_url_classloader_create_java_qore_class),
     },
     {
         const_cast<char*>("getClassesInNamespace0"),
-        const_cast<char*>("(JLjava/lang/String;Ljava/util/ArrayList;)V"),
+        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;Ljava/util/ArrayList;)V"),
         reinterpret_cast<void*>(qore_url_classloader_get_classes_in_namespace),
     },
     {
@@ -1466,6 +1603,7 @@ static LocalReference<jclass> define_class(const char* bin_name, BinaryNode& des
 #include "JavaClassQoreObjectWrapper.inc"
 #include "JavaClassQoreClosureMarker.inc"
 #include "JavaClassBooleanWrapper.inc"
+#include "JavaClassClassModInfo.inc"
 #include "JavaClassQoreURLClassLoader.inc"
 #include "JavaClassQoreURLClassLoader_1.inc"
 #include "JavaClassQoreURLClassLoader_2.inc"
@@ -1551,6 +1689,8 @@ void Globals::defineQoreURLClassLoader(Env& env) {
     classBooleanWrapper = findDefineClass(env, "org.qore.jni.BooleanWrapper", nullptr,
         java_org_qore_jni_BooleanWrapper_class, java_org_qore_jni_BooleanWrapper_class_len).makeGlobal();
     methodBooleanWrapperSetTrue = env.getMethod(classBooleanWrapper, "setTrue", "()V");
+    findDefineClass(env, "org.qore.jni.ClassModInfo", nullptr,
+        java_org_qore_jni_ClassModInfo_class, java_org_qore_jni_ClassModInfo_class_len).makeGlobal();
     findDefineClass(env, "org.qore.jni.QoreURLClassLoader$1", nullptr, java_org_qore_jni_QoreURLClassLoader_1_class,
         java_org_qore_jni_QoreURLClassLoader_1_class_len);
     findDefineClass(env, "org.qore.jni.QoreURLClassLoader$2", nullptr, java_org_qore_jni_QoreURLClassLoader_2_class,

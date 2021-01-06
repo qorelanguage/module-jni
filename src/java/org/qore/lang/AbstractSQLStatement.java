@@ -35,7 +35,11 @@ import org.qore.jni.QoreObjectWrapper;
         }
     }
         @endcode
- */
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qore.Qore.SQL.AbstractSQLStatement;</tt>
+*/
+@Deprecated
 public class AbstractSQLStatement extends QoreObjectWrapper {
     //! creates the object
     public AbstractSQLStatement(QoreObject ds) {

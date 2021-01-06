@@ -15,7 +15,11 @@ import org.qore.lang.reflection.Type;
 
 //! Java wrapper for the @ref DataProvider::AbstractDataField class in Qore
 /** @note Loads and initializes the Qore library and the jni module in static initialization if necessary
- */
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.DataProvider.AbstractDataField;</tt>
+*/
+@Deprecated
 public class AbstractDataField extends QoreObjectWrapper {
     // static initialization
     static {

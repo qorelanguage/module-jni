@@ -31,7 +31,7 @@ class PackageInternalsFinder {
     public List<JavaFileObject> find(String packageName) throws IOException {
         ArrayList<JavaFileObject> result = new ArrayList<JavaFileObject>();
 
-        if (packageName.startsWith("qore.") && packageName.length() > 5) {
+        if (QoreURLClassLoader.isDynamic(packageName)) {
             for (String bin_name : classLoader.getClassesInNamespace(packageName)) {
                 result.add(new QoreJavaClassObject(bin_name, classLoader));
             }

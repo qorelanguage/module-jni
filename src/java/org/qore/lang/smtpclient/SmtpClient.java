@@ -18,7 +18,11 @@ import org.qore.lang.mailmessage.Message;
 
 //! Java wrapper for the @ref Qore::SmtpClient class in %Qore
 /** @note Loads and initializes the Qore library and the jni module in static initialization if necessary
- */
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.SmtpClient.SmtpClient;</tt>
+*/
+@Deprecated
 public class SmtpClient extends QoreObjectWrapper {
     // static initialization
     static {

@@ -13,7 +13,11 @@ import org.qore.jni.QoreJavaApi;
 
 //! Java wrapper for the @ref DataProvider::AbstractDataProviderBulkOperation in Qore
 /** @note Loads and initializes the Qore library and the jni module in static initialization if necessary
- */
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.DataProvider.AbstractDataProviderBulkOperation;</tt>
+*/
+@Deprecated
 public class AbstractDataProviderBulkOperation extends AbstractIterator {
     // static initialization
     static {

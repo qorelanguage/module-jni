@@ -924,8 +924,12 @@ const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls, const QoreTypeInfo*
     // try all parents to see if a static mapping matches
     QoreParentClassIterator hierarchy_iterator(*qc);
     while (hierarchy_iterator.next()) {
-        const std::string jcname =
-            static_cast<const JniQoreClass&>(hierarchy_iterator.getParentClass()).getJavaName();
+        const QoreClass& pqc = hierarchy_iterator.getParentClass();
+        const JniQoreClass* jpqc = dynamic_cast<const JniQoreClass*>(&pqc);
+        if (!jpqc) {
+            continue;
+        }
+        const std::string jcname = jpqc->getJavaName();
         // do not return a generic type for the base object class
         if (jcname == "java.lang.Object") {
             continue;
@@ -1472,14 +1476,14 @@ int JniExternalProgramData::addMethods(Env& env, jobject class_loader, const Qor
 }
 
 LocalReference<jobject> JniExternalProgramData::getCreateJavaClass(Env& env, jobject class_loader,
-        const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname, jboolean need_byte_code,
-        jobject builtin) {
+        const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname, jboolean need_byte_code) {
     ExceptionSink xsink;
     // set program context (and read lock) before calling QoreProgram::findClass()
     QoreExternalProgramContextHelper pch(&xsink, pgm);
     if (xsink) {
         throw XsinkException(xsink);
     }
+
     const QoreClass* qcls = pgm->findClass(qpath.c_str(), &xsink);
     if (xsink) {
         assert(!qcls);
@@ -1500,10 +1504,6 @@ LocalReference<jobject> JniExternalProgramData::getCreateJavaClass(Env& env, job
         desc.concat(')');
         env.throwNew(env.findClass("java/lang/ClassNotFoundException"), desc.c_str());
         return nullptr;
-    }
-
-    if (qcls->isSystem()) {
-        env.callVoidMethod(builtin, Globals::methodBooleanWrapperSetTrue, nullptr);
     }
 
     printd(5, "JniExternalProgramData::getCreateJavaClass() qpath: '%s' (%p) nbc: %d\n", qpath.c_str(), qcls,

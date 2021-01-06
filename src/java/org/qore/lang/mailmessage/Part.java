@@ -15,7 +15,11 @@ import org.qore.jni.QoreRelativeTime;
 
 //! Java wrapper for the @ref MailPart::Part class in %Qore
 /** @note Loads and initializes the Qore library and the jni module in static initialization if necessary
- */
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.MailMessage.Part;</tt>
+*/
+@Deprecated
 public class Part extends QoreObjectWrapper {
     // static initialization
     static {

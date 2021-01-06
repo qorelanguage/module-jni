@@ -8,6 +8,11 @@ import org.qore.jni.QoreObject;
 import org.qore.jni.QoreObjectWrapper;
 
 //! The base class for test results
+/**
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.QUnit.AbstractTestResult;</tt>
+*/
+@Deprecated
 public class AbstractTestResult extends QoreObjectWrapper {
     //! creates the object based on the given Qore object
     protected AbstractTestResult(QoreObject obj) throws Throwable {

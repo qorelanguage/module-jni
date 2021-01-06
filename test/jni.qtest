@@ -280,6 +280,36 @@ public class Main inherits QUnit::Test {
             assertEq("object<QoreDynamicTest4>", stream.fullType());
             assertEq("testing", stream.getData());
         }
+
+        {
+            # compile and execute QoreDynamicTest5.java
+            QoreJavaCompiler compiler();
+            compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest5",
+                File::readTextFile(get_script_dir() + "/QoreDynamicTest5.java"));
+            binary fdata = newClassData.file.openInputStream().readAllBytes();
+            assertGt(0, fdata.size());
+            reflect::Method m = newClassData.cls.getMethod("test0", load_class("org/qore/jni/Hash"));
+            string url = "https://localhost:8001/";
+            auto rc = m.invoke(NOTHING, {"url": url});
+            on_error printf("h: %N\n", rc);
+            assertEq("object<RestClient>", rc.fullType());
+            assertEq(url, rc.getURL());
+        }
+
+        {
+            # compile and execute QoreDynamicTest6.java
+            QoreJavaCompiler compiler();
+            compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest6",
+            File::readTextFile(get_script_dir() + "/../test/QoreDynamicTest6.java"));
+            binary fdata = newClassData.file.openInputStream().readAllBytes();
+            assertEq(True, fdata.size() > 0);
+            reflect::Method m = newClassData.cls.getMethod("test0", load_class("org/qore/jni/Hash"));
+            string url = "https://localhost:8001/";
+            auto rc = m.invoke(NOTHING, {"url": url});
+            on_error printf("h: %N\n", rc);
+            assertEq("object<XmlRpcClient>", rc.fullType());
+            assertEq(url, rc.getURL());
+        }
     }
 
     testCode() {

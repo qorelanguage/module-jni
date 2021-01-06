@@ -305,8 +305,7 @@ public:
 
     // returns a QoreJavaDynamicClassData object
     DLLLOCAL LocalReference<jobject> getCreateJavaClass(Env& env, jobject class_loader,
-            const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname, jboolean need_byte_code,
-            jobject builtin);
+            const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname, jboolean need_byte_code);
 
     DLLLOCAL LocalReference<jclass> getJavaType(Env& env, jobject class_loader, const QoreTypeInfo* ti,
             QoreProgram* pgm);

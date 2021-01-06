@@ -16,7 +16,11 @@ import org.qore.jni.QoreJavaApi;
 
 //! Java wrapper for the @ref TableMapper::AbstractSqlStatementOutboundMapper class in Qore
 /** @note Loads and initializes the Qore library and the jni module in static initialization if necessary
- */
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.TableMapper.AbstractSqlStatementOutboundMapper;</tt>
+*/
+@Deprecated
 public class AbstractSqlStatementOutboundMapper extends Mapper {
     // static initialization
     static {

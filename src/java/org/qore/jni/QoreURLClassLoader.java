@@ -3,7 +3,7 @@
 
     Qore Programming Language JNI Module
 
-    Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -215,7 +215,7 @@ public class QoreURLClassLoader extends URLClassLoader {
             return super.findClass(bin_name);
         } catch (ClassNotFoundException e) {
             //System.out.println("findClass() error: " + e.toString());
-            if (bin_name.startsWith("qore.") && bin_name.length() > 5) {
+            if (isDynamic(bin_name)) {
                 // only remove from set if successful
                 try {
                     rv = createJavaQoreClass(bin_name, false).cls;
@@ -276,7 +276,7 @@ public class QoreURLClassLoader extends URLClassLoader {
             return rv;
         }
 
-        if (bin_name.startsWith("qore.") && bin_name.length() > 5) {
+        if (isDynamic(bin_name)) {
             try {
                 return createJavaQoreClass(bin_name, false).cls;
             } catch (ClassNotFoundException e) {
@@ -289,6 +289,16 @@ public class QoreURLClassLoader extends URLClassLoader {
         }
 
         return super.loadClass(bin_name);
+    }
+
+    static public boolean isDynamic(String bin_name) {
+        /*
+        boolean rv = (bin_name.startsWith("qore.") && bin_name.length() > 5)
+            || (bin_name.startsWith("qoremod.") && bin_name.length() > 8);
+        System.out.printf("isDynamic '%s': %s\n", bin_name, rv);
+        */
+        return (bin_name.startsWith("qore.") && bin_name.length() > 5)
+            || (bin_name.startsWith("qoremod.") && bin_name.length() > 8);
     }
 
     protected Class<?> defineClassIntern(String name, byte[] byte_code, int off, int len) throws ClassFormatError {
@@ -399,8 +409,9 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     public ArrayList<String> getClassesInNamespace(String packageName) {
         ArrayList<String> rv = new ArrayList<String>();
-        String qname = packageName.substring(4).replace(".", "::");
-        getClassesInNamespace0(pgm_ptr, qname, rv);
+        ClassModInfo info = new ClassModInfo(packageName);
+        //System.out.printf("getClassesInNamespace(%s) cls: '%s' mod: '%s'\n", packageName, info.cls, info.mod);
+        getClassesInNamespace0(pgm_ptr, info.cls, info.mod, rv);
         return rv;
     }
 
@@ -466,9 +477,10 @@ public class QoreURLClassLoader extends URLClassLoader {
         }
     }
 
-    public synchronized QoreJavaDynamicClassData<?> createJavaQoreClass(String bin_name, boolean need_byte_code) throws ClassNotFoundException {
-        //debugLog(String.format("QoreURLClassLoader.createJavaQoreClass() call: '%s' need_byte_code: %s", bin_name, need_byte_code));
-        //Thread.dumpStack();
+    public synchronized QoreJavaDynamicClassData<?> createJavaQoreClass(String bin_name, boolean need_byte_code)
+            throws ClassNotFoundException {
+        //debugLog(String.format("QoreURLClassLoader.createJavaQoreClass() call: '%s' need_byte_code: %s", bin_name,
+        //  need_byte_code));
         QoreJavaDynamicClassData<?> rv = dynamicCache.get(bin_name);
         if (rv == null) {
             if (markInProgress(bin_name)) {
@@ -483,20 +495,19 @@ public class QoreURLClassLoader extends URLClassLoader {
         return rv;
     }
 
-    private QoreJavaDynamicClassData<?> createJavaQoreClassIntern(String bin_name, boolean need_byte_code) throws ClassNotFoundException {
-        String qname = "::";
-        if (bin_name.startsWith("qore.")) {
-            qname += bin_name.substring(5);
-        } else {
-            qname += bin_name;
+    private QoreJavaDynamicClassData<?> createJavaQoreClassIntern(String bin_name, boolean need_byte_code)
+            throws ClassNotFoundException {
+        ClassModInfo info = new ClassModInfo(bin_name);
+        if (info.cls == null) {
+            throw new ClassNotFoundException(String.format("invalid dynamic import path '%s'", bin_name));
         }
-        qname = qname.replaceAll("\\.", "::");
-        //debugLog(String.format("QoreURLClassLoader.createJavaQoreClass() bin_name: %s qname: %s", bin_name, qname));
-        BooleanWrapper builtin = new BooleanWrapper();
+        //debugLog(String.format("QoreURLClassLoader.createJavaQoreClass() bin_name: %s info: %s", bin_name, info));
+        String qore_module = info.mod;
+        String qname = info.cls;
         QoreJavaDynamicClassData<?> rv;
         if (pgm_ptr != 0) {
             try {
-                rv = createJavaQoreClass0(pgm_ptr, qname, bin_name, need_byte_code, builtin);
+                rv = createJavaQoreClass0(pgm_ptr, qname, bin_name, need_byte_code, qore_module);
             } catch (ClassNotFoundException e) {
                 throw e;
             } catch (RuntimeException e) {
@@ -515,7 +526,8 @@ public class QoreURLClassLoader extends URLClassLoader {
                 "create Java class '%s'", qname, bin_name));
         }
         dynamicCache.put(bin_name, rv);
-        //debugLog(String.format("QoreURLClassLoader.createJavaQoreClass() created/cached %s: %s", bin_name, rv.toString()));
+        //debugLog(String.format("QoreURLClassLoader.createJavaQoreClass() created/cached %s: %s", bin_name,
+        //    rv.toString()));
         return rv;
     }
 
@@ -549,8 +561,8 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     static private native byte[] getCachedClass0(String name);
     private native QoreJavaDynamicClassData<?> createJavaQoreClass0(long ptr, String qname, String name,
-            boolean need_byte_code, BooleanWrapper builtin) throws Throwable;
-    static private native void getClassesInNamespace0(long ptr, String packageName, ArrayList<String> result);
+            boolean need_byte_code, String qore_module) throws Throwable;
+    static private native void getClassesInNamespace0(long ptr, String packageName, String mod, ArrayList<String> result);
     static private native long getContextProgram0(QoreURLClassLoader syscl, BooleanWrapper created);
     static private native void shutdownContext0();
     static private native void dummy0();

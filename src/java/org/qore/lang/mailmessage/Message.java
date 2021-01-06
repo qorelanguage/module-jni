@@ -19,7 +19,11 @@ import org.qore.lang.mailmessage.Attachment;
 
 //! Java wrapper for the @ref MailMessage::Message class in %Qore
 /** @note Loads and initializes the Qore library and the jni module in static initialization if necessary
- */
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.MailMessage.Message;</tt>
+*/
+@Deprecated
 public class Message extends QoreObjectWrapper {
     // static initialization
     static {

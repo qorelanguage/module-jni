@@ -18,7 +18,11 @@ import org.qore.lang.AbstractDatasource;
 
 //! Java wrapper for the @ref SqlUtil::AbstractSqlUtilBase class in %Qore
 /** @note Loads and initializes the Qore library and the jni module in static initialization if necessary
- */
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.SqlUtil.AbstractSqlUtilBase;</tt>
+*/
+@Deprecated
 public class AbstractSqlUtilBase extends QoreObjectWrapper {
     // static initialization
     static {
