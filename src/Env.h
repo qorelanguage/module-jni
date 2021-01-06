@@ -1324,17 +1324,39 @@ public:
 
     class GetStringUtfChars {
     public:
-        DLLLOCAL GetStringUtfChars(Env &env, const LocalReference<jstring>& str) :
-            env(env), str(str),
-            chars(str ? env.env->GetStringUTFChars(str, nullptr): nullptr) {
-            if (str && chars == nullptr) {
+        DLLLOCAL GetStringUtfChars(Env &env, const LocalReference<jstring>& strref) :
+            env(env), str(&strref),
+            chars(strref ? env.env->GetStringUTFChars(strref, nullptr) : nullptr) {
+            if (strref && chars == nullptr) {
                 throw new JavaException();
             }
         }
 
+        DLLLOCAL GetStringUtfChars(Env &env) :
+            env(env), str(nullptr), chars(nullptr) {
+        }
+
         DLLLOCAL ~GetStringUtfChars() {
             if (str)
-                env.env->ReleaseStringUTFChars(str, chars);
+                env.env->ReleaseStringUTFChars(*str, chars);
+        }
+
+        DLLLOCAL int set(const LocalReference<jstring>& strref) {
+            discard();
+            chars = env.env->GetStringUTFChars(strref, nullptr);
+            if (chars) {
+                str = &strref;
+                return 0;
+            }
+            return -1;
+        }
+
+        DLLLOCAL void discard() {
+            if (str) {
+                env.env->ReleaseStringUTFChars(*str, chars);
+                str = nullptr;
+                chars = nullptr;
+            }
         }
 
         DLLLOCAL const char* c_str() const {
@@ -1342,13 +1364,13 @@ public:
         }
 
     private:
-        Env &env;
-        const LocalReference<jstring> &str;
+        Env& env;
+        const LocalReference<jstring>* str;
         const char* chars;
     };
 
 private:
-    JNIEnv *env;
+    JNIEnv* env;
 
     friend class GetStringUtfChars;
 };

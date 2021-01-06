@@ -12,6 +12,11 @@ import org.qore.lang.AbstractDatasource;
 import org.qore.lang.sqlutil.AbstractTable;
 
 //! Java wrapper for the @ref SqlUtil::Table class in %Qore
+/**
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.SqlUtil.Table;</tt>
+ */
+@Deprecated
 public class Table extends AbstractTable {
     //! creates a new AbstractTable object from the %Qore Table object
     public Table(QoreObject obj) {

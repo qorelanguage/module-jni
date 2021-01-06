@@ -14,7 +14,11 @@ import org.qore.jni.QoreJavaApi;
 
 //! Java wrapper for the @ref Qore::HTTPClient class in %Qore
 /** @note Loads and initializes the Qore library and the jni module in static initialization if necessary
- */
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qore.Qore.HTTPClient;</tt>
+*/
+@Deprecated
 public class HTTPClient extends QoreObjectWrapper {
     // static initialization
     static {

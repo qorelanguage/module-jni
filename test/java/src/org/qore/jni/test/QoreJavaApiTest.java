@@ -355,6 +355,7 @@ public class QoreJavaApiTest {
     }
 
     public static Hash testHashListIterator(Hash h) throws Throwable {
+        @SuppressWarnings( "deprecation" )
         HashListIterator i = new HashListIterator(h);
         i.next();
         return i.getHash();

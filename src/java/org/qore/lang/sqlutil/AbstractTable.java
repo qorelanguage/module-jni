@@ -83,7 +83,11 @@ import org.qore.lang.AbstractSQLStatement;
     - \c omit_update: allows for an asymmetrical upsert where a set of column values is inserted, but a smaller set is
       updated in case the unique key values are present in the target table; the value of this key should be set to
       the columns to omit in the update clause
- */
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.SqlUtil.AbstractTable;</tt>
+*/
+@Deprecated
 public class AbstractTable extends AbstractSqlUtilBase {
     /** @defgroup upsert_options Upsert Strategy Codes
         These options are used with:

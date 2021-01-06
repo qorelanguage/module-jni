@@ -15,7 +15,11 @@ import org.qore.lang.*;
 
 //! Java wrapper for the @ref SoapClient::SoapClient class in %Qore
 /** @note Loads and initializes the Qore library and the jni module in static initialization if necessary
- */
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.SoapClient.SoapClient;</tt>
+*/
+@Deprecated
 public class SoapClient extends HTTPClient {
     // static initialization
     static {

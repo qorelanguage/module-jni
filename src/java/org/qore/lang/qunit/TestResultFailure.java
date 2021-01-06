@@ -7,6 +7,11 @@ package org.qore.lang.qunit;
 import org.qore.jni.QoreJavaApi;
 
 //! Class representing test call failure, both general (without detail) and specific (with detail)
+/**
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.QUnit.TestResultFailure;</tt>
+*/
+@Deprecated
 public class TestResultFailure extends AbstractTestResult {
     public TestResultFailure() throws Throwable {
         super(QoreJavaApi.newObjectSave("QUnit::TestResultFailure"));

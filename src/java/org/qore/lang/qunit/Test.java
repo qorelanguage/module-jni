@@ -16,7 +16,11 @@ import java.math.BigDecimal;
 
 //! Base class (wrapping the %Qore QUnit::Test class) representing a simple test, implements an implicit main() method and all utility methods for testing
 /** @note Loads and initializes the Qore library and the jni module in static initialization if necessary
- */
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.QUnit.Test;</tt>
+*/
+@Deprecated
 public class Test extends QoreObjectWrapper {
     // static initialization
     static {

@@ -67,7 +67,11 @@ try {
       @ref SqlUtil::AbstractTable::hasArrayBind() to check at runtime if the driver supports
       bulk SQL operations.
     - loads and initializes the Qore library and the jni module in static initialization if necessary
- */
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.BulkSqlUtil.AbstractBulkOperation;</tt>
+*/
+@Deprecated
 public class AbstractBulkOperation extends QoreObjectWrapper {
     // static initialization
     static {

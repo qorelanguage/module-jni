@@ -14,7 +14,11 @@ import org.qore.jni.QoreJavaApi;
 //! Java wrapper for the @ref Qore::Reflection::Type class in Qore
 /** @note Loads and initializes the Qore library, the jni module, and the reflection module in static initialization
     if necessary
- */
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.reflection.Type;</tt>
+*/
+@Deprecated
 public class Type extends QoreObjectWrapper {
     // static initialization
     static {

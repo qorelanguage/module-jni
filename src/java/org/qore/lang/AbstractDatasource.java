@@ -13,6 +13,10 @@ import org.qore.jni.QoreObjectWrapper;
 import org.qore.lang.AbstractSQLStatement;
 
 //! Java wrapper for the @ref Qore::SQL::AbstractDatasource class in %Qore
+/** @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+ *  <tt>import qore.Qore.SQL.AbstractDatasource;</tt>
+ */
+@Deprecated
 public class AbstractDatasource extends QoreObjectWrapper {
     //! creates the object
     public AbstractDatasource(QoreObject ds) {

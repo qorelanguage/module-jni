@@ -71,7 +71,11 @@ try {
     discard()ed before rolling back to ensure that all data is managed properly in the same
     transaction and to ensure that no exception is thrown in Qore destructor.
     See the example above for more information.
+
+    @deprecated Use @ref jni_dynamic_import_qore_in_java "dynamic imports" instead:
+    <tt>import qoremod.BulkSqlUtil.BulkInsertOperation;</tt>
 */
+@Deprecated
 public class BulkInsertOperation extends AbstractBulkOperation {
     //! creates the object from the supplied arguments
     /** @param target the target table object
