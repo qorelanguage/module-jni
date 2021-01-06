@@ -90,8 +90,6 @@ public class QoreJavaCompiler<T> {
      */
     public QoreJavaCompiler() {
         this(null);
-        //System.out.printf("QoreJavaCompiler()\n");
-        //Thread.dumpStack();
     }
 
     /**
@@ -131,9 +129,18 @@ public class QoreJavaCompiler<T> {
         // and our ClassLoader
         javaFileManager = new FileManagerImpl(fileManager, classLoader);
         this.options = new ArrayList<String>();
-        if (options != null) { // make a save copy of input options
+        if (options != null) { // save a copy of input options
+            boolean cp_next = false;
             for (String option : options) {
                 this.options.add(option);
+
+                if (loader != null && (option.equals("-cp") || option.equals("-classpath"))) {
+                    cp_next = true;
+                } else if (cp_next) {
+                    cp_next = false;
+                    loader.addPath(option);
+                    //System.out.printf("set classpath: %s\n", option);
+                }
             }
         }
 
