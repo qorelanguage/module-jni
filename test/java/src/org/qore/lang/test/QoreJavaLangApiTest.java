@@ -15,7 +15,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 
-@SuppressWarnings( "deprecation" )
+@SuppressWarnings("deprecation")
 public class QoreJavaLangApiTest {
     public static DatasourcePool getPool(QoreObject obj) {
         return new DatasourcePool(obj);

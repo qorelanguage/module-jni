@@ -113,11 +113,11 @@ public class QoreJavaFileManager implements JavaFileManager {
         if (baseModule || location == StandardLocation.PLATFORM_CLASS_PATH) {
             return standardFileManager.list(location, packageName, kinds, recurse);
         } else if (location == StandardLocation.CLASS_PATH && kinds.contains(JavaFileObject.Kind.CLASS)) {
-            if (packageName.startsWith("java") || packageName.startsWith("com.sun")) {
-                return standardFileManager.list(location, packageName, kinds, recurse);
-            } else { // app specific classes are here
-                return finder.find(packageName);
+            List<JavaFileObject> list = finder.find(packageName);
+            if (list.size() > 0) {
+                return list;
             }
+            return standardFileManager.list(location, packageName, kinds, recurse);
         }
         return Collections.emptyList();
     }

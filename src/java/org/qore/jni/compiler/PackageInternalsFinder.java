@@ -40,6 +40,7 @@ class PackageInternalsFinder {
         //System.out.println("PackageInternalsFinder.find(" + packageName + ") rv: " + result);
         String javaPackageName = packageName.replaceAll("\\.", "/");
 
+        //System.out.printf("PackageInternalsFinder.find(%s) checking %s\n", packageName, javaPackageName);
         Enumeration<URL> urlEnumeration = classLoader.getResources(javaPackageName);
         while (urlEnumeration.hasMoreElements()) {
             // one URL for each jar on the classpath that has the given package
@@ -47,7 +48,7 @@ class PackageInternalsFinder {
             result.addAll(listUnder(packageName, packageFolderURL));
         }
 
-        //System.out.println("PackageInternalsFinder.find(" + packageName + ") rv: " + result.toString());
+        //System.out.printf("PackageInternalsFinder.find(%s) rv: %s\n", packageName, result.toString());
         return result;
     }
 

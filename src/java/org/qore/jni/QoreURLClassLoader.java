@@ -398,7 +398,7 @@ public class QoreURLClassLoader extends URLClassLoader {
             } else if (fileentry.isDirectory()) {
                 addURL(createUrl(fileentry));
             } else if (isLoadable(fileentry.getName())) {
-                //infoLog("adding jar: " + fileentry.getName());
+                //debugLog("adding jar: " + fileentry.getName() + " (" + fileentry.toString() + ")");
                 addURL(createUrl(fileentry));
             } else {
                 errorLog("ClassPath element '" + fileentry + "' is not an existing directory and is not a file ending with '.zip' or '.jar'");
