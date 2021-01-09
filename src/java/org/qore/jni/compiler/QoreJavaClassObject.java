@@ -15,12 +15,18 @@ import org.qore.jni.QoreJavaDynamicClassData;
  * @since 15-Oct-2009
  */
 class QoreJavaClassObject implements JavaFileObject {
+    public static final int OT_NORMAL = 0;
+    public static final int OT_PENDING = 1;
+    public static final int OT_INTERNAL = 2;
+
     private final String binaryName;
     private final QoreURLClassLoader classLoader;
+    private final int type;
 
-    public QoreJavaClassObject(String binaryName, QoreURLClassLoader classLoader) {
+    public QoreJavaClassObject(String binaryName, QoreURLClassLoader classLoader, int type) {
         this.binaryName = binaryName;
         this.classLoader = classLoader;
+        this.type = type;
     }
 
     @Override
@@ -30,9 +36,16 @@ class QoreJavaClassObject implements JavaFileObject {
 
     @Override
     public InputStream openInputStream() throws IOException {
-        //System.out.println("openInputStream: " + binaryName + " cl: " + classLoader);
+        //System.out.printf("openInputStream: %s cl: %s (pend: %s)\n", binaryName, classLoader, pending);
         try {
-            byte[] byte_code = classLoader.createJavaQoreClass(binaryName, true).byte_code;
+            byte[] byte_code;
+            if (type == OT_PENDING) {
+                byte_code = classLoader.removePendingByteCode(binaryName);
+            } else if (type == OT_INTERNAL) {
+                byte_code = classLoader.getInternalClass(binaryName);
+            } else {
+                byte_code = classLoader.createJavaQoreClass(binaryName, true).byte_code;
+            }
             //System.out.println("openInputStream: " + binaryName + ": got " + byte_code.length + " bytes");
             return new ByteArrayInputStream(byte_code);
         } catch (ClassNotFoundException e) {
@@ -102,4 +115,9 @@ class QoreJavaClassObject implements JavaFileObject {
         return binaryName;
     }
 
+    @Override
+    public String toString() {
+        return String.format("QoreJavaClassObject{binaryName=%s,type=%s}", binaryName,
+            type == OT_NORMAL ? "NORMAL" : (type == OT_PENDING ? "PENDING" : "INTERNAL"));
+    }
 }

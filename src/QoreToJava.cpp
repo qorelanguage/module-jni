@@ -201,13 +201,16 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
 
                     if (cls) {
                         Env env;
-                        LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
+                        LocalReference<jstring> clsName = env.callObjectMethod(cls,
+                            Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
                         Env::GetStringUtfChars cname(env, clsName);
-                        QoreStringMaker desc("A Java object argument of class '%s' expected; got object of class '%s' instead", cname.c_str(), o->getClassName());
+                        QoreStringMaker desc("A Java object argument of class '%s' expected; got object of class " \
+                            "'%s' instead", cname.c_str(), o->getClassName());
                         throw BasicException(desc.c_str());
                     }
 
-                    QoreStringMaker desc("A Java object argument expected; got object of class '%s' instead", o->getClassName());
+                    QoreStringMaker desc("A Java object argument expected; got object of class '%s' instead",
+                        o->getClassName());
                     throw BasicException(desc.c_str());
                 }
                 javaObjectRef = jo->makeLocal();
@@ -220,12 +223,17 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
             javaObjectRef = qjcm.getJavaClosure(call);
             break;
         }
+        case NT_BINARY: {
+            return makeByteArray(*value.get<BinaryNode>());
+        }
         default: {
             if (cls) {
                 Env env;
-                LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
+                LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetCanonicalName,
+                    nullptr).as<jstring>();
                 Env::GetStringUtfChars cname(env, clsName);
-                QoreStringMaker desc("A Java object argument of class '%s' expected; got type '%s' instead", cname.c_str(), value.getTypeName());
+                QoreStringMaker desc("A Java object argument of class '%s' expected; got type '%s' instead",
+                    cname.c_str(), value.getTypeName());
                 throw BasicException(desc.c_str());
             }
 

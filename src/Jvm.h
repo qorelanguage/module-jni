@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -50,7 +50,7 @@ public:
      * Assumes that the thread has been attached to the JVM.
      * \return the Env object associated with this thread
      */
-    static JNIEnv *getEnv() {
+    static JNIEnv* getEnv() {
         assert(env != nullptr);
         return env;
     }
@@ -59,7 +59,7 @@ public:
      * \brief Sets the Env object associated with this thread.
      * \param env the Env object associated with this thread
      */
-    static void setEnv(JNIEnv *env) {
+    static void setEnv(JNIEnv* env) {
         Jvm::env = env;
     }
 
@@ -76,7 +76,7 @@ public:
      * \return the Env object associated with this thread
      * \throws UnableToAttachException if the thread cannot be attached to the JVM
      */
-    static JNIEnv *attachAndGetEnv();
+    static JNIEnv* attachAndGetEnv();
 
     /**
      * \brief Creates the JVM.

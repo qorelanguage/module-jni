@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -154,7 +154,7 @@ static QoreStringNode* jni_module_init() {
     try {
         Globals::init();
     } catch (QoreStandardException &e) {
-       throw;
+        throw;
     } catch (JavaException& e) {
         jni_init_failed = true;
         return e.toString();
@@ -194,15 +194,8 @@ static QoreStringNode* jni_module_init() {
     tclist.push(jni_thread_cleanup, nullptr);
 
     try {
-        std::unique_ptr<QoreProgramHelper> qph;
-        ExceptionSink xsink;
-        // issue #4006: ensure there is a program context
-        QoreProgram* pgm = getProgram();
-        if (!pgm) {
-            qph.reset(new QoreProgramHelper(PO_NEW_STYLE, xsink));
-            pgm = **qph;
-        }
-        // set program context for initialization
+        QoreProgram* pgm = Globals::createJavaContextProgram();
+        // issue #4006: ensure there is a program context for initialization
         QoreProgramContextHelper pgm_ctx(pgm);
 
         qjcm.init(already_initialized);
@@ -337,7 +330,7 @@ static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
         return;
     }
 
-    QoreProgram* pgm = getProgram();
+    QoreProgram* pgm = jni_get_program_context();
     JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
     //printd(5, "parse-cmd '%s' jpc: %p jnins: %p\n", arg.c_str(), jpc, jpc ? jpc->getJniNamespace() : nullptr);
     if (!jpc) {
@@ -413,7 +406,7 @@ static void qore_jni_mc_define_pending_class(const QoreString& arg, QoreProgram*
     // find end of name
     qore_offset_t end = arg.find(' ');
     if (end == -1) {
-        throw QoreJniException("JNI-DEFINE-CLASS-ERROR", "cannot find the end of the class name in the 'define-class' directive");
+        throw QoreJniException("JNI-DEFINE-CLASS-ERROR", "cannot find the end of the class name in the 'define-pending-class' directive");
     }
     QoreString java_name(&arg, end);
     QoreString base64(arg.c_str() + end + 1);
@@ -424,6 +417,9 @@ static void qore_jni_mc_define_pending_class(const QoreString& arg, QoreProgram*
     }
     jni::Env env;
     assert(jpc);
+
+    printd(5, "define-pending-class %s pgm: %p loader: %x\n", java_name.c_str(), pgm,
+        env.callIntMethod((jobject)jpc->getClassLoader(), jni::Globals::methodObjectHashCode, nullptr));
 
     // convert java name to dot name; QoreURLClassLoader.addPendingClass() requires the dot name
     java_name.replaceAll("/", ".");
@@ -529,11 +525,11 @@ QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
         cp.prepend(jns->getName());
     }
 
-    printd(LogLevel, "jni_class_handler() ns: %p cname: %s cp: %s\n", ns, cname, cp.getBuffer());
+    printd(LogLevel, "jni_class_handler() ns: %p cname: %s cp: %s\n", ns, cname, cp.c_str());
 
     try {
-        QoreClass* qc = qjcm.findCreateQoreClass(cp.getBuffer());
-        printd(LogLevel, "jni_class_handler() cp: %s returning qc: %p\n", cp.getBuffer(), qc);
+        QoreClass* qc = qjcm.findCreateQoreClass(cp.c_str());
+        printd(LogLevel, "jni_class_handler() cp: %s returning qc: %p\n", cp.c_str(), qc);
         return qc;
     } catch (jni::JavaException& e) {
         // ignore class not found exceptions here

@@ -6,13 +6,16 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import java.nio.charset.StandardCharsets;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.URLDecoder;
+
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +36,7 @@ import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
 import org.qore.jni.QoreURLClassLoader;
+import org.qore.jni.QoreJavaFileObject;
 
 /**
  * Compile a String or other {@link CharSequence}, returning a Java
@@ -69,7 +73,7 @@ public class QoreJavaCompiler<T> {
     // Compiler requires source files with a ".java" extension:
     static final String JAVA_EXTENSION = ".java";
 
-    private final ClassLoaderImpl classLoader;
+    private final QoreURLClassLoader classLoader;
 
     // The compiler instance that this facade uses.
     private final JavaCompiler compiler;
@@ -120,44 +124,39 @@ public class QoreJavaCompiler<T> {
             throw new IllegalStateException("Cannot find the system Java compiler. "
                     + "Check that your class path includes tools.jar");
         }
-        classLoader = new ClassLoaderImpl(loader);
+        classLoader = new QoreURLClassLoader(loader.getPtr(), loader);
+        //System.out.printf("compiler classLoader: %x\n", classLoader.hashCode());
         diagnostics = null;
-        final QoreJavaFileManager fileManager = new QoreJavaFileManager(loader,
+        final QoreJavaFileManager fileManager = new QoreJavaFileManager(classLoader,
             compiler.getStandardFileManager(diagnostics, null, null));
 
         // create our FileManager which chains to the default file manager
         // and our ClassLoader
         javaFileManager = new FileManagerImpl(fileManager, classLoader);
         this.options = new ArrayList<String>();
-        if (options != null) { // save a copy of input options
-            boolean cp_next = false;
-            for (String option : options) {
-                this.options.add(option);
-
-                if (loader != null && (option.equals("-cp") || option.equals("-classpath"))) {
-                    cp_next = true;
-                } else if (cp_next) {
-                    cp_next = false;
-                    loader.addPath(option);
-                    //System.out.printf("set classpath: %s\n", option);
+        try {
+            List<File> pathlist = new ArrayList<File>();
+            if (options != null) { // save a copy of input options
+                boolean cp_next = false;
+                for (String option : options) {
+                    this.options.add(option);
                 }
             }
-        }
 
-        if (loader instanceof URLClassLoader && (!loader.getClass().getName().equals("sun.misc.Launcher$AppClassLoader"))) {
-            try {
-                URLClassLoader urlClassLoader = (URLClassLoader) loader;
-
-                List<File> path = new ArrayList<File>();
-                for (URL url : urlClassLoader.getURLs()) {
-                    File file = new File(url.getFile());
-                    path.add(file);
-                }
-
-                fileManager.setLocation(StandardLocation.CLASS_PATH, path);
-            } catch (IOException e) {
-                e.printStackTrace();
+            // add locations from the parent class loader
+            for (URL url : loader.getURLs()) {
+                String path = URLDecoder.decode(url.getPath(), StandardCharsets.UTF_8);
+                File file = new File(path);
+                //System.out.printf("set location url: %s\n", file);
+                pathlist.add(file);
             }
+
+            if (pathlist.size() > 0) {
+                fileManager.setLocation(StandardLocation.CLASS_PATH, pathlist);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -346,6 +345,18 @@ public class QoreJavaCompiler<T> {
     }
 
     /**
+     * Add a path to the classpath
+     */
+    public void addClassPath(String path) {
+        System.out.printf("compiler.addClassPath() %s\n", path);
+        classLoader.addPath(path);
+    }
+
+    public void injectClass(String binName, byte[] byteCode) {
+        classLoader.addPendingClass(binName, byteCode);
+    }
+
+    /**
      * Check that the <var>newClass</var> is a subtype of all the type
      * parameters and throw a ClassCastException if not.
      *
@@ -366,7 +377,7 @@ public class QoreJavaCompiler<T> {
     }
 
     /**
-     * COnverts a String to a URI.
+     * Converts a String to a URI.
      *
      * @param name a file name
      *
@@ -389,14 +400,104 @@ public class QoreJavaCompiler<T> {
 }
 
 /**
+ * A JavaFileObject which contains either the source text or the compiler
+ * generated class. This class is used in two cases.
+ * <ol>
+ * <li>This instance uses it to store the source which is passed to the
+ * compiler. This uses the
+ * {@link JavaFileObjectImpl#JavaFileObjectImpl(String, CharSequence)}
+ * constructor.
+ * <li>The Java compiler also creates instances (indirectly through the
+ * FileManagerImplFileManager) when it wants to create a JavaFileObject for the
+ * .class output. This uses the
+ * {@link JavaFileObjectImpl#JavaFileObjectImpl(String, JavaFileObject.Kind)}
+ * constructor.
+ * </ol>
+ * This class does not attempt to reuse instances (there does not seem to be a
+ * need, as it would require adding a Map for the purpose, and this would also
+ * prevent garbage collection of class byte code.)
+ */
+final class JavaFileObjectImpl extends SimpleJavaFileObject implements QoreJavaFileObject {
+    // If kind == CLASS, this stores byte code from openOutputStream
+    private ByteArrayOutputStream byteCode;
+
+    // if kind == SOURCE, this contains the source text
+    private final CharSequence source;
+
+    /**
+     * Construct a new instance which stores source
+     *
+     * @param baseName the base name
+     * @param source   the source code
+     */
+    JavaFileObjectImpl(final String baseName, final CharSequence source) {
+        super(QoreJavaCompiler.toURI(baseName + ".java"), Kind.SOURCE);
+        this.source = source;
+    }
+
+    /**
+     * Construct a new instance
+     *
+     * @param name the file name
+     * @param kind the kind of file
+     */
+    JavaFileObjectImpl(final String name, final Kind kind) {
+        super(QoreJavaCompiler.toURI(name), kind);
+        source = null;
+    }
+
+    /**
+     * Return the source code content
+     *
+     * @see javax.tools.SimpleJavaFileObject#getCharContent(boolean)
+     */
+    @Override
+    public CharSequence getCharContent(final boolean ignoreEncodingErrors)
+            throws UnsupportedOperationException {
+        if (source == null)
+            throw new UnsupportedOperationException("getCharContent()");
+        return source;
+    }
+
+    /**
+     * Return an input stream for reading the byte code
+     *
+     * @see javax.tools.SimpleJavaFileObject#openInputStream()
+     */
+    @Override
+    public InputStream openInputStream() {
+        return new ByteArrayInputStream(getByteCode());
+    }
+
+    /**
+     * Return an output stream for writing the bytecode
+     *
+     * @see javax.tools.SimpleJavaFileObject#openOutputStream()
+     */
+    @Override
+    public OutputStream openOutputStream() {
+        byteCode = new ByteArrayOutputStream();
+        return byteCode;
+    }
+
+    /**
+     * @return the byte code generated by the compiler
+     */
+    @Override
+    public byte[] getByteCode() {
+        return byteCode.toByteArray();
+    }
+}
+
+/**
  * A JavaFileManager which manages Java source and classes. This FileManager
- * delegates to the JavaFileManager and the ClassLoaderImpl provided in the
+ * delegates to the JavaFileManager and the QoreURLClassLoader provided in the
  * constructor. The sources are all in memory CharSequence instances and the
  * classes are all in memory byte arrays.
  */
 final class FileManagerImpl extends ForwardingJavaFileManager<JavaFileManager> {
     // the delegating class loader (passed to the constructor)
-    private final ClassLoaderImpl classLoader;
+    private final QoreURLClassLoader classLoader;
 
     // Internal map of filename URIs to JavaFileObjects.
     private final Map<URI, JavaFileObject> fileObjects = new HashMap<URI, JavaFileObject>();
@@ -413,7 +514,7 @@ final class FileManagerImpl extends ForwardingJavaFileManager<JavaFileManager> {
      * @param classLoader a ClassLoader which contains dependent classes that the compiled
      *                    classes will require when compiling them.
      */
-    public FileManagerImpl(JavaFileManager fileManager, ClassLoaderImpl classLoader) {
+    public FileManagerImpl(JavaFileManager fileManager, QoreURLClassLoader classLoader) {
         super(fileManager);
         this.classLoader = classLoader;
     }
@@ -494,7 +595,7 @@ final class FileManagerImpl extends ForwardingJavaFileManager<JavaFileManager> {
     @Override
     public JavaFileObject getJavaFileForOutput(Location location, String qualifiedName,
                                                Kind kind, FileObject outputFile) throws IOException {
-        JavaFileObject file = new JavaFileObjectImpl(qualifiedName, kind);
+        JavaFileObjectImpl file = new JavaFileObjectImpl(qualifiedName, kind);
         classLoader.add(qualifiedName, file);
         // add to output list
         outputObjects.add(file);
@@ -529,7 +630,9 @@ final class FileManagerImpl extends ForwardingJavaFileManager<JavaFileManager> {
                 if (file.getKind() == Kind.CLASS && file.getName().startsWith(packageName))
                     files.add(file);
             }
-            files.addAll(classLoader.files());
+            classLoader.files().forEach((f) -> {
+                files.add((JavaFileObject)f);
+            });
         } else if (location == StandardLocation.SOURCE_PATH
                 && kinds.contains(JavaFileObject.Kind.SOURCE)) {
             for (JavaFileObject file : fileObjects.values()) {
@@ -541,163 +644,5 @@ final class FileManagerImpl extends ForwardingJavaFileManager<JavaFileManager> {
             files.add(file);
         }
         return files;
-    }
-}
-
-/**
- * A JavaFileObject which contains either the source text or the compiler
- * generated class. This class is used in two cases.
- * <ol>
- * <li>This instance uses it to store the source which is passed to the
- * compiler. This uses the
- * {@link JavaFileObjectImpl#JavaFileObjectImpl(String, CharSequence)}
- * constructor.
- * <li>The Java compiler also creates instances (indirectly through the
- * FileManagerImplFileManager) when it wants to create a JavaFileObject for the
- * .class output. This uses the
- * {@link JavaFileObjectImpl#JavaFileObjectImpl(String, JavaFileObject.Kind)}
- * constructor.
- * </ol>
- * This class does not attempt to reuse instances (there does not seem to be a
- * need, as it would require adding a Map for the purpose, and this would also
- * prevent garbage collection of class byte code.)
- */
-final class JavaFileObjectImpl extends SimpleJavaFileObject {
-    // If kind == CLASS, this stores byte code from openOutputStream
-    private ByteArrayOutputStream byteCode;
-
-    // if kind == SOURCE, this contains the source text
-    private final CharSequence source;
-
-    /**
-     * Construct a new instance which stores source
-     *
-     * @param baseName the base name
-     * @param source   the source code
-     */
-    JavaFileObjectImpl(final String baseName, final CharSequence source) {
-        super(QoreJavaCompiler.toURI(baseName + QoreJavaCompiler.JAVA_EXTENSION),
-                Kind.SOURCE);
-        this.source = source;
-    }
-
-    /**
-     * Construct a new instance
-     *
-     * @param name the file name
-     * @param kind the kind of file
-     */
-    JavaFileObjectImpl(final String name, final Kind kind) {
-        super(QoreJavaCompiler.toURI(name), kind);
-        source = null;
-    }
-
-    /**
-     * Return the source code content
-     *
-     * @see javax.tools.SimpleJavaFileObject#getCharContent(boolean)
-     */
-    @Override
-    public CharSequence getCharContent(final boolean ignoreEncodingErrors)
-            throws UnsupportedOperationException {
-        if (source == null)
-            throw new UnsupportedOperationException("getCharContent()");
-        return source;
-    }
-
-    /**
-     * Return an input stream for reading the byte code
-     *
-     * @see javax.tools.SimpleJavaFileObject#openInputStream()
-     */
-    @Override
-    public InputStream openInputStream() {
-        return new ByteArrayInputStream(getByteCode());
-    }
-
-    /**
-     * Return an output stream for writing the bytecode
-     *
-     * @see javax.tools.SimpleJavaFileObject#openOutputStream()
-     */
-    @Override
-    public OutputStream openOutputStream() {
-        byteCode = new ByteArrayOutputStream();
-        return byteCode;
-    }
-
-    /**
-     * @return the byte code generated by the compiler
-     */
-    byte[] getByteCode() {
-        return byteCode.toByteArray();
-    }
-}
-
-/**
- * A custom ClassLoader which maps class names to JavaFileObjectImpl instances.
- */
-final class ClassLoaderImpl extends ClassLoader {
-    private final Map<String, JavaFileObject> classes = new HashMap<String, JavaFileObject>();
-
-    ClassLoaderImpl(final QoreURLClassLoader parentClassLoader) {
-        super(parentClassLoader);
-    }
-
-    /**
-     * @return An collection of JavaFileObject instances for the classes in the
-     * class loader.
-     */
-    Collection<JavaFileObject> files() {
-        return Collections.unmodifiableCollection(classes.values());
-    }
-
-    @Override
-    protected Class<?> findClass(final String qualifiedClassName)
-            throws ClassNotFoundException {
-        //System.out.println("ClassLoaderImpl.findClass(): " + qualifiedClassName);
-        JavaFileObject file = classes.get(qualifiedClassName);
-        if (file != null) {
-            byte[] bytes = ((JavaFileObjectImpl) file).getByteCode();
-            return defineClass(qualifiedClassName, bytes, 0, bytes.length);
-        }
-        // Workaround for "feature" in Java 6
-        // see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6434149
-        try {
-            return Class.forName(qualifiedClassName);
-        } catch (ClassNotFoundException nf) {
-            // Ignore and fall through
-        }
-        return super.findClass(qualifiedClassName);
-    }
-
-    /**
-     * Add a class name/JavaFileObject mapping
-     *
-     * @param qualifiedClassName the name
-     * @param javaFile           the file associated with the name
-     */
-    void add(final String qualifiedClassName, final JavaFileObject javaFile) {
-        classes.put(qualifiedClassName, javaFile);
-    }
-
-    @Override
-    protected synchronized Class<?> loadClass(final String name, final boolean resolve)
-            throws ClassNotFoundException {
-        //System.out.println("ClassLoaderImpl.loadClass(): " + name);
-        return super.loadClass(name, resolve);
-    }
-
-    @Override
-    public InputStream getResourceAsStream(final String name) {
-        if (name.endsWith(".class")) {
-            String qualifiedClassName = name.substring(0,
-                    name.length() - ".class".length()).replace('/', '.');
-            JavaFileObjectImpl file = (JavaFileObjectImpl) classes.get(qualifiedClassName);
-            if (file != null) {
-                return new ByteArrayInputStream(file.getByteCode());
-            }
-        }
-        return super.getResourceAsStream(name);
     }
 }

@@ -72,6 +72,7 @@ public:
     DLLLOCAL static jmethodID methodObjectClone;                                  // Object Object.clone()
     DLLLOCAL static jmethodID methodObjectGetClass;                               // Class<?> Object.getClass()
     DLLLOCAL static jmethodID methodObjectEquals;                                 // boolean equals(Object)
+    DLLLOCAL static jmethodID methodObjectHashCode;                               // int hashCode()
 
     DLLLOCAL static GlobalReference<jclass> classClass;                           // java.lang.Class
     DLLLOCAL static jmethodID methodClassIsArray;                                 // boolean Class.isArray()
@@ -162,12 +163,13 @@ public:
     DLLLOCAL static jmethodID methodProxyNewProxyInstance;                        // Object Proxy.newProxyInstance(ClassLoader, Class[], InvocationHandler)
 
     DLLLOCAL static GlobalReference<jclass> classClassLoader;                     // java.lang.ClassLoader
-    DLLLOCAL static jmethodID methodClassLoaderLoadClass;                         // Class ClassLoader.loadClass(String)
+    DLLLOCAL static jmethodID methodClassLoaderLoadClass;                         // Class loadClass(String)
 
     DLLLOCAL static GlobalReference<jclass> classQoreURLClassLoader;              // org.qore.jni.QoreURLClassLoader
     DLLLOCAL static jmethodID ctorQoreURLClassLoader;                             // QoreURLClassLoader(long)
     DLLLOCAL static jmethodID methodQoreURLClassLoaderAddPath;                    // void QoreURLClassLoader.addPath(String)
     DLLLOCAL static jmethodID methodQoreURLClassLoaderLoadClass;                  // Class QoreURLClassLoader.loadClass(String)
+    DLLLOCAL static jmethodID methodQoreURLClassLoaderLoadResolveClass;           // Class QoreURLClassLoader.loadResolveClass(String)
     DLLLOCAL static jmethodID methodQoreURLClassLoaderSetContext;                 // void QoreURLClassLoader.setContext()
     DLLLOCAL static jmethodID methodQoreURLClassLoaderGetProgramPtr;              // long QoreURLClassLoader.getProgramPtr()
     DLLLOCAL static jmethodID methodQoreURLClassLoaderAddPendingClass;            // void QoreURLClassLoader.addPendingClass(String, byte[])
@@ -286,11 +288,15 @@ public:
 
     DLLLOCAL static GlobalReference<jclass> getQoreJavaClassBase(Env& env, jobject classLoader);
 
-    DLLLOCAL static void init();
+    // returns true if this is a Java bootstrap init
+    DLLLOCAL static bool init();
+
     DLLLOCAL static void cleanup();
     DLLLOCAL static Type getType(jclass cls);
 
     DLLLOCAL static jlong getContextProgram(jobject new_syscl, bool& created);
+    DLLLOCAL static QoreProgram* createJavaContextProgram();
+
     DLLLOCAL static void clearGlobalContext() {
         if (qph) {
             qph.reset();
