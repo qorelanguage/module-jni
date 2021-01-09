@@ -487,7 +487,7 @@ public class QoreURLClassLoader extends URLClassLoader {
 
         if (rv.size() == 0) {
             ClassLoader parent = getParent();
-            System.out.printf("getClassesInNamespace() %s; parent is %s\n", packageName, parent.getClass().getName());
+            //System.out.printf("getClassesInNamespace() %s; parent is %s\n", packageName, parent.getClass().getName());
             if (parent instanceof QoreURLClassLoader) {
                 return ((QoreURLClassLoader)parent).getClassesInNamespace(packageName);
             }

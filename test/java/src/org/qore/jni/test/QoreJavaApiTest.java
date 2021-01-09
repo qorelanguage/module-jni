@@ -4,14 +4,13 @@ import org.qore.jni.*;
 
 import org.qore.lang.*;
 import org.qore.lang.sqlutil.*;
+import org.qore.lang.reflection.*;
 
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
 import java.math.BigDecimal;
-
-//import qore.Qore.Thread.Sequence;
 
 class ThreadTest implements Runnable {
     public void run() {
@@ -263,6 +262,11 @@ public class QoreJavaApiTest {
     public static String objectLifecycleTest(String arg) throws Throwable {
         QoreObject obj = QoreJavaApi.newObjectSave("TestClass2");
         return (String)obj.callMethod("getString", arg);
+    }
+
+    @SuppressWarnings("deprecation")
+    public static Type testObjectTest() throws Throwable {
+        return new Type("string");
     }
 
     public static void testHash1() throws Throwable {

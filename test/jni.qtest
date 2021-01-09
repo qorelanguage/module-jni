@@ -500,6 +500,10 @@ lorem ipsum\r
         assertEq("test-y", QoreJavaApiTest::objectLifecycleTest("test"));
         #printf("object_cache: %N\n", object_cache);
         assertEq(1, object_cache.size());
+
+        object obj = QoreJavaApiTest::testObjectTest();
+        assertEq(2, object_cache.size());
+        remove obj;
     }
 
     qoreExceptionTest() {
@@ -975,7 +979,7 @@ lorem ipsum\r
             assertTrue(False);
         } catch (hash<ExceptionInfo> ex) {
             assertEq("QoreJavaApiTest.java", ex.file);
-            assertEq(86, ex.line);
+            assertEq(85, ex.line);
         }
 
         # test Hash APIs
