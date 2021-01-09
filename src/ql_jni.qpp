@@ -267,7 +267,10 @@ set_save_object_callback(callback);
     @see @ref jni_qore_object_lifecycle_management for more information
 */
 set_save_object_callback(*code save_object_callback) [dom=PROCESS] {
-    JniExternalProgramData* jpc = jni_get_context();
+    // NOTE: this must be qore_get_call_program_context() and not jni::jni_get_program_context() or jni_get_context()
+    // as the caller's program context must be used in all cases
+    QoreProgram* pgm = qore_get_call_program_context();
+    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
     assert(jpc);
     jpc->setSaveObjectCallback(save_object_callback);
 }

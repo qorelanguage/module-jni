@@ -10,6 +10,7 @@
 %requires Util
 
 %module-cmd(jni) set-compat-types true
+%module-cmd(jni) add-relative-classpath ../build/qore-jni.jar
 %module-cmd(jni) add-relative-classpath qore-jni-test.jar
 %module-cmd(jni) import java.lang.reflect.*
 %module-cmd(jni) import java.lang.invoke.*
