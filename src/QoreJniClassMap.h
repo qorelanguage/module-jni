@@ -277,6 +277,10 @@ public:
         return classLoader;
     }
 
+    DLLLOCAL void setClassLoader(jobject classLoader) {
+        this->classLoader = classLoader;
+    }
+
     DLLLOCAL jclass getDynamicApi() const {
         assert(dynamicApi);
         return dynamicApi;
@@ -343,10 +347,6 @@ public:
         delete this;
     }
 
-    DLLLOCAL jclass getQoreJavaClassBase() {
-        return (jclass)classQoreJavaClassBase;
-    }
-
     DLLLOCAL static void setContext() {
         Env env;
         setContext(env);
@@ -355,8 +355,6 @@ public:
     DLLLOCAL static void setContext(Env& env);
 
     DLLLOCAL static bool compatTypes();
-
-    DLLLOCAL static jclass staticGetQoreJavaClassBase();
 
 protected:
     // Jni namespace pointer for the current Program
@@ -378,8 +376,6 @@ protected:
     // map of Qore class hashes to Java classes; class signature hash -> jclass
     typedef std::map<std::string, GlobalReference<jclass>> q2jmap_t;
     q2jmap_t q2jmap;
-
-    GlobalReference<jclass> classQoreJavaClassBase;
 
     // override compat-types
     bool override_compat_types = false;

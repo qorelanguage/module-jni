@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -202,6 +202,8 @@ Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJni
     @return the allocated array
  */
 Jni::org::qore::jni::JavaArray new_array(Jni::java::lang::Class[QoreJniPrivateData] cls, int size) {
+    ReferenceHolder<QoreJniPrivateData> holder(cls, xsink);
+
     try {
         return new QoreObject(QC_JAVAARRAY, jni::jni_get_program_context(), new Array(cls->makeLocal().as<jclass>(), size));
     } catch (jni::Exception& e) {
@@ -268,5 +270,33 @@ set_save_object_callback(*code save_object_callback) [dom=PROCESS] {
     JniExternalProgramData* jpc = jni_get_context();
     assert(jpc);
     jpc->setSaveObjectCallback(save_object_callback);
+}
+
+//! Returns the class loader associated with the current program
+/** @par Example:
+    @code{.py}
+ClassLoader loader = get_class_loader();
+    @endcode
+
+    @return the class loader associated with the current program
+
+    @since jni 2.0
+*/
+Jni::java::lang::Object get_class_loader() {
+    try {
+        jni::Env env;
+
+        QoreProgram* pgm = jni_get_program_context();
+        JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+        assert(jpc);
+
+        LocalReference<jclass> jc = Globals::classQoreURLClassLoader.toLocal();
+        QoreClass* qc = qjcm.findCreateQoreClass(jc);
+
+        return new QoreObject(qc, pgm, new QoreJniPrivateData(jpc->getClassLoader()));
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        return QoreValue();
+    }
 }
 //@}
