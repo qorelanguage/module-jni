@@ -145,14 +145,21 @@ static std::string get_class_hash(const QoreClass& qc) {
 }
 
 QoreProgram* jni_get_program_context() {
-    return getProgram();
+    QoreProgram* pgm;
+    jni_get_context(pgm);
+    return pgm;
 }
 
 JniExternalProgramData* jni_get_context() {
+    QoreProgram* pgm;
+    return jni_get_context(pgm);
+}
+
+JniExternalProgramData* jni_get_context(QoreProgram*& pgm) {
     JniExternalProgramData* jpc;
 
     // first try to get the actual Program context
-    QoreProgram* pgm = getProgram();
+    pgm = getProgram();
     if (pgm) {
         jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
         if (jpc) {
@@ -166,6 +173,7 @@ JniExternalProgramData* jni_get_context() {
             return jpc;
         }
     }
+    pgm = nullptr;
     return nullptr;
 }
 
@@ -191,22 +199,25 @@ static QoreNamespace* jni_find_create_namespace(QoreNamespace& jns, const char* 
     return ns;
 }
 
-void QoreJniClassMap::staticInitBackground(ExceptionSink* xsink, void* pgm) {
+void QoreJniClassMap::staticInitBackground(ExceptionSink* xsink, void* pgm_ptr) {
+    QoreProgram* pgm = static_cast<QoreProgram*>(pgm_ptr);
     // set program context for initialization
-    QoreProgramContextHelper pgm_ctx(static_cast<QoreProgram*>(pgm));
+    QoreProgramContextHelper pgm_ctx(pgm);
 
     // ensure that the parent thread is signaled on exit
     InitSignaler signaler;
     try {
-        qjcm.initBackground();
+        qjcm.initBackground(pgm);
     } catch (jni::Exception& e) {
         e.convert(xsink);
     }
 }
 
 void QoreJniClassMap::init(bool already_initialized) {
+    QoreProgram* pgm = jni_get_program_context();
+    assert(pgm);
     if (already_initialized) {
-        qjcm.initBackground();
+        qjcm.initBackground(pgm);
         return;
     }
     // grab init mutex
@@ -214,7 +225,6 @@ void QoreJniClassMap::init(bool already_initialized) {
 
     // issue #3199: perform initialization in the background
     ExceptionSink xsink;
-    QoreProgram* pgm = jni_get_program_context();
     q_start_thread(&xsink, &staticInitBackground, pgm);
 
     // wait for initialization to complete
@@ -226,7 +236,7 @@ void QoreJniClassMap::init(bool already_initialized) {
     }
 }
 
-void QoreJniClassMap::initBackground() {
+void QoreJniClassMap::initBackground(QoreProgram* pgm) {
     // create java.lang namespace with automatic class loader handler
     QoreNamespace* javans = new QoreNamespace("java");
     QoreNamespace* langns = new QoreNamespace("lang");
@@ -241,7 +251,7 @@ void QoreJniClassMap::initBackground() {
     const char* sn;
     QoreNamespace* ns = jni_find_create_namespace(*default_jns, "java.lang.Object", sn);
 
-    QC_OBJECT = new JniQoreClass("Object", "java.lang.Object");
+    QC_OBJECT = new JniQoreClass(pgm, "Object", "java.lang.Object");
     CID_OBJECT = QC_OBJECT->getID();
     createClassInNamespace(ns, *default_jns, "java/lang/Object", Functions::loadClass("java/lang/Object"), QC_OBJECT, *this);
 
@@ -486,7 +496,8 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name, co
     QoreJniAutoLocker al(m);
 
     // check current Program's namespace
-    JniExternalProgramData* jpc = jni_get_context();
+    QoreProgram* pgm;
+    JniExternalProgramData* jpc = jni_get_context(pgm);
     if (!jpc) {
         throw BasicException("no Java context to create Qore class");
     }
@@ -529,7 +540,7 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name, co
     }
     assert(!ns->findLocalClass(sn));
 
-    qc = new JniQoreClass(sn, name.c_str());
+    qc = new JniQoreClass(pgm, sn, name.c_str());
     assert(qc->isSystem());
     createClassInNamespace(ns, *jpc->getJniNamespace(), jpath, cls.release(), qc, *jpc);
 
@@ -595,9 +606,10 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInBase(QoreString& name, const
         }
     }
 
-    JniQoreClass* qc = new JniQoreClass(sn, name.c_str());
+    QoreProgram* pgm;
+    JniExternalProgramData* jpc = jni_get_context(pgm);
+    JniQoreClass* qc = new JniQoreClass(pgm, sn, name.c_str());
     assert(qc->isSystem());
-    JniExternalProgramData* jpc = jni_get_context();
     // createClassInNamespace() will "save" qc in the namespace
     createClassInNamespace(ns, *default_jns, jpath, cls.release(), qc, *this);
 

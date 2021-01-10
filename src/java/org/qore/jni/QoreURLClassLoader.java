@@ -98,8 +98,8 @@ public class QoreURLClassLoader extends URLClassLoader {
         super("QoreURLClassLoader", new URL[]{}, parent);
         enable_cache = true;
         setContextProgram(this);
-        //debugLog("QoreURLClassLoader(ClassLoader parent: " +
-        //  (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")");
+        //System.out.printf("QoreURLClassLoader(ClassLoader parent: %s) this: %x (pgm: %x)\n",
+        //    (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")", hashCode(), pgm_ptr);
     }
 
     // constructor for using this class as the boot classloader for the module
@@ -108,7 +108,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         setContext();
         enable_cache = true;
         setContextProgram(this);
-        //debugLog("QoreURLClassLoader()");
+        //System.out.printf("QoreURLClassLoader() this: %x (pgm: %x)\n", hashCode(), pgm_ptr);
     }
 
     // constructor for using this class as the boot classloader for the module
@@ -116,7 +116,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
         setContext();
         pgm_ptr = p_ptr;
-        //debugLog("QoreURLClassLoader(ptr: " + p_ptr + ")");
+        //System.out.printf("QoreURLClassLoader(long p_ptr: %x) this: %x\n", p_ptr, hashCode());
     }
 
     public QoreURLClassLoader(long p_ptr, ClassLoader parent) {
@@ -124,8 +124,8 @@ public class QoreURLClassLoader extends URLClassLoader {
         // set the current classloader as the thread context classloader
         pgm_ptr = p_ptr;
         setContext();
-        //debugLog("QoreURLClassLoader(long p_ptr = " + p_ptr + ", ClassLoader parent: " +
-        //  (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")");
+        //System.out.printf("QoreURLClassLoader(long p_ptr: %x, ClassLoader parent: %s) this: %x\n",
+        //    p_ptr, (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")", hashCode());
     }
 
     public QoreURLClassLoader​(String name, ClassLoader parent) {
@@ -133,8 +133,8 @@ public class QoreURLClassLoader extends URLClassLoader {
         setContext();
         enable_cache = true;
         setContextProgram(this);
-        //debugLog("QoreURLClassLoader(String name: " + name + ", ClassLoader parent: " +
-        //  (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")");
+        //System.out.printf("QoreURLClassLoader(name: '%s', ClassLoader parent: %s) this: %x (pgm: %x)\n",
+        //    name, (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")", hashCode(), pgm_ptr);
     }
 
     /**
@@ -645,7 +645,8 @@ public class QoreURLClassLoader extends URLClassLoader {
             }
         } else {
             rv = null;
-            debugLog("QoreURLClassLoader.createJavaQoreClass(" + bin_name + ") called with no Qore program context");
+            //System.out.printf("QoreURLClassLoader.createJavaQoreClass(%s) this: %x called with no Qore program context",
+            //    bin_name, hashCode());
         }
         if (rv == null) {
             throw new ClassNotFoundException(String.format("could not find a Qore source class matching '%s' to " +

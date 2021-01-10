@@ -42,7 +42,7 @@ type_vec_t JniQoreClass::paramTypeInfo = { stringTypeInfo, boolTypeInfo };
 
 // static method
 QoreValue JniQoreClass::memberGate(const QoreMethod& meth, void* m, QoreObject* self, QoreJniPrivateData* jd,
-    const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
+        const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
     if (!args || args->size() != 2)
         return QoreValue();
 
@@ -99,7 +99,7 @@ QoreValue JniQoreClass::memberGate(const QoreMethod& meth, void* m, QoreObject* 
         jargs[0].l = field;
         jargs[1].l = jobj;
 
-        QoreProgram* pgm = self->getProgram();
+        QoreProgram* pgm = meth.getClass()->getProgram();//self->getProgram();
         assert(pgm);
         QoreExternalProgramContextHelper qepch(xsink, pgm);
         if (*xsink) {
