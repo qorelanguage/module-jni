@@ -101,6 +101,10 @@ QoreValue JniQoreClass::memberGate(const QoreMethod& meth, void* m, QoreObject* 
 
         QoreProgram* pgm = self->getProgram();
         assert(pgm);
+        QoreExternalProgramContextHelper qepch(xsink, pgm);
+        if (*xsink) {
+            return QoreValue();
+        }
         JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
         assert(jpc);
 
