@@ -34,8 +34,9 @@ class QoreJniPrivateData;
 
 class JniQoreClass : public QoreBuiltinClass {
 public:
-    DLLLOCAL JniQoreClass(const char* name, const char* jname) : QoreBuiltinClass(name, QDOM_UNCONTROLLED_API),
-            jname(jname) {
+    DLLLOCAL JniQoreClass(QoreProgram* pgm, const char* name, const char* jname)
+            : QoreBuiltinClass(pgm, name, QDOM_UNCONTROLLED_API), jname(jname) {
+        assert(pgm->getExternalData("jni"));
         addMethod(nullptr, "memberGate", (q_external_method_t)memberGate, Public, 0, QDOM_UNCONTROLLED_API,
             autoTypeInfo, paramTypeInfo);
 

@@ -2141,7 +2141,7 @@ bool Globals::init() {
         printd(5, "Globals::init() creating syscl\n");
         jmethodID ctorQoreURLClassLoaderSys = env.getMethod(classQoreURLClassLoader, "<init>", "(J)V");
         jvalue jarg;
-        jarg.j = (long)jni_get_program_context();
+        jarg.j = (long)getProgram();
         syscl = env.newObject(classQoreURLClassLoader, ctorQoreURLClassLoaderSys, &jarg).makeGlobal();
 
         {
