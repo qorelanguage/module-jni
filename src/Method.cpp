@@ -193,6 +193,43 @@ QoreValue BaseMethod::invoke(jobject object, const QoreListNode* args, int offse
 
     // try to make a call through the dynamic API
     JniExternalProgramData* jpc = jni_get_context();
+
+    if (!jpc) {
+        // make a standard Java call; there will be no Java context for security access though
+        try {
+            std::vector<jvalue> jargs = convertArgs(args, offset);
+            switch (retValType) {
+                case Type::Boolean:
+                    return JavaToQore::convert(env.callBooleanMethod(object, id, &jargs[0]));
+                case Type::Byte:
+                    return JavaToQore::convert(env.callByteMethod(object, id, &jargs[0]));
+                case Type::Char:
+                    return JavaToQore::convert(env.callCharMethod(object, id, &jargs[0]));
+                case Type::Short:
+                    return JavaToQore::convert(env.callShortMethod(object, id, &jargs[0]));
+                case Type::Int:
+                    return JavaToQore::convert(env.callIntMethod(object, id, &jargs[0]));
+                case Type::Long:
+                    return JavaToQore::convert(env.callLongMethod(object, id, &jargs[0]));
+                case Type::Float:
+                    return JavaToQore::convert(env.callFloatMethod(object, id, &jargs[0]));
+                case Type::Double:
+                    return JavaToQore::convert(env.callDoubleMethod(object, id, &jargs[0]));
+                case Type::Reference:
+                    return JavaToQore::convertToQore(env.callObjectMethod(object, id, &jargs[0]));
+                case Type::Void:
+                default:
+                    assert(retValType == Type::Void);
+                    env.callVoidMethod(object, id, &jargs[0]);
+                    return QoreValue();
+            }
+        } catch (JavaException& e) {
+            // workaround for https://bugs.openjdk.java.net/browse/JDK-8221530
+            if (e.checkBug_8221530()) {
+                throw;
+            }
+        }
+    }
     assert(jpc);
 
     // add the object as the first argument
@@ -250,7 +287,31 @@ QoreValue BaseMethod::invokeStatic(const QoreListNode* args, int offset) const {
 
     std::vector<jvalue> jargs = convertArgs(args);
     //printd(0, "BaseMethod::invokeStatic() w/o jpc context; args: %d\n", (int)(args ? args->size() : 0));
-    return JavaToQore::convertToQore(env.callStaticObjectMethod(cls->getJavaObject(), id, &jargs[0]));
+    switch (retValType) {
+        case Type::Boolean:
+            return (bool)env.callStaticBooleanMethod(cls->getJavaObject(), id, &jargs[0]);
+        case Type::Byte:
+            return (int)env.callStaticByteMethod(cls->getJavaObject(), id, &jargs[0]);
+        case Type::Char:
+            return (int64)env.callStaticCharMethod(cls->getJavaObject(), id, &jargs[0]);
+        case Type::Short:
+            return (int64)env.callStaticShortMethod(cls->getJavaObject(), id, &jargs[0]);
+        case Type::Int:
+            return (int64)env.callStaticIntMethod(cls->getJavaObject(), id, &jargs[0]);
+        case Type::Long:
+            return (int64)env.callStaticLongMethod(cls->getJavaObject(), id, &jargs[0]);
+        case Type::Float:
+            return (double)env.callStaticFloatMethod(cls->getJavaObject(), id, &jargs[0]);
+        case Type::Double:
+            return (double)env.callStaticDoubleMethod(cls->getJavaObject(), id, &jargs[0]);
+        case Type::Reference:
+            return JavaToQore::convertToQore(env.callStaticObjectMethod(cls->getJavaObject(), id, &jargs[0]));
+        case Type::Void:
+        default:
+            assert(retValType == Type::Void);
+            env.callStaticVoidMethod(cls->getJavaObject(), id, &jargs[0]);
+            return QoreValue();
+    }
 }
 
 QoreValue BaseMethod::newInstance(const QoreListNode* args) {
