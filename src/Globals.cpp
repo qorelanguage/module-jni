@@ -63,6 +63,7 @@ GlobalReference<jclass> Globals::classPrimitiveLong;
 GlobalReference<jclass> Globals::classPrimitiveFloat;
 GlobalReference<jclass> Globals::classPrimitiveDouble;
 GlobalReference<jclass> Globals::arrayClassByte;
+GlobalReference<jclass> Globals::arrayClassObject;
 
 GlobalReference<jclass> Globals::classSystem;
 jmethodID Globals::methodSystemSetProperty;
@@ -736,7 +737,7 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, jlong pgm
         ReferenceHolder<QoreListNode> qore_args(&xsink);
 
         if (len) {
-            Array::getArgList(qore_args, env, args);
+            Array::getArgList(qore_args, env, args, (v && v->getCodeFlags() & QCF_USES_EXTRA_ARGS) ? true : false);
         }
 
         ValueHolder val(&xsink);
@@ -747,7 +748,8 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, jlong pgm
                 Env::GetStringUtfChars method_name(env, mname);
                 val = obj->evalMethod(method_name.c_str(), *qore_args, &xsink);
             } else {
-                printd(5, "qore_object_closure_call_internal() %s::%s() (v: %p id: %d) %d arg(s) obj: %p\n", m->getClassName(), m->getName(), v, m->getClass()->getID(), (int)len, obj);
+                printd(5, "qore_object_closure_call_internal() %s::%s() (v: %p id: %d) %d arg(s) obj: %p\n",
+                    m->getClassName(), m->getName(), v, m->getClass()->getID(), (int)len, obj);
                 val = obj->evalMethodVariant(*m, v, *qore_args, &xsink);
             }
         } else {
@@ -1966,6 +1968,7 @@ bool Globals::init() {
     classPrimitiveDouble = getPrimitiveClass(env, "java/lang/Double");
 
     arrayClassByte = env.findClass("[B").makeGlobal();
+    arrayClassObject = env.findClass("[Ljava/lang/Object;").makeGlobal();
 
     classObject = env.findClass("java/lang/Object").makeGlobal();
     methodObjectClone = env.getMethod(classObject, "clone", "()Ljava/lang/Object;");
@@ -2185,11 +2188,11 @@ bool Globals::init() {
     methodJavaClassBuilderGetClassBuilder = env.getStaticMethod(classJavaClassBuilder, "getClassBuilder",
         "(Ljava/lang/String;Ljava/lang/Class;ZJ)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderAddConstructor = env.getStaticMethod(classJavaClassBuilder, "addConstructor",
-        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/Class;JILjava/util/List;)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
+        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/Class;JILjava/util/List;Z)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderAddNormalMethod = env.getStaticMethod(classJavaClassBuilder, "addNormalMethod",
-        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JJILjava/lang/Class;Ljava/util/List;Z)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
+        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JJILjava/lang/Class;Ljava/util/List;ZZ)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderAddStaticMethod = env.getStaticMethod(classJavaClassBuilder, "addStaticMethod",
-        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JJILjava/lang/Class;Ljava/util/List;)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
+        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JJILjava/lang/Class;Ljava/util/List;Z)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderGetClassFromBuilder = env.getStaticMethod(classJavaClassBuilder, "getClassFromBuilder",
         "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Lorg/qore/jni/QoreURLClassLoader;Ljava/lang/String;)Lorg/qore/jni/QoreJavaDynamicClassData;");
 
@@ -2210,6 +2213,7 @@ void Globals::cleanup() {
     classPrimitiveFloat = nullptr;
     classPrimitiveDouble = nullptr;
     arrayClassByte = nullptr;
+    arrayClassObject = nullptr;
     classSystem = nullptr;
     classObject = nullptr;
     classClass = nullptr;

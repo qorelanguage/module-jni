@@ -1062,7 +1062,7 @@ LocalReference<jobject> JniExternalProgramData::getJavaParamList(Env& env, jobje
         const QoreExternalMethodVariant& v, QoreProgram* pgm, unsigned& len) {
     const type_vec_t& params = v.getParamTypeList();
     len = params.size();
-    if (params.empty()) {
+    if (params.empty() && (v.isAbstract() || !(v.getCodeFlags() & QCF_USES_EXTRA_ARGS))) {
         return nullptr;
     }
 
@@ -1080,8 +1080,14 @@ LocalReference<jobject> JniExternalProgramData::getJavaParamList(Env& env, jobje
         jarg.l = ptype;
         env.callBooleanMethod(plist, Globals::methodArrayListAdd, &jarg);
     }
+    if (v.getCodeFlags() & QCF_USES_EXTRA_ARGS) {
+        // add Object... as the final parameter
+        jvalue jarg;
+        jarg.l = Globals::arrayClassObject;
+        env.callBooleanMethod(plist, Globals::methodArrayListAdd, &jarg);
+    }
 
-    return plist.release();
+    return plist;
 }
 
 static void shorten_params(Env& env, LocalReference<jobject>& params, unsigned len) {
@@ -1225,12 +1231,13 @@ int JniExternalProgramData::addConstructorVariant(Env& env, jobject class_loader
 
     while (true) {
         if (!jph.checkVariant(params, QMT_CONSTRUCTOR)) {
-            std::vector<jvalue> jargs(5);
+            std::vector<jvalue> jargs(6);
             jargs[0].l = bb;
             jargs[1].l = parent_class;
             jargs[2].j = reinterpret_cast<jlong>(&m);
             jargs[3].i = qore_jni_get_acc_visibility(m, v);
             jargs[4].l = params;
+            jargs[5].z = v.getCodeFlags() & QCF_USES_EXTRA_ARGS;
 
             printd(5, "JniExternalProgramData::addConstructorVariant() %s %s::constructor(%s): adding (len: %d)\n",
                 v.getAccessString(), qcls.getName(), v.getSignatureText(), len);
@@ -1275,7 +1282,7 @@ int JniExternalProgramData::addNormalMethodVariant(Env& env, jobject class_loade
         //  len);
 
         if (!jph.checkVariant(params, QMT_NORMAL)) {
-            std::vector<jvalue> jargs(8);
+            std::vector<jvalue> jargs(9);
             jargs[0].l = bb;
             // rename methods that are final in java.lang.Object()
             LocalReference<jstring> mname;
@@ -1292,6 +1299,7 @@ int JniExternalProgramData::addNormalMethodVariant(Env& env, jobject class_loade
             jargs[5].l = return_type;
             jargs[6].l = params;
             jargs[7].z = v.isAbstract();
+            jargs[8].z = !v.isAbstract() && (v.getCodeFlags() & QCF_USES_EXTRA_ARGS);
 
             printd(5, "JniExternalProgramData::addNormalMethodVariant() %s %s::%s(%s): adding (len: %d)\n",
                 qore_type_get_name(v.getReturnTypeInfo()), qcls.getName(), m.getName(), v.getSignatureText(), len);
@@ -1326,7 +1334,7 @@ int JniExternalProgramData::addStaticMethodVariant(Env& env, jobject class_loade
 
     while (true) {
         if (!jph.checkVariant(params, QMT_STATIC)) {
-            std::vector<jvalue> jargs(7);
+            std::vector<jvalue> jargs(8);
             jargs[0].l = bb;
             LocalReference<jstring> mname = env.newString(m.getName());
             jargs[1].l = mname;
@@ -1336,6 +1344,7 @@ int JniExternalProgramData::addStaticMethodVariant(Env& env, jobject class_loade
             LocalReference<jclass> return_type = getJavaType(env, class_loader, v.getReturnTypeInfo(), pgm);
             jargs[5].l = return_type;
             jargs[6].l = params;
+            jargs[7].z = v.getCodeFlags() & QCF_USES_EXTRA_ARGS;
 
             printd(5, "JniExternalProgramData::addStaticMethodVariant() static %s %s::%s(%s): adding (len: %d)\n",
                 qore_type_get_name(v.getReturnTypeInfo()), qcls.getName(), m.getName(), v.getSignatureText(), len);
@@ -1441,12 +1450,13 @@ int JniExternalProgramData::addMethods(Env& env, jobject class_loader, const Qor
 
         // add default constructor if necessary
         if (!constructor_count) {
-            std::vector<jvalue> jargs(5);
+            std::vector<jvalue> jargs(6);
             jargs[0].l = bb;
             jargs[1].l = parent_class;
             jargs[2].j = 0;
             jargs[3].i = ACC_PROTECTED;
             jargs[4].l = nullptr;
+            jargs[5].z = false;
 
             bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder, Globals::methodJavaClassBuilderAddConstructor,
                 &jargs[0]);
@@ -1502,8 +1512,8 @@ LocalReference<jobject> JniExternalProgramData::getCreateJavaClass(Env& env, job
         return nullptr;
     }
 
-    printd(5, "JniExternalProgramData::getCreateJavaClass() qpath: '%s' (%p) nbc: %d\n", qpath.c_str(), qcls,
-        need_byte_code);
+    //printd(5, "JniExternalProgramData::getCreateJavaClass() qpath: '%s' (%p) nbc: %d\n", qpath.c_str(), qcls,
+    //    need_byte_code);
     // ensure exclusive access while creating java classes
     QoreJniAutoLocker al(QoreJniClassMap::m);
     return getCreateJavaClassIntern(env, class_loader, qcls, pgm, jname, need_byte_code);
@@ -1516,7 +1526,7 @@ static LocalReference<jobject> get_qore_java_dynamic_class_data(Env& env, T& cls
     jargs[0].l = cls;
     jargs[1].l = nullptr;
     return env.newObject(Globals::classQoreJavaDynamicClassData, Globals::ctorQoreJavaDynamicClassData,
-        &jargs[0]).release();
+        &jargs[0]);
 }
 
 static LocalReference<jstring> get_binary_name_for_class(Env& env, const QoreClass& qc) {
@@ -1555,9 +1565,9 @@ LocalReference<jobject> JniExternalProgramData::getCreateJavaClassIntern(Env& en
         found = true;
     }
 
-    // insert a placeholder for the current class
-    LocalReference<jclass> tmp = Globals::classObject.toLocal();
     if (!found) {
+        // insert a placeholder for the current class
+        LocalReference<jclass> tmp = Globals::classObject.toLocal();
         i = q2jmap.insert(i, q2jmap_t::value_type(cls_hash, tmp.makeGlobal()));
     }
     try {
@@ -1633,12 +1643,12 @@ LocalReference<jobject> JniExternalProgramData::getCreateJavaClassIntern(Env& en
                 //printd(5, "JniExternalProgramData::getCreateJavaClassIntern() DELETED TEMP FOR FAILED QORE '%s'\n",
                 //  qcls->getName());
             }
-            printd(5, "JniExternalProgramData::getCreateJavaClassIntern() failed to add members\n");
+            //printd(5, "JniExternalProgramData::getCreateJavaClassIntern() failed to add members\n");
             return nullptr;
         }
 
-        printd(5, "JniExternalProgramData::getCreateJavaClassIntern() %s methods added bb: %p; building class with " \
-            "cl: %p\n", qcls->getName(), (jobject)bb, (jobject)class_loader);
+        //printd(5, "JniExternalProgramData::getCreateJavaClassIntern() %s methods added bb: %p; building class with " \
+        //    "cl: %p\n", qcls->getName(), (jobject)bb, (jobject)class_loader);
 
         jargs[0].l = bb;
         jargs[1].l = class_loader;
@@ -1647,21 +1657,20 @@ LocalReference<jobject> JniExternalProgramData::getCreateJavaClassIntern(Env& en
             Globals::methodJavaClassBuilderGetClassFromBuilder, &jargs[0]);
 
         if (!found) {
-            //i = q2jmap.insert(i, q2jmap_t::value_type(cls_hash, env.getObjectField(rv,
-            //  Globals::fieldQoreJavaDynamicClassDataCls).as<jclass>().makeGlobal()));
-            i->second = env.getObjectField(rv, Globals::fieldQoreJavaDynamicClassDataCls).as<jclass>().makeGlobal();
+            LocalReference<jclass> cls = env.getObjectField(rv, Globals::fieldQoreJavaDynamicClassDataCls).as<jclass>();
+            i->second = cls.makeGlobal();
             //printd(5, "JniExternalProgramData::getCreateJavaClassIntern() UPDATED TEMP FOR QORE '%s'\n",
             //  qcls->getName());
         }
-        printd(5, "JniExternalProgramData::getCreateJavaClassIntern() %s rv: %p\n", qcls->getName(), (jobject)rv);
+        //printd(5, "JniExternalProgramData::getCreateJavaClassIntern() %s rv: %p\n", qcls->getName(), (jobject)rv);
 
         // build QoreJavaDynamicClassData object
-        return rv.release();
+        return rv;
     } catch (...) {
         if (!found) {
             q2jmap.erase(i);
-            printd(5, "JniExternalProgramData::getCreateJavaClassIntern() DELETED TEMP FOR EXCEPTION: QORE '%s'\n",
-                qcls->getName());
+            //printd(5, "JniExternalProgramData::getCreateJavaClassIntern() DELETED TEMP FOR EXCEPTION: QORE '%s'\n",
+            //    qcls->getName());
         }
         throw;
     }

@@ -236,6 +236,10 @@ public class Main inherits QUnit::Test {
                 assertEq(11, m.invoke(NOTHING, 10));
                 m = newClassData.cls.getMethod("test2");
                 assertEq("test", m.invoke());
+
+                #m = newClassData.cls.getMethod("test3");
+                #StringOutputStream stream = m.invoke();
+                #assertEq("java test", stream.getData());
             }
 
             {
@@ -328,6 +332,7 @@ public class Main inherits QUnit::Test {
                     }
                 }
                 printf("%s\n", arg.toString());
+                arg.printStackTrace();
             }
             printf("%s\n", get_exception_string(ex));
             rethrow;

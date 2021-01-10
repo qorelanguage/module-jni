@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -88,8 +88,10 @@ SimpleRefHolder<BinaryNode> Array::getBinary(Env& env, jarray array) {
     return rv;
 }
 
-void Array::getList(ReferenceHolder<>& return_value, Env& env, jarray array, jclass arrayClass, bool force_list) {
-    LocalReference<jclass> elementClass = env.callObjectMethod(arrayClass, Globals::methodClassGetComponentType, nullptr).as<jclass>();
+void Array::getList(ReferenceHolder<>& return_value, Env& env, jarray array, jclass arrayClass, bool force_list,
+        bool varargs) {
+    LocalReference<jclass> elementClass =
+        env.callObjectMethod(arrayClass, Globals::methodClassGetComponentType, nullptr).as<jclass>();
     Type elementType = Globals::getType(elementClass);
     // issue #3026: return a binary object for byte[] unless jni_compat_types is set
     if (elementType == Type::Byte && !JniExternalProgramData::compatTypes() && !force_list) {
@@ -100,8 +102,22 @@ void Array::getList(ReferenceHolder<>& return_value, Env& env, jarray array, jcl
     ExceptionSink xsink;
     ReferenceHolder<QoreListNode> l(new QoreListNode(autoTypeInfo), &xsink);
 
-    for (jsize i = 0, e = env.getArrayLength(array); i < e; ++i) {
-        l->push(get(env, array, elementType, elementClass, i), nullptr);
+    jsize e = env.getArrayLength(array);
+    bool fix_varargs = false;
+    if (e > 0 && varargs) {
+        fix_varargs = true;
+    }
+    for (jsize i = 0; i < e; ++i) {
+        QoreValue v = get(env, array, elementType, elementClass, i);
+        if (fix_varargs && i == (e - 1) && v.getType() == NT_LIST) {
+            ListIterator li(v.get<QoreListNode>());
+            while (li.next()) {
+                l->push(li.getReferencedValue(), nullptr);
+            }
+            v.discard(&xsink);
+        } else {
+            l->push(v, nullptr);
+        }
     }
 
     return_value = l.release();
@@ -264,10 +280,10 @@ LocalReference<jarray> Array::toJava(const QoreListNode* l, size_t start) {
     return toObjectArray(l, elementClass, start).release();
 }
 
-void Array::getArgList(ReferenceHolder<QoreListNode>& return_value, Env& env, jarray array) {
+void Array::getArgList(ReferenceHolder<QoreListNode>& return_value, Env& env, jarray array, bool varargs) {
     LocalReference<jclass> arrayClass = env.getObjectClass(array);
     ReferenceHolder<> list(nullptr);
-    getList(list, env, array, arrayClass, true);
+    getList(list, env, array, arrayClass, true, varargs);
     return_value = reinterpret_cast<QoreListNode*>(list.release());
 }
 

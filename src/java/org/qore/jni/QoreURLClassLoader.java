@@ -618,6 +618,7 @@ public class QoreURLClassLoader extends URLClassLoader {
                 removeInProgress(bin_name);
             }
         }
+        //System.out.printf("createJavaQoreClass() '%s' (nbc: %s): %s\n", bin_name, need_byte_code, rv);
         return rv;
     }
 
@@ -627,7 +628,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         if (info.cls == null) {
             throw new ClassNotFoundException(String.format("invalid dynamic import path '%s'", bin_name));
         }
-        //debugLog(String.format("QoreURLClassLoader.createJavaQoreClass() bin_name: %s info: %s", bin_name, info));
+        //debugLog(String.format("QoreURLClassLoader.createJavaQoreClassIntern() bin_name: %s info: %s", bin_name, info));
         String qore_module = info.mod;
         String qname = info.cls;
         QoreJavaDynamicClassData<?> rv;
@@ -645,16 +646,19 @@ public class QoreURLClassLoader extends URLClassLoader {
             }
         } else {
             rv = null;
-            //System.out.printf("QoreURLClassLoader.createJavaQoreClass(%s) this: %x called with no Qore program context",
-            //    bin_name, hashCode());
+            //System.out.printf("QoreURLClassLoader.createJavaQoreClassIntern(%s) this: %x called with no Qore " +
+            //    "program context", bin_name, hashCode());
         }
         if (rv == null) {
             throw new ClassNotFoundException(String.format("could not find a Qore source class matching '%s' to " +
                 "create Java class '%s'", qname, bin_name));
         }
-        dynamicCache.put(bin_name, rv);
-        //debugLog(String.format("QoreURLClassLoader.createJavaQoreClass() created/cached %s: %s", bin_name,
-        //    rv.toString()));
+        // only put in the cache if the byte code is present
+        if (rv.byte_code != null) {
+            dynamicCache.put(bin_name, rv);
+        }
+        //System.out.printf("QoreURLClassLoader.createJavaQoreClassIntern() created/cached %s: %s\n", bin_name,
+        //    rv.toString());
         return rv;
     }
 
