@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2021 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -54,7 +54,8 @@ private:internal JavaArray::constructor() {
 Class JavaArray::getClass() {
     try {
         jni::Env env;
-        return new QoreObject(QC_CLASS, getProgram(), new QoreJniPrivateData(env.getObjectClass(array->getObject())));
+        return new QoreObject(QC_CLASS, qore_get_call_program_context(),
+                              new QoreJniPrivateData(env.getObjectClass(array->getObject())));
     } catch (jni::Exception &e) {
         e.convert(xsink);
         return QoreValue();
@@ -153,5 +154,5 @@ JavaArray a = JavaArray::get(bin);
     @since jni 1.1
 */
 static JavaArray JavaArray::get(binary b) [flags=CONSTANT] {
-    return new QoreObject(QC_JAVAARRAY, getProgram(), new Array(QoreToJava::makeByteArray(*b)));
+    return new QoreObject(QC_JAVAARRAY, qore_get_call_program_context(), new Array(QoreToJava::makeByteArray(*b)));
 }

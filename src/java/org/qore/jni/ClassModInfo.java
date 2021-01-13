@@ -30,7 +30,9 @@ class ClassModInfo {
         //System.out.printf("ClassModInfo(%s)'\n", bin_name);
         mod = null;
         cls = "::";
-        if (bin_name.startsWith("qore.")) {
+        if (bin_name.equals("qore")) {
+            return;
+        } else if (bin_name.startsWith("qore.")) {
             cls += bin_name.substring(5);
         } else if (bin_name.startsWith("qoremod.")) {
             int end = bin_name.indexOf(".", 9);

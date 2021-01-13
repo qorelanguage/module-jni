@@ -279,13 +279,13 @@ extern "C" int jni_module_import(ExceptionSink* xsink, QoreProgram* pgm, const c
         pgm->setExternalData("jni", new JniExternalProgramData(jnins, pgm));
         pgm->addFeature(QORE_JNI_MODULE_NAME);
     }
-    //printd(LogLevel, "jni_module_import '%s' jpc: %p jnins: %p\n", import, jpc, jpc->getJniNamespace());
+    //printd(5, "jni_module_import '%s' jpc: %p jnins: %p pgm: %p\n", import, jpc, jpc->getJniNamespace(), pgm);
     QoreString arg(import);
     try {
         if (arg[-1] != '*') {
-            printd(LogLevel, "jni_module_parse_cmd() non wc lcc arg: '%s' (pgm: %p)\n", arg.c_str(), pgm);
+            //printd(5, "jni_module_import() non wc lcc arg: '%s' (pgm: %p)\n", arg.c_str(), pgm);
             // the following call adds the class to the current program as well
-            qjcm.findCreateQoreClass(arg.c_str());
+            qjcm.findCreateQoreClass(arg.c_str(), pgm);
         } else {
             QoreNamespace* ns = qore_jni_wildcard_import(arg, pgm, jpc);
             if (!ns) {
@@ -330,7 +330,8 @@ static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
         return;
     }
 
-    QoreProgram* pgm = jni_get_program_context();
+    // we must use "getProgram()" here for the parse context QoreProgram
+    QoreProgram* pgm = getProgram();
     JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
     //printd(5, "parse-cmd '%s' jpc: %p jnins: %p\n", arg.c_str(), jpc, jpc ? jpc->getJniNamespace() : nullptr);
     if (!jpc) {
@@ -361,7 +362,7 @@ static void qore_jni_mc_import(const QoreString& cmd_arg, QoreProgram* pgm, JniE
     } else {
         printd(LogLevel, "jni_module_parse_cmd() non wc lcc arg: '%s' (pgm: %p)\n", arg.c_str(), pgm);
         // the following call adds the class to the current program as well
-        qjcm.findCreateQoreClass(arg.c_str());
+        qjcm.findCreateQoreClass(arg.c_str(), pgm);
     }
 }
 
@@ -435,6 +436,7 @@ static void qore_jni_mc_define_pending_class(const QoreString& arg, QoreProgram*
     env.callVoidMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderAddPendingClass, &jargs[0]);
 }
 
+// XXX DEBUG
 extern int trigger;
 static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
     assert(pgm);
@@ -462,13 +464,19 @@ static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, Jn
     trigger = 1;
     env.callVoidMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderSetContext, nullptr);
     //printd(5, "qore_jni_mc_define_class() jpc: %p name: '%s' class size: %d\n", jpc, java_name.c_str(), byte_code->size());
-    LocalReference<jclass> jcls = env.defineClass(java_name.c_str(), jpc->getClassLoader(),
+
+    // conver to binary name
+    QoreString binary_name(java_name);
+    binary_name.replaceAll("/", ".");
+
+    LocalReference<jclass> jcls = Globals::findDefineClass(env, binary_name.c_str(), jpc->getClassLoader(),
         static_cast<const unsigned char*>(byte_code->getPtr()), byte_code->size());
 
+    //LocalReference<jclass> jcls = env.defineClass(java_name.c_str(), jpc->getClassLoader(),
+    //    static_cast<const unsigned char*>(byte_code->getPtr()), byte_code->size());
+
     // import the class immediately
-    QoreString dot_name(java_name);
-    dot_name.replaceAll("/", ".");
-    qjcm.findCreateQoreClass(dot_name, java_name.c_str(), new Class(jcls), false);
+    qjcm.findCreateQoreClassInProgram(binary_name, java_name.c_str(), new Class(jcls), pgm);
 }
 
 static void qore_jni_mc_set_compat_types(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
@@ -488,7 +496,7 @@ static void qore_jni_mc_set_property(const QoreString& arg, QoreProgram* pgm, Jn
     // find end of property name
     qore_offset_t end = arg.find(' ');
     if (end == -1) {
-        throw QoreJniException("JNI-SET-PROPERTY-ERROR", "cannot find the end of the proprty name in the 'set-property' directive");
+        throw QoreJniException("JNI-SET-PROPERTY-ERROR", "cannot find the end of the property name in the 'set-property' directive");
     }
 
     QoreString property(&arg, end);

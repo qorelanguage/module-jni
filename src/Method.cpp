@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -334,7 +334,8 @@ void BaseMethod::getName(QoreString& str) const {
     str.concat(mName.c_str());
 }
 
-int BaseMethod::getParamTypes(type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo, QoreJniClassMap& clsmap) {
+int BaseMethod::getParamTypes(type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo, QoreJniClassMap& clsmap,
+        QoreProgram* pgm) {
     unsigned len = paramTypes.size();
     if (len) {
         paramTypeInfo.reserve(len);
@@ -342,7 +343,7 @@ int BaseMethod::getParamTypes(type_vec_t& paramTypeInfo, type_vec_t& altParamTyp
 
     for (auto& i : paramTypes) {
         const QoreTypeInfo* altType = nullptr;
-        paramTypeInfo.push_back(clsmap.getQoreType(i.second, altType));
+        paramTypeInfo.push_back(clsmap.getQoreType(i.second, altType, pgm));
         if (altType) {
             if (altParamTypeInfo.empty()) {
                 altParamTypeInfo.reserve(len);
@@ -363,8 +364,8 @@ int BaseMethod::getParamTypes(type_vec_t& paramTypeInfo, type_vec_t& altParamTyp
     return 0;
 }
 
-const QoreTypeInfo* BaseMethod::getReturnTypeInfo(QoreJniClassMap& clsmap) {
-    return clsmap.getQoreType(retValClass);
+const QoreTypeInfo* BaseMethod::getReturnTypeInfo(QoreJniClassMap& clsmap, QoreProgram* pgm) {
+    return clsmap.getQoreType(retValClass, pgm);
 }
 
 void BaseMethod::getSignature(QoreString& str) const {

@@ -16,6 +16,7 @@ import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.modifier.Ownership;
 import net.bytebuddy.description.modifier.Visibility;
 import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.description.modifier.MethodArguments;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
@@ -32,7 +33,6 @@ public class JavaClassBuilder {
     private static Class objArray;
     private static Method mStaticCall;
     private static Method mNormalCall;
-    //private static Path tmpDir;
     private static final String CLASS_FIELD = "qore_cls_ptr";
 
     // copied from org.objectweb.asm.Opcodes
@@ -106,27 +106,29 @@ public class JavaClassBuilder {
 
     // add a constructor
     static public DynamicType.Builder<?> addConstructor(DynamicType.Builder<?> bb, Class<?> parentClass, long vptr,
-            int visibility, List<Type> paramTypes) {
+            int visibility, List<Type> paramTypes, boolean varargs) {
         if (paramTypes == null) {
             paramTypes = new ArrayList<Type>();
         }
 
-        try {
-            if (paramTypes.size() == 0) {
-                return (DynamicType.Builder<?>)bb.defineConstructor(getVisibility(visibility))
+        DynamicType.Builder.MethodDefinition.ExceptionDefinition<?> eb = varargs
+                ? bb.defineConstructor(getVisibility(visibility), MethodArguments.VARARGS)
                     .withParameters(paramTypes)
                     .throwing(Throwable.class)
-                    .intercept(
+                : bb.defineConstructor(getVisibility(visibility))
+                    .withParameters(paramTypes)
+                    .throwing(Throwable.class);
+
+        try {
+            if (paramTypes.size() == 0) {
+                return (DynamicType.Builder<?>)eb.intercept(
                         MethodCall.invoke(parentClass.getConstructor(Long.TYPE, objArray))
                         .onSuper()
                         .withField(CLASS_FIELD)
                         .with((Object)null)
                     );
             }
-            return (DynamicType.Builder<?>)bb.defineConstructor(getVisibility(visibility))
-                .withParameters(paramTypes)
-                .throwing(Throwable.class)
-                .intercept(
+            return (DynamicType.Builder<?>)eb.intercept(
                     MethodCall.invoke(parentClass.getConstructor(Long.TYPE, objArray))
                     .onSuper()
                     .withField(CLASS_FIELD)
@@ -139,16 +141,20 @@ public class JavaClassBuilder {
 
     // add normal method
     static public DynamicType.Builder<?> addNormalMethod(DynamicType.Builder<?> bb, String methodName, long mptr, long vptr,
-            int visibility, Class<?> returnType, List<Type> paramTypes, boolean isAbstract) {
+            int visibility, Class<?> returnType, List<Type> paramTypes, boolean isAbstract, boolean varargs) {
         if (paramTypes == null) {
             paramTypes = new ArrayList<Type>();
         }
 
         DynamicType.Builder.MethodDefinition.ExceptionDefinition<?> eb =
-            bb.defineMethod(methodName, returnType, getVisibility(visibility),
-            Ownership.MEMBER)
-            .withParameters(paramTypes)
-            .throwing(Throwable.class);
+            varargs
+                ? bb.defineMethod(methodName, returnType, getVisibility(visibility), Ownership.MEMBER,
+                    MethodArguments.VARARGS)
+                    .withParameters(paramTypes)
+                    .throwing(Throwable.class)
+                : bb.defineMethod(methodName, returnType, getVisibility(visibility), Ownership.MEMBER)
+                    .withParameters(paramTypes)
+                    .throwing(Throwable.class);
 
         if (isAbstract) {
             try {
@@ -183,15 +189,22 @@ public class JavaClassBuilder {
 
     // add static method
     static public DynamicType.Builder<?> addStaticMethod(DynamicType.Builder<?> bb, String methodName, long mptr,
-            long vptr, int visibility, Class<?> returnType, List<Type> paramTypes) {
+            long vptr, int visibility, Class<?> returnType, List<Type> paramTypes, boolean varargs) {
         if (paramTypes == null) {
             paramTypes = new ArrayList<Type>();
         }
-        return (DynamicType.Builder<?>)bb.defineMethod(methodName, returnType, getVisibility(visibility),
-            Ownership.STATIC)
-            .withParameters(paramTypes)
-            .throwing(Throwable.class)
-            .intercept(
+
+        DynamicType.Builder.MethodDefinition.ExceptionDefinition<?> eb =
+            varargs
+                ? bb.defineMethod(methodName, returnType, getVisibility(visibility), Ownership.STATIC,
+                    MethodArguments.VARARGS)
+                    .withParameters(paramTypes)
+                    .throwing(Throwable.class)
+                : bb.defineMethod(methodName, returnType, getVisibility(visibility), Ownership.STATIC)
+                    .withParameters(paramTypes)
+                    .throwing(Throwable.class);
+
+        return (DynamicType.Builder<?>)eb.intercept(
                 MethodCall.invoke(mStaticCall)
                 .with(methodName)
                 .withField(CLASS_FIELD)
@@ -206,7 +219,7 @@ public class JavaClassBuilder {
     static public QoreJavaDynamicClassData<?> getClassFromBuilder(DynamicType.Builder<?> bb, QoreURLClassLoader classLoader, String bin_name) {
         DynamicType.Unloaded<?> unloaded = bb.make();
         byte[] byte_code = unloaded.getBytes();
-        //System.out.printf("JavaClassBuilder.getClassFromBuilder() adding pending '%s'\n", bin_name);
+        //System.out.printf("JavaClassBuilder.getClassFromBuilder() adding pending '%s'; got %d bytes\n", bin_name, byte_code.length);
         classLoader.addPendingClass(bin_name, byte_code);
         try {
             return new QoreJavaDynamicClassData(classLoader.loadClass(bin_name), byte_code);

@@ -123,11 +123,11 @@ public:
 
     DLLLOCAL QoreValue getValue(LocalReference<jobject>& jobj);
 
-    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls, const QoreTypeInfo*& altType);
+    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls, const QoreTypeInfo*& altType, QoreProgram* pgm = nullptr);
 
-    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls) {
+    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls, QoreProgram* pgm = nullptr) {
         const QoreTypeInfo* altType = nullptr;
-        return getQoreType(cls, altType);
+        return getQoreType(cls, altType, pgm);
     }
 
     DLLLOCAL QoreNamespace& getJniNs() {
@@ -144,15 +144,26 @@ public:
 
     DLLLOCAL JniQoreClass* findCreateQoreClass(LocalReference<jclass>& jc);
 
-    // create the Qore class from the Java dot name (ex: java.lang.Object)
-    DLLLOCAL JniQoreClass* findCreateQoreClass(const char* name);
+    // create the Qore class from the Java binary name (ex: java.lang.Object)
+    DLLLOCAL JniQoreClass* findCreateQoreClass(const char* name, QoreProgram* pgm = nullptr);
 
-    DLLLOCAL JniQoreClass* findCreateQoreClass(QoreString& name, const char* jpath, Class* c, bool base) {
-        //printd(5, "QoreJniClassMap::findCreateQoreClass() '%s' base: %d\n", jpath, base);
+    DLLLOCAL JniQoreClass* findCreateQoreClass(QoreString& name, const char* jpath, Class* c, bool base,
+            QoreProgram* pgm = nullptr) {
+        printd(5, "QoreJniClassMap::findCreateQoreClass() '%s' base: %d pgm: %p\n", jpath, base, pgm);
         return base
             ? findCreateQoreClassInBase(name, jpath, c)
-            : findCreateQoreClassInProgram(name, jpath, c);
+            : findCreateQoreClassInProgram(name, jpath, c, pgm);
     }
+
+    /** @param name an input/output variable, on input it is the java name for the class, which could
+        be an inner class (ex: MyClass$1), on output it is the Qore name for the class (ex: MyClass_1)
+        @param jpath the java path to the class
+        @param c the Java class object
+
+        @return the new builtin Qore class object wrapping the Java class
+    */
+    DLLLOCAL JniQoreClass* findCreateQoreClassInProgram(QoreString& name, const char* jpath, Class* c,
+        QoreProgram* pgm = nullptr);
 
     DLLLOCAL static LocalReference<jclass> getPrimitiveType(qore_type_t t);
 
@@ -181,35 +192,27 @@ protected:
     // class loader
     GlobalReference<jobject> baseClassLoader;
 
-    DLLLOCAL void doMethods(JniQoreClass& qc, Class* jc);
+    DLLLOCAL void doMethods(JniQoreClass& qc, Class* jc, QoreProgram* pgm = nullptr);
 
-    DLLLOCAL void doFields(JniQoreClass& qc, Class* jc);
+    DLLLOCAL void doFields(JniQoreClass& qc, Class* jc, QoreProgram* pgm = nullptr);
 
-    DLLLOCAL int getParamTypes(type_vec_t& argTypeInfo, LocalReference<jobjectArray>& params, QoreString& desc);
+    DLLLOCAL int getParamTypes(type_vec_t& argTypeInfo, LocalReference<jobjectArray>& params, QoreString& desc,
+            QoreProgram* pgm = nullptr);
 
-    DLLLOCAL void doConstructors(JniQoreClass& qc, Class* jc);
+    DLLLOCAL void doConstructors(JniQoreClass& qc, Class* jc, QoreProgram* pgm = nullptr);
 
     // add Java parent classes and interfaces as Qore parent classes
-    DLLLOCAL void addSuperClasses(JniQoreClass* qc, Class* jc, const char* jpath);
+    DLLLOCAL void addSuperClasses(JniQoreClass* qc, Class* jc, const char* jpath, QoreProgram* pgm = nullptr);
 
     // populate the Qore class with methods and members from the Java class
-    DLLLOCAL void populateQoreClass(JniQoreClass& qc, Class* jc);
+    DLLLOCAL void populateQoreClass(JniQoreClass& qc, Class* jc, QoreProgram* pgm = nullptr);
 
-    DLLLOCAL void addSuperClass(Env& env, JniQoreClass& qc, Class* parent, bool interface);
+    DLLLOCAL void addSuperClass(Env& env, JniQoreClass& qc, Class* parent, bool interface, QoreProgram* pgm = nullptr);
 
     DLLLOCAL JniQoreClass* createClassInNamespace(QoreNamespace* ns, QoreNamespace& jns, const char* jpath,
-        Class* jc, JniQoreClass* qc, QoreJniClassMapBase& map);
+        Class* jc, JniQoreClass* qc, QoreJniClassMapBase& map, QoreProgram* pgm = nullptr);
     DLLLOCAL JniQoreClass* findCreateQoreClassInBase(QoreString& name, const char* jpath, Class* c);
     DLLLOCAL Class* loadClass(const char* name, bool& base);
-
-    /** @param name an input/output variable, on input it is the java name for the class, which could
-        be an inner class (ex: MyClass$1), on output it is the Qore name for the class (ex: MyClass_1)
-        @param jpath the java path to the class
-        @param c the Java class object
-
-        @return the new builtin Qore class object wrapping the Java class
-    */
-    DLLLOCAL JniQoreClass* findCreateQoreClassInProgram(QoreString& name, const char* jpath, Class* c);
 
 private:
     // initialization flag
@@ -345,6 +348,11 @@ public:
             save_object_callback->deref(nullptr);
         }
         delete this;
+    }
+
+    DLLLOCAL void clearCompilationCache() {
+        //printd(5, "JniExternalProgramData::clearCompilationCache() clearing %d entries\n", (int)q2jmap.size());
+        q2jmap.clear();
     }
 
     DLLLOCAL static void setContext() {

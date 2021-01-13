@@ -300,27 +300,31 @@ public class QoreJavaCompiler<T> {
                         className + JAVA_EXTENSION, source);
             }
         }
-        // Get a CompliationTask from the compiler and compile the sources
-        final CompilationTask task = compiler.getTask(null, javaFileManager, diagnostics,
-                options, null, sources);
-        final Boolean result = task.call();
-        if (result == null || !result) {
-            throw new QoreJavaCompilerException("Compilation failed.", classes.keySet(), diagnostics);
-        }
         try {
-            // For each class name in the output map, get compiled class and file data and put it in the output map
-            ArrayList<JavaFileObject> outputObjects = javaFileManager.getOutputFiles();
-            Map<String, CompilerOutput<T>> compiled = new HashMap<String, CompilerOutput<T>>();
-            for (JavaFileObject f : outputObjects) {
-                compiled.put(f.getName(), new CompilerOutput<T>(loadClass(f.getName()), f));
+            // Get a CompliationTask from the compiler and compile the sources
+            final CompilationTask task = compiler.getTask(null, javaFileManager, diagnostics,
+                    options, null, sources);
+            final Boolean result = task.call();
+            if (result == null || !result) {
+                throw new QoreJavaCompilerException("Compilation failed.", classes.keySet(), diagnostics);
             }
-            return compiled;
-        } catch (ClassNotFoundException e) {
-            throw new QoreJavaCompilerException(classes.keySet(), e, diagnostics);
-        } catch (IllegalArgumentException e) {
-            throw new QoreJavaCompilerException(classes.keySet(), e, diagnostics);
-        } catch (SecurityException e) {
-            throw new QoreJavaCompilerException(classes.keySet(), e, diagnostics);
+            try {
+                // For each class name in the output map, get compiled class and file data and put it in the output map
+                ArrayList<JavaFileObject> outputObjects = javaFileManager.getOutputFiles();
+                Map<String, CompilerOutput<T>> compiled = new HashMap<String, CompilerOutput<T>>();
+                for (JavaFileObject f : outputObjects) {
+                    compiled.put(f.getName(), new CompilerOutput<T>(loadClass(f.getName()), f));
+                }
+                return compiled;
+            } catch (ClassNotFoundException e) {
+                throw new QoreJavaCompilerException(classes.keySet(), e, diagnostics);
+            } catch (IllegalArgumentException e) {
+                throw new QoreJavaCompilerException(classes.keySet(), e, diagnostics);
+            } catch (SecurityException e) {
+                throw new QoreJavaCompilerException(classes.keySet(), e, diagnostics);
+            }
+        } finally {
+            classLoader.clearCompilationCache();
         }
     }
 

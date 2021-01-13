@@ -36,7 +36,7 @@ class QoreJavaClassObject implements JavaFileObject {
 
     @Override
     public InputStream openInputStream() throws IOException {
-        //System.out.printf("openInputStream: %s cl: %s (pend: %s)\n", binaryName, classLoader, pending);
+        //System.out.printf("openInputStream: %s cl: %s (type: %d)\n", binaryName, classLoader, type);
         try {
             byte[] byte_code;
             if (type == OT_PENDING) {
@@ -46,7 +46,7 @@ class QoreJavaClassObject implements JavaFileObject {
             } else {
                 byte_code = classLoader.createJavaQoreClass(binaryName, true).byte_code;
             }
-            //System.out.println("openInputStream: " + binaryName + ": got " + byte_code.length + " bytes");
+            //System.out.printf("openInputStream: '%s': got %d bytes\n", binaryName, byte_code == null ? -1 : byte_code.length);
             return new ByteArrayInputStream(byte_code);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);

@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -175,9 +175,10 @@ public:
         return flags;
     }
 
-    DLLLOCAL int getParamTypes(type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo, QoreJniClassMap& clsmap);
+    DLLLOCAL int getParamTypes(type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo, QoreJniClassMap& clsmap,
+            QoreProgram* pgm = nullptr);
 
-    DLLLOCAL const QoreTypeInfo* getReturnTypeInfo(QoreJniClassMap& clsmap);
+    DLLLOCAL const QoreTypeInfo* getReturnTypeInfo(QoreJniClassMap& clsmap, QoreProgram* pgm = nullptr);
 
     DLLLOCAL void getSignature(QoreString& str) const;
 

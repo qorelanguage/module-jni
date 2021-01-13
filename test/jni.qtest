@@ -39,8 +39,6 @@
 %module-cmd(jni) import org.qore.lang.mailmessage.*
 %module-cmd(jni) import org.qore.lang.smtpclient.*
 
-%exec-class Main
-
 our int code_test_var;
 
 class TestHelper {
@@ -147,6 +145,13 @@ TestClass sub get_object() {
     return new TestClass();
 }
 
+thread_local int tld_int = 1;
+class DynamicTest {
+    static int test() {
+        return tld_int;
+    }
+}
+
 list<auto> sub gtcs(int count, list<auto> rv = get_thread_call_stack()) {
     return !--count ? rv : gtcs(count, rv);
 }
@@ -199,8 +204,7 @@ public class Main inherits QUnit::Test {
         addTestCase("special conversions test", \testSpecialConversions());
         addTestCase("api test", \testQoreJavaApi());
 
-        # Return for compatibility with test harnesses that check the return value
-        set_return_value(main());
+        exit(main());
     }
 
     log(string fmt) {
@@ -236,6 +240,29 @@ public class Main inherits QUnit::Test {
                 assertEq(11, m.invoke(NOTHING, 10));
                 m = newClassData.cls.getMethod("test2");
                 assertEq("test", m.invoke());
+
+                m = newClassData.cls.getMethod("test3");
+                StringOutputStream stream = m.invoke();
+                assertEq("java test", stream.getData());
+
+                m = newClassData.cls.getMethod("test4");
+                assertEq(1, m.invoke());
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.setScriptPath(get_script_path());
+                p.importClass("DynamicTest");
+                p.parse("
+auto sub test() {
+    QoreJavaCompiler compiler();
+    compiler::CompilerOutput newClassData = compiler.compile('org.qore.test.QoreDynamicTest',
+        File::readTextFile(get_script_dir() + '/QoreDynamicTest.java'));
+    reflect::Method m = newClassData.cls.getMethod('test4');
+    return m.invoke();
+}", "test");
+                auto i = p.callFunction("test");
+                assertEq(1, i);
             }
 
             {
@@ -328,6 +355,7 @@ public class Main inherits QUnit::Test {
                     }
                 }
                 printf("%s\n", arg.toString());
+                arg.printStackTrace();
             }
             printf("%s\n", get_exception_string(ex));
             rethrow;
@@ -1550,3 +1578,5 @@ lorem ipsum\r
         assertEq(456, load_class("org/qore/jni/test/StaticFields").getDeclaredField("i").get());
     }
 }
+
+new Main();

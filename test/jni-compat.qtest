@@ -37,15 +37,14 @@ public class Main inherits QUnit::Test {
         Field oa = clazz.getDeclaredField("oa");
         Field ia = clazz.getDeclaredField("ia");
 
-        list byteArray = ba.get();
-        list objectArray = oa.get();
-        list intArray = ia.get();
+        binary byteArray = ba.get();
+        list<auto> objectArray = oa.get();
+        list<auto> intArray = ia.get();
 
         int myint = clazz.getDeclaredMethod("wrap", Integer::TYPE).invoke(NOTHING, (42, ));
 
         o.set(NOTHING, byteArray);                                               # arrays in Java are Objects
-        # byte[] is not a subtype of Object[], but a list of ints is converted to int[]
-        oa.set(NOTHING, byteArray);
+        oa.set(NOTHING, objectArray);
         oa.set(NOTHING, intArray);                                               # arrays in Java are covariant
         assertThrows("JNI-ERROR", sub() { ia.set(NOTHING, objectArray); });      # Object[] is not a subtype of Integer[]
         assertThrows("JNI-ERROR", sub() { ba.set(NOTHING, myint); });            # Integer is not a byte[]
@@ -64,13 +63,12 @@ public class Main inherits QUnit::Test {
         Field oa = clazz.getDeclaredField("oa");
         Field ia = clazz.getDeclaredField("ia");
 
-        list byteArray = ba.get(instance);
-        list objectArray = oa.get(instance);
-        list intArray = ia.get(instance);
+        binary byteArray = ba.get(instance);
+        list<auto> objectArray = oa.get(instance);
+        list<auto> intArray = ia.get(instance);
 
         o.set(instance, byteArray);                                             # arrays in Java are Objects
-        # byte[] is not a subtype of Object[], but a list of ints is converted to int[]
-        oa.set(instance, byteArray);
+        oa.set(instance, objectArray);
         oa.set(instance, intArray);                                             # arrays in Java are covariant
         assertThrows("JNI-ERROR", sub() { ia.set(instance, objectArray); });    # Object[] is not a subtype of Integer[]
 
@@ -79,7 +77,7 @@ public class Main inherits QUnit::Test {
         assertThrows("JNI-ERROR", sub() { z.set(byteArray, True); });
 
         # test Qore explicit Field access
-        assertEq((0, 0, 0), instance.ba);
+        assertEq(<000000>, instance.ba);
         assertEq((NOTHING, NOTHING, NOTHING), instance.oa);
         assertEq((NOTHING, NOTHING, NOTHING), instance.ia);
 

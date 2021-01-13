@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -70,7 +70,8 @@ class Array : public QoreJniPrivateData {
     DLLLOCAL void set(int64 index, const QoreValue &value);
     DLLLOCAL QoreStringNodeHolder deepToString() const;
 
-    DLLLOCAL static void getArgList(ReferenceHolder<QoreListNode>& return_value, Env& env, jarray array);
+    DLLLOCAL static void getArgList(ReferenceHolder<QoreListNode>& return_value, Env& env, jarray array,
+        bool varargs = false);
 
     DLLLOCAL static void set(jarray array, Type elementType, jclass elementClass, int64 index,
         const QoreValue &value);
@@ -78,7 +79,7 @@ class Array : public QoreJniPrivateData {
     DLLLOCAL static QoreStringNodeHolder deepToString(Env& env, jarray array);
 
     DLLLOCAL static void getList(ReferenceHolder<>& return_value, Env& env, jarray array,
-        jclass arrayClass, bool force_list = false);
+        jclass arrayClass, bool force_list = false, bool varargs = false);
 
     DLLLOCAL static QoreValue get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index);
 

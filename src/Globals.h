@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -62,6 +62,7 @@ public:
     DLLLOCAL static GlobalReference<jclass> classPrimitiveFloat;                  // class for the primitive type float
     DLLLOCAL static GlobalReference<jclass> classPrimitiveDouble;                 // class for the primitive type double
 
+    DLLLOCAL static GlobalReference<jclass> arrayClassObject;                     // class for Object[]
     DLLLOCAL static GlobalReference<jclass> arrayClassByte;                       // class for byte[]
 
     DLLLOCAL static GlobalReference<jclass> classSystem;                          // java.lang.System
