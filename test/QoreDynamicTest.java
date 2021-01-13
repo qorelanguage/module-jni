@@ -4,6 +4,7 @@ package org.qore.test;
 import qore.Qore.Thread.Sequence;
 import qore.Qore.StringOutputStream;
 import qore.Qore.StreamWriter;
+import qore.DynamicTest;
 
 public class QoreDynamicTest {
     public static int test0() throws Throwable {
@@ -33,6 +34,10 @@ public class QoreDynamicTest {
         StreamWriter wr = new StreamWriter(stream);
         wr.printf("%s %s", "java", "test");
         return stream;
+    }
+
+    public static int test4() throws Throwable {
+        return DynamicTest.test();
     }
 }
 

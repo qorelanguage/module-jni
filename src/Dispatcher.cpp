@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -31,24 +31,24 @@
 namespace jni {
 
 QoreCodeDispatcher::QoreCodeDispatcher(const ResolvedCallReferenceNode *callback) : callback(callback->refRefSelf()) {
-   pgm->ref();
-   printd(LogLevel, "QoreCodeDispatcher::QoreCodeDispatcher(), this: %p\n", this);
+    pgm->ref();
+    printd(LogLevel, "QoreCodeDispatcher::QoreCodeDispatcher(), this: %p\n", this);
 }
 
 QoreCodeDispatcher::~QoreCodeDispatcher() {
-   try {
-      qoreThreadAttacher.attach();
-   } catch (Exception &e) {
-      printd(LogLevel, "~QoreCodeDispatcher() - unable to attach thread to Qore, this: %p", this);
-      return;
-   }
-   printd(LogLevel, "QoreCodeDispatcher::~QoreCodeDispatcher(), this: %p\n", this);
-   ExceptionSink xsink;
-   callback->deref(&xsink);
-   pgm->deref(&xsink);
-   if (xsink) {
-      QoreToJava::wrapException(xsink);
-   }
+    try {
+        qoreThreadAttacher.attach();
+    } catch (Exception &e) {
+        printd(LogLevel, "~QoreCodeDispatcher() - unable to attach thread to Qore, this: %p", this);
+        return;
+    }
+    printd(LogLevel, "QoreCodeDispatcher::~QoreCodeDispatcher(), this: %p\n", this);
+    ExceptionSink xsink;
+    callback->deref(&xsink);
+    pgm->deref(&xsink);
+    if (xsink) {
+        QoreToJava::wrapException(xsink);
+    }
 }
 
 jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jobjectArray jargs) {
@@ -69,12 +69,12 @@ jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jo
     ExceptionSink xsink;
     try {
         ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), &xsink);
-        args->push(new QoreObject(QC_METHOD, getProgram(), new QoreJniPrivateData(method)), &xsink);
+        args->push(new QoreObject(QC_METHOD, jni_get_program_context(), new QoreJniPrivateData(method)), &xsink);
         if (jargs) {
             // we need to set the Program context if executing in a new thread
             // when creating arguments in case QoreClass
             // objects must be created from Java objects
-            QoreProgramContextHelper pch(pgm);
+            QoreExternalProgramCallContextHelper pch(pgm);
             ReferenceHolder<> val(&xsink);
             Array::getList(val, env, jargs, env.getObjectClass(jargs));
             args->push(val.release(), &xsink);
@@ -86,8 +86,7 @@ jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jo
             return nullptr;
         }
         return QoreToJava::toObject(qv, nullptr);
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         // FIXME: original exception should be included in this exception
         env.throwNew(env.findClass("java/lang/RuntimeException"), "could not execute Qore callback");
         return nullptr;

@@ -241,11 +241,11 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     // for resolving circular dependencies when defining inner classes
     private Class<?> tryGetPendingClass(String name) {
-        byte[] byte_code = pendingClasses.get(name);
+        byte[] byte_code = pendingClasses.remove(name);
 
         if (byte_code == null) {
             if (enable_cache) {
-                Class<?> rv = classCache.get(name);
+                Class<?> rv = classCache.remove(name);
                 if (rv == null) {
                     ClassLoader parent = getParent();
                     if (parent != null && (parent instanceof QoreURLClassLoader)) {
@@ -257,8 +257,6 @@ public class QoreURLClassLoader extends URLClassLoader {
 
             return null;
         }
-        // remove from the cache
-        pendingClasses.remove(name);
         // create the class and return it
         return defineClassIntern(name, byte_code, 0, byte_code.length);
     }
@@ -367,7 +365,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     */
 
     static public boolean isDynamic(String bin_name) {
-        return (bin_name.startsWith("qore.") && bin_name.length() > 5)
+        return bin_name.equals("qore") || (bin_name.startsWith("qore.") && bin_name.length() > 5)
             || (bin_name.startsWith("qoremod.") && bin_name.length() > 8);
     }
 
@@ -603,6 +601,15 @@ public class QoreURLClassLoader extends URLClassLoader {
         }
     }
 
+    /**
+     *  Clears the compilation cache after compiling
+     */
+    public void clearCompilationCache() {
+        classCache.clear();
+        dynamicCache.clear();
+        clearCompilationCache0(pgm_ptr);
+    }
+
     public synchronized QoreJavaDynamicClassData<?> createJavaQoreClass(String bin_name, boolean need_byte_code)
             throws ClassNotFoundException {
         //debugLog(String.format("QoreURLClassLoader.createJavaQoreClass() call: '%s' need_byte_code: %s", bin_name,
@@ -702,6 +709,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     static private native void getInternalClassesForPackage0(long ptr, String packageName, ArrayList<String> result);
     static private native long getContextProgram0(QoreURLClassLoader syscl, BooleanWrapper created);
     static private native void shutdownContext0();
+    static private native void clearCompilationCache0(long ptr);
     static private native void dummy0();
     static private native void debug0(long ptr);
 }
