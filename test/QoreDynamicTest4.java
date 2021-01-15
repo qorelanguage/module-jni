@@ -4,8 +4,6 @@ package org.qore.test;
 import qore.Qore.OutputStream;
 import qore.Qore.StringOutputStream;
 
-import java.util.AbstractMap;
-
 public class QoreDynamicTest4 extends OutputStream {
     private StringOutputStream stream = new StringOutputStream();
 
