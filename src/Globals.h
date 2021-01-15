@@ -198,7 +198,8 @@ public:
     DLLLOCAL static jmethodID methodThreadGetContextClassLoader;                  // ClassLoader Thread.getContextClassLoader()
 
     DLLLOCAL static GlobalReference<jclass> classHashMap;                         // java.util.HashMap
-    DLLLOCAL static GlobalReference<jclass> classHash;                            // java.util.LinkedHashMap
+
+    DLLLOCAL static GlobalReference<jclass> classHash;                            // org.qore.jni.Hash
     DLLLOCAL static jmethodID ctorHash;                                           // Hash()
     DLLLOCAL static jmethodID methodHashPut;                                      // Object Hash.put(Object K, Object V)
 
