@@ -14,6 +14,7 @@
 %requires DbDataProvider
 %requires HttpServer
 %requires Mime
+%requires Logger
 
 %requires reflection
 
@@ -205,12 +206,6 @@ public class Main inherits QUnit::Test {
         addTestCase("api test", \testQoreJavaApi());
 
         exit(main());
-    }
-
-    log(string fmt) {
-        if (m_options.verbose > 2) {
-            vprintf("HTTP: " + fmt, argv);
-        }
     }
 
     javaCodegenTest() {
@@ -490,7 +485,15 @@ lorem ipsum\r
     }
 
     restClientTest() {
-        HttpServer httpserver(\log(), \log());
+        Logger logger("test", LoggerLevel::getLevelInfo());
+        if (m_options.verbose > 2) {
+            logger.addAppender(new TestAppender());
+        }
+        hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
+            "logger": logger,
+            "debug": True,
+        };
+        HttpServer httpserver(http_opts);
         on_exit httpserver.stop();
         httpserver.setHandler("/api_text", "/api_text", MimeTypeText, new SimpleStringHandler(MimeTypeText, TEXT));
         httpserver.setHandler("/api_bin", "/api_bin", MimeTypeOctetStream, new SimpleStringHandler(MimeTypeOctetStream));
@@ -1579,4 +1582,19 @@ lorem ipsum\r
     }
 }
 
+class TestAppender inherits LoggerAppenderWithLayout {
+    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                print(params);
+                break;
+        }
+    }
+}
+
 new Main();
+

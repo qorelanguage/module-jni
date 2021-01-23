@@ -355,7 +355,7 @@ set(QORE_DOX_TMPL_SRC
     docs/mainpage.dox.tmpl
 )
 
-add_library(${module_name} SHARED ${CPP_SRC} ${QPP_SOURCES})
+add_library(${module_name} MODULE ${CPP_SRC} ${QPP_SOURCES})
 include_directories(${JNI_INCLUDE_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/src)
 target_include_directories(${module_name} PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)

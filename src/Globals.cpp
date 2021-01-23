@@ -2331,7 +2331,7 @@ jlong Globals::getContextProgram(jobject new_syscl, bool& created) {
     created = false;
 
     if (!qph) {
-        QoreProgram* pgm = createJavaContextProgram();
+        createJavaContextProgram();
 
         printd(5, "Globals::getContextProgram() new_sycl: %p syscl: %p\n", new_syscl, (jobject)syscl);
         if (new_syscl && !syscl) {
