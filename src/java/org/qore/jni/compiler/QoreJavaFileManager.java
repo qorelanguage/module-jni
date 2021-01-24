@@ -73,7 +73,7 @@ public class QoreJavaFileManager implements JavaFileManager {
         return standardFileManager.inferModuleName(location);
     }
 
-    public void setLocation​(StandardLocation location, List<? extends File> files) throws IOException {
+    public void setLocation(StandardLocation location, List<? extends File> files) throws IOException {
         standardFileManager.setLocation(location, files);
     }
 

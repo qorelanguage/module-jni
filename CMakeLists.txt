@@ -366,7 +366,7 @@ set_source_files_properties(${CMAKE_SOURCE_DIR}/src/Globals.cpp PROPERTIES OBJEC
 add_custom_target(QORE_INC_FILES DEPENDS ${QORE_INC_SRC})
 add_dependencies(${module_name} QORE_INC_FILES)
 
-target_link_libraries(${module_name} ${JNI_LIBRARIES} ${BZIP2_LIBRARIES})
+target_link_libraries(${module_name} ${JNI_LIBRARIES} ${BZIP2_LIBRARIES} ${QORE_LIBRARY})
 #target_link_libraries(${module_name} ${JNI_LIBRARIES})
 
 set(MODULE_DOX_INPUT ${CMAKE_CURRENT_BINARY_DIR}/mainpage.dox ${JAVA_JAR_SRC_STR} ${QPP_DOX})

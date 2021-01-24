@@ -128,7 +128,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         //    p_ptr, (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")", hashCode());
     }
 
-    public QoreURLClassLoader​(String name, ClassLoader parent) {
+    public QoreURLClassLoader(String name, ClassLoader parent) {
         super(name, new URL[]{}, parent);
         setContext();
         enable_cache = true;
@@ -181,7 +181,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         return rv;
     }
 
-    public Enumeration<URL> getResources​(String name) throws IOException {
+    public Enumeration<URL> getResources(String name) throws IOException {
         Enumeration<URL> rv = super.getResources(name);
         System.out.printf("getResources(%s) rv: %s\n", name, rv.toString());
         for (URL url : getURLs()) {
