@@ -9,7 +9,7 @@ export ENV_FILE=/tmp/env.sh
 
 # setup MODULE_SRC_DIR env var
 cwd=`pwd`
-if [ "${MODULE_SRC_DIR}" = "" ]; then
+if [ -z "${MODULE_SRC_DIR}" ]; then
     if [ -e "$cwd/src/jni-module.cpp" ]; then
         MODULE_SRC_DIR=$cwd
     else
@@ -32,9 +32,8 @@ export MAKE_JOBS=4
 
 # build module and install
 echo && echo "-- building module --"
-cd ${MODULE_SRC_DIR}
-mkdir build
-cd build
+mkdir -p ${MODULE_SRC_DIR}/build
+cd ${MODULE_SRC_DIR}/build
 cmake .. -DCMAKE_BUILD_TYPE=debug -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}
 make -j${MAKE_JOBS}
 make install
