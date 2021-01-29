@@ -196,9 +196,6 @@ protected:
 
     DLLLOCAL void doFields(JniQoreClass& qc, Class* jc, QoreProgram* pgm = nullptr);
 
-    DLLLOCAL int getParamTypes(type_vec_t& argTypeInfo, LocalReference<jobjectArray>& params, QoreString& desc,
-            QoreProgram* pgm = nullptr);
-
     DLLLOCAL void doConstructors(JniQoreClass& qc, Class* jc, QoreProgram* pgm = nullptr);
 
     // add Java parent classes and interfaces as Qore parent classes
@@ -314,7 +311,8 @@ public:
     DLLLOCAL LocalReference<jobject> getCreateJavaClass(Env& env, jobject class_loader,
             const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname, jboolean need_byte_code);
 
-    DLLLOCAL LocalReference<jclass> getJavaType(Env& env, jobject class_loader, const QoreTypeInfo* ti,
+    // returns a type description for a concrete type or a future type for Java bytecode generation
+    DLLLOCAL LocalReference<jobject> getJavaTypeDefinition(Env& env, jobject class_loader, const QoreTypeInfo* ti,
             QoreProgram* pgm);
 
     DLLLOCAL void overrideCompatTypes(bool compat_types) {
@@ -392,7 +390,8 @@ protected:
 
     // returns a QoreJavaDynamicClassData object
     DLLLOCAL LocalReference<jobject> getCreateJavaClassIntern(Env& env, jobject class_loader,
-        const QoreClass* qcls, QoreProgram* pgm, jstring jname = nullptr, jboolean need_byte_code = false);
+        const QoreClass* qcls, QoreProgram* pgm, bool& pending, jstring jname = nullptr,
+        jboolean need_byte_code = false);
 
     // returns a QoreJavaDynamicClassData object
     DLLLOCAL LocalReference<jobject> getCreateJavaClass(Env& env, const QoreClass& qc, jobject class_loader,
