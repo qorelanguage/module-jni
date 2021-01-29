@@ -16,6 +16,7 @@ import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.modifier.Ownership;
 import net.bytebuddy.description.modifier.Visibility;
 import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.description.type.TypeDefinition;
 import net.bytebuddy.description.modifier.MethodArguments;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
@@ -26,6 +27,7 @@ import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.FixedValue;
 import net.bytebuddy.NamingStrategy;
+import net.bytebuddy.dynamic.scaffold.InstrumentedType;
 
 import org.qore.jni.QoreURLClassLoader;
 
@@ -59,8 +61,8 @@ public class JavaClassBuilder {
         }
     }
 
-    static public DynamicType.Builder<?> getClassBuilder(String className, Class<?> parentClass, boolean is_abstract, long cptr)
-            throws NoSuchMethodException {
+    static public DynamicType.Builder<?> getClassBuilder(String className, Class<?> parentClass, boolean is_abstract,
+            long cptr) throws NoSuchMethodException {
         DynamicType.Builder<?> bb;
         try {
             bb = new ByteBuddy()
@@ -106,9 +108,9 @@ public class JavaClassBuilder {
 
     // add a constructor
     static public DynamicType.Builder<?> addConstructor(DynamicType.Builder<?> bb, Class<?> parentClass, long vptr,
-            int visibility, List<Type> paramTypes, boolean varargs) {
+            int visibility, List<TypeDefinition> paramTypes, boolean varargs) {
         if (paramTypes == null) {
-            paramTypes = new ArrayList<Type>();
+            paramTypes = new ArrayList<TypeDefinition>();
         }
 
         DynamicType.Builder.MethodDefinition.ExceptionDefinition<?> eb = varargs
@@ -140,10 +142,11 @@ public class JavaClassBuilder {
     }
 
     // add normal method
-    static public DynamicType.Builder<?> addNormalMethod(DynamicType.Builder<?> bb, String methodName, long mptr, long vptr,
-            int visibility, Class<?> returnType, List<Type> paramTypes, boolean isAbstract, boolean varargs) {
+    static public DynamicType.Builder<?> addNormalMethod(DynamicType.Builder<?> bb, String methodName, long mptr,
+            long vptr, int visibility, TypeDefinition returnType, List<TypeDefinition> paramTypes, boolean isAbstract,
+            boolean varargs) {
         if (paramTypes == null) {
-            paramTypes = new ArrayList<Type>();
+            paramTypes = new ArrayList<TypeDefinition>();
         }
 
         DynamicType.Builder.MethodDefinition.ExceptionDefinition<?> eb =
@@ -189,9 +192,9 @@ public class JavaClassBuilder {
 
     // add static method
     static public DynamicType.Builder<?> addStaticMethod(DynamicType.Builder<?> bb, String methodName, long mptr,
-            long vptr, int visibility, Class<?> returnType, List<Type> paramTypes, boolean varargs) {
+            long vptr, int visibility, TypeDefinition returnType, List<TypeDefinition> paramTypes, boolean varargs) {
         if (paramTypes == null) {
-            paramTypes = new ArrayList<Type>();
+            paramTypes = new ArrayList<TypeDefinition>();
         }
 
         DynamicType.Builder.MethodDefinition.ExceptionDefinition<?> eb =
@@ -216,17 +219,20 @@ public class JavaClassBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    static public QoreJavaDynamicClassData<?> getClassFromBuilder(DynamicType.Builder<?> bb, QoreURLClassLoader classLoader, String bin_name) {
+    static public QoreJavaDynamicClassData<?> getClassFromBuilder(DynamicType.Builder<?> bb,
+            QoreURLClassLoader classLoader, String bin_name) {
         DynamicType.Unloaded<?> unloaded = bb.make();
         byte[] byte_code = unloaded.getBytes();
-        //System.out.printf("JavaClassBuilder.getClassFromBuilder() adding pending '%s'; got %d bytes\n", bin_name, byte_code.length);
+        //System.out.printf("JavaClassBuilder.getClassFromBuilder() adding pending '%s'; got %d bytes\n", bin_name,
+        //  byte_code.length);
         classLoader.addPendingClass(bin_name, byte_code);
         try {
             return new QoreJavaDynamicClassData(classLoader.loadClass(bin_name), byte_code);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-        //return new QoreJavaDynamicClassData(unloaded.load(classLoader, ClassLoadingStrategy.Default.WRAPPER).getLoaded(), byte_code);
+        //return new QoreJavaDynamicClassData(unloaded.load(classLoader,
+        //  ClassLoadingStrategy.Default.WRAPPER).getLoaded(), byte_code);
     }
 
     /** makes a static method call
@@ -237,8 +243,10 @@ public class JavaClassBuilder {
      * @throws Throwable any exception thrown in Qore
      */
     @RuntimeType
-    public static Object doStaticCall(String methodName, long qclsptr, long mptr, long vptr, @Argument(0) Object... args) throws Throwable {
-        //System.out.println(String.format("JavaClassBuilder::doStaticCall() %s() cptr: %d args: %s", methodName, qclsptr, Arrays.toString(args)));
+    public static Object doStaticCall(String methodName, long qclsptr, long mptr, long vptr,
+            @Argument(0) Object... args) throws Throwable {
+        //System.out.println(String.format("JavaClassBuilder::doStaticCall() %s() cptr: %d args: %s", methodName,
+        //  qclsptr, Arrays.toString(args)));
         return doStaticCall0(methodName, qclsptr, mptr, vptr, args);
     }
 
@@ -251,9 +259,69 @@ public class JavaClassBuilder {
      * @throws Throwable any exception thrown in Qore
      */
     @RuntimeType
-    public static Object doNormalCall(String methodName, long qobjptr, long mptr, long vptr, @Argument(0) Object... args) throws Throwable {
-        //System.out.println(String.format("JavaClassBuilder::doNormalCall() %s() ptr: %d args: %s", methodName, qobjptr, Arrays.toString(args)));
+    public static Object doNormalCall(String methodName, long qobjptr, long mptr, long vptr,
+            @Argument(0) Object... args) throws Throwable {
+        //System.out.println(String.format("JavaClassBuilder::doNormalCall() %s() ptr: %d args: %s", methodName,
+        //  qobjptr, Arrays.toString(args)));
         return doNormalCall0(methodName, qobjptr, mptr, vptr, args);
+    }
+
+    /** Returns a TypeDescription object for the given class
+     *
+     * @param cls the class to return a TypeDescription for
+     */
+    public static TypeDescription getTypeDescription(Class<?> cls) {
+        return new TypeDescription.ForLoadedType(cls);
+    }
+
+    /** Returns a TypeDescription for a future type based on the binary name
+     *
+     * @param future_name The binary name of the type to be created
+     */
+    public static TypeDescription getTypeDescription(String future_name) {
+        return InstrumentedType.Default.of(future_name, null, 0);
+    }
+
+    /** Check a class for methods matching a name an TypeDescription list
+     *
+     */
+    public static boolean findBaseClassMethodConflict(Class<?> parentClass, String name, List<TypeDescription> params,
+            boolean check_static) {
+        for (Method m : parentClass.getMethods()) {
+            if (!m.getName().equals(name) || Modifier.isStatic(m.getModifiers()) != check_static) {
+                continue;
+            }
+            // check params
+            Type[] mparams = m.getGenericParameterTypes();
+            if (mparams == null || mparams.length == 0) {
+                if (params == null || params.size() == 0) {
+                    return true;
+                }
+                continue;
+            }
+            if (mparams.length != params.size()) {
+                continue;
+            }
+            boolean ok = true;
+            for (int i = 0; i < mparams.length; ++i) {
+                Type mtype = mparams[i];
+                TypeDescription ptype = params.get(i);
+                if (mtype instanceof Class) {
+                    Class cls = (Class)mtype;
+                    if (!ptype.getCanonicalName().equals(cls.getCanonicalName())) {
+                        ok = false;
+                        break;
+                    }
+                } else if (!ptype.getCanonicalName().equals(mtype.getTypeName())) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (ok) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static private Visibility getVisibility(int visibility) {
@@ -269,6 +337,8 @@ public class JavaClassBuilder {
         return Visibility.PRIVATE;
     }
 
-    private static native Object doStaticCall0(String methodName, long qclsptr, long mptr, long vptr, Object... args) throws Throwable;
-    private static native Object doNormalCall0(String methodName, long qobjptr, long mptr, long vptr, Object... args) throws Throwable;
+    private static native Object doStaticCall0(String methodName, long qclsptr, long mptr, long vptr, Object... args)
+            throws Throwable;
+    private static native Object doNormalCall0(String methodName, long qobjptr, long mptr, long vptr, Object... args)
+            throws Throwable;
 }

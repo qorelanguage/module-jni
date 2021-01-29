@@ -192,6 +192,9 @@ jmethodID Globals::methodJavaClassBuilderAddConstructor;
 jmethodID Globals::methodJavaClassBuilderAddNormalMethod;
 jmethodID Globals::methodJavaClassBuilderAddStaticMethod;
 jmethodID Globals::methodJavaClassBuilderGetClassFromBuilder;
+jmethodID Globals::methodJavaClassBuilderGetTypeDescriptionCls;
+jmethodID Globals::methodJavaClassBuilderGetTypeDescriptionStr;
+jmethodID Globals::methodJavaClassBuilderFindBaseClassMethodConflict;
 
 GlobalReference<jclass> Globals::classThread;
 jmethodID Globals::methodThreadCurrentThread;
@@ -2217,13 +2220,25 @@ bool Globals::init() {
     methodJavaClassBuilderGetClassBuilder = env.getStaticMethod(classJavaClassBuilder, "getClassBuilder",
         "(Ljava/lang/String;Ljava/lang/Class;ZJ)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderAddConstructor = env.getStaticMethod(classJavaClassBuilder, "addConstructor",
-        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/Class;JILjava/util/List;Z)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
+        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/Class;JILjava/util/List;Z)" \
+            "Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderAddNormalMethod = env.getStaticMethod(classJavaClassBuilder, "addNormalMethod",
-        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JJILjava/lang/Class;Ljava/util/List;ZZ)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
+        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JJI" \
+        "Lnet/bytebuddy/description/type/TypeDefinition;Ljava/util/List;ZZ)" \
+        "Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderAddStaticMethod = env.getStaticMethod(classJavaClassBuilder, "addStaticMethod",
-        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JJILjava/lang/Class;Ljava/util/List;Z)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
+        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JJI" \
+        "Lnet/bytebuddy/description/type/TypeDefinition;Ljava/util/List;Z)" \
+        "Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderGetClassFromBuilder = env.getStaticMethod(classJavaClassBuilder, "getClassFromBuilder",
-        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Lorg/qore/jni/QoreURLClassLoader;Ljava/lang/String;)Lorg/qore/jni/QoreJavaDynamicClassData;");
+        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Lorg/qore/jni/QoreURLClassLoader;Ljava/lang/String;)" \
+        "Lorg/qore/jni/QoreJavaDynamicClassData;");
+    methodJavaClassBuilderGetTypeDescriptionCls = env.getStaticMethod(classJavaClassBuilder, "getTypeDescription",
+        "(Ljava/lang/Class;)Lnet/bytebuddy/description/type/TypeDescription;");
+    methodJavaClassBuilderGetTypeDescriptionStr = env.getStaticMethod(classJavaClassBuilder, "getTypeDescription",
+        "(Ljava/lang/String;)Lnet/bytebuddy/description/type/TypeDescription;");
+    methodJavaClassBuilderFindBaseClassMethodConflict = env.getStaticMethod(classJavaClassBuilder,
+        "findBaseClassMethodConflict", "(Ljava/lang/Class;Ljava/lang/String;Ljava/util/List;Z)Z");
 
     return bootstrap;
 }
