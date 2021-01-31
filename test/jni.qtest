@@ -899,6 +899,7 @@ lorem ipsum\r
 
         auto v = QoreJavaApiTest::testObject12();
         assertThrows("OBJECT-ALREADY-DELETED", \v.getString(), "str");
+        delete_thread_data("_jni_save");
         v = QoreJavaApiTest::testObject13();
         assertEq("str-x", v.getString("str"));
         assertEq((v,), get_thread_data("_jni_save"));
