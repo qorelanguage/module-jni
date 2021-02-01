@@ -1491,7 +1491,7 @@ int JniExternalProgramData::addMethods(Env& env, jobject class_loader, const Qor
             jargs[0].l = bb;
             jargs[1].l = parent_class;
             jargs[2].j = 0;
-            jargs[3].i = ACC_PROTECTED;
+            jargs[3].i = ACC_PUBLIC;
             jargs[4].l = nullptr;
             jargs[5].z = false;
 
@@ -1575,7 +1575,7 @@ static LocalReference<jstring> get_binary_name_for_class(Env& env, const QoreCla
         ++start_pos;
     }
     pname.insert(0, "qore");
-    printd(5, "get_binary_name_for_class() cls '%s' -> java '%s'\n", qc.getName(), pname.c_str());
+    //printd(5, "get_binary_name_for_class() cls '%s' -> java '%s'\n", qc.getName(), pname.c_str());
     return env.newString(pname.c_str());
 }
 
@@ -1599,6 +1599,12 @@ LocalReference<jobject> JniExternalProgramData::getCreateJavaClassIntern(Env& en
     q2jmap_t::iterator i = q2jmap.lower_bound(cls_hash);
     if (i != q2jmap.end() && i->first == cls_hash) {
         if (!need_byte_code) {
+            // set pending flag
+            jvalue jarg;
+            jarg.l = i->second;
+            pending = env.callBooleanMethod(Globals::classObject, Globals::methodObjectEquals, &jarg);
+            printd(5, "getCreateJavaClassIntern() '%s' PENDING: %d\n", qcls->getName(), pending);
+
             return get_qore_java_dynamic_class_data<GlobalReference<jclass>>(env, i->second);
         }
         found = true;
@@ -1739,6 +1745,8 @@ LocalReference<jobject> JniExternalProgramData::getJavaTypeDefinition(Env& env, 
     LocalReference<jobject> rv = getCreateJavaClassIntern(env, class_loader, cls, pgm, pending);
     // create a future type for pending classes
     if (pending) {
+        printd(5, "JniExternalProgramData::getJavaTypeDefinition() type '%s' (%d) creating forward ref for Java " \
+            "class for '%s' (%p)\n", qore_type_get_name(ti), t, cls->getName(), cls);
         jvalue arg;
         LocalReference<jstring> jname = get_binary_name_for_class(env, *cls);
         arg.l = jname;

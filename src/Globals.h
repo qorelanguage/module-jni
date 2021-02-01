@@ -181,6 +181,7 @@ public:
     DLLLOCAL static jmethodID methodQoreURLClassLoaderCreateJavaQoreClass;        // QoreJavaDynamicClassData<?> createJavaQoreClass(String, boolean)
     DLLLOCAL static jmethodID methodQoreURLClassLoaderGetPtr;                     // long getPtr()
     DLLLOCAL static jmethodID methodQoreURLClassLoaderGetCurrent;                 // OoreURLClassLoader getCurrent()
+    DLLLOCAL static jmethodID methodQoreURLClassLoaderCheckInProgress;            // boolean checkInProgress(String)
 
     DLLLOCAL static GlobalReference<jclass> classQoreJavaDynamicClassData;        // org.qore.jni.QoreJavaDynamicClassData
     DLLLOCAL static jmethodID ctorQoreJavaDynamicClassData;                       // QoreJavaDynamicClassData(Class<T>, byte[])

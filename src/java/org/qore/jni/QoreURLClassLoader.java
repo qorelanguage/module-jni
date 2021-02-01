@@ -336,6 +336,10 @@ public class QoreURLClassLoader extends URLClassLoader {
         return rv;
     }
 
+    public synchronized boolean checkInProgress(String bin_name) {
+        return classInProgress.contains(bin_name);
+    }
+
     private synchronized boolean markInProgress(String bin_name) {
         if (classInProgress.contains(bin_name)) {
             return true;

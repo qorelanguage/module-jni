@@ -211,6 +211,25 @@ public class Main inherits QUnit::Test {
     javaCodegenTest() {
         try {
             {
+                # compile and execute QoreDynamicTest7.java
+                QoreJavaCompiler compiler();
+                compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest7",
+                File::readTextFile(get_script_dir() + "/../test/QoreDynamicTest7.java"));
+                binary fdata = newClassData.file.openInputStream().readAllBytes();
+                assertEq(True, fdata.size() > 0);
+                reflect::Method m = newClassData.cls.getMethod("testA");
+                auto rc = m.invoke();
+                on_error printf("rc: %N\n", rc);
+                assertEq("object<RecA>", rc.fullType());
+                m = newClassData.cls.getMethod("testB");
+                rc = m.invoke();
+                assertEq("object<RecB>", rc.fullType());
+                m = newClassData.cls.getMethod("testC");
+                rc = m.invoke();
+                assertEq("object<RecC>", rc.fullType());
+            }
+
+            {
                 lang::Class seqClass = load_class("qore/Qore/Thread/Sequence");
                 object obj = seqClass.getDeclaredConstructor().newInstance();
                 assertEq("Sequence", obj.className());
@@ -1594,6 +1613,39 @@ class TestAppender inherits LoggerAppenderWithLayout {
                 print(params);
                 break;
         }
+    }
+}
+
+class RecA {
+    *RecA getA() {
+    }
+
+    *RecB getB() {
+    }
+
+    *RecC getC() {
+    }
+}
+
+class RecB {
+    *RecA getA() {
+    }
+
+    *RecB getB() {
+    }
+
+    *RecC getC() {
+    }
+}
+
+class RecC {
+    *RecA getA() {
+    }
+
+    *RecB getB() {
+    }
+
+    *RecC getC() {
     }
 }
 

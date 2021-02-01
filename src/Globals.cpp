@@ -181,6 +181,7 @@ jmethodID Globals::methodQoreURLClassLoaderDefineClassUnconditional;
 jmethodID Globals::methodQoreURLClassLoaderCreateJavaQoreClass;
 jmethodID Globals::methodQoreURLClassLoaderGetPtr;
 jmethodID Globals::methodQoreURLClassLoaderGetCurrent;
+jmethodID Globals::methodQoreURLClassLoaderCheckInProgress;
 
 GlobalReference<jclass> Globals::classQoreJavaDynamicClassData;
 jmethodID Globals::ctorQoreJavaDynamicClassData;
@@ -1882,6 +1883,8 @@ void Globals::defineQoreURLClassLoader(Env& env) {
     methodQoreURLClassLoaderGetPtr = env.getMethod(classQoreURLClassLoader, "getPtr", "()J");
     methodQoreURLClassLoaderGetCurrent = env.getStaticMethod(classQoreURLClassLoader, "getCurrent",
         "()Lorg/qore/jni/QoreURLClassLoader;");
+    methodQoreURLClassLoaderCheckInProgress = env.getMethod(classQoreURLClassLoader, "checkInProgress",
+        "(Ljava/lang/String;)Z");
 
     //printd(5, "defineQoreURLClassLoader() done\n");
 }
