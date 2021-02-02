@@ -178,21 +178,16 @@ public:
     DLLLOCAL static jmethodID methodQoreURLClassLoaderGetResolveClass;            // Class<?> QoreURLClassLoader.getResolveClass(String)
     DLLLOCAL static jmethodID methodQoreURLClassLoaderClearCache;                 // void QoreURLClassLoader.clearCache()
     DLLLOCAL static jmethodID methodQoreURLClassLoaderDefineClassUnconditional;   // Class<?> QoreURLClassLoader.defineClassUnconditional(String, byte[])
-    DLLLOCAL static jmethodID methodQoreURLClassLoaderCreateJavaQoreClass;        // QoreJavaDynamicClassData<?> createJavaQoreClass(String, boolean)
     DLLLOCAL static jmethodID methodQoreURLClassLoaderGetPtr;                     // long getPtr()
     DLLLOCAL static jmethodID methodQoreURLClassLoaderGetCurrent;                 // OoreURLClassLoader getCurrent()
     DLLLOCAL static jmethodID methodQoreURLClassLoaderCheckInProgress;            // boolean checkInProgress(String)
-
-    DLLLOCAL static GlobalReference<jclass> classQoreJavaDynamicClassData;        // org.qore.jni.QoreJavaDynamicClassData
-    DLLLOCAL static jmethodID ctorQoreJavaDynamicClassData;                       // QoreJavaDynamicClassData(Class<T>, byte[])
-    DLLLOCAL static jfieldID fieldQoreJavaDynamicClassDataCls;                    // Class<?> cls
 
     DLLLOCAL static GlobalReference<jclass> classJavaClassBuilder;                // org.qore.jni.JavaClassBuilder
     DLLLOCAL static jmethodID methodJavaClassBuilderGetClassBuilder;              // static DynamicType.Builder<?> getClassBuilder(String, Class<?>, boolean, long)
     DLLLOCAL static jmethodID methodJavaClassBuilderAddConstructor;               // static DynamicType.Builder<?> addConstructor(DynamicType.Builder<?>, Class<?>, long, int, List<TypeDefinition>)
     DLLLOCAL static jmethodID methodJavaClassBuilderAddNormalMethod;              // static DynamicType.Builder<?> addNormalMethod(DynamicType.Builder<?>, String, long, long, int, TypeDefinition, List<TypeDefinition>, boolean)
     DLLLOCAL static jmethodID methodJavaClassBuilderAddStaticMethod;              // static DynamicType.Builder<?> addStaticMethod(DynamicType.Builder<?>, String, long, long, int, TypeDefinition, List<TypeDefinition>)
-    DLLLOCAL static jmethodID methodJavaClassBuilderGetClassFromBuilder;          // static Class<?> getClassFromBuilder(DynamicType.Builder<?>, ClassLoader)
+    DLLLOCAL static jmethodID methodJavaClassBuilderGetByteCodeFromBuilder;       // static byte[] getByteCodeFromBuilder(DynamicType.Builder<?>)
     DLLLOCAL static jmethodID methodJavaClassBuilderGetTypeDescriptionCls;        // static TypeDescription getTypeDescription(Class<?>)
     DLLLOCAL static jmethodID methodJavaClassBuilderGetTypeDescriptionStr;        // static TypeDescription getTypeDescription(String)
     DLLLOCAL static jmethodID methodJavaClassBuilderFindBaseClassMethodConflict;  // static boolean findBaseClassMethodConflict(Class<?>, String, List<TypeDescription>, boolean)

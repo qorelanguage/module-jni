@@ -139,7 +139,9 @@ public:
 
     DLLLOCAL jarray getJavaArray(const QoreListNode* l, jclass cls);
 
+    // takes an internal name (ex: java/lang/Class)
     DLLLOCAL jclass findLoadClass(const char* name);
+    // takes an internal name (ex: java/lang/Class)
     DLLLOCAL jclass findLoadClass(const QoreString& name);
 
     DLLLOCAL JniQoreClass* findCreateQoreClass(LocalReference<jclass>& jc);
@@ -307,9 +309,9 @@ public:
 
     DLLLOCAL void addClasspath(const char* path);
 
-    // returns a QoreJavaDynamicClassData object
-    DLLLOCAL LocalReference<jobject> getCreateJavaClass(Env& env, jobject class_loader,
-            const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname, jboolean need_byte_code);
+    // returns Java byte code (byte[]) for a Qore class
+    DLLLOCAL LocalReference<jbyteArray> generateByteCode(Env& env, jobject class_loader,
+            const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname);
 
     // returns a type description for a concrete type or a future type for Java bytecode generation
     DLLLOCAL LocalReference<jobject> getJavaTypeDefinition(Env& env, jobject class_loader, const QoreTypeInfo* ti,
@@ -388,14 +390,9 @@ protected:
     // compat-types values
     bool compat_types = false;
 
-    // returns a QoreJavaDynamicClassData object
-    DLLLOCAL LocalReference<jobject> getCreateJavaClassIntern(Env& env, jobject class_loader,
-        const QoreClass* qcls, QoreProgram* pgm, bool& pending, jstring jname = nullptr,
-        jboolean need_byte_code = false);
-
-    // returns a QoreJavaDynamicClassData object
-    DLLLOCAL LocalReference<jobject> getCreateJavaClass(Env& env, const QoreClass& qc, jobject class_loader,
-        bool need_byte_code);
+    // returns Java byte code (byte[]) for the given Qore class
+    DLLLOCAL LocalReference<jbyteArray> generateByteCodeIntern(Env& env, jobject class_loader,
+        const QoreClass* qcls, QoreProgram* pgm, jstring jname = nullptr);
 
     // Returns a param list of Java type corresponding to the Qore types
     DLLLOCAL LocalReference<jobject> getJavaParamList(Env& env, jobject class_loader, const QoreMethod& m,

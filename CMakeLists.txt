@@ -167,7 +167,6 @@ generate_java(org/qore/jni/QoreInvocationHandler.java)
 generate_java(org/qore/jni/BooleanWrapper.java)
 generate_java(org/qore/jni/ClassModInfo.java)
 generate_java(org/qore/jni/QoreURLClassLoader.java 1 2)
-generate_java(org/qore/jni/QoreJavaDynamicClassData.java)
 generate_java(org/qore/jni/QoreRelativeTime.java)
 generate_java(org/qore/jni/QoreClosureMarker.java)
 generate_java(org/qore/jni/QoreJavaDynamicApi.java)
@@ -239,7 +238,7 @@ add_java_compiler_source(org/qore/jni/compiler/CompilerOutput.java)
 #message(STATUS "MESSAGE Classes: ${JAVA_JAR_CLASSES}")
 #message(STATUS "MESSAGE Inc: ${QORE_INC_FILES}")
 
-set(CMAKE_JAVA_COMPILE_FLAGS -Xlint:unchecked -Xlint:deprecation)
+set(CMAKE_JAVA_COMPILE_FLAGS -Xlint:unchecked -Xlint:deprecation -Xdiags:verbose)
 
 add_custom_command(
     OUTPUT ${_qore_jni_sentinel}

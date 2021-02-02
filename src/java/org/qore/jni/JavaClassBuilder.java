@@ -8,6 +8,7 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,16 +19,18 @@ import net.bytebuddy.description.modifier.Visibility;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.description.type.TypeDefinition;
 import net.bytebuddy.description.modifier.MethodArguments;
+import net.bytebuddy.description.method.MethodDescription.Token;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
+import net.bytebuddy.dynamic.scaffold.InstrumentedType;
+import net.bytebuddy.dynamic.scaffold.TypeValidation;
 import net.bytebuddy.implementation.bind.annotation.Argument;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.FixedValue;
 import net.bytebuddy.NamingStrategy;
-import net.bytebuddy.dynamic.scaffold.InstrumentedType;
 
 import org.qore.jni.QoreURLClassLoader;
 
@@ -61,11 +64,12 @@ public class JavaClassBuilder {
         }
     }
 
-    static public DynamicType.Builder<?> getClassBuilder(String className, Class<?> parentClass, boolean is_abstract,
-            long cptr) throws NoSuchMethodException {
+    static public DynamicType.Builder<?> getClassBuilder(String className, Class<?> parentClass,
+            boolean is_abstract, long cptr) throws NoSuchMethodException {
         DynamicType.Builder<?> bb;
         try {
             bb = new ByteBuddy()
+                .with(TypeValidation.DISABLED)
                 .with(new NamingStrategy.AbstractBase() {
                     @Override
                     public String name(TypeDescription superClass) {
@@ -107,8 +111,8 @@ public class JavaClassBuilder {
     }
 
     // add a constructor
-    static public DynamicType.Builder<?> addConstructor(DynamicType.Builder<?> bb, Class<?> parentClass, long vptr,
-            int visibility, List<TypeDefinition> paramTypes, boolean varargs) {
+    static public DynamicType.Builder<?> addConstructor(DynamicType.Builder<?> bb, Class<?> parentClass,
+            long vptr, int visibility, List<TypeDefinition> paramTypes, boolean varargs) {
         if (paramTypes == null) {
             paramTypes = new ArrayList<TypeDefinition>();
         }
@@ -128,14 +132,15 @@ public class JavaClassBuilder {
                         .onSuper()
                         .withField(CLASS_FIELD)
                         .with((Object)null)
-                    );
+                );
             }
+
             return (DynamicType.Builder<?>)eb.intercept(
                     MethodCall.invoke(parentClass.getConstructor(Long.TYPE, objArray))
                     .onSuper()
                     .withField(CLASS_FIELD)
                     .withArgumentArray()
-                );
+            );
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -219,20 +224,11 @@ public class JavaClassBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    static public QoreJavaDynamicClassData<?> getClassFromBuilder(DynamicType.Builder<?> bb,
-            QoreURLClassLoader classLoader, String bin_name) {
+    static public byte[] getByteCodeFromBuilder(DynamicType.Builder<?> bb) {
         DynamicType.Unloaded<?> unloaded = bb.make();
         byte[] byte_code = unloaded.getBytes();
-        //System.out.printf("JavaClassBuilder.getClassFromBuilder() adding pending '%s'; got %d bytes\n", bin_name,
-        //  byte_code.length);
-        classLoader.addPendingClass(bin_name, byte_code);
-        try {
-            return new QoreJavaDynamicClassData(classLoader.loadClass(bin_name), byte_code);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        //return new QoreJavaDynamicClassData(unloaded.load(classLoader,
-        //  ClassLoadingStrategy.Default.WRAPPER).getLoaded(), byte_code);
+        //System.out.printf("JavaClassBuilder.getClassFromBuilder() got %d bytes\n", byte_code.length);
+        return byte_code;
     }
 
     /** makes a static method call

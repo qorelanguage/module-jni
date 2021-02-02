@@ -7,7 +7,6 @@ import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.Modifier;
 
 import org.qore.jni.QoreURLClassLoader;
-import org.qore.jni.QoreJavaDynamicClassData;
 
 /**
  * based on source code by:
@@ -44,9 +43,10 @@ class QoreJavaClassObject implements JavaFileObject {
             } else if (type == OT_INTERNAL) {
                 byte_code = classLoader.getInternalClass(binaryName);
             } else {
-                byte_code = classLoader.createJavaQoreClass(binaryName, true).byte_code;
+                byte_code = classLoader.generateByteCode(binaryName);
             }
-            //System.out.printf("openInputStream: '%s': got %d bytes\n", binaryName, byte_code == null ? -1 : byte_code.length);
+            //System.out.printf("openInputStream: '%s': got %d bytes\n", binaryName,
+            //  byte_code == null ? -1 : byte_code.length);
             return new ByteArrayInputStream(byte_code);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
