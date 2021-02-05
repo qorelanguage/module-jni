@@ -4,7 +4,7 @@
 
     Qore Programming Language JNI Module
 
-    Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -99,7 +99,7 @@ QoreValue JniQoreClass::memberGate(const QoreMethod& meth, void* m, QoreObject* 
         jargs[0].l = field;
         jargs[1].l = jobj;
 
-        QoreProgram* pgm = meth.getClass()->getProgram();//self->getProgram();
+        QoreProgram* pgm = meth.getClass()->getProgram();
         assert(pgm);
         QoreExternalProgramContextHelper qepch(xsink, pgm);
         if (*xsink) {
@@ -108,7 +108,8 @@ QoreValue JniQoreClass::memberGate(const QoreMethod& meth, void* m, QoreObject* 
         JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
         assert(jpc);
 
-        return JavaToQore::convertToQore(env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getFieldId(), &jargs[0]));
+        return JavaToQore::convertToQore(env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getFieldId(),
+            &jargs[0]), pgm);
         //return JavaToQore::convertToQore(env.callObjectMethod(field, Globals::methodFieldGet, &jargs[0]));
     } catch (jni::JavaException& e) {
         e.convert(xsink);

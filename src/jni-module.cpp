@@ -198,7 +198,7 @@ static QoreStringNode* jni_module_init() {
         // issue #4006: ensure there is a program context for initialization
         QoreProgramContextHelper pgm_ctx(pgm);
 
-        qjcm.init(already_initialized);
+        qjcm.init(pgm, already_initialized);
     } catch (jni::Exception& e) {
         // display exception info on the console as an unhandled exception
         {
@@ -535,8 +535,10 @@ QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
 
     printd(LogLevel, "jni_class_handler() ns: %p cname: %s cp: %s\n", ns, cname, cp.c_str());
 
+    QoreProgram* pgm = ns->getProgram();
+    assert(pgm);
     try {
-        QoreClass* qc = qjcm.findCreateQoreClass(cp.c_str());
+        QoreClass* qc = qjcm.findCreateQoreClass(cp.c_str(), pgm);
         printd(LogLevel, "jni_class_handler() cp: %s returning qc: %p\n", cp.c_str(), qc);
         return qc;
     } catch (jni::JavaException& e) {

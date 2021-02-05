@@ -103,7 +103,7 @@ public:
      * \return the return value
      * \throws Exception if the arguments do not match the descriptor or if the method throws
      */
-    QoreValue invoke(jobject object, const QoreListNode* args, int offset = 0) const;
+    QoreValue invoke(jobject object, const QoreListNode* args, QoreProgram* pgm, int offset = 0) const;
 
     /**
      * \brief Invokes an instance method non-virtually.
@@ -113,7 +113,7 @@ public:
      * \return the return value
      * \throws Exception if the arguments do not match the descriptor or if the method throws
      */
-    QoreValue invokeNonvirtual(jobject object, const QoreListNode* args, int offset = 0) const;
+    QoreValue invokeNonvirtual(jobject object, const QoreListNode* args, QoreProgram* pgm, int offset = 0) const;
 
     /**
      * \brief Invokes a static method.
@@ -122,7 +122,7 @@ public:
      * \return the return value
      * \throws Exception if the arguments do not match the descriptor or if the method throws
      */
-    QoreValue invokeStatic(const QoreListNode* args, int offset = 0) const;
+    QoreValue invokeStatic(const QoreListNode* args, QoreProgram* pgm, int offset = 0) const;
 
     /**
      * \brief Creates a new object by invoking a constructor.
@@ -130,7 +130,7 @@ public:
      * \return the return value
      * \throws Exception if the arguments do not match the descriptor or if the method throws
      */
-    QoreValue newInstance(const QoreListNode* args);
+    QoreValue newInstance(const QoreListNode* args, QoreProgram* pgm);
 
     /**
      * \brief Creates a new Qore object by invoking a constructor.

@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -74,13 +74,6 @@ public:
     DLLLOCAL virtual void doDeref() override {
         deref();
     }
-
-    DLLLOCAL Field* getField(const QoreStringNode* name, const QoreStringNode* descriptor);
-    DLLLOCAL Field* getStaticField(const QoreStringNode* name, const QoreStringNode* descriptor);
-    DLLLOCAL Method* getMethod(const QoreStringNode* name, const QoreStringNode* descriptor);
-    DLLLOCAL Method* getStaticMethod(const QoreStringNode* name, const QoreStringNode* descriptor);
-    DLLLOCAL Method* getConstructor(const QoreStringNode* descriptor);
-    DLLLOCAL bool isInstance(const ObjectBase* obj);
 
     // returns the parent class or nullptr if there is none
     DLLLOCAL Class* getSuperClass();

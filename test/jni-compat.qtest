@@ -77,7 +77,7 @@ public class Main inherits QUnit::Test {
         assertThrows("JNI-ERROR", sub() { z.set(byteArray, True); });
 
         # test Qore explicit Field access
-        assertEq(<000000>, instance.ba);
+        assertEq((0, 0, 0), instance.ba);
         assertEq((NOTHING, NOTHING, NOTHING), instance.oa);
         assertEq((NOTHING, NOTHING, NOTHING), instance.ia);
 

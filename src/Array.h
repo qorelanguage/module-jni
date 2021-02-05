@@ -66,12 +66,12 @@ class Array : public QoreJniPrivateData {
     }
 
     DLLLOCAL int64 length() const;
-    DLLLOCAL QoreValue get(int64 index) const;
+    DLLLOCAL QoreValue get(int64 index, QoreProgram* pgm) const;
     DLLLOCAL void set(int64 index, const QoreValue &value);
     DLLLOCAL QoreStringNodeHolder deepToString() const;
 
     DLLLOCAL static void getArgList(ReferenceHolder<QoreListNode>& return_value, Env& env, jarray array,
-        bool varargs = false);
+        QoreProgram* pgm, bool varargs = false);
 
     DLLLOCAL static void set(jarray array, Type elementType, jclass elementClass, int64 index,
         const QoreValue &value);
@@ -79,9 +79,9 @@ class Array : public QoreJniPrivateData {
     DLLLOCAL static QoreStringNodeHolder deepToString(Env& env, jarray array);
 
     DLLLOCAL static void getList(ReferenceHolder<>& return_value, Env& env, jarray array,
-        jclass arrayClass, bool force_list = false, bool varargs = false);
+        jclass arrayClass, QoreProgram* pgm, bool force_list = false, bool varargs = false);
 
-    DLLLOCAL static QoreValue get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index);
+    DLLLOCAL static QoreValue get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index, QoreProgram* pgm);
 
     DLLLOCAL static LocalReference<jarray> getNew(Type elementType, jclass elementClass, jsize size);
 

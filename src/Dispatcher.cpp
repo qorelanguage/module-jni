@@ -76,7 +76,7 @@ jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jo
             // objects must be created from Java objects
             QoreExternalProgramCallContextHelper pch(pgm);
             ReferenceHolder<> val(&xsink);
-            Array::getList(val, env, jargs, env.getObjectClass(jargs));
+            Array::getList(val, env, jargs, env.getObjectClass(jargs), pgm);
             args->push(val.release(), &xsink);
         }
 

@@ -40,7 +40,7 @@ void BaseField::getName(QoreString& str) {
     str.concat(fname.c_str());
 }
 
-QoreValue BaseField::get(jobject object) {
+QoreValue BaseField::get(jobject object, QoreProgram* pgm) {
     Env env;
     if (!env.isInstanceOf(object, cls->getJavaObject())) {
         throw BasicException("Passed instance does not match the field's class");
@@ -65,7 +65,7 @@ QoreValue BaseField::get(jobject object) {
         case Type::Reference:
         default:
             assert(type == Type::Reference);
-            return JavaToQore::convertToQore(env.getObjectField(object, id));
+            return JavaToQore::convertToQore(env.getObjectField(object, id), pgm);
     }
 }
 
@@ -107,7 +107,7 @@ void BaseField::set(jobject object, const QoreValue &value) {
     }
 }
 
-QoreValue BaseField::getStatic() {
+QoreValue BaseField::getStatic(QoreProgram* pgm) {
     Env env;
     switch (type) {
         case Type::Boolean:
@@ -129,7 +129,7 @@ QoreValue BaseField::getStatic() {
         case Type::Reference:
         default:
             assert(type == Type::Reference);
-            return JavaToQore::convertToQore(env.getStaticObjectField(cls->getJavaObject(), id));
+            return JavaToQore::convertToQore(env.getStaticObjectField(cls->getJavaObject(), id), pgm);
     }
 }
 

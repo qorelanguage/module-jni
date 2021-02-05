@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 
 namespace jni {
 
-QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
+QoreValue JavaToQore::convertToQore(LocalReference<jobject> v, QoreProgram* pgm) {
     if (!v) {
         return QoreValue();
     }
@@ -100,13 +100,13 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
 
                 // if key is not a string, then we cannot convert it to Qore
                 if (!env.isInstanceOf(key, Globals::classString)) {
-                    return qjcm.getValue(v);
+                    return qjcm.getValue(v, pgm);
                 }
 
                 LocalReference<jobject> value = env.callObjectMethod(element,
                     Globals::methodEntryGetValue, nullptr);
 
-                ValueHolder val(convertToQore(value.release()), &xsink);
+                ValueHolder val(convertToQore(value.release(), pgm), &xsink);
                 if (xsink) {
                     break;
                 }
@@ -141,7 +141,7 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
             LocalReference<jobject> value = env.callObjectMethod(v,
                 Globals::methodListGet, &jargs[0]);
 
-            ValueHolder val(convertToQore(value.release()), &xsink);
+            ValueHolder val(convertToQore(value.release(), pgm), &xsink);
             if (xsink) {
                 break;
             }
@@ -174,7 +174,7 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v) {
         return new QoreJniFunctionalInterface(v);
     }
 
-    return qjcm.getValue(v);
+    return qjcm.getValue(v, pgm);
 }
 
 } // namespace jni

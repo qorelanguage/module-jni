@@ -83,7 +83,7 @@ public:
      * \return the value of the static field
      * \throws Exception if the value cannot be retrieved
      */
-    QoreValue get(jobject object);
+    QoreValue get(jobject object, QoreProgram* pgm);
 
     /**
      * \brief Sets the value of an instance field.
@@ -98,7 +98,7 @@ public:
      * \return the value of the static field
      * \throws Exception if the value cannot be retrieved
      */
-    QoreValue getStatic();
+    QoreValue getStatic(QoreProgram* pgm);
 
     /**
      * \brief Sets the value of a static field.

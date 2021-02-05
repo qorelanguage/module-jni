@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -161,7 +161,7 @@ QoreStringNode* JavaException::toString() const {
     return desc.release();
 }
 
-void JavaException::convert(ExceptionSink *xsink) {
+void JavaException::convert(ExceptionSink* xsink) {
     JNIEnv* env = Jvm::getEnv();         //not using the Env wrapper because we don't want any C++ exceptions here
     LocalReference<jthrowable> throwable = env->ExceptionOccurred();
     assert(throwable != nullptr);
@@ -191,7 +191,7 @@ void JavaException::convert(ExceptionSink *xsink) {
 
         QoreValue qore_arg;
         if (arg) {
-            qore_arg = JavaToQore::convertToQore(arg.release());
+            qore_arg = JavaToQore::convertToQore(arg.release(), jni_get_program_context());
         }
 
         QoreExternalProgramLocationWrapper loc;
@@ -201,7 +201,8 @@ void JavaException::convert(ExceptionSink *xsink) {
         return;
     }
 
-    LocalReference<jstring> excName = static_cast<jstring>(env->CallObjectMethod(env->GetObjectClass(throwable), Globals::methodClassGetName));
+    LocalReference<jstring> excName = static_cast<jstring>(env->CallObjectMethod(env->GetObjectClass(throwable),
+        Globals::methodClassGetName));
     if (env->ExceptionCheck()) {
         env->ExceptionClear();
         xsink->raiseException("JNI-ERROR", "Unable to get exception class name - another exception thrown");
@@ -217,7 +218,8 @@ void JavaException::convert(ExceptionSink *xsink) {
     SimpleRefHolder<QoreStringNode> desc(new QoreStringNode(chars, QCS_UTF8));
     env->ReleaseStringUTFChars(excName, chars);
 
-    LocalReference<jstring> msg = static_cast<jstring>(env->CallObjectMethod(throwable, Globals::methodThrowableGetMessage));
+    LocalReference<jstring> msg = static_cast<jstring>(env->CallObjectMethod(throwable,
+        Globals::methodThrowableGetMessage));
     if (env->ExceptionCheck()) {
         env->ExceptionClear();
     } else if (msg != nullptr) {
@@ -236,7 +238,9 @@ void JavaException::convert(ExceptionSink *xsink) {
     JniCallStack stack(throwable, loc);
 
     LocalReference<jclass> tcls(env->GetObjectClass(throwable));
-    xsink->raiseExceptionArg(loc.get(), "JNI-ERROR", new QoreObject(qjcm.findCreateQoreClass(tcls), getProgram(), new QoreJniPrivateData(throwable.as<jobject>())), desc.release(), stack);
+    QoreProgram* pgm = jni_get_program_context();
+    xsink->raiseExceptionArg(loc.get(), "JNI-ERROR", new QoreObject(qjcm.findCreateQoreClass(tcls, pgm), pgm,
+        new QoreJniPrivateData(throwable.as<jobject>())), desc.release(), stack);
 }
 
 void JavaException::ignoreOrRethrowNoClass() {
