@@ -422,48 +422,6 @@ public class QoreURLClassLoader extends URLClassLoader {
     }
     */
 
-    public Class<?> loadLocalClass(String bin_name) throws ClassNotFoundException {
-        Class<?> rv = findLoadedClass(bin_name);
-        if (rv != null) {
-            return rv;
-        }
-        rv = tryGetPendingClass(bin_name);
-        if (rv != null) {
-            //System.out.printf("findClass() %s returning pending\n", bin_name);
-            return rv;
-        }
-        QoreJavaFileObject file = classes.get(bin_name);
-        if (file != null) {
-            byte[] bytes = file.getByteCode();
-            //System.out.printf("findClass() %s returning defineClass()\n", bin_name);
-            rv = defineClass(bin_name, bytes, 0, bytes.length);
-            resolveClass(rv);
-            return rv;
-        }
-        if (isDynamic(bin_name)) {
-            // only remove from set if successful
-            try {
-                byte[] bytes = generateByteCode(bin_name);
-                rv = findLoadedClass(bin_name);
-                //rv = defineClassIntern(bin_name, bytes, 0, bytes.length);
-                //resolveClass(rv);
-            } catch (ClassNotFoundException e1) {
-                //e1.printStackTrace();
-                throw e1;
-            } catch (RuntimeException e1) {
-                //e1.printStackTrace();
-                throw e1;
-            } catch (Throwable e1) {
-                //e1.printStackTrace();
-                throw new RuntimeException(e1);
-            }
-            //System.out.printf("findClass() this: %x pgm: %x dyn %s returning generated %s\n", hashCode(), pgm_ptr,
-            //  bin_name, rv);
-            return rv;
-        }
-        return super.loadClass(bin_name);
-    }
-
     static public boolean isDynamic(String bin_name) {
         return bin_name.equals("qore") || (bin_name.startsWith("qore.") && bin_name.length() > 5)
             || (bin_name.startsWith("qoremod.") && bin_name.length() > 8);

@@ -181,7 +181,6 @@ public:
     DLLLOCAL static jmethodID methodQoreURLClassLoaderGetPtr;                     // long getPtr()
     DLLLOCAL static jmethodID methodQoreURLClassLoaderGetCurrent;                 // OoreURLClassLoader getCurrent()
     DLLLOCAL static jmethodID methodQoreURLClassLoaderCheckInProgress;            // boolean checkInProgress(String)
-    DLLLOCAL static jmethodID methodQoreURLClassLoaderLoadLocalClass;             // Class<?> loadLocalClass(Class<?>)
 
     DLLLOCAL static GlobalReference<jclass> classJavaClassBuilder;                // org.qore.jni.JavaClassBuilder
     DLLLOCAL static jmethodID methodJavaClassBuilderGetClassBuilder;              // static DynamicType.Builder<?> getClassBuilder(String, Class<?>, boolean, long)
