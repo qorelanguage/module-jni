@@ -211,6 +211,25 @@ public class Main inherits QUnit::Test {
     javaCodegenTest() {
         try {
             {
+                # compile and execute QoreDynamicTest8.java
+                QoreJavaCompiler compiler();
+                hash<auto> sources = {
+                    "org.qore.test.QoreDynamicTest8": File::readTextFile(get_script_dir() + "/../test/QoreDynamicTest8.java"),
+                };
+                hash<auto> cv = compiler.compile(sources);
+                #printf("%N\n", cv);
+                compiler::CompilerOutput newClassData = cv{"org.qore.test.QoreDynamicTest8"};
+                binary fdata = newClassData.file.openInputStream().readAllBytes();
+                assertEq(True, fdata.size() > 0);
+                object obj = newClassData.cls.newInstance();
+                assertEq("test", obj.test());
+                assertEq("y", obj.test2());
+                assertEq("y", obj.test3());
+                assertEq("z", obj.test4());
+                assertEq("z", obj.test5());
+            }
+
+            {
                 # compile and execute QoreDynamicTest7.java
                 QoreJavaCompiler compiler();
                 compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest7",
@@ -1646,6 +1665,32 @@ class RecC {
     }
 
     *RecC getC() {
+    }
+}
+
+class AbstractBase {
+    abstract string test();
+
+    static string test6() {
+        return "z";
+    }
+}
+
+class MiddleBase inherits AbstractBase {
+    static string test4() {
+        return "z";
+    }
+}
+
+class Other;
+
+class ConcreteBase inherits MiddleBase, Other {
+    string test() {
+        return "x";
+    }
+
+    string test2() {
+        return "y";
     }
 }
 

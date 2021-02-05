@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -32,91 +32,48 @@
 
 namespace jni {
 Class::~Class() {
-   printd(LogLevel, "Class::~Class(), this: %p, cls: %p\n", this, static_cast<jclass>(this->cls));
-   for (auto& i : mlist)
-      delete i;
+    printd(LogLevel, "Class::~Class(), this: %p, cls: %p\n", this, static_cast<jclass>(this->cls));
+    for (auto& i : mlist)
+        delete i;
 }
 
 void Class::trackMethod(BaseMethod* m) {
-   mlist.push_back(m);
-}
-
-Field* Class::getField(const QoreStringNode* name, const QoreStringNode* descriptor) {
-   Env env;
-   ModifiedUtf8String nameUtf8(*name);
-   ModifiedUtf8String descUtf8(*descriptor);
-   printd(LogLevel, "getField %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
-   return new Field(this, env.getField(cls, nameUtf8.c_str(), descUtf8.c_str()), false);
-}
-
-Field* Class::getStaticField(const QoreStringNode* name, const QoreStringNode* descriptor) {
-   Env env;
-   ModifiedUtf8String nameUtf8(*name);
-   ModifiedUtf8String descUtf8(*descriptor);
-   printd(LogLevel, "getStaticField %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
-   return new Field(this, env.getStaticField(cls, nameUtf8.c_str(), descUtf8.c_str()), true);
-}
-
-Method* Class::getMethod(const QoreStringNode* name, const QoreStringNode* descriptor) {
-   Env env;
-   ModifiedUtf8String nameUtf8(*name);
-   ModifiedUtf8String descUtf8(*descriptor);
-   printd(LogLevel, "getMethod %s %s\n", nameUtf8.c_str(), descUtf8.c_str());
-   return new Method(this, env.getMethod(cls, nameUtf8.c_str(), descUtf8.c_str()), false);
-}
-
-Method* Class::getStaticMethod(const QoreStringNode* name, const QoreStringNode* descriptor) {
-   Env env;
-   ModifiedUtf8String nameUtf8(*name);
-   ModifiedUtf8String descUtf8(*descriptor);
-   return new Method(this, env.getStaticMethod(cls, nameUtf8.c_str(), descUtf8.c_str()), true);
-}
-
-Method* Class::getConstructor(const QoreStringNode* descriptor) {
-   Env env;
-   ModifiedUtf8String descUtf8(*descriptor);
-   printd(LogLevel, "getConstructor %s\n", descUtf8.c_str());
-   return new Method(this, env.getMethod(cls, "<init>", descUtf8.c_str()), false);
+    mlist.push_back(m);
 }
 
 Class* Class::getSuperClass() {
-   Env env;
+    Env env;
 
-   LocalReference<jclass> parentClass = env.callObjectMethod(cls, Globals::methodClassGetSuperClass, nullptr).as<jclass>();
-   if (!parentClass)
-      return 0;
+    LocalReference<jclass> parentClass = env.callObjectMethod(cls, Globals::methodClassGetSuperClass, nullptr).as<jclass>();
+    if (!parentClass)
+        return nullptr;
 
-   return new Class(parentClass);
+    return new Class(parentClass);
 }
 
 LocalReference<jobjectArray> Class::getInterfaces() {
-   Env env;
-   return env.callObjectMethod(cls, Globals::methodClassGetInterfaces, nullptr).as<jobjectArray>();
+    Env env;
+    return env.callObjectMethod(cls, Globals::methodClassGetInterfaces, nullptr).as<jobjectArray>();
 }
 
 LocalReference<jobjectArray> Class::getDeclaredConstructors() {
-   Env env;
-   return env.callObjectMethod(cls, Globals::methodClassGetDeclaredConstructors, nullptr).as<jobjectArray>();
+    Env env;
+    return env.callObjectMethod(cls, Globals::methodClassGetDeclaredConstructors, nullptr).as<jobjectArray>();
 }
 
 LocalReference<jobjectArray> Class::getDeclaredMethods() {
-   Env env;
-   return env.callObjectMethod(cls, Globals::methodClassGetDeclaredMethods, nullptr).as<jobjectArray>();
+    Env env;
+    return env.callObjectMethod(cls, Globals::methodClassGetDeclaredMethods, nullptr).as<jobjectArray>();
 }
 
 LocalReference<jobjectArray> Class::getDeclaredFields() {
-   Env env;
-   return env.callObjectMethod(cls, Globals::methodClassGetDeclaredFields, nullptr).as<jobjectArray>();
+    Env env;
+    return env.callObjectMethod(cls, Globals::methodClassGetDeclaredFields, nullptr).as<jobjectArray>();
 }
 
 int Class::getModifiers() {
-   Env env;
-   return env.callIntMethod(cls, Globals::methodClassGetModifiers, nullptr);
-}
-
-bool Class::isInstance(const ObjectBase* obj) {
-   Env env;
-   return env.isInstanceOf(obj->getJavaObject(), cls) == JNI_TRUE;
+    Env env;
+    return env.callIntMethod(cls, Globals::methodClassGetModifiers, nullptr);
 }
 
 } // namespace jni

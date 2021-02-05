@@ -45,6 +45,7 @@ class QoreJavaClassObject implements JavaFileObject {
             } else {
                 byte_code = classLoader.generateByteCode(binaryName);
             }
+
             //System.out.printf("openInputStream: '%s': got %d bytes\n", binaryName,
             //  byte_code == null ? -1 : byte_code.length);
             return new ByteArrayInputStream(byte_code);

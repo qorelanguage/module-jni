@@ -181,13 +181,14 @@ public:
     DLLLOCAL static jmethodID methodQoreURLClassLoaderGetPtr;                     // long getPtr()
     DLLLOCAL static jmethodID methodQoreURLClassLoaderGetCurrent;                 // OoreURLClassLoader getCurrent()
     DLLLOCAL static jmethodID methodQoreURLClassLoaderCheckInProgress;            // boolean checkInProgress(String)
+    DLLLOCAL static jmethodID methodQoreURLClassLoaderLoadLocalClass;             // Class<?> loadLocalClass(Class<?>)
 
     DLLLOCAL static GlobalReference<jclass> classJavaClassBuilder;                // org.qore.jni.JavaClassBuilder
     DLLLOCAL static jmethodID methodJavaClassBuilderGetClassBuilder;              // static DynamicType.Builder<?> getClassBuilder(String, Class<?>, boolean, long)
     DLLLOCAL static jmethodID methodJavaClassBuilderAddConstructor;               // static DynamicType.Builder<?> addConstructor(DynamicType.Builder<?>, Class<?>, long, int, List<TypeDefinition>)
     DLLLOCAL static jmethodID methodJavaClassBuilderAddNormalMethod;              // static DynamicType.Builder<?> addNormalMethod(DynamicType.Builder<?>, String, long, long, int, TypeDefinition, List<TypeDefinition>, boolean)
     DLLLOCAL static jmethodID methodJavaClassBuilderAddStaticMethod;              // static DynamicType.Builder<?> addStaticMethod(DynamicType.Builder<?>, String, long, long, int, TypeDefinition, List<TypeDefinition>)
-    DLLLOCAL static jmethodID methodJavaClassBuilderGetByteCodeFromBuilder;       // static byte[] getByteCodeFromBuilder(DynamicType.Builder<?>)
+    DLLLOCAL static jmethodID methodJavaClassBuilderGetByteCodeFromBuilder;       // static byte[] getByteCodeFromBuilder(DynamicType.Builder<?>, QoreURLClassLoader)
     DLLLOCAL static jmethodID methodJavaClassBuilderGetTypeDescriptionCls;        // static TypeDescription getTypeDescription(Class<?>)
     DLLLOCAL static jmethodID methodJavaClassBuilderGetTypeDescriptionStr;        // static TypeDescription getTypeDescription(String)
     DLLLOCAL static jmethodID methodJavaClassBuilderFindBaseClassMethodConflict;  // static boolean findBaseClassMethodConflict(Class<?>, String, List<TypeDescription>, boolean)
@@ -297,6 +298,7 @@ public:
 
     DLLLOCAL static jlong getContextProgram(jobject new_syscl, bool& created);
     DLLLOCAL static QoreProgram* createJavaContextProgram();
+    DLLLOCAL static QoreProgram* getJavaContextProgram();
 
     DLLLOCAL static void clearGlobalContext() {
         if (qph) {

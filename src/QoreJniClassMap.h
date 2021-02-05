@@ -4,7 +4,7 @@
 
     Qore Programming Language JNI Module
 
-    Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -117,11 +117,11 @@ class QoreJniClassMap : public QoreJniClassMapBase {
 public:
     static QoreJniThreadLock m;
 
-    DLLLOCAL void init(bool already_initialized);
+    DLLLOCAL void init(QoreProgram* pgm, bool already_initialized);
 
     DLLLOCAL void destroy(ExceptionSink& xsink);
 
-    DLLLOCAL QoreValue getValue(LocalReference<jobject>& jobj);
+    DLLLOCAL QoreValue getValue(LocalReference<jobject>& jobj, QoreProgram* pgm);
 
     DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls, const QoreTypeInfo*& altType, QoreProgram* pgm = nullptr);
 
@@ -140,20 +140,20 @@ public:
     DLLLOCAL jarray getJavaArray(const QoreListNode* l, jclass cls);
 
     // takes an internal name (ex: java/lang/Class)
-    DLLLOCAL jclass findLoadClass(const char* name);
+    DLLLOCAL jclass findLoadClass(const char* name, QoreProgram* pgm = nullptr);
     // takes an internal name (ex: java/lang/Class)
-    DLLLOCAL jclass findLoadClass(const QoreString& name);
+    DLLLOCAL jclass findLoadClass(const QoreString& name, QoreProgram* pgm = nullptr);
 
-    DLLLOCAL JniQoreClass* findCreateQoreClass(LocalReference<jclass>& jc);
+    DLLLOCAL JniQoreClass* findCreateQoreClass(LocalReference<jclass>& jc, QoreProgram* pgm);
 
     // create the Qore class from the Java binary name (ex: java.lang.Object)
-    DLLLOCAL JniQoreClass* findCreateQoreClass(const char* name, QoreProgram* pgm = nullptr);
+    DLLLOCAL JniQoreClass* findCreateQoreClass(const char* name, QoreProgram* pgm);
 
     DLLLOCAL JniQoreClass* findCreateQoreClass(QoreString& name, const char* jpath, Class* c, bool base,
-            QoreProgram* pgm = nullptr) {
+            QoreProgram* pgm) {
         printd(5, "QoreJniClassMap::findCreateQoreClass() '%s' base: %d pgm: %p\n", jpath, base, pgm);
         return base
-            ? findCreateQoreClassInBase(name, jpath, c)
+            ? findCreateQoreClassInBase(name, jpath, c, pgm)
             : findCreateQoreClassInProgram(name, jpath, c, pgm);
     }
 
@@ -206,12 +206,13 @@ protected:
     // populate the Qore class with methods and members from the Java class
     DLLLOCAL void populateQoreClass(JniQoreClass& qc, Class* jc, QoreProgram* pgm = nullptr);
 
-    DLLLOCAL void addSuperClass(Env& env, JniQoreClass& qc, Class* parent, bool interface, QoreProgram* pgm = nullptr);
+    DLLLOCAL void addSuperClass(Env& env, JniQoreClass& qc, Class* parent, bool interface,
+        QoreProgram* pgm = nullptr);
 
     DLLLOCAL JniQoreClass* createClassInNamespace(QoreNamespace* ns, QoreNamespace& jns, const char* jpath,
-        Class* jc, JniQoreClass* qc, QoreJniClassMapBase& map, QoreProgram* pgm = nullptr);
-    DLLLOCAL JniQoreClass* findCreateQoreClassInBase(QoreString& name, const char* jpath, Class* c);
-    DLLLOCAL Class* loadClass(const char* name, bool& base);
+        Class* jc, JniQoreClass* qc, QoreJniClassMapBase& map, QoreProgram* pgm);
+    DLLLOCAL JniQoreClass* findCreateQoreClassInBase(QoreString& name, const char* jpath, Class* c, QoreProgram* pgm);
+    DLLLOCAL Class* loadClass(const char* name, bool& base, JniExternalProgramData* jpc = nullptr);
 
 private:
     // initialization flag

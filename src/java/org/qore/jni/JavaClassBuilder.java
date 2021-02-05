@@ -224,10 +224,11 @@ public class JavaClassBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    static public byte[] getByteCodeFromBuilder(DynamicType.Builder<?> bb) {
+    static public byte[] getByteCodeFromBuilder(DynamicType.Builder<?> bb, QoreURLClassLoader classLoader) {
         DynamicType.Unloaded<?> unloaded = bb.make();
         byte[] byte_code = unloaded.getBytes();
-        //System.out.printf("JavaClassBuilder.getClassFromBuilder() got %d bytes\n", byte_code.length);
+        //System.out.printf("JavaClassBuilder.getClassFromBuilder() %s: got %d bytes (cl: %s)\n",
+        //    unloaded.getTypeDescription().getCanonicalName(), byte_code.length, classLoader);
         return byte_code;
     }
 
@@ -275,7 +276,7 @@ public class JavaClassBuilder {
      * @param future_name The binary name of the type to be created
      */
     public static TypeDescription getTypeDescription(String future_name) {
-        return InstrumentedType.Default.of(future_name, null, 0);
+        return InstrumentedType.Default.of(future_name, null, Modifier.PUBLIC);
     }
 
     /** Check a class for methods matching a name an TypeDescription list
