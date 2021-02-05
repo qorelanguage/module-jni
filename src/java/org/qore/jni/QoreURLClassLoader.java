@@ -264,7 +264,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         try {
         /*
         for (URL url : getURLs()) {
-            System.out.printf("findClass() + %s\n", url.toString());
+            System.out.printf("findClass(%s) this: %x elem: %s\n", bin_name, hashCode(), url.toString());
         }
         */
 

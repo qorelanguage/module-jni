@@ -276,7 +276,8 @@ extern "C" int jni_module_import(ExceptionSink* xsink, QoreProgram* pgm, const c
     if (!jpc) {
         QoreNamespace* jnins = qjcm.getJniNs().copy();
         pgm->getRootNS()->addNamespace(jnins);
-        pgm->setExternalData("jni", new JniExternalProgramData(jnins, pgm));
+        jpc = new JniExternalProgramData(jnins, pgm);
+        pgm->setExternalData("jni", jpc);
         pgm->addFeature(QORE_JNI_MODULE_NAME);
     }
     //printd(5, "jni_module_import '%s' jpc: %p jnins: %p pgm: %p\n", import, jpc, jpc->getJniNamespace(), pgm);
@@ -436,8 +437,6 @@ static void qore_jni_mc_define_pending_class(const QoreString& arg, QoreProgram*
     env.callVoidMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderAddPendingClass, &jargs[0]);
 }
 
-// XXX DEBUG
-extern int trigger;
 static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
     assert(pgm);
     assert(pgm->checkFeature(QORE_JNI_MODULE_NAME));
@@ -461,7 +460,6 @@ static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, Jn
     QoreProgram* ptr = (QoreProgram*)env.callLongMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderGetPtr, nullptr);
     assert(ptr == pgm);
 
-    trigger = 1;
     env.callVoidMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderSetContext, nullptr);
     //printd(5, "qore_jni_mc_define_class() jpc: %p name: '%s' class size: %d\n", jpc, java_name.c_str(), byte_code->size());
 
