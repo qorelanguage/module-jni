@@ -39,8 +39,6 @@
 
 #include <bzlib.h>
 
-DLLLOCAL int trigger = 0;
-
 namespace jni {
 
 // Qore initialization flag
