@@ -6,11 +6,22 @@ import javax.tools.*;
 
 import org.qore.jni.QoreURLClassLoader;
 
+/**
+ * JavaFileManager used for dynamic imports from %Qore into Java
+ * 
+ * @author adapted for %Qore by <a href="mailto:david@qore.org">David Nichols</a>
+ * @since 07-Feb-2021
+ */
 public class QoreJavaFileManager implements JavaFileManager {
     private final QoreURLClassLoader classLoader;
     private final StandardJavaFileManager standardFileManager;
     private final PackageInternalsFinder finder;
 
+    /**
+     * Creates the object with the %Qore class loader and a file manager for real file operations
+     * @param classLoader the classloader to use
+     * @param standardFileManager the StandardJavaFileManager to use for real file operations
+     */
     public QoreJavaFileManager(QoreURLClassLoader classLoader, StandardJavaFileManager standardFileManager) {
         this.classLoader = classLoader;
         this.standardFileManager = standardFileManager;
@@ -50,7 +61,6 @@ public class QoreJavaFileManager implements JavaFileManager {
             return true;
         }
         return false;
-        //return standardFileManager.hasLocation(location);
     }
 
     @Override
@@ -93,7 +103,8 @@ public class QoreJavaFileManager implements JavaFileManager {
     }
 
     @Override
-    public FileObject getFileForOutput(Location location, String packageName, String relativeName, FileObject sibling) throws IOException {
+    public FileObject getFileForOutput(Location location, String packageName, String relativeName, FileObject sibling) 
+            throws IOException {
         return standardFileManager.getFileForOutput(location, packageName, relativeName, sibling);
     }
 
@@ -108,25 +119,18 @@ public class QoreJavaFileManager implements JavaFileManager {
     }
 
     @Override
-    public Iterable<JavaFileObject> list(Location location, String packageName, Set<JavaFileObject.Kind> kinds, boolean recurse) throws IOException {
+    public Iterable<JavaFileObject> list(Location location, String packageName, Set<JavaFileObject.Kind> kinds, 
+            boolean recurse) throws IOException {
         boolean baseModule = location.getName().equals("SYSTEM_MODULES[java.base]");
         //System.out.printf("QJFM.list() loc: %s pn: %s kinds: %s recurse: %s\n", location, packageName, kinds, recurse);
         if (baseModule || location == StandardLocation.PLATFORM_CLASS_PATH) {
             return standardFileManager.list(location, packageName, kinds, recurse);
         } else if (location == StandardLocation.CLASS_PATH && kinds.contains(JavaFileObject.Kind.CLASS)) {
-            /*
-            if (packageName.startsWith("qore")) {
-                return finder.find(packageName);
-            }
-            return standardFileManager.list(location, packageName, kinds, recurse);
-            */
-            ///*
             List<JavaFileObject> list = finder.find(packageName);
             standardFileManager.list(location, packageName, kinds, recurse).forEach((e) -> {
                 list.add(e);
             });
             return list;
-            //*/
         }
         return Collections.emptyList();
     }

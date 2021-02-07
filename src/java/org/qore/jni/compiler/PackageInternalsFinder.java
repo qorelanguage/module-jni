@@ -27,6 +27,9 @@ import org.qore.jni.QoreURLClassLoader;
  * based on source code by:
  * @author atamur
  * @since 15-Oct-2009
+ * 
+ * @author adapted for %Qore by <a href="mailto:david@qore.org">David Nichols</a>
+ * @since 07-Feb-2021
  */
 class PackageInternalsFinder {
     private QoreURLClassLoader classLoader;

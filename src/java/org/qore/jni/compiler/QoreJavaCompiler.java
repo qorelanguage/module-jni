@@ -40,7 +40,7 @@ import org.qore.jni.QoreJavaFileObject;
 
 /**
  * Compile a String or other {@link CharSequence}, returning a Java
- * {@link Class} instance that may be instantiated. This class is a Facade
+ * {@link Class} instance that may be instantiated as well as the raw bytecode. This class is a Facade
  * around {@link JavaCompiler} for a narrower use case, but a bit easier to use.
  * <p/>
  * To compile a String containing source for a Java class which implements
@@ -53,7 +53,7 @@ import org.qore.jni.QoreJavaFileObject;
  *       null);
  * try {
  *    Class&lt;MyInterface&gt; newClass = compiler.compile(&quot;com.mypackage.NewClass&quot;,
- *          stringContainingSourceForNewClass, diagnostics, MyInterface);
+ *          stringContainingSourceForNewClass, diagnostics, MyInterface).cls;
  *    MyInterface instance = newClass.newInstance();
  *    instance.someOperation(someArgs);
  * } catch (QoreJavaCompilerException e) {
@@ -67,7 +67,8 @@ import org.qore.jni.QoreJavaFileObject;
  * implements {@link CharSequence}. If you implement your own, it must be
  * thread safe (preferably, immutable.)
  *
- * @author <a href="mailto:David.Biesack@sas.com">David J. Biesack</a>
+ * @author <a href="mailto:David.Biesack@sas.com">David J. Biesack</a>, adapted for %Qore by 
+ * <a href="mailto:david@qore.org">David Nichols</a>
  */
 public class QoreJavaCompiler<T> {
     // Compiler requires source files with a ".java" extension:

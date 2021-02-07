@@ -2,6 +2,9 @@ package org.qore.jni.compiler;
 
 import javax.tools.JavaFileObject;
 
+/**
+ * Contains the file data and the generated class for each compiled class
+ */
 public class CompilerOutput<T> {
     /**
      * The compiled class
