@@ -396,7 +396,7 @@ protected:
         const QoreClass* qcls, QoreProgram* pgm, jstring jname = nullptr);
 
     // Returns a param list of Java type corresponding to the Qore types
-    DLLLOCAL LocalReference<jobject> getJavaParamList(Env& env, jobject class_loader, const QoreMethod& m,
+    DLLLOCAL jobject getJavaParamList(Env& env, jobject class_loader, const QoreMethod& m,
         const QoreExternalMethodVariant& v, QoreProgram* pgm, unsigned& len);
 
     DLLLOCAL int addConstructorVariant(Env& env, jobject class_loader, const QoreClass& qcls,

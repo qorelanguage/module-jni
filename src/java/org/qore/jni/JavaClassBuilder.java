@@ -98,13 +98,15 @@ public class JavaClassBuilder {
         // add default constructor
         ArrayList<Type> paramTypes = new ArrayList<Type>();
         paramTypes.add(Long.TYPE);
+        paramTypes.add(Long.TYPE);
+        paramTypes.add(Long.TYPE);
         paramTypes.add(objArray);
 
         return (DynamicType.Builder<?>)bb.defineConstructor(Visibility.PUBLIC)
                 .withParameters(paramTypes)
                 .throwing(Throwable.class)
                 .intercept(
-                    MethodCall.invoke(parentClass.getConstructor(Long.TYPE, objArray))
+                    MethodCall.invoke(parentClass.getConstructor(Long.TYPE, Long.TYPE, Long.TYPE, objArray))
                     .onSuper()
                     .withAllArguments()
                 );
@@ -112,7 +114,7 @@ public class JavaClassBuilder {
 
     // add a constructor
     static public DynamicType.Builder<?> addConstructor(DynamicType.Builder<?> bb, Class<?> parentClass,
-            long vptr, int visibility, List<TypeDefinition> paramTypes, boolean varargs) {
+            long mptr, long vptr, int visibility, List<TypeDefinition> paramTypes, boolean varargs) {
         if (paramTypes == null) {
             paramTypes = new ArrayList<TypeDefinition>();
         }
@@ -128,17 +130,21 @@ public class JavaClassBuilder {
         try {
             if (paramTypes.size() == 0) {
                 return (DynamicType.Builder<?>)eb.intercept(
-                        MethodCall.invoke(parentClass.getConstructor(Long.TYPE, objArray))
+                        MethodCall.invoke(parentClass.getConstructor(Long.TYPE, Long.TYPE, Long.TYPE, objArray))
                         .onSuper()
                         .withField(CLASS_FIELD)
+                        .with(mptr)
+                        .with(vptr)
                         .with((Object)null)
                 );
             }
 
             return (DynamicType.Builder<?>)eb.intercept(
-                    MethodCall.invoke(parentClass.getConstructor(Long.TYPE, objArray))
+                    MethodCall.invoke(parentClass.getConstructor(Long.TYPE, Long.TYPE, Long.TYPE, objArray))
                     .onSuper()
                     .withField(CLASS_FIELD)
+                    .with(mptr)
+                    .with(vptr)
                     .withArgumentArray()
             );
         } catch (NoSuchMethodException e) {

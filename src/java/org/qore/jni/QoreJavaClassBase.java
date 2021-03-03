@@ -6,7 +6,7 @@ package org.qore.jni;
  */
 public abstract class QoreJavaClassBase extends QoreObjectBase {
     //! Default constructor
-    public QoreJavaClassBase(long cptr, Object... args) throws Throwable {
-        super(cptr, args);
+    public QoreJavaClassBase(long cptr, long mptr, long vptr, Object... args) throws Throwable {
+        super(cptr, mptr, vptr, args);
     }
 }

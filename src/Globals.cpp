@@ -38,6 +38,7 @@
 #include "QoreJniClassMap.h"
 
 #include <bzlib.h>
+#include <dlfcn.h>
 
 namespace jni {
 
@@ -577,7 +578,8 @@ static jobject JNICALL java_api_call_static_method_save(JNIEnv* jenv, jobject ob
 }
 
 // private native static QoreObject newObjectSave0(long pgm_ptr, String class_name, Object...args);
-static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong ptr, jstring cname, jobjectArray args) {
+static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong ptr, jstring cname,
+        jobjectArray args) {
     assert(ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
     Env env(jenv);
@@ -608,7 +610,8 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
     const QoreClass* cls = pgm->findClass(clsname.c_str(), &xsink);
     if (cls && !xsink) {
         if (pgm->getParseOptions64() & cls->getDomain()) {
-            xsink.raiseException("CREATE-OBJECT-ERROR", "Program sandboxing restrictions do not allow access to the '%s' class", cls->getName());
+            xsink.raiseException("CREATE-OBJECT-ERROR", "Program sandboxing restrictions do not allow access to " \
+                "the '%s' class", cls->getName());
         } else {
             cls->runtimeCheckInstantiateClass(&xsink);
         }
@@ -736,7 +739,8 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, jlong pgm
         ReferenceHolder<QoreListNode> qore_args(&xsink);
 
         if (len) {
-            Array::getArgList(qore_args, env, args, pgm, (v && v->getCodeFlags() & QCF_USES_EXTRA_ARGS) ? true : false);
+            Array::getArgList(qore_args, env, args, pgm,
+                (v && v->getCodeFlags() & QCF_USES_EXTRA_ARGS) ? true : false);
         }
 
         ValueHolder val(&xsink);
@@ -761,7 +765,8 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, jlong pgm
             throw XsinkException(xsink);
         }
 
-        //printd(5, "qore_object_closure_call_internal() method: '%s::%s()' rv: %s\n", obj->getClassName(), method_name.c_str(), val->getFullTypeName());
+        //printd(5, "qore_object_closure_call_internal() method: '%s::%s()' rv: %s\n", obj->getClassName(),
+        //  method_name.c_str(), val->getFullTypeName());
 
         if (save && save_object(env, *val, jni_get_program_context(), xsink)) {
             return nullptr;
@@ -784,19 +789,23 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, jlong pgm
     return nullptr;
 }
 
-static jobject JNICALL qore_object_call_method(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr, jstring mname, jobjectArray args) {
+static jobject JNICALL qore_object_call_method(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr,
+        jstring mname, jobjectArray args) {
     return qore_object_closure_call_internal(jenv, jcls, pgm_ptr, obj_ptr, false, mname, args);
 }
 
-static jobject JNICALL qore_object_call_method_save(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr, jstring mname, jobjectArray args) {
+static jobject JNICALL qore_object_call_method_save(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr,
+        jstring mname, jobjectArray args) {
     return qore_object_closure_call_internal(jenv, jcls, pgm_ptr, obj_ptr, true, mname, args);
 }
 
-static jobject JNICALL qore_closure_call(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr, jobjectArray args) {
+static jobject JNICALL qore_closure_call(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr,
+        jobjectArray args) {
     return qore_object_closure_call_internal(jenv, jcls, pgm_ptr, obj_ptr, false, nullptr, args);
 }
 
-static jobject JNICALL qore_closure_call_save(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr, jobjectArray args) {
+static jobject JNICALL qore_closure_call_save(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr,
+        jobjectArray args) {
     return qore_object_closure_call_internal(jenv, jcls, pgm_ptr, obj_ptr, true, nullptr, args);
 }
 
@@ -863,7 +872,8 @@ static jbyteArray qore_url_classloader_get_cached_class(JNIEnv* jenv, jclass jcl
     SimpleRefHolder<BinaryNode> b(new BinaryNode);
     b->preallocate(i->second.len);
     unsigned size = i->second.len;
-    int rc = BZ2_bzBuffToBuffDecompress((char*)b->getPtr(), &size, (char*)i->second.byte_code, i->second.compressed_len, 0, 0);
+    int rc = BZ2_bzBuffToBuffDecompress((char*)b->getPtr(), &size, (char*)i->second.byte_code,
+        i->second.compressed_len, 0, 0);
     assert(!rc);
     assert(size == i->second.len);
 
@@ -876,16 +886,18 @@ static jbyteArray qore_url_classloader_get_cached_class(JNIEnv* jenv, jclass jcl
     return array.release();
 }
 
-static jobject JNICALL java_class_builder_do_normal_call(JNIEnv* jenv, jclass jcls, jstring mname, jlong qobj, jlong mptr, jlong vptr, jobjectArray args) {
+static jobject JNICALL java_class_builder_do_normal_call(JNIEnv* jenv, jclass jcls, jstring mname, jlong qobj,
+        jlong mptr, jlong vptr, jobjectArray args) {
     const QoreMethod* m = reinterpret_cast<const QoreMethod*>(mptr);
     const QoreExternalMethodVariant* v = reinterpret_cast<const QoreExternalMethodVariant*>(vptr);
-    printd(5, "java_class_builder_do_normal_call() jcls: %p %s::%s() (%d) qobj: %p args: %p\n", jcls, m->getClassName(), m->getName(), m->getClass()->getID(), qobj, args);
+    printd(5, "java_class_builder_do_normal_call() jcls: %p %s::%s() (%d) qobj: %p args: %p\n", jcls,
+        m->getClassName(), m->getName(), m->getClass()->getID(), qobj, args);
 
     Env env(jenv);
 
     if (!qobj) {
-        env.throwNew(env.findClass("java/lang/RuntimeException"), "JavaClassBuilder.doNormalCall0(): QoreObject ptr " \
-            "passed as nullptr");
+        env.throwNew(env.findClass("java/lang/RuntimeException"), "JavaClassBuilder.doNormalCall0(): QoreObject " \
+            "ptr passed as nullptr");
         return 0;
     }
 
@@ -908,7 +920,8 @@ static jobject JNICALL java_class_builder_do_normal_call(JNIEnv* jenv, jclass jc
     return qore_object_closure_call_internal(jenv, jcls, reinterpret_cast<jlong>(pgm), qobj, true, mname, args, m, v);
 }
 
-static jobject JNICALL java_class_builder_do_static_call(JNIEnv* jenv, jclass jcls, jstring mname, jlong qcls, jlong mptr, jlong vptr, jobjectArray args) {
+static jobject JNICALL java_class_builder_do_static_call(JNIEnv* jenv, jclass jcls, jstring mname, jlong qcls,
+        jlong mptr, jlong vptr, jobjectArray args) {
     printd(5, "java_class_builder_do_static_call() jcls: %p qcls: %p, args: %p\n", jcls, qcls, args);
 
     Env env(jenv);
@@ -954,7 +967,7 @@ static int load_module(Env& env, Env::GetStringUtfChars& mod_str, jstring qore_m
 }
 
 static jbyteArray JNICALL qore_url_classloader_generate_byte_code(JNIEnv* jenv, jobject class_loader, jlong ptr,
-        jstring nspath, jstring jname, jstring qore_module) {
+        jstring nspath, jstring jname, jstring module, jboolean python) {
     assert(ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
     Env env(jenv);
@@ -991,12 +1004,12 @@ static jbyteArray JNICALL qore_url_classloader_generate_byte_code(JNIEnv* jenv, 
         }
 
         Env::GetStringUtfChars mod_str(env);
-        if (qore_module && load_module(env, mod_str, qore_module, pgm)) {
+        if (module && !python && load_module(env, mod_str, module, pgm)) {
             return nullptr;
         }
 
         printd(5, "qore_url_classloader_generate_byte_code() p: %p path: '%s' (mod: %p)\n", pgm, qpath.c_str(),
-            qore_module);
+            module);
 
         return jpc->generateByteCode(env, class_loader, qpath, pgm, jname).release();
     } catch (jni::QoreJniException& e) {
@@ -1109,8 +1122,24 @@ static const QoreNamespace* get_module_root_ns(const char* name, QoreProgram* mo
     return rv;
 }
 
+// throws a Java exception and return -1 on failure
+int load_python_module(Env& env, JniExternalProgramData* jpc, QoreProgram* pgm) {
+    static bool python_loaded = false;
+
+    if (!python_loaded) {
+        ExceptionSink xsink;
+        if (ModuleManager::runTimeLoadModule("python", pgm, &xsink)) {
+            QoreToJava::wrapException(env, xsink);
+            return -1;
+        }
+        printd(5, "load_python_module() 'python module loaded\n");
+        python_loaded = true;
+    }
+    return 0;
+}
+
 static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jenv, jclass jcls, jlong ptr,
-        jstring qname, jstring qore_module, jobject arraylist) {
+        jstring qname, jstring module, jboolean python, jobject arraylist) {
     Env env(jenv);
     QoreThreadAttachHelper attach_helper;
     try {
@@ -1129,12 +1158,44 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
         return nullptr;
     }
 
+    ExceptionSink xsink;
+
     Env::GetStringUtfChars mod_str(env);
-    if (qore_module && load_module(env, mod_str, qore_module, pgm )) {
+    if (python) {
+        if (module) {
+            mod_str.set(module);
+        }
+        try {
+            typedef int (*python_module_import_t)(ExceptionSink* xsink, QoreProgram* pgm, const char* module,
+                const char* symbol);
+            static python_module_import_t python_module_import = nullptr;
+
+            if (!python_module_import) {
+                if (load_python_module(env, jpc, pgm)) {
+                    return nullptr;
+                }
+                python_module_import = (python_module_import_t)dlsym(RTLD_DEFAULT, "python_module_import");
+                if (!python_module_import) {
+                    QoreStringMaker desc("python_module_import() symbol not found; cannot import module '%s'",
+                        mod_str.c_str());
+                    env.throwNew(env.findClass("java/lang/RuntimeException"), desc.c_str());
+                    return nullptr;
+                }
+            }
+
+            if (python_module_import(&xsink, pgm, mod_str.c_str(), nullptr)) {
+                QoreToJava::wrapException(xsink);
+                return nullptr;
+            }
+        } catch (AbstractException& e) {
+            e.convert(&xsink);
+            QoreToJava::wrapException(xsink);
+            return nullptr;
+        }
+    } else if (module && load_module(env, mod_str, module, pgm )) {
         return nullptr;
     }
 
-    ExceptionSink xsink;
     try {
         // set program context before converting arguments
         QoreExternalProgramContextHelper pch(&xsink, pgm);
@@ -1146,10 +1207,9 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
         Env::GetStringUtfChars nsname(env);
         if (qname) {
             nsname.set(qname);
-            //QoreString nspath(nsname.c_str());
             ns = pgm->findNamespace(nsname.c_str());
         } else {
-            assert(qore_module);
+            assert(module);
             ns = get_module_root_ns(mod_str.c_str(), pgm);
         }
 
@@ -1159,8 +1219,12 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
             while (i.next()) {
                 const QoreClass& qc = i.get();
                 std::string pname;
-                if (qore_module) {
-                    pname = "qoremod.";
+                if (module) {
+                    if (python) {
+                        pname = "pythonmod.";
+                    } else {
+                        pname = "qoremod.";
+                    }
                     pname += mod_str.c_str();
                     pname += ".";
                     pname += qc.getName();
@@ -1173,7 +1237,11 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
                         pname.replace(start_pos, 2, ".");
                         ++start_pos;
                     }
-                    pname.insert(0, "qore.");
+                    if (python) {
+                        pname.insert(0, "python.");
+                    } else {
+                        pname.insert(0, "qore.");
+                    }
                 }
                 //printd(5, "qore_url_classloader_get_class_names_in_namespace() pgm: %p %s: qc: %p (%s -> %s)\n",
                 //  pgm, nsname.c_str(), &qc, qc.getName(), pname.c_str());
@@ -1255,8 +1323,10 @@ static jobject JNICALL qore_url_classloader_debug(JNIEnv* jenv, jclass jcls, jlo
     return nullptr;
 }
 
-static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreClass* qc, jobject java_this, jobjectArray args) {
-    printd(5, "qore_object_create() qc: %p java_this: %p args: %p\n", qc, java_this, args);
+static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreClass* qc, const QoreMethod* meth,
+        const QoreExternalMethodVariant* v, jobject java_this, jobjectArray args) {
+    //printd(5, "qore_object_create() qc: %p meth: %p v: %p java_this: %p %s::%s() args: %p\n", qc, meth, v, java_this,
+    //    qc->getName(), meth ? meth->getName() : "n/a", args);
 
     Env env(jenv);
     if (!qc) {
@@ -1298,6 +1368,8 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreC
             jcname.replace(0, 4, "");
         } else if (!strncmp(jcname.c_str(), "qoremod.", 8)) {
             jcname.replace(0, 7, "");
+        } else if (!strncmp(jcname.c_str(), "pythonmod.", 10)) {
+            jcname.replace(0, 9, "");
         } else {
             jcname.prepend("::");
         }
@@ -1333,6 +1405,22 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreC
         ReferenceHolder<QoreListNode> qore_args(&xsink);
         if (len) {
             Array::getArgList(qore_args, env, args, pgm);
+        }
+
+        if (v && (v->getCodeFlags() & QCF_USES_EXTRA_ARGS) && qore_args && !qore_args->empty()) {
+            // flatten out final argument
+            QoreValue last = qore_args->retrieveEntry(qore_args->size() - 1);
+            if (last.getType() == NT_LIST) {
+                // move elements in the final list to the parent list
+                assert(qore_args->is_unique());
+                ReferenceHolder<QoreListNode> flist(qore_args->pop().get<QoreListNode>(), &xsink);
+                for (size_t i = 0; i < flist->size(); ++i) {
+                    QoreValue& elem = flist->getEntryReference(i);
+                    qore_args->push(elem, &xsink);
+                    assert(!xsink);
+                    elem.clear();
+                }
+            }
         }
 
         ValueHolder obj(qc->execConstructor(*jqc, *qore_args, true, &xsink), &xsink);
@@ -1645,7 +1733,7 @@ static JNINativeMethod qoreExceptionWrapperNativeMethods[] = {
 static JNINativeMethod qoreObjectBaseNativeMethods[] = {
     {
         const_cast<char*>("create0"),
-        const_cast<char*>("(JLjava/lang/Object;[Ljava/lang/Object;)J"),
+        const_cast<char*>("(JJJLjava/lang/Object;[Ljava/lang/Object;)J"),
         reinterpret_cast<void*>(qore_object_create)
     },
     {
@@ -1719,12 +1807,12 @@ static JNINativeMethod qoreURLClassLoaderNativeMethods[] = {
     },
     {
         const_cast<char*>("generateByteCode0"),
-        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)[B"),
+        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)[B"),
         reinterpret_cast<void*>(qore_url_classloader_generate_byte_code),
     },
     {
         const_cast<char*>("getClassesInNamespace0"),
-        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;Ljava/util/ArrayList;)V"),
+        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;ZLjava/util/ArrayList;)V"),
         reinterpret_cast<void*>(qore_url_classloader_get_classes_in_namespace),
     },
     {
@@ -2210,7 +2298,7 @@ bool Globals::init() {
         "Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderAddConstructor = env.getStaticMethod(classJavaClassBuilder, "addConstructor",
         "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/Class;" \
-            "JILjava/util/List;Z)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
+            "JJILjava/util/List;Z)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderAddNormalMethod = env.getStaticMethod(classJavaClassBuilder, "addNormalMethod",
         "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JJI" \
         "Lnet/bytebuddy/description/type/TypeDefinition;Ljava/util/List;ZZ)" \

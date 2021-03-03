@@ -423,8 +423,10 @@ public class QoreURLClassLoader extends URLClassLoader {
     */
 
     static public boolean isDynamic(String bin_name) {
-        return bin_name.equals("qore") || (bin_name.startsWith("qore.") && bin_name.length() > 5)
-            || (bin_name.startsWith("qoremod.") && bin_name.length() > 8);
+        return bin_name.equals("qore")
+            || (bin_name.startsWith("qore.") && bin_name.length() > 5)
+            || (bin_name.startsWith("qoremod.") && bin_name.length() > 8)
+            || (bin_name.startsWith("pythonmod.") && bin_name.length() > 10);
     }
 
     protected Class<?> defineClassIntern(String name, byte[] byte_code, int off, int len) throws ClassFormatError {
@@ -537,7 +539,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     public ArrayList<String> getClassesInNamespace(String packageName) {
         ArrayList<String> rv = new ArrayList<String>();
         ClassModInfo info = new ClassModInfo(packageName);
-        getClassesInNamespace0(pgm_ptr, info.cls, info.mod, rv);
+        getClassesInNamespace0(pgm_ptr, info.cls, info.mod, info.python, rv);
         //System.out.printf("getClassesInNamespace(%s) pgm: %x cls: '%s' mod: '%s' rv: %s\n", packageName, pgm_ptr,
         //  info.cls, info.mod, rv);
 
@@ -690,15 +692,13 @@ public class QoreURLClassLoader extends URLClassLoader {
             throw new ClassNotFoundException(String.format("invalid dynamic import path '%s'", bin_name));
         }
 
-        String qore_module = info.mod;
-        String qname = info.cls;
         byte[] rv = null;
         if (pgm_ptr != 0) {
             try {
                 // XXX DEBUG
                 //System.out.printf("QoreURLClassLoader.generateByteCodeIntern() this: %x pgm: %x '%s'\n",
                 //    hashCode(), pgm_ptr, bin_name);
-                rv = generateByteCode0(pgm_ptr, qname, bin_name, qore_module);
+                rv = generateByteCode0(pgm_ptr, info.cls, bin_name, info.mod, info.python);
             } catch (ClassNotFoundException e) {
                 throw e;
             } catch (RuntimeException e) {
@@ -714,7 +714,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         }
         if (rv == null) {
             throw new ClassNotFoundException(String.format("could not find a Qore source class matching '%s' to " +
-                "create Java class '%s'", qname, bin_name));
+                "create Java class '%s'", info.cls, bin_name));
         }
         // only put in the cache if the byte code is present
         pendingClasses.put(bin_name, rv);
@@ -758,9 +758,10 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     static private native byte[] getCachedClass0(String name);
     static private native byte[] getInternalClass0(String name);
-    private native byte[] generateByteCode0(long ptr, String qname, String name, String qore_module) throws Throwable;
-    static private native void getClassesInNamespace0(long ptr, String packageName, String mod,
-            ArrayList<String> result);
+    private native byte[] generateByteCode0(long ptr, String qname, String name, String qore_module, boolean python)
+        throws Throwable;
+    static private native void getClassesInNamespace0(long ptr, String packageName, String mod, boolean python,
+        ArrayList<String> result);
     static private native void getInternalClassesForPackage0(long ptr, String packageName, ArrayList<String> result);
     static private native long getContextProgram0(QoreURLClassLoader syscl, BooleanWrapper created);
     static private native void shutdownContext0();

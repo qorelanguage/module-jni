@@ -214,6 +214,22 @@ public class Main inherits QUnit::Test {
                 # compile and execute QoreDynamicTest8.java
                 QoreJavaCompiler compiler();
                 hash<auto> sources = {
+                    "org.qore.test.QoreDynamicTest9": File::readTextFile(get_script_dir() +
+                        "/../test/QoreDynamicTest9.java"),
+                };
+                hash<auto> cv = compiler.compile(sources);
+                #printf("%N\n", cv);
+                compiler::CompilerOutput newClassData = cv{"org.qore.test.QoreDynamicTest9"};
+                binary fdata = newClassData.file.openInputStream().readAllBytes();
+                assertEq(True, fdata.size() > 0);
+                object obj = newClassData.cls.newInstance();
+                assertEq("{\"a\": 1}", obj.test({"a": 1}));
+            }
+
+            {
+                # compile and execute QoreDynamicTest8.java
+                QoreJavaCompiler compiler();
+                hash<auto> sources = {
                     "org.qore.test.QoreDynamicTest8": File::readTextFile(get_script_dir() + "/../test/QoreDynamicTest8.java"),
                 };
                 hash<auto> cv = compiler.compile(sources);

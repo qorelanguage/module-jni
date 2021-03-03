@@ -8,9 +8,11 @@
     %Qore APIs can be dynamically imported into Java programs at runtime; additionally a
     @ref org.qore.jni.compiler.QoreJavaCompiler "custom Java compiler" implementation is included that allows for
     building bytecode with the @ref org.qore.jni.QoreURLClassLoader "Qore class loader" that supports dynamic byte
-    code generation for %Qore language bindings; see @ref jni_dynamic_import_qore_in_java for more information.
+    code generation for %Qore and Python language bindings; see @ref jni_dynamic_import_qore_python_in_java for more
+    information.
 
-    Native API imports and bindings as well as run-time data translations between Java and %Qore are supported.
+    Native API imports and bindings as well as run-time data translations between Java and %Qore and Java and Python
+    are supported.
 
     Java bytecode generation for dynamic API generation is provided by
     <a href="https://bytebuddy.net/">Byte Buddy</a>, an excellent and flexible open-source API for Java bytecode
@@ -375,16 +377,20 @@ class MyTest {
     java -Djava.library.path=/usr/local/lib -cp qore-jni.jar:. MyTest
     @endverbatim
 
-    @subsection jni_dynamic_import_qore_in_java Importing Qore APIs Dynamically in Java
+    @subsection jni_dynamic_import_qore_python_in_java Importing Qore and Python APIs Dynamically in Java
 
-    Dynamic %Qore API imports are supported with \c qore-jni.jar at runtime; \c qore-jni-compiler.jar contains a
-    compiler API that can build bytecode that supports providing dynamic imports to the Java compiler as well.
+    Dynamic %Qore and Python API imports are supported with \c qore-jni.jar at runtime; \c qore-jni-compiler.jar
+    contains a compiler API that can build bytecode that supports providing dynamic imports to the Java compiler as
+    well.
 
     At runtime, only the \c qore-jni.jar file (and an accessible Qore shared library) are needed.
 
     @subsubsection jni_dynamic_imports Dynamic Import Statements
 
     The following special packages provide access to dynamically-generated classes:
+    - <tt>pythonmod.</tt><i>mod</i><tt>.</tt><i>[path...]</i>: indicates that the given path should be mapped to %Qore
+      namespaces and/or classes after loading the Python module <i>mod</i> and importing into %Qore; the Java package
+      segments after "<tt>pythonmod.</tt><i>mod</i><tt>." are then converted to the equivalent %Qore namespace path
     - \c qore: indicates that the given path should be mapped to %Qore namespaces and/or classes; the Java package
       segments after "<tt>qore.</tt>" are then converted to the equivalent %Qore namespace path
     - <tt>qoremod.</tt><i>mod</i><tt>.</tt><i>[path...]</i>: indicates that the given path should be mapped to %Qore
@@ -392,13 +398,19 @@ class MyTest {
       segments after "<tt>qoremod.</tt><i>mod</i><tt>." are then converted to the equivalent %Qore namespace path
 
     For example:
+    - <tt>import pythonmod.json.JSONEncoder;</tt> would cause the \c json Python module to be loaded and imported
+      into %Qore and then for the \c JSONEncoder class to be imported into Java automatically
     - <tt>import qore.Qore.Thread.ThreadPool;</tt> would cause the <tt>::Qore::Thread::ThreadPool</tt>
       class to be imported automatically
     - <tt>import qoremod.RestClient.RestClient;</tt> would cause the \c RestClient %Qore module to be loaded and then
       for the \c RestClient class to be imported automatically
 
-    %Qore classes imported as above can then be used as Java classes for instantiation or as base classes for Java
-    subclasses.
+    %Qore and Python classes imported as above can then be used as Java classes for instantiation or as base classes
+    for Java subclasses.
+
+    @note %Qore acts as a "language bridge" between Python and Java; Python can also inherit Java classes using a
+    similar mechanism; Java classes are imported into %Qore and then the wrapper %Qore classes are imported
+    dynamically into Python
 
     @subsection jni_dynamic_imports_compile Using Dynamic API Imports While Compiling
 
@@ -639,7 +651,7 @@ set_save_object_callback(callback);
 
     @subsection jni_2_0 jni Module Version 2.0
     - the old hand-developed Java wrapper classes are deprecated as of this release in favor of
-      @ref jni_dynamic_import_qore_in_java "dynamic imports"
+      @ref jni_dynamic_import_qore_python_in_java "dynamic imports"
     - implemented support for dynamically importing %Qore code into Java
       (<a href="https://github.com/qorelanguage/qore/issues/4091">issue 4091</a>)
 

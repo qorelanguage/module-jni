@@ -1086,7 +1086,7 @@ static LocalReference<jobject> get_type_def_from_class(Env& env, jclass jcls) {
 }
 
 // returns an ArrayList<Type> object or null
-LocalReference<jobject> JniExternalProgramData::getJavaParamList(Env& env, jobject class_loader, const QoreMethod& m,
+jobject JniExternalProgramData::getJavaParamList(Env& env, jobject class_loader, const QoreMethod& m,
         const QoreExternalMethodVariant& v, QoreProgram* pgm, unsigned& len) {
     const type_vec_t& params = v.getParamTypeList();
     len = params.size();
@@ -1114,9 +1114,11 @@ LocalReference<jobject> JniExternalProgramData::getJavaParamList(Env& env, jobje
         LocalReference<jobject> jtype(get_type_def_from_class(env, (jclass)Globals::arrayClassObject));
         jarg.l = jtype;
         env.callBooleanMethod(plist, Globals::methodArrayListAdd, &jarg);
+    } else if (!len) {
+        return nullptr;
     }
 
-    return plist;
+    return plist.release();
 }
 
 static void shorten_params(Env& env, LocalReference<jobject>& params, unsigned len) {
@@ -1275,20 +1277,21 @@ int JniExternalProgramData::addConstructorVariant(Env& env, jobject class_loader
 
     // first get the params
     unsigned len;
-    LocalReference<jobject> params = getJavaParamList(env, class_loader, m, v, pgm, len).release();
+    LocalReference<jobject> params = getJavaParamList(env, class_loader, m, v, pgm, len);
 
     while (true) {
         if (!jph.checkVariant(params, QMT_CONSTRUCTOR)) {
-            std::vector<jvalue> jargs(6);
+            std::vector<jvalue> jargs(7);
             jargs[0].l = bb;
             jargs[1].l = parent_class;
             jargs[2].j = reinterpret_cast<jlong>(&m);
-            jargs[3].i = qore_jni_get_acc_visibility(m, v);
-            jargs[4].l = params;
-            jargs[5].z = v.getCodeFlags() & QCF_USES_EXTRA_ARGS;
+            jargs[3].j = reinterpret_cast<jlong>(&v);
+            jargs[4].i = qore_jni_get_acc_visibility(m, v);
+            jargs[5].l = params;
+            jargs[6].z = v.getCodeFlags() & QCF_USES_EXTRA_ARGS;
 
-            printd(5, "JniExternalProgramData::addConstructorVariant() %s %s::constructor(%s): adding (len: %d)\n",
-                v.getAccessString(), qcls.getName(), v.getSignatureText(), len);
+            printd(5, "JniExternalProgramData::addConstructorVariant() %s %s::constructor(%s): adding (len: %d " \
+                "params: %p)\n", v.getAccessString(), qcls.getName(), v.getSignatureText(), len, (jobject)params);
             bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
                 Globals::methodJavaClassBuilderAddConstructor, &jargs[0]);
             printd(5, "JniExternalProgramData::addConstructorVariant() bb: %p\n", (jobject)bb);
@@ -1317,7 +1320,7 @@ int JniExternalProgramData::addNormalMethodVariant(Env& env, jobject class_loade
 
     // first get the params
     unsigned len;
-    LocalReference<jobject> params = getJavaParamList(env, class_loader, m, v, pgm, len).release();
+    LocalReference<jobject> params = getJavaParamList(env, class_loader, m, v, pgm, len);
 
     QoreString jname;
     if (!strcmp(m.getName(), "getClass")) {
@@ -1379,7 +1382,7 @@ int JniExternalProgramData::addStaticMethodVariant(Env& env, jobject class_loade
 
     // first get the params
     unsigned len;
-    LocalReference<jobject> params = getJavaParamList(env, class_loader, m, v, pgm, len).release();
+    LocalReference<jobject> params = getJavaParamList(env, class_loader, m, v, pgm, len);
 
     while (true) {
         if (!jph.checkVariant(params, QMT_STATIC)) {
@@ -1500,13 +1503,14 @@ int JniExternalProgramData::addMethods(Env& env, jobject class_loader, const Qor
 
         // add default constructor if necessary
         if (!constructor_count) {
-            std::vector<jvalue> jargs(6);
+            std::vector<jvalue> jargs(7);
             jargs[0].l = bb;
             jargs[1].l = parent_class;
             jargs[2].j = 0;
-            jargs[3].i = ACC_PUBLIC;
-            jargs[4].l = nullptr;
-            jargs[5].z = false;
+            jargs[3].j = 0;
+            jargs[4].i = ACC_PUBLIC;
+            jargs[5].l = nullptr;
+            jargs[6].z = false;
 
             bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder, Globals::methodJavaClassBuilderAddConstructor,
                 &jargs[0]);

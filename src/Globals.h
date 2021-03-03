@@ -184,7 +184,7 @@ public:
 
     DLLLOCAL static GlobalReference<jclass> classJavaClassBuilder;                // org.qore.jni.JavaClassBuilder
     DLLLOCAL static jmethodID methodJavaClassBuilderGetClassBuilder;              // static DynamicType.Builder<?> getClassBuilder(String, Class<?>, boolean, long)
-    DLLLOCAL static jmethodID methodJavaClassBuilderAddConstructor;               // static DynamicType.Builder<?> addConstructor(DynamicType.Builder<?>, Class<?>, long, int, List<TypeDefinition>)
+    DLLLOCAL static jmethodID methodJavaClassBuilderAddConstructor;               // static DynamicType.Builder<?> addConstructor(DynamicType.Builder<?>, Class<?>, long, long, int, List<TypeDefinition>)
     DLLLOCAL static jmethodID methodJavaClassBuilderAddNormalMethod;              // static DynamicType.Builder<?> addNormalMethod(DynamicType.Builder<?>, String, long, long, int, TypeDefinition, List<TypeDefinition>, boolean)
     DLLLOCAL static jmethodID methodJavaClassBuilderAddStaticMethod;              // static DynamicType.Builder<?> addStaticMethod(DynamicType.Builder<?>, String, long, long, int, TypeDefinition, List<TypeDefinition>)
     DLLLOCAL static jmethodID methodJavaClassBuilderGetByteCodeFromBuilder;       // static byte[] getByteCodeFromBuilder(DynamicType.Builder<?>, QoreURLClassLoader)
