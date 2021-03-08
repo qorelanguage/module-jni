@@ -68,7 +68,7 @@ jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jo
 
     ExceptionSink xsink;
     try {
-        QoreProgram* pgm = nullptr;
+        QoreProgram* pgm = callback->getProgram();
         JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
 
         ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), &xsink);

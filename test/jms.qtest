@@ -56,7 +56,7 @@ public class Main inherits QUnit::Test {
         InitialContext ctx(props);
 
         Connection connection = cast<ConnectionFactory>(ctx.lookup("jms/__defaultConnectionFactory")).createConnection();
-        Session session = connection.createSession(new Integer(Session::CLIENT_ACKNOWLEDGE));
+        Session session = connection.createSession(Session::CLIENT_ACKNOWLEDGE);
 
         Destination queue = cast<Destination>(ctx.lookup("abc"));
 

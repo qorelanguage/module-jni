@@ -38,18 +38,18 @@ namespace jni {
 class Dispatcher {
 
 public:
-   virtual ~Dispatcher() = default;
+    virtual ~Dispatcher() = default;
 
-   virtual jobject dispatch(Env &env, jobject proxy, jobject method, jobjectArray args) = 0;
+    virtual jobject dispatch(Env& env, jobject proxy, jobject method, jobjectArray args) = 0;
 
 protected:
-   Dispatcher() = default;
+    Dispatcher() = default;
 
 private:
-   Dispatcher(const Dispatcher &) = delete;
-   Dispatcher(Dispatcher &&) = delete;
-   Dispatcher &operator=(const Dispatcher &) = delete;
-   Dispatcher &operator=(Dispatcher &&) = delete;
+    Dispatcher(const Dispatcher&) = delete;
+    Dispatcher(Dispatcher&&) = delete;
+    Dispatcher& operator=(const Dispatcher&) = delete;
+    Dispatcher& operator=(Dispatcher&&) = delete;
 };
 
 /**
@@ -58,14 +58,14 @@ private:
 class QoreCodeDispatcher : public Dispatcher {
 
 public:
-   QoreCodeDispatcher(const ResolvedCallReferenceNode *callback);
-   ~QoreCodeDispatcher();
+    QoreCodeDispatcher(const ResolvedCallReferenceNode* callback);
+    ~QoreCodeDispatcher();
 
-   jobject dispatch(Env &env, jobject proxy, jobject method, jobjectArray args) override;
+    jobject dispatch(Env& env, jobject proxy, jobject method, jobjectArray args) override;
 
 private:
-   QoreProgram* pgm = getProgram();
-   ResolvedCallReferenceNode *callback;
+    QoreProgram* pgm = getProgram();
+    ResolvedCallReferenceNode* callback;
 };
 
 } // namespace jni

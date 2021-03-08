@@ -78,14 +78,13 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t arg
     for (size_t index = 0; index < paramCount; ++index) {
         // process varargs with remaining arguments or with a single argument if appropriate
         if (doVarArgs && (index == (paramCount - 1))
-            && ((argCount > paramCount)
-                || (argCount == paramCount && !index && argCount == 1 && args->retrieveEntry(0).getType() != NT_LIST))) {
+            && !(argCount == paramCount && args->retrieveEntry(index + arg_offset).getType() == NT_LIST)) {
             // get array component type
             Env env;
             LocalReference<jclass> ccls = env.callObjectMethod(paramTypes[index].second,
                 Globals::methodClassGetComponentType, nullptr).as<jclass>();
 
-            jargs[index].l = Array::toObjectArray(args, ccls, index, jpc).release();
+            jargs[index].l = Array::toObjectArray(args, ccls, index + arg_offset, jpc).release();
             break;
         }
         assert(!args || args->empty() || (index < argCount));
@@ -155,11 +154,6 @@ LocalReference<jobjectArray> BaseMethod::convertArgsToArray(const QoreListNode* 
         env.newObjectArray(paramCount + array_offset, Globals::classObject).as<jobjectArray>();
     for (size_t index = 0; index < paramCount; ++index) {
         // process varargs with remaining arguments or with a single argument if appropriate
-        /*
-        if (doVarArgs && (index == (paramCount - 1))
-            && ((argCount > paramCount)
-                || (argCount == paramCount && !index && argCount == 1 && args->retrieveEntry(0).getType() != NT_LIST))) {
-        */
         if (doVarArgs && (index == (paramCount - 1))
             && !(argCount == paramCount && args->retrieveEntry(index + arg_offset).getType() == NT_LIST)) {
             // get array component type
