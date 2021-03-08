@@ -1,10 +1,7 @@
 
 package org.qore.test;
 
-import pythonmod.xml.etree.ElementTree.$Functions;
-//import pythonmod.xml.etree.ElementTree.ElementTree;
-//import pythonmod.xml.etree.ElementTree.*;
-import qore.Python.xml.etree.ElementTree.*;
+import pythonmod.xml.etree.ElementTree.*;
 import org.qore.jni.Hash;
 import org.qore.jni.QoreObject;
 

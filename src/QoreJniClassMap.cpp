@@ -40,6 +40,8 @@
 #include "JavaClassQoreJavaDynamicApi.inc"
 
 namespace jni {
+static std::string JNI_CK_JAVA_BIN_NAME = "jni_bin_name";
+
 typedef std::set<std::string> strset_t;
 
 // the QoreClass for java::lang::Object
@@ -1664,6 +1666,14 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jo
 }
 
 static LocalReference<jstring> get_java_name_for_class(Env& env, const QoreClass& qc, const char* sep = ".") {
+    ValueHolder v(qc.getReferencedKeyValue(JNI_CK_JAVA_BIN_NAME), nullptr);
+    if (v) {
+        assert(v->getType() == NT_STRING);
+        const char* jname = v->get<const QoreStringNode>()->c_str();
+        //printd(5, "get_java_name_for_class() cls '%s' -> embedded java '%s'\n", qc.getName(), jname);
+        return env.newString(jname);
+    }
+
     std::string pname = qc.getNamespacePath(true);
     size_t start_pos = 0;
     while ((start_pos = pname.find("::", start_pos)) != std::string::npos) {
@@ -1826,6 +1836,8 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
     printd(5, "JniExternalProgramData::generateByteCodeIntern() path: '%s': %p (abstract: %d) " \
         "jparent: %p (jname: %p)\n", qcls->getName(), cptr, qcls->isAbstract(), parent_ptr, jname);
 
+    bool has_jname = (bool)jname;
+
     LocalReference<jstring> njname;
     if (!jname) {
         njname = get_java_name_for_class(env, *qcls);
@@ -1858,6 +1870,15 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
     LocalReference<jbyteArray> rv = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
         Globals::methodJavaClassBuilderGetByteCodeFromBuilder, &jargs[0]).as<jbyteArray>();
 
+    // save Java bin name in Qore class if necessary
+    if (has_jname) {
+        // NOTE this must come last as using Env::GetStringUtfChars on a java string destroys the string
+        Env::GetStringUtfChars jname_str(env, jname);
+        printd(5, "JniExternalProgramData::generateByteCodeIntern() saving class name %p %s: %s\n", qcls,
+            qcls->getName(), jname_str.c_str());
+        const_cast<QoreClass*>(qcls)->setKeyValueIfNotSet(JNI_CK_JAVA_BIN_NAME, jname_str.c_str());
+    }
+
     printd(5, "JniExternalProgramData::generateByteCodeIntern() %s rv: %p cl: %x (this->cl: %x)\n", qcls->getName(),
         (jobject)rv,
         env.callIntMethod((jobject)class_loader, jni::Globals::methodObjectHashCode, nullptr),
@@ -1866,9 +1887,11 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
     return rv;
 }
 
-LocalReference<jobject> JniExternalProgramData::getJavaTypeDefinition(Env& env, jobject class_loader, const QoreTypeInfo* ti) {
+LocalReference<jobject> JniExternalProgramData::getJavaTypeDefinition(Env& env, jobject class_loader,
+        const QoreTypeInfo* ti) {
     qore_type_t t = qore_type_get_base_type(ti);
-    printd(5, "JniExternalProgramData::getJavaTypeDefinition() looking up type '%s' (%d)\n", qore_type_get_name(ti), t);
+    printd(5, "JniExternalProgramData::getJavaTypeDefinition() looking up type '%s' (%d)\n", qore_type_get_name(ti),
+        t);
     if (t != NT_OBJECT) {
         LocalReference<jclass> jtype(QoreJniClassMap::getPrimitiveType(t));
         return get_type_def_from_class(env, (jclass)jtype);

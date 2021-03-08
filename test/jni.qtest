@@ -42,6 +42,10 @@
 
 %module-cmd(jni) import java.util.ArrayList
 
+%try-module python
+%define NO_PYTHON
+%endtry
+
 our int code_test_var;
 
 class TestHelper {
@@ -175,6 +179,7 @@ public class Main inherits QUnit::Test {
 
     constructor() : Test("jni test", "1.0") {
         addTestCase("codegen test", \javaCodegenTest());
+        /*
         addTestCase("class compat test", \classCompatTest());
         addTestCase("code test", \testCode());
         addTestCase("smtpclient test", \smtpClientTest());
@@ -207,14 +212,31 @@ public class Main inherits QUnit::Test {
         addTestCase("callback return value test", \testCallbackRetVal());
         addTestCase("special conversions test", \testSpecialConversions());
         addTestCase("api test", \testQoreJavaApi());
+        */
 
-        exit(main());
+        Qore::exit(main());
     }
 
     javaCodegenTest() {
         try {
+%ifndef NO_PYTHON
             {
-                # compile and execute QoreDynamicTest8.java
+                # compile and execute QoreDynamicTest11.java
+                QoreJavaCompiler compiler();
+                hash<auto> sources = {
+                    "org.qore.test.QoreDynamicTest11": File::readTextFile(get_script_dir() +
+                        "/../test/QoreDynamicTest11.java"),
+                };
+                hash<auto> cv = compiler.compile(sources);
+                #printf("%N\n", cv);
+                compiler::CompilerOutput newClassData = cv{"org.qore.test.QoreDynamicTest11"};
+                binary fdata = newClassData.file.openInputStream().readAllBytes();
+                assertEq(True, fdata.size() > 0);
+                object obj = define_class("org/qore/test/QoreDynamicTest11", fdata).newInstance();
+                assertEq(ENV.PATH, obj.test());
+            }
+            {
+                # compile and execute QoreDynamicTest10.java
                 QoreJavaCompiler compiler();
                 hash<auto> sources = {
                     "org.qore.test.QoreDynamicTest10": File::readTextFile(get_script_dir() +
@@ -228,9 +250,10 @@ public class Main inherits QUnit::Test {
                 object obj = define_class("org/qore/test/QoreDynamicTest10", fdata).newInstance();
                 assertEq("test", obj.test("<xml><a>test</a></xml>", "a"));
             }
+            if (True) return;
 
             {
-                # compile and execute QoreDynamicTest8.java
+                # compile and execute QoreDynamicTest9.java
                 QoreJavaCompiler compiler();
                 hash<auto> sources = {
                     "org.qore.test.QoreDynamicTest9": File::readTextFile(get_script_dir() +
@@ -244,6 +267,7 @@ public class Main inherits QUnit::Test {
                 object obj = newClassData.cls.newInstance();
                 assertEq("{\"a\": 1}", obj.test({"a": 1}));
             }
+%endif
 
             {
                 # compile and execute QoreDynamicTest8.java
