@@ -321,7 +321,7 @@ public class AbstractSQLStatement extends QoreObjectWrapper {
         @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information
     */
     public int affectedRows() throws Throwable {
-        return (int)obj.callMethod("affectedRows");
+        return ((Long)obj.callMethod("affectedRows")).intValue();
     }
 
     //! Retrieves output buffers as a hash; result sets will be returned as hashes of lists

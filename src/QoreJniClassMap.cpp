@@ -1787,6 +1787,14 @@ LocalReference<jbyteArray> JniExternalProgramData::generateFunctionClassIntern(E
     LocalReference<jbyteArray> rv = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
         Globals::methodJavaClassBuilderGetByteCodeFromBuilder, &jargs[0]).as<jbyteArray>();
 
+#ifdef DEBUG_1
+    // NOTE this must come last as using Env::GetStringUtfChars on a java string destroys the string
+    {
+        Env::GetStringUtfChars jname_str(env, jname);
+        printd(5, "JniExternalProgramData::generateFunctionClassIntern() %s\n", jname_str.c_str());
+    }
+#endif
+
     printd(5, "JniExternalProgramData::generateFunctionClassIntern() '%s' rv: %p\n", ns->getName(), (jobject)rv);
     return rv;
 }
@@ -1862,13 +1870,32 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
         return nullptr;
     }
 
-    //printd(5, "JniExternalProgramData::generateByteCodeIntern() %s methods added bb: %p; building class with " \
-    //    "cl: %p\n", qcls->getName(), (jobject)bb, (jobject)class_loader);
+    static std::set<std::string> strset;
+    std::string qpath = qcls->getNamespacePath();
+    strset.insert(qpath);
+
+    printd(5, "JniExternalProgramData::generateByteCodeIntern() %s methods added bb: %p; building class with " \
+        "cl: %p\n", qcls->getName(), (jobject)bb,
+        env.callIntMethod((jobject)class_loader, jni::Globals::methodObjectHashCode, nullptr));
 
     jargs[0].l = bb;
     jargs[1].l = class_loader;
-    LocalReference<jbyteArray> rv = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
-        Globals::methodJavaClassBuilderGetByteCodeFromBuilder, &jargs[0]).as<jbyteArray>();
+
+    LocalReference<jbyteArray> rv;
+    try {
+        rv = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
+            Globals::methodJavaClassBuilderGetByteCodeFromBuilder, &jargs[0]).as<jbyteArray>();
+    } catch (...) {
+        for (auto& i : strset) {
+            printf("%s\n", i.c_str());
+        }
+        throw;
+    }
+
+    //LocalReference<jbyteArray> rv = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
+    //    Globals::methodJavaClassBuilderGetByteCodeFromBuilder, &jargs[0]).as<jbyteArray>();
+
+    strset.erase(qpath);
 
     // save Java bin name in Qore class if necessary
     if (has_jname) {

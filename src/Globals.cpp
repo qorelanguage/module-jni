@@ -1240,6 +1240,8 @@ static void get_java_pfx(QoreString& java_pfx, jboolean python, const char* mod_
     } else {
         if (python) {
             java_pfx = "python.";
+            java_pfx += py_path.c_str();
+            java_pfx += ".";
         } else {
             java_pfx = "qore.";
         }
@@ -1282,39 +1284,49 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
 
     if (python) {
         if (module) {
+            printd(5, "ms: '%s'\n", mod_str.c_str());
             py_path.concat(mod_str.c_str());
             if (qname) {
                 py_path.concat('.');
             }
         }
         if (qname) {
-            py_path.concat(nsname.c_str());
+            printd(5, "q: '%s'\n", nsname.c_str());
+            if (!strncmp(nsname.c_str(), "::Python::", 10)) {
+                py_path.concat(nsname.c_str() + 10);
+            } else {
+                py_path.concat(nsname.c_str());
+            }
+            if (py_path.find("::") >= 0) {
+                py_path.replaceAll("::", ".");
+            }
         }
     }
 
     printd(5, "qore_url_classloader_get_classes_in_namespace() qname: '%s' (%p) module: '%s' (%p) python: %d " \
         "py_path: '%s'\n", nsname.c_str(), qname, mod_str.c_str(), module, python, py_path.c_str());
 
-    if (module) {
-        if (python) {
-            try {
-                if (!python_module_import && load_python_module(env, jpc, pgm)) {
-                    return nullptr;
-                }
-
-                printd(5, "qore_url_classloader_get_classes_in_namespace() python mod: '%s'\n", py_path.c_str());
-                if (python_module_import(&xsink, pgm, py_path.c_str(), nullptr)) {
-                    QoreToJava::wrapException(xsink);
-                    return nullptr;
-                }
-            } catch (AbstractException& e) {
-                e.convert(&xsink);
+    if (python) {
+        try {
+            if (!python_module_import && load_python_module(env, jpc, pgm)) {
+                return nullptr;
+            }
+            printd(5, "qore_url_classloader_get_classes_in_namespace() python import path: '%s'\n", py_path.c_str());
+            if (python_module_import(&xsink, pgm, py_path.c_str(), nullptr)) {
                 QoreToJava::wrapException(xsink);
                 return nullptr;
             }
-        } else if (load_module(env, mod_str, pgm )) {
+
+        } catch (AbstractException& e) {
+            e.convert(&xsink);
+            QoreToJava::wrapException(xsink);
             return nullptr;
         }
+
+    }
+
+    if (module && !python && load_module(env, mod_str, pgm )) {
+        return nullptr;
     }
 
     try {
@@ -1360,14 +1372,19 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
                     std::string cnsn = qc.getNamespacePath();
                     printd(5, "CLASS %s (%p) nsp: '%s'\n", qc.getName(), &qc, cnsn.c_str());
                 } else {
-                    // get Qore namespace path and convert to a Java binary name
-                    pname = qc.getNamespacePath();
-                    size_t start_pos = 0;
-                    while ((start_pos = pname.find("::", start_pos)) != std::string::npos) {
-                        pname.replace(start_pos, 2, ".");
-                        ++start_pos;
+                    if (python) {
+                        pname = java_pfx.c_str();
+                        pname += qc.getName();
+                    } else {
+                        // get Qore namespace path and convert to a Java binary name
+                        pname = qc.getNamespacePath();
+                        size_t start_pos = 0;
+                        while ((start_pos = pname.find("::", start_pos)) != std::string::npos) {
+                            pname.replace(start_pos, 2, ".");
+                            ++start_pos;
+                        }
+                        pname.insert(0, java_pfx.c_str());
                     }
-                    pname.insert(0, java_pfx.c_str());
                 }
                 printd(5, "qore_url_classloader_get_classes_in_namespace() pgm: %p '%s': qc: %p (%s -> %s)\n",
                   pgm, nsname.c_str(), &qc, qc.getName(), pname.c_str());

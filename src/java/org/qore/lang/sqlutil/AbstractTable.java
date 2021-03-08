@@ -1196,7 +1196,59 @@ HashMap<String, Object> rows = t.selectRows(sh);
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
     @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_substr(Object column, long start, long count) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_substr", column, start, count);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "substr" operator with the given arguments; returns a substring of a column value
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_substr("name", 1));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+        @param start position where the substring starts
+        @param count length of the substring in characters
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
     public static HashMap<String, Object> cop_substr(Object column, int start) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_substr", column, start);
+    }
+
+    //! returns a @ref ColumnOperatorInfo hash for the \c "substr" operator with the given arguments; returns a substring of a column value
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_substr("name", 1));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+        @endcode
+
+        @param column the column specification for the column (String name or dot notation for use in joins)
+        @param start position where the substring starts
+        @param count length of the substring in characters
+
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_substr(Object column, long start) throws Throwable {
         return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_substr", column, start);
     }
 
@@ -1404,6 +1456,38 @@ select ntile(10) over (partition by row_type order by id) as "ntile" from test_a
     */
     @SuppressWarnings("unchecked")
     public static HashMap<String, Object> cop_ntile(int value) throws Throwable {
+        return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_ntile", value);
+    }
+
+    //! Analytic/window method: integer ranging from 1 to the argument value, dividing the partition as equally as possible
+    /** @par Example:
+        @code{.java}
+HashMap<String, Object> wh = new HashMap<String, Object>() {
+    put("type", "user");
+};
+
+HashMap<String, Object> sh = new HashMap<String, Object>() {
+    put("columns", AbstractTable.cop_as(cop_over(cop_ntile(10), "row_type", "id"), "ntile"));
+    put("where", wh);
+};
+
+HashMap<String, Object> rows = t.selectRows(sh);
+// rendered SQL statement
+select ntile(10) over (partition by row_type order by id) as "ntile" from test_analytic_methods where type = 'user';
+        @endcode
+
+        Analytic/window method. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic method is available only in MariaDB 10.2 and later only.
+
+        @param value an integer value used as count of sp;it buckets
+
+        @return integer ranging from 1 to the argument value, dividing the partition as equally as possible
+
+        @since %SqlUtil 1.4.0
+    */
+    @SuppressWarnings("unchecked")
+    public static HashMap<String, Object> cop_ntile(long value) throws Throwable {
         return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_ntile", value);
     }
 
@@ -3217,17 +3301,17 @@ int rows = table.insertFromSelect(new String[]{"id", "name", "created"}, source_
         @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorCommit() to insert arbitrary data with insert options
     */
     public int insertFromSelect(String[] cols, AbstractTable source, Map<String, Object> sh, Map<String, Object> opt) throws Throwable {
-        return (int)obj.callMethod("insertFromSelect", cols, source, sh, opt);
+        return ((Long)obj.callMethod("insertFromSelect", cols, source, sh, opt)).intValue();
     }
 
     //! @ref insertFromSelect() variant
     public int insertFromSelect(String[] cols, AbstractTable source, Map<String, Object> sh) throws Throwable {
-        return (int)obj.callMethod("insertFromSelect", cols, source, sh);
+        return ((Long)obj.callMethod("insertFromSelect", cols, source, sh)).intValue();
     }
 
     //! @ref insertFromSelect() variant
     public int insertFromSelect(String[] cols, AbstractTable source) throws Throwable {
-        return (int)obj.callMethod("insertFromSelect", cols, source);
+        return ((Long)obj.callMethod("insertFromSelect", cols, source)).intValue();
     }
 
     //! update or insert the data in the table according to the hash argument; the table must have a unique key to do this
@@ -3248,7 +3332,7 @@ table.upsert(row);
         @note if upserting multiple rows; it's better to use getBulkUpsertClosure(), getUpsertClosure(), or getUpsertClosureWithValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
      */
     public int upsert(Map<String, Object> row, int upsert_strategy, Map<String, Object> opt) throws Throwable {
-        return (int)obj.callMethod("upsert", row, upsert_strategy, opt);
+        return ((Long)obj.callMethod("upsert", row, upsert_strategy, opt)).intValue();
     }
 
     //! update or insert the data in the table according to the hash argument; the table must have a unique key to do this
@@ -3268,7 +3352,7 @@ table.upsert(row);
         @note if upserting multiple rows; it's better to use getBulkUpsertClosure(), getUpsertClosure(), or getUpsertClosureWithValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
      */
     public int upsert(Map<String, Object> row, int upsert_strategy) throws Throwable {
-        return (int)obj.callMethod("upsert", row, upsert_strategy);
+        return ((Long)obj.callMethod("upsert", row, upsert_strategy)).intValue();
     }
 
     //! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; no transaction management is performed with this method
@@ -3382,17 +3466,17 @@ int dcnt = table.del(cond_hash);
         @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
     */
     public int del(HashMap<String, Object> cond, HashMap<String, Object> opt) throws Throwable {
-        return (int)obj.callMethod("del", cond, opt);
+        return ((Long)obj.callMethod("del", cond, opt)).intValue();
     }
 
     //! @ref del() variant
     public int del(HashMap<String, Object> cond) throws Throwable {
-        return (int)obj.callMethod("del", cond);
+        return ((Long)obj.callMethod("del", cond)).intValue();
     }
 
     //! @ref del() variant
     public int del() throws Throwable {
-        return (int)obj.callMethod("del");
+        return ((Long)obj.callMethod("del")).intValue();
     }
 
     //! updates rows in the table matching an optional condition and returns the count of rows updated; no transaction management is performed with this method
@@ -3412,17 +3496,17 @@ int ucnt = table.update(set_hash, cond_hash);
         @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
     */
     public int update(HashMap<String, Object> set, HashMap<String, Object> cond, HashMap<String, Object> opt) throws Throwable {
-        return (int)obj.callMethod("update", set, cond, opt);
+        return ((Long)obj.callMethod("update", set, cond, opt)).intValue();
     }
 
     //! A @ref update() variant
     public int update(HashMap<String, Object> set, HashMap<String, Object> cond) throws Throwable {
-        return (int)obj.callMethod("update", set, cond);
+        return ((Long)obj.callMethod("update", set, cond)).intValue();
     }
 
     //! A @ref update() variant
     public int update(HashMap<String, Object> set) throws Throwable {
-        return (int)obj.callMethod("update", set);
+        return ((Long)obj.callMethod("update", set)).intValue();
     }
 
     //! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; no transaction management is performed with this method
@@ -3485,7 +3569,7 @@ int cnt = table.rowCount();
         @see emptyData()
      */
     public int rowCount() throws Throwable {
-        return (int)obj.callMethod("rowCount");
+        return ((Long)obj.callMethod("rowCount")).intValue();
     }
 
     //! returns an @ref org.qore.lang.AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments

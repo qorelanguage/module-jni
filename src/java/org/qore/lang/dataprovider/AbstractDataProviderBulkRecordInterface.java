@@ -38,7 +38,7 @@ public class AbstractDataProviderBulkRecordInterface extends AbstractIterator {
 
     //! Returns the block size
     public int getBlockSize() throws Throwable {
-        return (int)obj.callMethod("getBlockSize");
+        return ((Long)obj.callMethod("getBlockSize")).intValue();
     }
 
     //! Returns True if there are more records to return

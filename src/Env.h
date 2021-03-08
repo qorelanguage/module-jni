@@ -1363,6 +1363,13 @@ public:
             return chars ? chars : "";
         }
 
+        DLLLOCAL char operator[](int i) const {
+            if (i < 0) {
+                i = strlen(chars) + i;
+            }
+            return chars[i];
+        }
+
     private:
         Env& env;
         const LocalReference<jstring>* str;

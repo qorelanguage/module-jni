@@ -46,6 +46,10 @@
 %define NO_PYTHON
 %endtry
 
+%ifndef NO_PYTHON
+%module-cmd(python) import os
+%endif
+
 our int code_test_var;
 
 class TestHelper {
@@ -179,7 +183,6 @@ public class Main inherits QUnit::Test {
 
     constructor() : Test("jni test", "1.0") {
         addTestCase("codegen test", \javaCodegenTest());
-        /*
         addTestCase("class compat test", \classCompatTest());
         addTestCase("code test", \testCode());
         addTestCase("smtpclient test", \smtpClientTest());
@@ -212,7 +215,6 @@ public class Main inherits QUnit::Test {
         addTestCase("callback return value test", \testCallbackRetVal());
         addTestCase("special conversions test", \testSpecialConversions());
         addTestCase("api test", \testQoreJavaApi());
-        */
 
         Qore::exit(main());
     }
@@ -233,7 +235,7 @@ public class Main inherits QUnit::Test {
                 binary fdata = newClassData.file.openInputStream().readAllBytes();
                 assertEq(True, fdata.size() > 0);
                 object obj = define_class("org/qore/test/QoreDynamicTest11", fdata).newInstance();
-                assertEq(ENV.PATH, obj.test());
+                assertEq(ENV.PATH.split(":"), obj.test());
             }
             {
                 # compile and execute QoreDynamicTest10.java

@@ -159,7 +159,7 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
 
     //! returns the read timeout as an integer giving milliseconds
     public int getReadTimeoutMs() throws Throwable {
-        return (int)obj.callMethod("getReadTimeoutMs");
+        return ((Long)obj.callMethod("getReadTimeoutMs")).intValue();
     }
 
     //! returns the read timeout as a relative time value
@@ -179,7 +179,7 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
 
     //! returns the connect timeout as an integer giving milliseconds
     public int getConnectTimeoutMs() throws Throwable {
-        return (int)obj.callMethod("getConnectTimeoutMs");
+        return ((Long)obj.callMethod("getConnectTimeoutMs")).intValue();
     }
 
     //! returns the connect timeout as a relative time value

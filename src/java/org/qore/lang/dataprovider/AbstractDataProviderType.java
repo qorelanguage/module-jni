@@ -103,7 +103,7 @@ public class AbstractDataProviderType extends QoreObjectWrapper {
 
     //! returns the base type code for the type
     public int getBaseTypeCode() throws Throwable {
-        return (int)obj.callMethod("getBaseTypeCode");
+        return ((Long)obj.callMethod("getBaseTypeCode")).intValue();
     }
 
     //! returns a hash of native base type code keys where no translations are performed; keys are type codes, not names

@@ -1,4 +1,4 @@
-/*
+/**
     QoreURLClassLoader.java
 
     Qore Programming Language JNI Module
@@ -32,9 +32,6 @@ import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 
-// XXX DEBUG
-import java.io.FileOutputStream;
-
 import java.nio.file.Files;
 import java.nio.file.FileSystems;
 
@@ -48,6 +45,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+//! Main ClassLoader for Java <-> %Qore and Java <-> Python integration
+/** This ClassLoader supports dynamic imports from %Qore and Java using the following special packages:
+    - <b><tt>python.</tt></b><i>[path...]</i>: indicates that the given path should be imported from Python to Java (after being
+      imported to %Qore if necessary).
+    - <b><tt>pythonmod.</tt></b><i>mod</i><tt>.</tt><i>[path...]</i>: indicates that the given path should be mapped to %Qore
+      namespaces and/or classes after loading the Python module <i>mod</i> and importing into %Qore; the Java package
+      segments after <tt><b>pythonmod.</b></tt><i>mod</i><tt>.</tt> are then converted to the equivalent %Qore namespace path
+    - \c \b qore: indicates that the given path should be mapped to %Qore namespaces and/or classes; the Java package
+      segments after <tt><b>qore.</b></tt> are then converted to the equivalent %Qore namespace path
+    - <b><tt>qoremod.</tt></b><i>mod</i><tt>.</tt><i>[path...]</i>: indicates that the given path should be mapped to %Qore
+      namespaces and/or classes after loading the %Qore module <i>mod</i>; the Java package
+      segments after <tt><b>qoremod.</b></tt><i>mod</i><tt>.</tt> are then converted to the equivalent %Qore namespace path
+ */
 public class QoreURLClassLoader extends URLClassLoader {
     public static String INIT_PROP_NAME = "qore.QoreURLClassLoader.init";
 
@@ -58,19 +68,19 @@ public class QoreURLClassLoader extends URLClassLoader {
     private long pgm_ptr = 0;
     private boolean enable_cache = false;
 
-    // for caching files during compilation
+    //! for caching files during compilation
     private final HashMap<String, QoreJavaFileObject> classes = new HashMap<String, QoreJavaFileObject>();
 
-    // used to mark java class creation in progress; binary names used
+    //! used to mark java class creation in progress; binary names used
     private HashSet<String> classInProgress = new HashSet<String>();
 
-    // cache of inner classes to resolve circular dependencies when injecting classes
+    //! cache of inner classes to resolve circular dependencies when injecting classes
     private HashMap<String, byte[]> pendingClasses = new HashMap<String, byte[]>();
 
-    // cache of classes when running as the boot classloader
+    //! cache of classes when running as the boot classloader
     private HashMap<String, Class<?>> classCache = new HashMap<String, Class<?>>();
 
-    // static initialization
+    //! static initialization
     static {
         System.setProperty(INIT_PROP_NAME, "true");
         // loads and initializes the Qore library and the jni module (if necessary)
@@ -92,7 +102,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         }
     }
 
-    // constructor for using this class as the boot classloader
+    //! constructor for using this class as the boot classloader
     public QoreURLClassLoader(ClassLoader parent) {
         super("QoreURLClassLoader", new URL[]{}, parent);
         enable_cache = true;
@@ -101,7 +111,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         //    (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")", hashCode(), pgm_ptr);
     }
 
-    // constructor for using this class as the boot classloader for the module
+    //! constructor for using this class as the boot classloader for the module
     public QoreURLClassLoader() {
         super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
         setContext();
@@ -110,7 +120,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         //System.out.printf("QoreURLClassLoader() this: %x (pgm: %x)\n", hashCode(), pgm_ptr);
     }
 
-    // constructor for using this class as the boot classloader for the module
+    //! constructor for using this class as the boot classloader for the module
     public QoreURLClassLoader(long p_ptr) {
         super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
         setContext();
@@ -118,6 +128,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         //System.out.printf("QoreURLClassLoader(long p_ptr: %x) this: %x\n", p_ptr, hashCode());
     }
 
+    //! constructor with a QoreProgram pointer and a parent
     public QoreURLClassLoader(long p_ptr, ClassLoader parent) {
         super("QoreURLClassLoader", new URL[]{}, parent);
         // set the current classloader as the thread context classloader
@@ -128,6 +139,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         //    parent == null ? 0 : parent.hashCode(), hashCode());
     }
 
+    //! constructor with a name and a parent
     public QoreURLClassLoader(String name, ClassLoader parent) {
         super(name, new URL[]{}, parent);
         setContext();
@@ -173,7 +185,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         super.addURL(new URL("file", null, 0, path));
     }
 
-    // adds byte code for an inner class to the byte code cache; requires a binary name (ex: \c my.package.MyClass$1)
+    //! adds byte code for an inner class to the byte code cache; requires a binary name (ex: \c my.package.MyClass$1)
     public void addPendingClass(String bin_name, byte[] byte_code) {
         if (byte_code == null) {
             throw new RuntimeException("QoreURLClassLoader.addPendingClass() called with null byte_code");
@@ -217,7 +229,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         return rv;
     }
 
-    // for resolving circular dependencies when defining inner classes
+    //! for resolving circular dependencies when defining inner classes
     private Class<?> tryGetPendingClass(String name) {
         byte[] byte_code = pendingClasses.remove(name);
 
@@ -239,6 +251,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         return defineClassIntern(name, byte_code, 0, byte_code.length);
     }
 
+    //! Supports generating classes from byte code as well as returning classes built in to the jni module
     protected Class<?> findClass(String bin_name) throws ClassNotFoundException {
         //System.out.printf("findClass() this: %x %s\n", hashCode(), bin_name);
         try {
@@ -333,6 +346,9 @@ public class QoreURLClassLoader extends URLClassLoader {
     }
 
     // NOTE: loadClass(String, boolean) performs synchronization
+    /**
+     * Loads classes; returns pending classes injected by the jni module or the compiler
+     */
     public Class<?> loadClass(String bin_name) throws ClassNotFoundException {
         //System.out.printf("QoreURLClassLoader.loadClass() this: %x '%s' pgm: %x\n", hashCode(),
         //    bin_name, pgm_ptr);
@@ -372,6 +388,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         //return findClass(bin_name);
     }
 
+    //! Returns true if the given package name is dynamic
     static public boolean isDynamic(String bin_name) {
         return bin_name.equals("qore") || bin_name.equals("python")
             || (bin_name.startsWith("qore.") && bin_name.length() > 5)
@@ -424,6 +441,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         current.set(this);
     }
 
+    //! Adds a path to the classpath
     public void addPath(String classpath) {
         //debugLog("addPath: " + classpath);
         String seps = File.pathSeparator; // separators
@@ -487,6 +505,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         //infoLog("Class loader is using classpath: \"" + classPath + "\".");
     }
 
+    //! Returns a list of classes in the given dynamic package
     public ArrayList<String> getClassesInNamespace(String packageName) {
         ArrayList<String> rv = new ArrayList<String>();
         ClassModInfo info = new ClassModInfo(packageName, true);
