@@ -40,6 +40,8 @@
 %module-cmd(jni) import org.qore.lang.mailmessage.*
 %module-cmd(jni) import org.qore.lang.smtpclient.*
 
+%module-cmd(jni) import java.util.ArrayList
+
 our int code_test_var;
 
 class TestHelper {
@@ -173,6 +175,7 @@ public class Main inherits QUnit::Test {
 
     constructor() : Test("jni test", "1.0") {
         addTestCase("codegen test", \javaCodegenTest());
+        addTestCase("class compat test", \classCompatTest());
         addTestCase("code test", \testCode());
         addTestCase("smtpclient test", \smtpClientTest());
         addTestCase("mailmessage test", \mailMessageTest());
@@ -214,6 +217,22 @@ public class Main inherits QUnit::Test {
                 # compile and execute QoreDynamicTest8.java
                 QoreJavaCompiler compiler();
                 hash<auto> sources = {
+                    "org.qore.test.QoreDynamicTest10": File::readTextFile(get_script_dir() +
+                        "/../test/QoreDynamicTest10.java"),
+                };
+                hash<auto> cv = compiler.compile(sources);
+                #printf("%N\n", cv);
+                compiler::CompilerOutput newClassData = cv{"org.qore.test.QoreDynamicTest10"};
+                binary fdata = newClassData.file.openInputStream().readAllBytes();
+                assertEq(True, fdata.size() > 0);
+                object obj = define_class("org/qore/test/QoreDynamicTest10", fdata).newInstance();
+                assertEq("test", obj.test("<xml><a>test</a></xml>", "a"));
+            }
+
+            {
+                # compile and execute QoreDynamicTest8.java
+                QoreJavaCompiler compiler();
+                hash<auto> sources = {
                     "org.qore.test.QoreDynamicTest9": File::readTextFile(get_script_dir() +
                         "/../test/QoreDynamicTest9.java"),
                 };
@@ -249,7 +268,7 @@ public class Main inherits QUnit::Test {
                 # compile and execute QoreDynamicTest7.java
                 QoreJavaCompiler compiler();
                 compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest7",
-                File::readTextFile(get_script_dir() + "/../test/QoreDynamicTest7.java"));
+                    File::readTextFile(get_script_dir() + "/../test/QoreDynamicTest7.java"));
                 binary fdata = newClassData.file.openInputStream().readAllBytes();
                 assertEq(True, fdata.size() > 0);
                 reflect::Method m = newClassData.cls.getMethod("testA");
@@ -271,7 +290,7 @@ public class Main inherits QUnit::Test {
                 obj.next();
                 assertEq(1, obj.next());
 
-                obj = seqClass.getDeclaredConstructor(Integer::TYPE).newInstance(2);
+                obj = seqClass.getDeclaredConstructor(Long::TYPE).newInstance(2);
                 obj.next();
                 assertEq(3, obj.next());
             }
@@ -285,7 +304,7 @@ public class Main inherits QUnit::Test {
                 assertGt(0, fdata.size());
                 reflect::Method m = newClassData.cls.getMethod("test0");
                 assertEq(1, m.invoke());
-                m = newClassData.cls.getMethod("test1", Integer::TYPE);
+                m = newClassData.cls.getMethod("test1", Long::TYPE);
                 assertEq(11, m.invoke(NOTHING, 10));
                 m = newClassData.cls.getMethod("test2");
                 assertEq("test", m.invoke());
@@ -323,8 +342,8 @@ auto sub test() {
                         diags.getDiagnostics();
 
                 compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest2",
-                    cast<CharSequence>(new String(File::readTextFile(get_script_dir() + "/QoreDynamicTest2.java"))),
-                    diags, NOTHING);
+                    new String(File::readTextFile(get_script_dir() + "/QoreDynamicTest2.java")),
+                    diags, ());
                 binary fdata = newClassData.file.openInputStream().readAllBytes();
                 assertGt(0, fdata.size());
                 reflect::Method m = newClassData.cls.getMethod("test0");
@@ -409,6 +428,11 @@ auto sub test() {
             printf("%s\n", get_exception_string(ex));
             rethrow;
         }
+    }
+
+    classCompatTest() {
+        ArrayList l();;
+        assertTrue(l instanceof Iterable);
     }
 
     testCode() {
@@ -1070,7 +1094,7 @@ lorem ipsum\r
 
         # test Hash APIs
         assertEq(True, QoreJavaApiTest::testHashBool({"a": True}, "a"));
-        assertEq(1, QoreJavaApiTest::testHashInt({"a": 1}, "a"));
+        assertEq(1, QoreJavaApiTest::testHashInt({"a": new Integer(1)}, "a"));
         assertEq(1.0, QoreJavaApiTest::testHashDouble({"a": 1.0}, "a"));
         assertEq(2020-03-28, QoreJavaApiTest::testHashADate({"a": 2020-03-28}, "a"));
         assertEq(<abcdef>, QoreJavaApiTest::testHashBinary({"a": <abcdef>}, "a"));
@@ -1156,7 +1180,7 @@ lorem ipsum\r
         assertThrows("JNI-ERROR", "java.lang.IllegalArgumentException", sub() { cmp.invoke(NOTHING, (1, 2, 3)); });
 
         # set() has no retval, we test the side effect below using get()
-        set.invoke(NOTHING, 42);
+        set.invoke(NOTHING, new Integer(42));
 
         # get() returns the value previously passed to set()
         assertEq(42, get.invoke());
@@ -1193,7 +1217,7 @@ lorem ipsum\r
         assertFloatEq(2.92, avg3.invoke(NOTHING, (3.14, 2.7)), 0.00000000000000001);
 
         # wrap() & unwrap()
-        assertEq(42, wrap.invoke(NOTHING, 42));
+        assertEq(42, wrap.invoke(NOTHING, new Integer(42)));
         assertEq(42, unwrap.invoke(NOTHING, new Integer(42)));
         assertEq(-123, unwrap.invoke(NOTHING, (NOTHING,)));
         assertThrows("JNI-ERROR", sub() { unwrap.invoke(NOTHING, True); });
@@ -1299,7 +1323,7 @@ lorem ipsum\r
         assertEq(-1, s.get());
 
         i.setAccessible(True);
-        i.set(NOTHING, 0x123456789);
+        i.set(NOTHING, new Integer(0x123456789));
         assertEq(0x23456789, i.get());
 
         j.setAccessible(True);
@@ -1320,7 +1344,7 @@ lorem ipsum\r
 
         Method m = clazz.getDeclaredMethod("wrap", Integer::TYPE);
         m.setAccessible(True);
-        int myint = m.invoke(NOTHING, (42, ));
+        int myint = m.invoke(NOTHING, (new Integer(42), ));
         n.setAccessible(True);
         n.set(NOTHING, myint);
         m = clazz.getDeclaredMethod("unwrapN");
@@ -1328,7 +1352,7 @@ lorem ipsum\r
         assertEq(42, m.invoke());
 
         l.setAccessible(True);
-        assertThrows("JNI-ERROR", sub(){ l.set(NOTHING, myint); });
+        assertThrows("JNI-ERROR", sub(){ l.set(NOTHING, new Integer(myint)); });
         assertEq(NOTHING, l.get());
 
         ba.setAccessible(True);
@@ -1382,7 +1406,7 @@ lorem ipsum\r
         s.set(instance, new Short(65535));
         assertEq(-1, s.get(instance));
 
-        i.set(instance, 0x123456789);
+        i.set(instance, new Integer(0x123456789));
         assertEq(0x23456789, i.get(instance));
 
         j.set(instance, new Long(0x123456789));
@@ -1468,17 +1492,17 @@ lorem ipsum\r
     testConstructor() {
         lang::Class cls = load_class("java/lang/Integer");
         Constructor ctor = cls.getConstructor(Integer::TYPE);
-        int i = ctor.newInstance(42);
-        assertEq(42, cls.getDeclaredMethod("intValue").invoke(i));
+        int i = ctor.newInstance(new Integer(42));
+        assertEq(42, cls.getDeclaredMethod("intValue").invoke(new Integer(i)));
     }
 
     testString() {
         lang::Class cls = load_class("java/lang/Integer");
         int i = cls.getMethod("valueOf", load_class("java/lang/String")).invoke(NOTHING, "42");
-        assertEq(42, cls.getMethod("intValue").invoke(i));
+        assertEq(42, cls.getMethod("intValue").invoke(new Integer(i)));
 
-        i = cls.getConstructor(Integer::TYPE).newInstance(123);
-        assertEq("123", cls.getMethod("toString").invoke(i));
+        i = cls.getConstructor(Integer::TYPE).newInstance(new Integer(123));
+        assertEq("123", cls.getMethod("toString").invoke(new Integer(i)));
     }
 
     testArray() {
@@ -1611,27 +1635,27 @@ lorem ipsum\r
 
         auto o = m.invoke(NOTHING, "method");
         assertTrue(o instanceof Method);
-        assertEq("42", o.invoke(load_class("java/lang/Integer").getConstructor(Integer::TYPE).newInstance(42)));
+        assertEq("42", o.invoke(load_class("java/lang/Integer").getConstructor(Integer::TYPE).newInstance(new Integer(42))));
 
         o = m.invoke(NOTHING, "static method");
         assertTrue(o instanceof Method);
-        assertEq("42", load_class("java/lang/Integer").getMethod("toString").invoke(o.invoke(NOTHING, 42)));
+        assertEq("42", load_class("java/lang/Integer").getMethod("toString").invoke(new Integer(o.invoke(NOTHING, new Integer(42)))));
 
         o = m.invoke(NOTHING, "constructor");
         assertTrue(o instanceof Constructor);
-        assertEq("42", load_class("java/lang/Integer").getMethod("toString").invoke(o.newInstance(42)));
+        assertEq("42", load_class("java/lang/Integer").getMethod("toString").invoke(new Integer(o.newInstance(new Integer(42)))));
 
         lang::Class fieldsClass = load_class("org/qore/jni/test/Fields");
         Object fieldsInstance = fieldsClass.getDeclaredField("instance").get();
 
         o = m.invoke(NOTHING, "field");
         assertTrue(o instanceof Field);
-        o.set(fieldsInstance, 123);
+        o.set(fieldsInstance, new Integer(123));
         assertEq(123, fieldsClass.getDeclaredField("i").get(fieldsInstance));
 
         o = m.invoke(NOTHING, "static field");
         assertTrue(o instanceof Field);
-        o.set(NOTHING, 456);
+        o.set(NOTHING, new Integer(456));
         assertThrows("JNI-ERROR", "java.lang.IllegalArgumentException", \o.set());
         assertEq(456, load_class("org/qore/jni/test/StaticFields").getDeclaredField("i").get());
     }

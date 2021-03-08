@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -73,7 +73,7 @@ static jobject jni_number_to_jobject(const QoreNumberNode& num) {
     return env.newObject(Globals::classBigDecimal, Globals::ctorBigDecimal, &jargs[0]).release();
 }
 
-jobject QoreToJava::toAnyObject(const QoreValue& value) {
+jobject QoreToJava::toAnyObject(const QoreValue& value, JniExternalProgramData* jpc) {
     Env env;
     switch (value.getType()) {
         case NT_BOOLEAN: {
@@ -83,8 +83,9 @@ jobject QoreToJava::toAnyObject(const QoreValue& value) {
         }
         case NT_INT: {
             jvalue arg;
-            arg.i = value.getAsBigInt();
-            return env.newObject(Globals::classInteger, Globals::ctorInteger, &arg).release();
+            int64 v = value.getAsBigInt();
+            arg.j = v;
+            return env.newObject(Globals::classLong, Globals::ctorLong, &arg).release();
         }
         case NT_FLOAT: {
             jvalue arg;
@@ -102,6 +103,9 @@ jobject QoreToJava::toAnyObject(const QoreValue& value) {
         }
         case NT_OBJECT: {
             QoreObject* o = const_cast<QoreObject*>(value.get<const QoreObject>());
+            if (jpc) {
+                return jpc->getJavaObject(o).release();
+            }
 
             jobject javaObjectRef = qjcm.getJavaObject(o);
             if (javaObjectRef) {
@@ -131,7 +135,7 @@ jobject QoreToJava::toAnyObject(const QoreValue& value) {
     throw BasicException(desc.c_str());
 }
 
-jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
+jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProgramData* jpc) {
     if (value.isNullOrNothing())
         return nullptr;
 
@@ -191,7 +195,11 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls) {
         case NT_OBJECT: {
             const QoreObject* o = value.get<QoreObject>();
 
-            javaObjectRef = qjcm.getJavaObject(o);
+            if (jpc) {
+                javaObjectRef = jpc->getJavaObject(o);
+            } else {
+                javaObjectRef = qjcm.getJavaObject(o);
+            }
             if (!javaObjectRef) {
                 ExceptionSink xsink;
                 TryPrivateDataRefHolder<ObjectBase> jo(o, CID_JAVAARRAY, &xsink);

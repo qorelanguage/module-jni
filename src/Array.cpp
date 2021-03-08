@@ -153,8 +153,8 @@ QoreValue Array::get(int64 index, QoreProgram* pgm) const {
     return get(env, jobj.cast<jarray>(), elementType, elementClass, index, pgm);
 }
 
-void Array::set(int64 index, const QoreValue &value) {
-    set(jobj.cast<jarray>(), elementType, elementClass, index, value);
+void Array::set(int64 index, const QoreValue &value, JniExternalProgramData* jpc) {
+    set(jobj.cast<jarray>(), elementType, elementClass, index, value, jpc);
 }
 
 QoreStringNodeHolder Array::deepToString() const {
@@ -171,7 +171,8 @@ QoreStringNodeHolder Array::deepToString(Env& env, jarray array) {
     return QoreStringNodeHolder(new QoreStringNode(chars.c_str(), QCS_UTF8));
 }
 
-void Array::set(jarray array, Type elementType, jclass elementClass, int64 index, const QoreValue &value) {
+void Array::set(jarray array, Type elementType, jclass elementClass, int64 index, const QoreValue &value,
+        JniExternalProgramData* jpc) {
     Env env;
     switch (elementType) {
         case Type::Boolean:
@@ -201,13 +202,13 @@ void Array::set(jarray array, Type elementType, jclass elementClass, int64 index
         case Type::Reference:
         default:
             assert(elementType == Type::Reference);
-            env.setObjectArrayElement((jobjectArray)array, index, QoreToJava::toObject(value, elementClass));
+            env.setObjectArrayElement((jobjectArray)array, index, QoreToJava::toObject(value, elementClass, jpc));
     }
 }
 
 jclass Array::getClassForValue(QoreValue v) {
     switch (v.getType()) {
-        case NT_INT: return Globals::classInteger.toLocal();
+        case NT_INT: return Globals::classLong.toLocal();
         case NT_FLOAT: return Globals::classDouble.toLocal();
         case NT_BOOLEAN: return Globals::classBoolean.toLocal();
         case NT_STRING: return Globals::classString.toLocal();
@@ -233,19 +234,20 @@ jclass Array::getClassForValue(QoreValue v) {
     throw BasicException(desc.c_str());
 }
 
-LocalReference<jarray> Array::toObjectArray(const QoreListNode* l, jclass elementClass, size_t start) {
+LocalReference<jarray> Array::toObjectArray(const QoreListNode* l, jclass elementClass, size_t start,
+        JniExternalProgramData* jpc) {
     assert(start < l->size());
     Type elementType = Globals::getType(elementClass);
 
     LocalReference<jarray> jarray = getNew(elementType, elementClass, l->size() - start);
     for (unsigned i = start, e = l->size(); i != e; ++i) {
-        set(jarray, elementType, elementClass, i - start, l->retrieveEntry(i));
+        set(jarray, elementType, elementClass, i - start, l->retrieveEntry(i), jpc);
     }
 
     return jarray.release();
 }
 
-LocalReference<jarray> Array::toJava(const QoreListNode* l, size_t start) {
+LocalReference<jarray> Array::toJava(const QoreListNode* l, size_t start, JniExternalProgramData* jpc) {
     if (l->size() <= start)
         return nullptr;
 
@@ -277,7 +279,7 @@ LocalReference<jarray> Array::toJava(const QoreListNode* l, size_t start) {
         elementClass = Globals::classObject.toLocal();
     }
 
-    return toObjectArray(l, elementClass, start).release();
+    return toObjectArray(l, elementClass, start, jpc).release();
 }
 
 void Array::getArgList(ReferenceHolder<QoreListNode>& return_value, Env& env, jarray array, QoreProgram* pgm, bool varargs) {

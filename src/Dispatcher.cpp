@@ -68,8 +68,11 @@ jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jo
 
     ExceptionSink xsink;
     try {
+        QoreProgram* pgm = nullptr;
+        JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
+
         ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), &xsink);
-        args->push(new QoreObject(QC_METHOD, jni_get_program_context(), new QoreJniPrivateData(method)), &xsink);
+        args->push(new QoreObject(QC_METHOD, pgm, new QoreJniPrivateData(method)), &xsink);
         if (jargs) {
             // we need to set the Program context if executing in a new thread
             // when creating arguments in case QoreClass
@@ -85,7 +88,7 @@ jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jo
             QoreToJava::wrapException(xsink);
             return nullptr;
         }
-        return QoreToJava::toObject(qv, nullptr);
+        return QoreToJava::toObject(qv, nullptr, jpc);
     } catch (Exception& e) {
         // FIXME: original exception should be included in this exception
         env.throwNew(env.findClass("java/lang/RuntimeException"), "could not execute Qore callback");

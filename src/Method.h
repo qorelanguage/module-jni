@@ -138,7 +138,7 @@ public:
      * \return the return value
      * \throws Exception if the arguments do not match the descriptor or if the method throws
      */
-    LocalReference<jobject> newQoreInstance(const QoreListNode* args);
+    LocalReference<jobject> newQoreInstance(const QoreListNode* args, JniExternalProgramData* jpc);
 
     void getName(QoreString& str) const;
 
@@ -167,16 +167,15 @@ public:
     }
 
     int64 getFlags() const {
-        Env env;
         int64 flags = QCF_NO_FLAGS;
-        if (env.callBooleanMethod(method, Globals::methodMethodIsVarArgs, nullptr)) {
+        if (varargs) {
             flags |= QCF_USES_EXTRA_ARGS;
         }
         return flags;
     }
 
-    DLLLOCAL int getParamTypes(type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo, QoreJniClassMap& clsmap,
-            QoreProgram* pgm = nullptr);
+    DLLLOCAL int getParamTypes(Env& env, type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo,
+            QoreJniClassMap& clsmap, QoreProgram* pgm = nullptr);
 
     DLLLOCAL const QoreTypeInfo* getReturnTypeInfo(QoreJniClassMap& clsmap, QoreProgram* pgm = nullptr);
 
@@ -191,14 +190,16 @@ protected:
         @param arg_offset the offset in args where to start converting arguments
         @param output_offset the offset in the return value where arguments start
      */
-    DLLLOCAL std::vector<jvalue> convertArgs(const QoreListNode* args, size_t arg_offset = 0) const;
+    DLLLOCAL std::vector<jvalue> convertArgs(const QoreListNode* args, size_t arg_offset = 0,
+            JniExternalProgramData* jpc = nullptr) const;
 
     //! converts Qore args to Java args for a method call
     /** @param args the Qore args
         @param arg_offset the offset in args where to start converting arguments
         @param array_offset the offset in the return value where arguments start
      */
-    DLLLOCAL LocalReference<jobjectArray> convertArgsToArray(const QoreListNode* args, size_t arg_offset = 0, size_t array_offset = 0) const;
+    DLLLOCAL LocalReference<jobjectArray> convertArgsToArray(const QoreListNode* args, size_t arg_offset = 0,
+            size_t array_offset = 0, JniExternalProgramData* jpc = nullptr) const;
 
     DLLLOCAL void init(Env &env);
 
@@ -210,6 +211,8 @@ protected:
     std::vector<std::pair<Type, GlobalReference<jclass>>> paramTypes;
     // method modifiers
     int mods;
+    // varargs flag
+    bool varargs;
     // flag to collapse any trailing arguments into a final varargs argument (ex: String... args)
     bool doVarArgs = false;
 };
@@ -222,7 +225,7 @@ public:
      * \param id the method id
      * \param isStatic true if the method is static
      */
-    DLLLOCAL Method(Class *cls, jmethodID id, bool isStatic) : BaseMethod(cls, id, isStatic), cls_holder(cls) {
+    DLLLOCAL Method(Class* cls, jmethodID id, bool isStatic) : BaseMethod(cls, id, isStatic), cls_holder(cls) {
         cls->ref();
         cls_holder = cls;
     }

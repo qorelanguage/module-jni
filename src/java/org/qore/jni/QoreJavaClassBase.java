@@ -4,9 +4,14 @@ package org.qore.jni;
 /**
     @since 2.0
  */
-public abstract class QoreJavaClassBase extends QoreObjectBase {
+public abstract class QoreJavaClassBase extends QoreObject {
     //! Default constructor
     public QoreJavaClassBase(long cptr, long mptr, long vptr, Object... args) throws Throwable {
         super(cptr, mptr, vptr, args);
+    }
+
+    //! creates the wrapper object with a pointer to an object; this Java object holds a weak reference to the Qore object passed here
+    public QoreJavaClassBase(long obj) {
+        super(obj);
     }
 }

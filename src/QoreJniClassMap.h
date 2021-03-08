@@ -26,7 +26,6 @@
 #define _QORE_JNI_QOREJAVACLASSMAP_H
 
 #include "QoreJniPrivateData.h"
-#include "QoreJniThreads.h"
 #include "Env.h"
 #include "Class.h"
 #include "JniQoreClass.h"
@@ -115,7 +114,7 @@ public:
 
 class QoreJniClassMap : public QoreJniClassMapBase {
 public:
-    static QoreJniThreadLock m;
+    static QoreRecursiveThreadLock m;
 
     DLLLOCAL void init(QoreProgram* pgm, bool already_initialized);
 
@@ -137,7 +136,7 @@ public:
     DLLLOCAL jobject getJavaObject(const QoreObject* o);
     DLLLOCAL jobject getJavaClosure(const ResolvedCallReferenceNode* call);
 
-    DLLLOCAL jarray getJavaArray(const QoreListNode* l, jclass cls);
+    DLLLOCAL jarray getJavaArray(const QoreListNode* l, jclass cls, JniExternalProgramData* jpc = nullptr);
 
     // takes an internal name (ex: java/lang/Class)
     DLLLOCAL jclass findLoadClass(const char* name, QoreProgram* pgm = nullptr);
@@ -189,7 +188,7 @@ protected:
     static qt2jmap_t qt2jmap;
 
     // parent namespace for jni module functionality
-    QoreNamespace* default_jns = new QoreNamespace("Qore::Jni");
+    QoreNamespace* default_jns = new QoreNamespace("Jni");
 
     // class loader
     GlobalReference<jobject> baseClassLoader;
@@ -201,13 +200,14 @@ protected:
     DLLLOCAL void doConstructors(JniQoreClass& qc, Class* jc, QoreProgram* pgm = nullptr);
 
     // add Java parent classes and interfaces as Qore parent classes
-    DLLLOCAL void addSuperClasses(JniQoreClass* qc, Class* jc, const char* jpath, QoreProgram* pgm = nullptr);
+    DLLLOCAL void addSuperClasses(JniQoreClass* qc, Class* jc, const char* jpath, QoreProgram* pgm = nullptr,
+        JniExternalProgramData* jpc = nullptr);
 
     // populate the Qore class with methods and members from the Java class
     DLLLOCAL void populateQoreClass(JniQoreClass& qc, Class* jc, QoreProgram* pgm = nullptr);
 
     DLLLOCAL void addSuperClass(Env& env, JniQoreClass& qc, Class* parent, bool interface,
-        QoreProgram* pgm = nullptr);
+        QoreProgram* pgm = nullptr, JniExternalProgramData* jpc = nullptr);
 
     DLLLOCAL JniQoreClass* createClassInNamespace(QoreNamespace* ns, QoreNamespace& jns, const char* jpath,
         Class* jc, JniQoreClass* qc, QoreJniClassMapBase& map, QoreProgram* pgm);
@@ -224,7 +224,7 @@ private:
 
     DLLLOCAL void initBackground(QoreProgram* pgm);
 
-    DLLLOCAL jarray getJavaArrayIntern(Env& env, const QoreListNode* l, jclass cls);
+    DLLLOCAL jarray getJavaArrayIntern(Env& env, const QoreListNode* l, jclass cls, JniExternalProgramData* jpc);
 
     DLLLOCAL Class* loadProgramClass(const char* name, JniExternalProgramData* jpc);
 
@@ -315,8 +315,7 @@ public:
             const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname);
 
     // returns a type description for a concrete type or a future type for Java bytecode generation
-    DLLLOCAL LocalReference<jobject> getJavaTypeDefinition(Env& env, jobject class_loader, const QoreTypeInfo* ti,
-            QoreProgram* pgm);
+    DLLLOCAL LocalReference<jobject> getJavaTypeDefinition(Env& env, jobject class_loader, const QoreTypeInfo* ti);
 
     DLLLOCAL void overrideCompatTypes(bool compat_types) {
         override_compat_types = true;
@@ -356,12 +355,23 @@ public:
         q2jmap.clear();
     }
 
-    DLLLOCAL static void setContext() {
+    DLLLOCAL void saveClass(const QoreClass& qc, LocalReference<jclass> jcls);
+
+    DLLLOCAL jclass findJavaClass(const QoreClass& qc);
+
+    // Returns a Java object corresponding to the given Qore object
+    /** A Java class for the given Qore class is created dynamically if necessary
+     */
+    DLLLOCAL LocalReference<jobject> getJavaObject(const QoreObject* o);
+
+    DLLLOCAL static JniExternalProgramData* setContext(QoreProgram*& pgm) {
         Env env;
-        setContext(env);
+        return setContext(env, pgm);
     }
 
-    DLLLOCAL static void setContext(Env& env);
+    DLLLOCAL static JniExternalProgramData* setContext(Env& env);
+
+    DLLLOCAL static JniExternalProgramData* setContext(Env& env, QoreProgram*& pgm);
 
     DLLLOCAL static bool compatTypes();
 
@@ -382,7 +392,12 @@ protected:
     // QoreJavaDynamicApi.getField()
     jmethodID methodQoreJavaDynamicApiGetField = 0;
 
+    // code generation mutex
+    QoreRecursiveThreadLock codeGenLock;
+
     // map of Qore class hashes to Java classes; class signature hash -> jclass
+    /** codeGenLock must be held when accessing this data
+     */
     typedef std::map<std::string, GlobalReference<jclass>> q2jmap_t;
     q2jmap_t q2jmap;
 
@@ -393,35 +408,47 @@ protected:
 
     // returns Java byte code (byte[]) for the given Qore class
     DLLLOCAL LocalReference<jbyteArray> generateByteCodeIntern(Env& env, jobject class_loader,
-        const QoreClass* qcls, QoreProgram* pgm, jstring jname = nullptr);
+        const QoreClass* qcls, jstring jname = nullptr);
+
+    // returns Java byte code (byte[]) for a wrapper class for Qore functions implemneted as static methods
+    DLLLOCAL LocalReference<jbyteArray> generateFunctionClassIntern(Env& env, jobject class_loader, QoreProgram* pgm,
+        jstring jname, const char* ns_path = nullptr);
 
     // Returns a param list of Java type corresponding to the Qore types
-    DLLLOCAL jobject getJavaParamList(Env& env, jobject class_loader, const QoreMethod& m,
-        const QoreExternalMethodVariant& v, QoreProgram* pgm, unsigned& len);
+    DLLLOCAL jobject getJavaParamList(Env& env, jobject class_loader, const QoreExternalVariant& v,
+        unsigned& len, bool is_abstract = false);
 
     DLLLOCAL int addConstructorVariant(Env& env, jobject class_loader, const QoreClass& qcls,
-        LocalReference<jobject>& bb, const QoreMethod& m, const QoreExternalMethodVariant& v, QoreProgram* pgm,
-        jclass parent_class, QoreJavaParamHelper& jph);
+        LocalReference<jobject>& bb, const QoreMethod& m, const QoreExternalMethodVariant& v, jclass parent_class,
+        QoreJavaParamHelper& jph);
 
     DLLLOCAL int addNormalMethodVariant(Env& env, jobject class_loader, const QoreClass& qcls,
-        LocalReference<jobject>& bb, const QoreMethod& m, const QoreExternalMethodVariant& v, QoreProgram* pgm,
+        LocalReference<jobject>& bb, const QoreMethod& m, const QoreExternalMethodVariant& v,
         QoreJavaParamHelper& jph);
 
     DLLLOCAL int addStaticMethodVariant(Env& env, jobject class_loader, const QoreClass& qcls,
-        LocalReference<jobject>& bb, const QoreMethod& m, const QoreExternalMethodVariant& v, QoreProgram* pgm,
+        LocalReference<jobject>& bb, const QoreMethod& m, const QoreExternalMethodVariant& v,
         QoreJavaParamHelper& jph);
 
+    DLLLOCAL int addFunctionVariant(Env& env, jobject class_loader, LocalReference<jobject>& bb,
+        const QoreExternalFunction& func, const QoreExternalVariant& v, QoreProgram* pgm, QoreJavaParamHelper& jph);
+
     DLLLOCAL int addStaticMethods(Env& env, jobject class_loader,
-        const QoreClass& qcls, const QoreMethod& m, QoreJavaParamHelper& jph, LocalReference<jobject>& bb,
-        QoreProgram* pgm);
+        const QoreClass& qcls, const QoreMethod& m, QoreJavaParamHelper& jph, LocalReference<jobject>& bb);
 
     DLLLOCAL int addMethods(Env& env, jobject class_loader, const QoreClass& qcls, LocalReference<jobject>& bb,
-        QoreProgram* pgm, jclass parent_class);
+        jclass parent_class);
+
+    DLLLOCAL int addFunctions(Env& env, jobject class_loader, const QoreNamespace& ns, LocalReference<jobject>& bb,
+        QoreProgram* pgm);
 };
 
 DLLLOCAL QoreProgram* jni_get_program_context();
 DLLLOCAL JniExternalProgramData* jni_get_context();
 DLLLOCAL JniExternalProgramData* jni_get_context(QoreProgram*& pgm);
+
+DLLLOCAL JniExternalProgramData* jni_get_context_unconditional();
+DLLLOCAL JniExternalProgramData* jni_get_context_unconditional(QoreProgram*& pgm);
 
 }
 

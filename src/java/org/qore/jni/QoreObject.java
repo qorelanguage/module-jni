@@ -17,6 +17,11 @@ public class QoreObject extends QoreObjectBase {
         super(obj);
     }
 
+    //! creates the wrapper object with a pointer to an object; this Java object holds a weak reference to the Qore object passed here
+    public QoreObject(long qcptr, long mptr, long vptr, Object... args) throws Throwable {
+        super(qcptr, mptr, vptr, args);
+    }
+
     //! returns the class name for the object
     public String className() {
         return className0(obj);

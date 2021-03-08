@@ -32,7 +32,7 @@
 
 namespace jni {
 Class::~Class() {
-    printd(LogLevel, "Class::~Class(), this: %p, cls: %p\n", this, static_cast<jclass>(this->cls));
+    printd(LogLevel, "Class::~Class() this: %p cls: %p\n", this, static_cast<jclass>(this->cls));
     for (auto& i : mlist)
         delete i;
 }

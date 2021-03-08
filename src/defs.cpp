@@ -131,7 +131,8 @@ QoreStringNode* JavaException::toString() const {
         //not happen, but if it does, we simply report the QoreExceptionWrapper as if it were a normal Java exception
     }
 
-    LocalReference<jstring> excName = static_cast<jstring>(env->CallObjectMethod(env->GetObjectClass(throwable), Globals::methodClassGetName));
+    LocalReference<jstring> excName = static_cast<jstring>(env->CallObjectMethod(env->GetObjectClass(throwable),
+        Globals::methodClassGetName));
     if (env->ExceptionCheck()) {
         env->ExceptionClear();
         return new QoreStringNode("Unable to get exception class name: another exception thrown");

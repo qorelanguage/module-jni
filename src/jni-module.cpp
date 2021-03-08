@@ -163,7 +163,7 @@ static QoreStringNode* jni_module_init() {
         return new QoreStringNode("JVM initialization failed due to an unknown error");
     }
 
-   printd(5, "jni_module_init() initialized JVM\n");
+    printd(5, "jni_module_init() initialized JVM\n");
 
 #ifndef Q_WINDOWS
     {
@@ -362,6 +362,8 @@ static void qore_jni_mc_import(const QoreString& cmd_arg, QoreProgram* pgm, JniE
         qore_jni_wildcard_import(arg, pgm, jpc);
     } else {
         printd(LogLevel, "jni_module_parse_cmd() non wc lcc arg: '%s' (pgm: %p)\n", arg.c_str(), pgm);
+        Env env;
+        env.callVoidMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderSetContext, nullptr);
         // the following call adds the class to the current program as well
         qjcm.findCreateQoreClass(arg.c_str(), pgm);
     }

@@ -365,7 +365,7 @@ public class QoreJavaApiTest {
         return i.getHash();
     }
 
-    public static void testCode(QoreClosure code, int val) throws Throwable {
+    public static void testCode(QoreClosure code, long val) throws Throwable {
         code.call(val);
     }
 }

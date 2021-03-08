@@ -91,7 +91,7 @@ public:
      * \param value the new value
      * \throws Exception if the value cannot be set
      */
-    void set(jobject object, const QoreValue &value);
+    void set(jobject object, const QoreValue &value, JniExternalProgramData* jpc);
 
     /**
      * \brief Gets the value of a static field.
@@ -105,7 +105,7 @@ public:
      * \param value the new value
      * \throws Exception if the value cannot be set
      */
-    void setStatic(const QoreValue &value);
+    void setStatic(const QoreValue &value, JniExternalProgramData* jpc);
 
     jobject getJavaObject() const override {
         return field;

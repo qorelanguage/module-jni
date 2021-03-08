@@ -38,6 +38,7 @@ public class JavaClassBuilder {
     private static Class objArray;
     private static Method mStaticCall;
     private static Method mNormalCall;
+    private static Method mFunctionCall;
     private static final String CLASS_FIELD = "qore_cls_ptr";
 
     // copied from org.objectweb.asm.Opcodes
@@ -59,29 +60,69 @@ public class JavaClassBuilder {
             args[4] = objArray;
             mStaticCall = JavaClassBuilder.class.getDeclaredMethod("doStaticCall", args);
             mNormalCall = JavaClassBuilder.class.getDeclaredMethod("doNormalCall", args);
+
+            args = new Class<?>[4];
+            args[0] = Long.TYPE;
+            args[1] = Long.TYPE;
+            args[2] = Long.TYPE;
+            args[3] = objArray;
+            mFunctionCall = JavaClassBuilder.class.getDeclaredMethod("doFunctionCall", args);
         } catch (Throwable e) {
             throw new ExceptionInInitializerError(e);
         }
     }
 
+    static public DynamicType.Builder<?> getFunctionClassBuilder(String bin_name) throws NoSuchMethodException {
+        return new ByteBuddy()
+            .with(TypeValidation.DISABLED)
+            .with(new NamingStrategy.AbstractBase() {
+                @Override
+                public String name(TypeDescription superClass) {
+                    return bin_name;
+                }
+            })
+            .subclass(Object.class, ConstructorStrategy.Default.NO_CONSTRUCTORS)
+            .modifiers(ACC_PUBLIC);
+    }
+
+    // add a function to a function class
+    static public DynamicType.Builder<?> addFunction(DynamicType.Builder<?> bb, String functionName, long pgm,
+            long fptr, long vptr, TypeDefinition returnType, List<TypeDefinition> paramTypes, boolean varargs) {
+        if (paramTypes == null) {
+            paramTypes = new ArrayList<TypeDefinition>();
+        }
+
+        DynamicType.Builder.MethodDefinition.ExceptionDefinition<?> eb =
+            varargs
+                ? bb.defineMethod(functionName, returnType, Visibility.PUBLIC, Ownership.STATIC,
+                    MethodArguments.VARARGS)
+                    .withParameters(paramTypes)
+                    .throwing(Throwable.class)
+                : bb.defineMethod(functionName, returnType, Visibility.PUBLIC, Ownership.STATIC)
+                    .withParameters(paramTypes)
+                    .throwing(Throwable.class);
+
+        return (DynamicType.Builder<?>)eb.intercept(
+                MethodCall.invoke(mFunctionCall)
+                    .with(pgm)
+                    .with(fptr)
+                    .with(vptr)
+                    .withArgumentArray()
+                    .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)
+            );
+    }
+
     static public DynamicType.Builder<?> getClassBuilder(String className, Class<?> parentClass,
             boolean is_abstract, long cptr) throws NoSuchMethodException {
-        DynamicType.Builder<?> bb;
-        try {
-            bb = new ByteBuddy()
-                .with(TypeValidation.DISABLED)
-                .with(new NamingStrategy.AbstractBase() {
-                    @Override
-                    public String name(TypeDescription superClass) {
-                        return className;
-                    }
-                })
-                .subclass(parentClass, ConstructorStrategy.Default.NO_CONSTRUCTORS);
-        } catch (NoClassDefFoundError e) {
-            //e.printStackTrace();
-            throw new RuntimeException(String.format("qore-jni.jar module not in QORE_CLASSPATH; bytecode " +
-                "generation unavailable; cannot perform dynamic imports in Java", e));
-        }
+        DynamicType.Builder<?> bb = new ByteBuddy()
+            .with(TypeValidation.DISABLED)
+            .with(new NamingStrategy.AbstractBase() {
+                @Override
+                public String name(TypeDescription superClass) {
+                    return className;
+                }
+            })
+            .subclass(parentClass, ConstructorStrategy.Default.NO_CONSTRUCTORS);
 
         int modifiers = ACC_PUBLIC;
         if (is_abstract) {
@@ -95,21 +136,32 @@ public class JavaClassBuilder {
             Modifier.FINAL | Modifier.PUBLIC | Modifier.STATIC)
             .value(cptr);
 
-        // add default constructor
+        // add default constructor for already-created Qore objects
         ArrayList<Type> paramTypes = new ArrayList<Type>();
+        paramTypes.add(Long.TYPE);
+        bb = (DynamicType.Builder<?>)bb.defineConstructor(Visibility.PUBLIC)
+            .withParameters(paramTypes)
+            .intercept(
+                MethodCall.invoke(parentClass.getConstructor(Long.TYPE))
+                    .onSuper()
+                    .withArgument(0)
+            );
+
+        // add default constructor for dynamic creation from Qore
+        paramTypes = new ArrayList<Type>();
         paramTypes.add(Long.TYPE);
         paramTypes.add(Long.TYPE);
         paramTypes.add(Long.TYPE);
         paramTypes.add(objArray);
 
         return (DynamicType.Builder<?>)bb.defineConstructor(Visibility.PUBLIC)
-                .withParameters(paramTypes)
-                .throwing(Throwable.class)
-                .intercept(
-                    MethodCall.invoke(parentClass.getConstructor(Long.TYPE, Long.TYPE, Long.TYPE, objArray))
+            .withParameters(paramTypes)
+            .throwing(Throwable.class)
+            .intercept(
+                MethodCall.invoke(parentClass.getConstructor(Long.TYPE, Long.TYPE, Long.TYPE, objArray))
                     .onSuper()
                     .withAllArguments()
-                );
+            );
     }
 
     // add a constructor
@@ -131,21 +183,21 @@ public class JavaClassBuilder {
             if (paramTypes.size() == 0) {
                 return (DynamicType.Builder<?>)eb.intercept(
                         MethodCall.invoke(parentClass.getConstructor(Long.TYPE, Long.TYPE, Long.TYPE, objArray))
-                        .onSuper()
-                        .withField(CLASS_FIELD)
-                        .with(mptr)
-                        .with(vptr)
-                        .with((Object)null)
+                            .onSuper()
+                            .withField(CLASS_FIELD)
+                            .with(mptr)
+                            .with(vptr)
+                            .with((Object)null)
                 );
             }
 
             return (DynamicType.Builder<?>)eb.intercept(
                     MethodCall.invoke(parentClass.getConstructor(Long.TYPE, Long.TYPE, Long.TYPE, objArray))
-                    .onSuper()
-                    .withField(CLASS_FIELD)
-                    .with(mptr)
-                    .with(vptr)
-                    .withArgumentArray()
+                        .onSuper()
+                        .withField(CLASS_FIELD)
+                        .with(mptr)
+                        .with(vptr)
+                        .withArgumentArray()
             );
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
@@ -257,8 +309,12 @@ public class JavaClassBuilder {
      *
      * @param methodName the name of the method
      * @param qobjptr the pointer to the Qore object
+     * @param mptr the pointer to the Qore method object
+     * @param vptr the pointer to the method variant object
      * @param args the arguments to the call, if any, can be null
+     *
      * @return the result of the call
+     *
      * @throws Throwable any exception thrown in Qore
      */
     @RuntimeType
@@ -267,6 +323,24 @@ public class JavaClassBuilder {
         //System.out.println(String.format("JavaClassBuilder::doNormalCall() %s() ptr: %d args: %s", methodName,
         //  qobjptr, Arrays.toString(args)));
         return doNormalCall0(methodName, qobjptr, mptr, vptr, args);
+    }
+
+    /** makes a function call
+     *
+     * @param fptr the pointer to the Qore function object
+     * @param vptr the pointer to the method variant object
+     * @param args the arguments to the call, if any, can be null
+     *
+     * @return the result of the call
+     *
+     * @throws Throwable any exception thrown in Qore
+     */
+    @RuntimeType
+    public static Object doFunctionCall(long pgm, long fptr, long vptr, @Argument(0) Object... args)
+            throws Throwable {
+        //System.out.println(String.format("JavaClassBuilder::doFunctionCall() %s() args: %s", methodName,
+        //  Arrays.toString(args)));
+        return doFunctionCall0(pgm, fptr, vptr, args);
     }
 
     /** Returns a TypeDescription object for the given class
@@ -343,5 +417,7 @@ public class JavaClassBuilder {
     private static native Object doStaticCall0(String methodName, long qclsptr, long mptr, long vptr, Object... args)
             throws Throwable;
     private static native Object doNormalCall0(String methodName, long qobjptr, long mptr, long vptr, Object... args)
+            throws Throwable;
+    private static native Object doFunctionCall0(long pgm, long fptr, long vptr, @Argument(0) Object... args)
             throws Throwable;
 }
