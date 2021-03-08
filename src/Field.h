@@ -79,11 +79,15 @@ public:
 
     /**
      * \brief Gets the value of an instance field.
+     *
      * \param object the instance
+     * \param compat_types if backwards-compatible types should be used
+     *
      * \return the value of the static field
+     *
      * \throws Exception if the value cannot be retrieved
      */
-    QoreValue get(jobject object, QoreProgram* pgm);
+    QoreValue get(jobject object, QoreProgram* pgm, bool compat_types);
 
     /**
      * \brief Sets the value of an instance field.
@@ -98,7 +102,7 @@ public:
      * \return the value of the static field
      * \throws Exception if the value cannot be retrieved
      */
-    QoreValue getStatic(QoreProgram* pgm);
+    QoreValue getStatic(QoreProgram* pgm, bool compat_types);
 
     /**
      * \brief Sets the value of a static field.

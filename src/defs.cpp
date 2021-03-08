@@ -192,7 +192,7 @@ void JavaException::convert(ExceptionSink* xsink) {
 
         QoreValue qore_arg;
         if (arg) {
-            qore_arg = JavaToQore::convertToQore(arg.release(), jni_get_program_context());
+            qore_arg = JavaToQore::convertToQore(arg.release(), jni_get_program_context(), false);
         }
 
         QoreExternalProgramLocationWrapper loc;

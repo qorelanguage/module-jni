@@ -41,7 +41,7 @@ public class Main inherits QUnit::Test {
         list<auto> objectArray = oa.get();
         list<auto> intArray = ia.get();
 
-        int myint = clazz.getDeclaredMethod("wrap", Integer::TYPE).invoke(NOTHING, (42, ));
+        int myint = clazz.getDeclaredMethod("wrap", Integer::TYPE).invoke(NOTHING, (new Integer(42), ));
 
         o.set(NOTHING, byteArray);                                               # arrays in Java are Objects
         oa.set(NOTHING, objectArray);

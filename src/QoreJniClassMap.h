@@ -120,7 +120,7 @@ public:
 
     DLLLOCAL void destroy(ExceptionSink& xsink);
 
-    DLLLOCAL QoreValue getValue(LocalReference<jobject>& jobj, QoreProgram* pgm);
+    DLLLOCAL QoreValue getValue(LocalReference<jobject>& jobj, QoreProgram* pgm, bool compat_types);
 
     DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls, const QoreTypeInfo*& altType, QoreProgram* pgm = nullptr);
 
@@ -320,6 +320,7 @@ public:
     DLLLOCAL void overrideCompatTypes(bool compat_types) {
         override_compat_types = true;
         this->compat_types = compat_types;
+        //printd(0, "JniExternalProgramData::overrideCompatTypes(%d) this: %p\n", compat_types, this);
     }
 
     DLLLOCAL bool getCompatTypes() const {

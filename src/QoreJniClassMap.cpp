@@ -413,7 +413,7 @@ jclass QoreJniClassMap::findLoadClass(const char* jpath, QoreProgram* pgm) {
     return static_cast<Class*>(qc->getManagedUserData())->toLocal();
 }
 
-QoreValue QoreJniClassMap::getValue(LocalReference<jobject>& obj, QoreProgram* pgm) {
+QoreValue QoreJniClassMap::getValue(LocalReference<jobject>& obj, QoreProgram* pgm, bool compat_types) {
     Env env;
 
     // see if object is an array
@@ -421,7 +421,7 @@ QoreValue QoreJniClassMap::getValue(LocalReference<jobject>& obj, QoreProgram* p
 
     if (env.callBooleanMethod(jc, Globals::methodClassIsArray, nullptr)) {
         ReferenceHolder<> return_value(nullptr);
-        Array::getList(return_value, env, obj.cast<jarray>(), jc, pgm);
+        Array::getList(return_value, env, obj.cast<jarray>(), jc, pgm, compat_types);
         return return_value.release();
     }
 
@@ -2095,7 +2095,7 @@ void QoreJniClassMap::doFields(JniQoreClass& qc, jni::Class* jc, QoreProgram* pg
             printd(LogLevel, "+ adding static field %s %s %s.%s (%s)\n", access_str(field->getAccess()),
                 typeInfoGetName(fieldTypeInfo), qc.getName(), fname.c_str(), field->isFinal() ? "const" : "var");
 
-            QoreValue v(field->getStatic(pgm));
+            QoreValue v(field->getStatic(pgm, false));
             if (field->isFinal()) {
                 if (v.isNothing())
                     v.assign(0ll);

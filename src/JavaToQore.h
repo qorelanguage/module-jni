@@ -85,7 +85,7 @@ public:
       return QoreValue(v);
    }
 
-   static QoreValue convertToQore(LocalReference<jobject> v, QoreProgram* pgm);
+   static QoreValue convertToQore(LocalReference<jobject> v, QoreProgram* pgm, bool compat_types);
 
 private:
    JavaToQore() = delete;

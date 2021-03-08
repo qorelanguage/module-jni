@@ -94,9 +94,14 @@ void Array::getList(ReferenceHolder<>& return_value, Env& env, jarray array, jcl
         env.callObjectMethod(arrayClass, Globals::methodClassGetComponentType, nullptr).as<jclass>();
     Type elementType = Globals::getType(elementClass);
     // issue #3026: return a binary object for byte[] unless jni_compat_types is set
-    if (elementType == Type::Byte && !JniExternalProgramData::compatTypes() && !force_list) {
-        return_value = getBinary(env, array).release();
-        return;
+    if (elementType == Type::Byte && !force_list) {
+        // NOTE: we need to use the current thread program context to check for compat types; the "pgm" arg here is
+        // from the QoreProgram where the Method was defined
+        JniExternalProgramData* jpc = jni_get_context_unconditional();
+        if (!jpc->getCompatTypes()) {
+            return_value = getBinary(env, array).release();
+            return;
+        }
     }
 
     ExceptionSink xsink;
@@ -108,7 +113,7 @@ void Array::getList(ReferenceHolder<>& return_value, Env& env, jarray array, jcl
         fix_varargs = true;
     }
     for (jsize i = 0; i < e; ++i) {
-        QoreValue v = get(env, array, elementType, elementClass, i, pgm);
+        QoreValue v = get(env, array, elementType, elementClass, i, pgm, force_list);
         if (fix_varargs && i == (e - 1) && v.getType() == NT_LIST) {
             ListIterator li(v.get<QoreListNode>());
             while (li.next()) {
@@ -123,7 +128,8 @@ void Array::getList(ReferenceHolder<>& return_value, Env& env, jarray array, jcl
     return_value = l.release();
 }
 
-QoreValue Array::get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index, QoreProgram* pgm) {
+QoreValue Array::get(Env& env, jarray array, Type elementType, jclass elementClass, int64 index, QoreProgram* pgm,
+        bool compat_types) {
     switch (elementType) {
         case Type::Boolean:
             return JavaToQore::convert(env.getBooleanArrayElement(static_cast<jbooleanArray>(array), index));
@@ -144,13 +150,14 @@ QoreValue Array::get(Env& env, jarray array, Type elementType, jclass elementCla
         case Type::Reference:
         default:
             assert(elementType == Type::Reference);
-            return JavaToQore::convertToQore(env.getObjectArrayElement(static_cast<jobjectArray>(array), index), pgm);
+            return JavaToQore::convertToQore(env.getObjectArrayElement(static_cast<jobjectArray>(array), index), pgm,
+                compat_types);
     }
 }
 
-QoreValue Array::get(int64 index, QoreProgram* pgm) const {
+QoreValue Array::get(int64 index, QoreProgram* pgm, bool compat_types) const {
     Env env;
-    return get(env, jobj.cast<jarray>(), elementType, elementClass, index, pgm);
+    return get(env, jobj.cast<jarray>(), elementType, elementClass, index, pgm, compat_types);
 }
 
 void Array::set(int64 index, const QoreValue &value, JniExternalProgramData* jpc) {

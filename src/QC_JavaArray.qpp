@@ -83,7 +83,7 @@ int JavaArray::length() {
  */
 auto JavaArray::get(int index) {
     try {
-        return array->get(index, self->getProgram());
+        return array->get(index, self->getProgram(), false);
     } catch (jni::Exception &e) {
         e.convert(xsink);
         return QoreValue();
