@@ -292,7 +292,7 @@ LocalReference<jarray> Array::toJava(const QoreListNode* l, size_t start, JniExt
 void Array::getArgList(ReferenceHolder<QoreListNode>& return_value, Env& env, jarray array, QoreProgram* pgm, bool varargs) {
     LocalReference<jclass> arrayClass = env.getObjectClass(array);
     ReferenceHolder<> list(nullptr);
-    getList(list, env, array, arrayClass, pgm, true, varargs);
+    getList(list, env, array, arrayClass, pgm, false, varargs);
     return_value = reinterpret_cast<QoreListNode*>(list.release());
 }
 
