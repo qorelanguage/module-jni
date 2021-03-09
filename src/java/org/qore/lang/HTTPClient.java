@@ -781,7 +781,7 @@ public class HTTPClient extends QoreObjectWrapper {
         @endcode
     */
     public int getTimeout() throws Throwable {
-        return (int)obj.callMethod("getTimeout");
+        return ((Long)obj.callMethod("getTimeout")).intValue();
     }
 
     //! Sets the string encoding for the object; any strings deserialized with this object will be tagged with this character encoding
@@ -941,7 +941,7 @@ public class HTTPClient extends QoreObjectWrapper {
         @endcode
     */
     public int getMaxRedirects() throws Throwable {
-        return (int)obj.callMethod("getMaxRedirects");
+        return ((Long)obj.callMethod("getMaxRedirects")).intValue();
     }
 
     //! Sets the connect timeout in milliseconds
@@ -965,7 +965,7 @@ public class HTTPClient extends QoreObjectWrapper {
         @endcode
     */
     public int getConnectTimeout() throws Throwable {
-        return (int)obj.callMethod("getConnectTimeout");
+        return ((Long)obj.callMethod("getConnectTimeout")).intValue();
     }
 
     //! Sets the \c TCP_NODELAY setting for the object
@@ -987,7 +987,7 @@ public class HTTPClient extends QoreObjectWrapper {
         @see HTTPClient::getNoDelay()
     */
     public int setNoDelay(boolean b) throws Throwable {
-        return (int)obj.callMethod("setNoDelay", b);
+        return ((Long)obj.callMethod("setNoDelay", b)).intValue();
     }
 
     //! Returns the \c TCP_NODELAY setting for the HTTPClient object

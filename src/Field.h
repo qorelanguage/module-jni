@@ -79,11 +79,15 @@ public:
 
     /**
      * \brief Gets the value of an instance field.
+     *
      * \param object the instance
+     * \param compat_types if backwards-compatible types should be used
+     *
      * \return the value of the static field
+     *
      * \throws Exception if the value cannot be retrieved
      */
-    QoreValue get(jobject object, QoreProgram* pgm);
+    QoreValue get(jobject object, QoreProgram* pgm, bool compat_types);
 
     /**
      * \brief Sets the value of an instance field.
@@ -91,21 +95,21 @@ public:
      * \param value the new value
      * \throws Exception if the value cannot be set
      */
-    void set(jobject object, const QoreValue &value);
+    void set(jobject object, const QoreValue &value, JniExternalProgramData* jpc);
 
     /**
      * \brief Gets the value of a static field.
      * \return the value of the static field
      * \throws Exception if the value cannot be retrieved
      */
-    QoreValue getStatic(QoreProgram* pgm);
+    QoreValue getStatic(QoreProgram* pgm, bool compat_types);
 
     /**
      * \brief Sets the value of a static field.
      * \param value the new value
      * \throws Exception if the value cannot be set
      */
-    void setStatic(const QoreValue &value);
+    void setStatic(const QoreValue &value, JniExternalProgramData* jpc);
 
     jobject getJavaObject() const override {
         return field;

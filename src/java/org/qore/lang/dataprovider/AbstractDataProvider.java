@@ -338,7 +338,7 @@ public class AbstractDataProvider extends QoreObjectWrapper {
     */
     public int updateRecords(Map<String, Object> set, Map<String, Object> where_cond,
         HashMap<String, Object> search_options) throws Throwable {
-        return (int)obj.callMethod("updateRecords", set, where_cond, search_options);
+        return ((Long)obj.callMethod("updateRecords", set, where_cond, search_options)).intValue();
     }
 
     //! Updates zero or more records matching the search options
@@ -350,7 +350,7 @@ public class AbstractDataProvider extends QoreObjectWrapper {
         @throw INVALID-OPERATION the data provider does not support record updating
     */
     public int updateRecords(Map<String, Object> set, Map<String, Object> where_cond) throws Throwable {
-        return (int)obj.callMethod("updateRecords", set, where_cond);
+        return ((Long)obj.callMethod("updateRecords", set, where_cond)).intValue();
     }
 
     //! Deletes zero or more records
@@ -364,7 +364,7 @@ public class AbstractDataProvider extends QoreObjectWrapper {
     */
     public int deleteRecords(Map<String, Object> where_cond, Map<String, Object> search_options)
         throws Throwable {
-        return (int)obj.callMethod("deleteRecords", where_cond, search_options);
+        return ((Long)obj.callMethod("deleteRecords", where_cond, search_options)).intValue();
     }
 
     //! Deletes zero or more records
@@ -377,7 +377,7 @@ public class AbstractDataProvider extends QoreObjectWrapper {
     */
     public int deleteRecords(Map<String, Object> where_cond)
         throws Throwable {
-        return (int)obj.callMethod("deleteRecords", where_cond);
+        return ((Long)obj.callMethod("deleteRecords", where_cond)).intValue();
     }
 
     //! Makes a request and returns the response

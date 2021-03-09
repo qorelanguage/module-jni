@@ -35,7 +35,8 @@ void BaseMethod::init(Env &env) {
     retValClass = env.callObjectMethod(method, Globals::methodMethodGetReturnType, nullptr).as<jclass>().makeGlobal();
     retValType = Globals::getType(retValClass);
 
-    LocalReference<jobjectArray> paramTypesArray = env.callObjectMethod(method, Globals::methodMethodGetParameterTypes, nullptr).as<jobjectArray>();
+    LocalReference<jobjectArray> paramTypesArray = env.callObjectMethod(method,
+        Globals::methodMethodGetParameterTypes, nullptr).as<jobjectArray>();
     jsize paramCount = env.getArrayLength(paramTypesArray);
     paramTypes.reserve(paramCount);
     for (jsize p = 0; p < paramCount; ++p) {
@@ -47,9 +48,10 @@ void BaseMethod::init(Env &env) {
     }
 
     mods = env.callIntMethod(method, Globals::methodMethodGetModifiers, nullptr);
+    varargs = env.callBooleanMethod(method, Globals::methodMethodIsVarArgs, nullptr);
 }
 
-std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t arg_offset) const {
+std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t arg_offset, JniExternalProgramData* jpc) const {
     assert(arg_offset == 0 || (args != nullptr && args->size() >= arg_offset));
 
     size_t paramCount = paramTypes.size();
@@ -76,14 +78,13 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t arg
     for (size_t index = 0; index < paramCount; ++index) {
         // process varargs with remaining arguments or with a single argument if appropriate
         if (doVarArgs && (index == (paramCount - 1))
-            && ((argCount > paramCount)
-                || (argCount == paramCount && !index && argCount == 1 && args->retrieveEntry(0).getType() != NT_LIST))) {
+            && !(argCount == paramCount && args->retrieveEntry(index + arg_offset).getType() == NT_LIST)) {
             // get array component type
             Env env;
             LocalReference<jclass> ccls = env.callObjectMethod(paramTypes[index].second,
                 Globals::methodClassGetComponentType, nullptr).as<jclass>();
 
-            jargs[index].l = Array::toObjectArray(args, ccls, index).release();
+            jargs[index].l = Array::toObjectArray(args, ccls, index + arg_offset, jpc).release();
             break;
         }
         assert(!args || args->empty() || (index < argCount));
@@ -117,7 +118,7 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t arg
             case Type::Reference:
             default:
                 assert(paramTypes[index].first == Type::Reference);
-                jargs[index].l = QoreToJava::toObject(qv, paramTypes[index].second);
+                jargs[index].l = QoreToJava::toObject(qv, paramTypes[index].second, jpc);
                 break;
         }
     }
@@ -125,7 +126,8 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t arg
     return jargs;
 }
 
-LocalReference<jobjectArray> BaseMethod::convertArgsToArray(const QoreListNode* args, size_t arg_offset, size_t array_offset) const {
+LocalReference<jobjectArray> BaseMethod::convertArgsToArray(const QoreListNode* args, size_t arg_offset,
+        size_t array_offset, JniExternalProgramData* jpc) const {
     assert(arg_offset == 0 || (args != nullptr && args->size() >= arg_offset));
 
     size_t paramCount = paramTypes.size();
@@ -148,23 +150,25 @@ LocalReference<jobjectArray> BaseMethod::convertArgsToArray(const QoreListNode* 
         throw BasicException(err.c_str());
     }
 
-    LocalReference<jobjectArray> jargs = env.newObjectArray(paramCount + array_offset, Globals::classObject).as<jobjectArray>();
+    LocalReference<jobjectArray> jargs =
+        env.newObjectArray(paramCount + array_offset, Globals::classObject).as<jobjectArray>();
     for (size_t index = 0; index < paramCount; ++index) {
         // process varargs with remaining arguments or with a single argument if appropriate
         if (doVarArgs && (index == (paramCount - 1))
-            && ((argCount > paramCount)
-                || (argCount == paramCount && !index && argCount == 1 && args->retrieveEntry(0).getType() != NT_LIST))) {
+            && !(argCount == paramCount && args->retrieveEntry(index + arg_offset).getType() == NT_LIST)) {
             // get array component type
             Env env;
             LocalReference<jclass> ccls = env.callObjectMethod(paramTypes[index].second,
                 Globals::methodClassGetComponentType, nullptr).as<jclass>();
 
-            env.setObjectArrayElement(jargs, index + array_offset, Array::toObjectArray(args, ccls, index).release());
+            env.setObjectArrayElement(jargs, index + array_offset,
+                Array::toObjectArray(args, ccls, index + arg_offset, jpc).release());
             break;
         }
         assert(!args || args->empty() || (index < argCount));
         QoreValue qv = args ? args->retrieveEntry(index + arg_offset) : QoreValue();
-        env.setObjectArrayElement(jargs, index + array_offset, QoreToJava::toObject(qv, paramTypes[index].second));
+        env.setObjectArrayElement(jargs, index + array_offset, QoreToJava::toObject(qv, paramTypes[index].second,
+            jpc));
     }
 
     return jargs;
@@ -197,7 +201,7 @@ QoreValue BaseMethod::invoke(jobject object, const QoreListNode* args, QoreProgr
     if (!jpc) {
         // make a standard Java call; there will be no Java context for security access though
         try {
-            std::vector<jvalue> jargs = convertArgs(args, offset);
+            std::vector<jvalue> jargs = convertArgs(args, offset, jpc);
             switch (retValType) {
                 case Type::Boolean:
                     return JavaToQore::convert(env.callBooleanMethod(object, id, &jargs[0]));
@@ -222,7 +226,7 @@ QoreValue BaseMethod::invoke(jobject object, const QoreListNode* args, QoreProgr
                             pgm = Globals::getJavaContextProgram();
                         }
                     }
-                    return JavaToQore::convertToQore(env.callObjectMethod(object, id, &jargs[0]), pgm);
+                    return JavaToQore::convertToQore(env.callObjectMethod(object, id, &jargs[0]), pgm, false);
                 }
                 case Type::Void:
                 default:
@@ -240,7 +244,7 @@ QoreValue BaseMethod::invoke(jobject object, const QoreListNode* args, QoreProgr
     assert(jpc);
 
     // add the object as the first argument
-    LocalReference<jobjectArray> vargs = convertArgsToArray(args, offset).release();
+    LocalReference<jobjectArray> vargs = convertArgsToArray(args, offset, 0, jpc).release();
 
     // public static Object invokeMethodNonvirtual(Method m, Object obj, Object... args);
     std::vector<jvalue> jargs(3);
@@ -251,7 +255,7 @@ QoreValue BaseMethod::invoke(jobject object, const QoreListNode* args, QoreProgr
 
     //printd(5, "BaseMethod::invoke() args: %d\n", (int)(args ? args->size() : 0));
     return JavaToQore::convertToQore(env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getInvokeMethodId(),
-        &jargs[0]), pgm);
+        &jargs[0]), pgm, jpc->getCompatTypes());
 }
 
 QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreListNode* args, QoreProgram* pgm, int offset) const {
@@ -261,11 +265,11 @@ QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreListNode* args,
     }
 
     assert(pgm);
-    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+    JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
     assert(jpc);
 
     // add the object as the first argument
-    LocalReference<jobjectArray> vargs = convertArgsToArray(args, offset).release();
+    LocalReference<jobjectArray> vargs = convertArgsToArray(args, offset, 0, jpc).release();
 
     // public static Object invokeMethodNonvirtual(Method m, Object obj, Object... args);
     std::vector<jvalue> jargs(3);
@@ -274,73 +278,41 @@ QoreValue BaseMethod::invokeNonvirtual(jobject object, const QoreListNode* args,
     // process method arguments
     jargs[2].l = vargs;
 
-    //printd(0, "BaseMethod::invokeNonvirtual() args: %d\n", (int)(args ? args->size() : 0));
+    //printd(5, "BaseMethod::invokeNonvirtual() args: %d\n", (int)(args ? args->size() : 0));
     return JavaToQore::convertToQore(env.callStaticObjectMethod(jpc->getDynamicApi(),
-        jpc->getInvokeMethodNonvirtualId(), &jargs[0]), pgm);
+        jpc->getInvokeMethodNonvirtualId(), &jargs[0]), pgm, jpc->getCompatTypes());
 }
 
 QoreValue BaseMethod::invokeStatic(const QoreListNode* args, QoreProgram* pgm, int offset) const {
     Env env;
 
-    // try to make a call through the dynamic API
-    JniExternalProgramData* jpc = pgm ? static_cast<JniExternalProgramData*>(pgm->getExternalData("jni")) : nullptr;
-    if (jpc) {
-        LocalReference<jarray> vargs = args ? convertArgsToArray(args, offset).release() : nullptr;
-        std::vector<jvalue> jargs(3);
-        jargs[0].l = method;
-        jargs[1].l = nullptr;
-        // process method arguments
-        jargs[2].l = vargs;
+    // make the call through the dynamic API
+    JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
+    assert(jpc);
 
-        //printd(0, "BaseMethod::invokeStatic() with jpc context; args: %d\n", (int)(args ? args->size() : 0));
-        return JavaToQore::convertToQore(env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getInvokeMethodId(),
-            &jargs[0]), pgm);
-    }
+    LocalReference<jarray> vargs = args ? convertArgsToArray(args, offset, 0, jpc).release() : nullptr;
+    std::vector<jvalue> jargs(3);
+    jargs[0].l = method;
+    jargs[1].l = nullptr;
+    // process method arguments
+    jargs[2].l = vargs;
 
-    if (!pgm) {
-        pgm = jni_get_program_context();
-        if (!pgm) {
-            pgm = Globals::getJavaContextProgram();
-        }
-    }
-
-    std::vector<jvalue> jargs = convertArgs(args);
-    //printd(0, "BaseMethod::invokeStatic() w/o jpc context; args: %d\n", (int)(args ? args->size() : 0));
-    switch (retValType) {
-        case Type::Boolean:
-            return (bool)env.callStaticBooleanMethod(cls->getJavaObject(), id, &jargs[0]);
-        case Type::Byte:
-            return (int)env.callStaticByteMethod(cls->getJavaObject(), id, &jargs[0]);
-        case Type::Char:
-            return (int64)env.callStaticCharMethod(cls->getJavaObject(), id, &jargs[0]);
-        case Type::Short:
-            return (int64)env.callStaticShortMethod(cls->getJavaObject(), id, &jargs[0]);
-        case Type::Int:
-            return (int64)env.callStaticIntMethod(cls->getJavaObject(), id, &jargs[0]);
-        case Type::Long:
-            return (int64)env.callStaticLongMethod(cls->getJavaObject(), id, &jargs[0]);
-        case Type::Float:
-            return (double)env.callStaticFloatMethod(cls->getJavaObject(), id, &jargs[0]);
-        case Type::Double:
-            return (double)env.callStaticDoubleMethod(cls->getJavaObject(), id, &jargs[0]);
-        case Type::Reference:
-            return JavaToQore::convertToQore(env.callStaticObjectMethod(cls->getJavaObject(), id, &jargs[0]), pgm);
-        case Type::Void:
-        default:
-            assert(retValType == Type::Void);
-            env.callStaticVoidMethod(cls->getJavaObject(), id, &jargs[0]);
-            return QoreValue();
-    }
+    //printd(5, "BaseMethod::invokeStatic() with jpc context; args: %d\n", (int)(args ? args->size() : 0));
+    return JavaToQore::convertToQore(env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getInvokeMethodId(),
+        &jargs[0]), pgm, jpc->getCompatTypes());
 }
 
 QoreValue BaseMethod::newInstance(const QoreListNode* args, QoreProgram* pgm) {
-    std::vector<jvalue> jargs = convertArgs(args);
+    JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
+    std::vector<jvalue> jargs = convertArgs(args, 0, jpc);
     Env env;
-    return JavaToQore::convertToQore(env.newObject(cls->getJavaObject(), id, &jargs[0]), pgm);
+    return JavaToQore::convertToQore(env.newObject(cls->getJavaObject(), id, &jargs[0]), pgm, jpc->getCompatTypes());
 }
 
-LocalReference<jobject> BaseMethod::newQoreInstance(const QoreListNode* args) {
-    std::vector<jvalue> jargs = convertArgs(args);
+LocalReference<jobject> BaseMethod::newQoreInstance(const QoreListNode* args, JniExternalProgramData* jpc) {
+    //printd(5, "BaseMethod::newQoreInstance() this: %p cls: %p id: %p args: %p (%d)\n", this, cls->getJavaObject(), id,
+    //    args, args ? (int)args->size() : 0);
+    std::vector<jvalue> jargs = convertArgs(args, 0, jpc);
     Env env;
     return env.newObject(cls->getJavaObject(), id, &jargs[0]);
 }
@@ -353,22 +325,24 @@ void BaseMethod::getName(QoreString& str) const {
     str.concat(mName.c_str());
 }
 
-int BaseMethod::getParamTypes(type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo, QoreJniClassMap& clsmap,
-        QoreProgram* pgm) {
+int BaseMethod::getParamTypes(Env& env, type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo,
+        QoreJniClassMap& clsmap, QoreProgram* pgm) {
     unsigned len = paramTypes.size();
     if (len) {
         paramTypeInfo.reserve(len);
     }
 
-    for (auto& i : paramTypes) {
+    for (size_t j = 0, e = paramTypes.size(); j < e; ++j) {
+        std::pair<Type, GlobalReference<jclass>>& i = paramTypes[j];
         const QoreTypeInfo* altType = nullptr;
+
         paramTypeInfo.push_back(clsmap.getQoreType(i.second, altType, pgm));
         if (altType) {
             if (altParamTypeInfo.empty()) {
                 altParamTypeInfo.reserve(len);
             }
-            for (size_t i = altParamTypeInfo.size(), e = paramTypeInfo.size() - 1; i < e; ++i) {
-                altParamTypeInfo.push_back(paramTypeInfo[i]);
+            for (size_t k = altParamTypeInfo.size(), e = paramTypeInfo.size() - 1; k < e; ++k) {
+                altParamTypeInfo.push_back(paramTypeInfo[k]);
             }
             altParamTypeInfo.push_back(altType);
         }

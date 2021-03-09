@@ -272,6 +272,6 @@ try {
 
     //! returns the affected row count
     public int getRowCount() throws Throwable {
-        return (int)obj.callMethod("getRowCount");
+        return ((Long)obj.callMethod("getRowCount")).intValue();
     }
 }

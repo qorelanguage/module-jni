@@ -83,7 +83,7 @@ int JavaArray::length() {
  */
 auto JavaArray::get(int index) {
     try {
-        return array->get(index, self->getProgram());
+        return array->get(index, self->getProgram(), false);
     } catch (jni::Exception &e) {
         e.convert(xsink);
         return QoreValue();
@@ -96,7 +96,7 @@ auto JavaArray::get(int index) {
     @param value the value of the element
     @throws JNI-ERROR if the index is out of bounds or if the value type is incompatible with the array type
  */
-nothing JavaArray::set(int index, any value) {
+nothing JavaArray::set(int index, auto value) {
     try {
         array->set(index, value);
     } catch (jni::Exception &e) {

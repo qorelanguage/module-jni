@@ -8,6 +8,8 @@ import javax.tools.JavaFileObject;
 public class CompilerOutput<T> {
     /**
      * The compiled class
+     *
+     * @note This class has been created in the compiler's class loader
      */
     public Class<T> cls;
 

@@ -25,12 +25,24 @@ package org.qore.jni;
 class ClassModInfo {
     public String cls;
     public String mod;
+    public boolean python;
 
     ClassModInfo(String bin_name) {
+        init(bin_name, false);
+    }
+
+    ClassModInfo(String bin_name, boolean is_package) {
+        init(bin_name, is_package);
+    }
+
+    private void init(String bin_name, boolean is_package) {
         //System.out.printf("ClassModInfo(%s)'\n", bin_name);
+        //Thread.dumpStack();
+
         mod = null;
         cls = "::";
-        if (bin_name.equals("qore")) {
+        python = false;
+        if (bin_name.equals("qore") || bin_name.equals("python")) {
             return;
         } else if (bin_name.startsWith("qore.")) {
             cls += bin_name.substring(5);
@@ -44,14 +56,34 @@ class ClassModInfo {
                 cls = null;
                 return;
             }
+        } else if (bin_name.startsWith("python.")) {
+            python = true;
+            cls += "Python::";
+            cls += bin_name.substring(7);
+        } else if (bin_name.startsWith("pythonmod.")) {
+            python = true;
+            int end = is_package
+                ? bin_name.lastIndexOf(".")
+                : bin_name.indexOf(".", 11);
+            if (end >= 11 && end < (bin_name.length() - 1)) {
+                mod = bin_name.substring(10, end);
+                cls = bin_name.substring(end + 1);
+            } else {
+                mod = bin_name.substring(10);
+                cls = null;
+                //return;
+            }
         } else {
             cls += bin_name;
         }
-        cls = cls.replaceAll("\\.", "::");
+        if (cls != null) {
+            cls = cls.replaceAll("\\.", "::");
+        }
+        //System.out.printf("ClassModInfo (pkg: %s): %s => %s\n", is_package, bin_name, this);
     }
 
     @Override
     public String toString() {
-        return String.format("ClassModInfo{cls=%s, mod=%s}", cls, mod);
+        return String.format("ClassModInfo{cls=%s, mod=%s, python=%s}", cls, mod, python);
     }
 }

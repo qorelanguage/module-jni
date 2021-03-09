@@ -1008,7 +1008,7 @@ fail("Unexpected code executed");
 
     //! Run the whole suite, report results
     public int main() throws Throwable {
-        return (int)obj.callMethod("main");
+        return ((Long)obj.callMethod("main")).intValue();
     }
 
     //! returns the assertion name for display purposes

@@ -7,13 +7,13 @@ import qore.Qore.StreamWriter;
 import qore.DynamicTest;
 
 public class QoreDynamicTest {
-    public static int test0() throws Throwable {
+    public static long test0() throws Throwable {
         Sequence seq = new Sequence();
         seq.next();
         return seq.getCurrent();
     }
 
-    public static int test1(int start) throws Throwable {
+    public static long test1(long start) throws Throwable {
         Sequence seq = new Sequence(start);
         seq.next();
         return seq.getCurrent();
@@ -36,7 +36,7 @@ public class QoreDynamicTest {
         return stream;
     }
 
-    public static int test4() throws Throwable {
+    public static long test4() throws Throwable {
         return DynamicTest.test();
     }
 }

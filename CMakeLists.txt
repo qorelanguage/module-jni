@@ -140,7 +140,18 @@ ENDMACRO(ADD_JAR_TARGETS)
 MACRO(ADD_JAVA_COMPILER_SOURCE _input)
     GET_FILENAME_COMPONENT(_base ${_input} NAME_WE)
     GET_FILENAME_COMPONENT(_pkgdir ${_input} PATH)
-    SET(_class_file ${_pkgdir}/${_base}.class)
+    SET(_class_file ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/qore-jni-compiler.dir/${_pkgdir}/${_base}.class)
+
+    # generate rules to generate include files for compiler classes
+    SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${_base}.inc)
+    add_custom_command(
+        OUTPUT ${_inc_outfile}
+        COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_class_file} ${_inc_outfile}
+        DEPENDS ${_qore_jni_sentinel}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        VERBATIM
+    )
+    SET(QORE_INC_FILES ${QORE_INC_FILES} ${_inc_outfile})
     SET(JAVA_JAR_COMPILER_CLASSES ${JAVA_JAR_COMPILER_CLASSES} ${_class_file})
     SET(JAVA_JAR_COMPILER_SRC ${JAVA_JAR_COMPILER_SRC} ${CMAKE_SOURCE_DIR}/src/java/${_input})
 
@@ -149,8 +160,29 @@ MACRO(ADD_JAVA_COMPILER_SOURCE _input)
 
     # generate rules for inner classes (if any)
     foreach (it ${ARGN})
-        SET(_inc_relinfile ${_pkgdir}/${_base}$${it}.class)
+        if (${it} MATCHES "^[0-9]+$")
+            SET(_inc_infile ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/qore-jni-compiler.dir/${_pkgdir}/${_base}$${it}.class)
+            SET(_inc_relinfile ${_pkgdir}/${_base}$${it}.class)
+            # we need cmake to replace the "$" signs in inner class filenames with "$$" so they will be valid Makefile targets
+            SET(_inc_infile_target ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${_base}$$${it}.class)
+            SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${_base}_${it}.inc)
+        else()
+            SET(_inc_infile ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/qore-jni-compiler.dir/${_pkgdir}/${it}.class)
+            SET(_inc_relinfile ${_pkgdir}/${it}.class)
+            # we need cmake to replace the "$" signs in inner class filenames with "$$" so they will be valid Makefile targets
+            SET(_inc_infile_target ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/qore-jni-compiler.dir/${_pkgdir}/${it}.class)
+            SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${it}.inc)
+        endif()
+
+        add_custom_command(
+            OUTPUT ${_inc_outfile}
+            COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_inc_infile} ${_inc_outfile}
+            DEPENDS ${_qore_jni_sentinel}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            VERBATIM
+        )
         SET(JAVA_JAR_COMPILER_CLASSES ${JAVA_JAR_COMPILER_CLASSES} ${_inc_relinfile})
+        SET(QORE_INC_FILES ${QORE_INC_FILES} ${_inc_outfile})
     endforeach()
 ENDMACRO(ADD_JAVA_COMPILER_SOURCE)
 
@@ -171,7 +203,7 @@ generate_java(org/qore/jni/QoreRelativeTime.java)
 generate_java(org/qore/jni/QoreClosureMarker.java)
 generate_java(org/qore/jni/QoreJavaDynamicApi.java)
 generate_java(org/qore/jni/Hash.java 1 2 3 4 5 6 7 8 9 10)
-generate_java(org/qore/jni/JavaClassBuilder.java 1)
+generate_java(org/qore/jni/JavaClassBuilder.java 1 2)
 generate_java(org/qore/jni/QoreJavaFileObject.java)
 generate_jar(${BYTE_BUDDY_JAR} JavaJarByteBuddy)
 
@@ -228,7 +260,7 @@ add_java_source(org/qore/lang/smtpclient/SmtpClient.java)
 add_java_compiler_source(org/qore/jni/compiler/CustomJavaFileObject.java)
 add_java_compiler_source(org/qore/jni/compiler/PackageInternalsFinder.java)
 add_java_compiler_source(org/qore/jni/compiler/QoreJavaClassObject.java)
-add_java_compiler_source(org/qore/jni/compiler/QoreJavaCompiler.java)
+add_java_compiler_source(org/qore/jni/compiler/QoreJavaCompiler.java JavaFileObjectImpl FileManagerImpl)
 add_java_compiler_source(org/qore/jni/compiler/QoreJavaCompilerException.java)
 add_java_compiler_source(org/qore/jni/compiler/QoreJavaFileManager.java)
 add_java_compiler_source(org/qore/jni/compiler/CompilerOutput.java)

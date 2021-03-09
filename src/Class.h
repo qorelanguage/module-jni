@@ -53,10 +53,10 @@ private:
 
 public:
     /**
-        * \brief Constructor.
-        * \param cls a local reference to a Java class
-        * \throws JavaException if a global reference cannot be created
-        */
+     * \brief Constructor.
+     * \param cls a local reference to a Java class
+     * \throws JavaException if a global reference cannot be created
+     */
     DLLLOCAL Class(const LocalReference<jclass>& cls) : cls(cls.makeGlobal()) {
         printd(LogLevel, "Class::Class() this: %p cls: %p\n", this, static_cast<jclass>(this->cls));
         assert(static_cast<jclass>(this->cls));
@@ -64,6 +64,10 @@ public:
 
     DLLLOCAL jclass getJavaObject() const override {
         return cls;
+    }
+
+    DLLLOCAL LocalReference<jclass> getJavaObjectRef() const {
+        return cls.toLocal();
     }
 
     DLLLOCAL virtual Class* copy() const override {

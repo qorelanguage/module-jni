@@ -33,7 +33,7 @@
 
 namespace jni {
 
-QoreValue JavaToQore::convertToQore(LocalReference<jobject> v, QoreProgram* pgm) {
+QoreValue JavaToQore::convertToQore(LocalReference<jobject> v, QoreProgram* pgm, bool compat_types) {
     if (!v) {
         return QoreValue();
     }
@@ -100,13 +100,13 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v, QoreProgram* pgm)
 
                 // if key is not a string, then we cannot convert it to Qore
                 if (!env.isInstanceOf(key, Globals::classString)) {
-                    return qjcm.getValue(v, pgm);
+                    return qjcm.getValue(v, pgm, compat_types);
                 }
 
                 LocalReference<jobject> value = env.callObjectMethod(element,
                     Globals::methodEntryGetValue, nullptr);
 
-                ValueHolder val(convertToQore(value.release(), pgm), &xsink);
+                ValueHolder val(convertToQore(value.release(), pgm, compat_types), &xsink);
                 if (xsink) {
                     break;
                 }
@@ -141,7 +141,7 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v, QoreProgram* pgm)
             LocalReference<jobject> value = env.callObjectMethod(v,
                 Globals::methodListGet, &jargs[0]);
 
-            ValueHolder val(convertToQore(value.release(), pgm), &xsink);
+            ValueHolder val(convertToQore(value.release(), pgm, compat_types), &xsink);
             if (xsink) {
                 break;
             }
@@ -174,7 +174,7 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v, QoreProgram* pgm)
         return new QoreJniFunctionalInterface(v);
     }
 
-    return qjcm.getValue(v, pgm);
+    return qjcm.getValue(v, pgm, compat_types);
 }
 
 } // namespace jni

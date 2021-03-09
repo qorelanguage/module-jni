@@ -96,6 +96,18 @@ QoreValue JniQoreClass::memberGate(const QoreMethod& meth, void* m, QoreObject* 
             return QoreValue();
         }
 
+        // get thread-local compat types flag before setting program ctx from method
+        bool compat_types;
+        {
+            QoreProgram* pgm = ::getProgram();
+            JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+            if (jpc) {
+                compat_types = jpc->getCompatTypes();
+            } else {
+                compat_types = false;
+            }
+        }
+
         jargs[0].l = field;
         jargs[1].l = jobj;
 
@@ -109,7 +121,7 @@ QoreValue JniQoreClass::memberGate(const QoreMethod& meth, void* m, QoreObject* 
         assert(jpc);
 
         return JavaToQore::convertToQore(env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getFieldId(),
-            &jargs[0]), pgm);
+            &jargs[0]), pgm, compat_types);
         //return JavaToQore::convertToQore(env.callObjectMethod(field, Globals::methodFieldGet, &jargs[0]));
     } catch (jni::JavaException& e) {
         e.convert(xsink);

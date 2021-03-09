@@ -8,7 +8,7 @@ import org.qore.jni.QoreURLClassLoader;
 
 /**
  * JavaFileManager used for dynamic imports from %Qore into Java
- * 
+ *
  * @author adapted for %Qore by <a href="mailto:david@qore.org">David Nichols</a>
  * @since 07-Feb-2021
  */
@@ -103,7 +103,7 @@ public class QoreJavaFileManager implements JavaFileManager {
     }
 
     @Override
-    public FileObject getFileForOutput(Location location, String packageName, String relativeName, FileObject sibling) 
+    public FileObject getFileForOutput(Location location, String packageName, String relativeName, FileObject sibling)
             throws IOException {
         return standardFileManager.getFileForOutput(location, packageName, relativeName, sibling);
     }
@@ -119,7 +119,7 @@ public class QoreJavaFileManager implements JavaFileManager {
     }
 
     @Override
-    public Iterable<JavaFileObject> list(Location location, String packageName, Set<JavaFileObject.Kind> kinds, 
+    public Iterable<JavaFileObject> list(Location location, String packageName, Set<JavaFileObject.Kind> kinds,
             boolean recurse) throws IOException {
         boolean baseModule = location.getName().equals("SYSTEM_MODULES[java.base]");
         //System.out.printf("QJFM.list() loc: %s pn: %s kinds: %s recurse: %s\n", location, packageName, kinds, recurse);

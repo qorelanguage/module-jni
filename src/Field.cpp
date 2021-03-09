@@ -40,7 +40,7 @@ void BaseField::getName(QoreString& str) {
     str.concat(fname.c_str());
 }
 
-QoreValue BaseField::get(jobject object, QoreProgram* pgm) {
+QoreValue BaseField::get(jobject object, QoreProgram* pgm, bool compat_types) {
     Env env;
     if (!env.isInstanceOf(object, cls->getJavaObject())) {
         throw BasicException("Passed instance does not match the field's class");
@@ -65,11 +65,11 @@ QoreValue BaseField::get(jobject object, QoreProgram* pgm) {
         case Type::Reference:
         default:
             assert(type == Type::Reference);
-            return JavaToQore::convertToQore(env.getObjectField(object, id), pgm);
+            return JavaToQore::convertToQore(env.getObjectField(object, id), pgm, compat_types);
     }
 }
 
-void BaseField::set(jobject object, const QoreValue &value) {
+void BaseField::set(jobject object, const QoreValue& value, JniExternalProgramData* jpc) {
     Env env;
     if (!env.isInstanceOf(object, cls->getJavaObject())) {
         throw BasicException("Passed instance does not match the field's class");
@@ -102,12 +102,12 @@ void BaseField::set(jobject object, const QoreValue &value) {
         case Type::Reference:
         default:
             assert(type == Type::Reference);
-            env.setObjectField(object, id, QoreToJava::toObject(value, typeClass));
+            env.setObjectField(object, id, QoreToJava::toObject(value, typeClass, jpc));
             break;
     }
 }
 
-QoreValue BaseField::getStatic(QoreProgram* pgm) {
+QoreValue BaseField::getStatic(QoreProgram* pgm, bool compat_types) {
     Env env;
     switch (type) {
         case Type::Boolean:
@@ -129,11 +129,11 @@ QoreValue BaseField::getStatic(QoreProgram* pgm) {
         case Type::Reference:
         default:
             assert(type == Type::Reference);
-            return JavaToQore::convertToQore(env.getStaticObjectField(cls->getJavaObject(), id), pgm);
+            return JavaToQore::convertToQore(env.getStaticObjectField(cls->getJavaObject(), id), pgm, compat_types);
     }
 }
 
-void BaseField::setStatic(const QoreValue &value) {
+void BaseField::setStatic(const QoreValue &value, JniExternalProgramData* jpc) {
     Env env;
     switch (type) {
         case Type::Boolean:
@@ -163,7 +163,7 @@ void BaseField::setStatic(const QoreValue &value) {
         case Type::Reference:
         default:
             assert(type == Type::Reference);
-            env.setStaticObjectField(cls->getJavaObject(), id, QoreToJava::toObject(value, typeClass));
+            env.setStaticObjectField(cls->getJavaObject(), id, QoreToJava::toObject(value, typeClass, jpc));
             break;
     }
 }

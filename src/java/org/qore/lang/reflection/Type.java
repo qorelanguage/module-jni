@@ -147,7 +147,7 @@ public class Type extends QoreObjectWrapper {
 
     */
     public int isAssignableFrom(Object value) throws Throwable {
-        return (int)obj.callMethod("isAssignableFrom", value);
+        return ((Long)obj.callMethod("isAssignableFrom", value)).intValue();
     }
 
     //! Returns the base type code for the type or @ref Qore::NT_ALL for those that don't have types
@@ -159,7 +159,7 @@ public class Type extends QoreObjectWrapper {
         @return the base type code for the type or @ref Qore::NT_ALL for those that don't have types
     */
     public int getBaseTypeCode() throws Throwable {
-        return (int)obj.callMethod("getBaseTypeCode");
+        return ((Long)obj.callMethod("getBaseTypeCode")).intValue();
     }
 
     //! Returns a hash of types accepted by this type

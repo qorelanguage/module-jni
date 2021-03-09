@@ -90,7 +90,7 @@ public class QoreJavaLangApiTest {
                 }
             };
             HashMap row = table.selectRow(sh);
-            if ((int)row.get("id") != 1) {
+            if ((long)row.get("id") != 1) {
                 throw new Throwable("id");
             }
             if (!row.get("string").equals("hello")) {
