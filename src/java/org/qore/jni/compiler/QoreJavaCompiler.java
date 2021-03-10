@@ -126,7 +126,7 @@ public class QoreJavaCompiler<T> {
                     + "Check that your class path includes tools.jar");
         }
         classLoader = new QoreURLClassLoader(loader.getPtr(), loader);
-        //System.out.printf("compiler classLoader: %s (loader: %s)\n", classLoader, loader);
+        //System.out.printf("compiler classLoader: %s (loader: %s pgm: %x)\n", classLoader, loader, loader.getPtr());
         diagnostics = null;
         final QoreJavaFileManager fileManager = new QoreJavaFileManager(classLoader,
             compiler.getStandardFileManager(diagnostics, null, null));
@@ -383,7 +383,7 @@ public class QoreJavaCompiler<T> {
      * Add a path to the classpath
      */
     public void addClassPath(String path) {
-        System.out.printf("compiler.addClassPath() %s\n", path);
+        //System.out.printf("compiler.addClassPath() %s\n", path);
         classLoader.addPath(path);
     }
 

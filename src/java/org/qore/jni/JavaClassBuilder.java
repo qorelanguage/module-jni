@@ -20,6 +20,7 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.description.type.TypeDefinition;
 import net.bytebuddy.description.modifier.MethodArguments;
 import net.bytebuddy.description.method.MethodDescription.Token;
+import net.bytebuddy.description.field.FieldDescription;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
@@ -30,24 +31,31 @@ import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.FixedValue;
+import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.NamingStrategy;
+import net.bytebuddy.matcher.ElementMatchers;
 
 import org.qore.jni.QoreURLClassLoader;
 
+/** Helper class for building dynamic Java classes
+ */
 public class JavaClassBuilder {
     private static Class objArray;
     private static Method mStaticCall;
     private static Method mNormalCall;
     private static Method mFunctionCall;
-    private static final String CLASS_FIELD = "qore_cls_ptr";
+    private static Method mGetConstantValue;
+    private static final String CLASS_FIELD = "$qore_cls_ptr";
 
     // copied from org.objectweb.asm.Opcodes
     public static final int ACC_PUBLIC    = (1 << 0);
     public static final int ACC_PRIVATE   = (1 << 1);
     public static final int ACC_PROTECTED = (1 << 2);
+    public static final int ACC_STATIC    = (1 << 3);
+    public static final int ACC_FINAL     = (1 << 4);
     public static final int ACC_ABSTRACT  = (1 << 10);
 
-    // static initialization
+    //! static initialization
     static {
         try {
             objArray = Class.forName("[L" + Object.class.getCanonicalName() + ";");
@@ -67,12 +75,18 @@ public class JavaClassBuilder {
             args[2] = Long.TYPE;
             args[3] = objArray;
             mFunctionCall = JavaClassBuilder.class.getDeclaredMethod("doFunctionCall", args);
+
+            args = new Class<?>[2];
+            args[0] = Long.TYPE;
+            args[1] = Long.TYPE;
+            mGetConstantValue = JavaClassBuilder.class.getDeclaredMethod("getConstantValue", args);
         } catch (Throwable e) {
             throw new ExceptionInInitializerError(e);
         }
     }
 
-    static public DynamicType.Builder<?> getFunctionClassBuilder(String bin_name) throws NoSuchMethodException {
+    //! Returns a builder object for a dynamic class mapping Qore functions to static Java methods
+    public static DynamicType.Builder<?> getFunctionConstantClassBuilder(String bin_name) throws NoSuchMethodException {
         return new ByteBuddy()
             .with(TypeValidation.DISABLED)
             .with(new NamingStrategy.AbstractBase() {
@@ -85,8 +99,8 @@ public class JavaClassBuilder {
             .modifiers(ACC_PUBLIC);
     }
 
-    // add a function to a function class
-    static public DynamicType.Builder<?> addFunction(DynamicType.Builder<?> bb, String functionName, long pgm,
+    //! Add a function to a function class
+    public static DynamicType.Builder<?> addFunction(DynamicType.Builder<?> bb, String functionName, long pgm,
             long fptr, long vptr, TypeDefinition returnType, List<TypeDefinition> paramTypes, boolean varargs) {
         if (paramTypes == null) {
             paramTypes = new ArrayList<TypeDefinition>();
@@ -112,7 +126,52 @@ public class JavaClassBuilder {
             );
     }
 
-    static public DynamicType.Builder<?> getClassBuilder(String className, Class<?> parentClass,
+    //! Add a field to a class
+    public static DynamicType.Builder<?> addStaticField(DynamicType.Builder<?> bb, String fieldName, int modifiers,
+            TypeDescription fieldType, long cPtr, ArrayList<StaticEntry> staticList) {
+        modifiers |= ACC_FINAL | ACC_STATIC;
+        bb = bb.defineField(fieldName, fieldType, modifiers);
+
+        staticList.add(new StaticEntry(fieldName, modifiers, fieldType, cPtr));
+        return bb;
+    }
+
+    //! Creates the static initializer for a class
+    public static DynamicType.Builder<?> createStaticInitializer(DynamicType.Builder<?> bb, String className,
+            long pgm, ArrayList<StaticEntry> staticList) {
+        Implementation.Composable mc = null;
+        for (StaticEntry entry : staticList) {
+            Implementation.Composable new_mc = MethodCall.invoke(mGetConstantValue)
+                .with(pgm)
+                .with(entry.cPtr)
+                .setsField(ElementMatchers.is(
+                    new FieldDescription.Latent(
+                        InstrumentedType.Default.of(className, null, Modifier.PUBLIC
+                    ),
+                    new FieldDescription.Token(
+                        entry.fieldName,
+                        entry.modifiers,
+                        new TypeDescription.Generic.OfNonGenericType.Latent(entry.fieldType, null))
+                    )
+                ))
+                .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC);
+            if (mc == null) {
+                mc = new_mc;
+            } else {
+                mc = mc.andThen(new_mc);
+            }
+        }
+
+        if (mc == null) {
+            return bb;
+        }
+
+        return bb.invokable(ElementMatchers.isTypeInitializer())
+            .intercept(mc);
+    }
+
+    //! Returns a builder object for a dynamic class
+    public static DynamicType.Builder<?> getClassBuilder(String className, Class<?> parentClass,
             boolean is_abstract, long cptr) throws NoSuchMethodException {
         DynamicType.Builder<?> bb = new ByteBuddy()
             .with(TypeValidation.DISABLED)
@@ -164,8 +223,8 @@ public class JavaClassBuilder {
             );
     }
 
-    // add a constructor
-    static public DynamicType.Builder<?> addConstructor(DynamicType.Builder<?> bb, Class<?> parentClass,
+    //! add a constructor
+    public static DynamicType.Builder<?> addConstructor(DynamicType.Builder<?> bb, Class<?> parentClass,
             long mptr, long vptr, int visibility, List<TypeDefinition> paramTypes, boolean varargs) {
         if (paramTypes == null) {
             paramTypes = new ArrayList<TypeDefinition>();
@@ -204,8 +263,8 @@ public class JavaClassBuilder {
         }
     }
 
-    // add normal method
-    static public DynamicType.Builder<?> addNormalMethod(DynamicType.Builder<?> bb, String methodName, long mptr,
+    //! add normal method
+    public static DynamicType.Builder<?> addNormalMethod(DynamicType.Builder<?> bb, String methodName, long mptr,
             long vptr, int visibility, TypeDefinition returnType, List<TypeDefinition> paramTypes, boolean isAbstract,
             boolean varargs) {
         if (paramTypes == null) {
@@ -253,8 +312,8 @@ public class JavaClassBuilder {
         return bb;
     }
 
-    // add static method
-    static public DynamicType.Builder<?> addStaticMethod(DynamicType.Builder<?> bb, String methodName, long mptr,
+    //! add static method
+    public static DynamicType.Builder<?> addStaticMethod(DynamicType.Builder<?> bb, String methodName, long mptr,
             long vptr, int visibility, TypeDefinition returnType, List<TypeDefinition> paramTypes, boolean varargs) {
         if (paramTypes == null) {
             paramTypes = new ArrayList<TypeDefinition>();
@@ -282,7 +341,7 @@ public class JavaClassBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    static public byte[] getByteCodeFromBuilder(DynamicType.Builder<?> bb, QoreURLClassLoader classLoader) {
+    public static byte[] getByteCodeFromBuilder(DynamicType.Builder<?> bb, QoreURLClassLoader classLoader) {
         DynamicType.Unloaded<?> unloaded = bb.make();
         byte[] byte_code = unloaded.getBytes();
         //System.out.printf("JavaClassBuilder.getClassFromBuilder() %s: got %d bytes (cl: %s)\n",
@@ -341,6 +400,18 @@ public class JavaClassBuilder {
         //System.out.println(String.format("JavaClassBuilder::doFunctionCall() %s() args: %s", methodName,
         //  Arrays.toString(args)));
         return doFunctionCall0(pgm, fptr, vptr, args);
+    }
+
+    /** retrieves the value of a constant from the given Qore program
+     *
+     * @param pgm the pointer to the Qore program object
+     * @param cPtr the pointer the constant entry
+     *
+     * @return the value of the given constant
+     */
+    @RuntimeType
+    public static Object getConstantValue(long pgm, long cPtr) throws Throwable {
+        return getConstantValue0(pgm, cPtr);
     }
 
     /** Returns a TypeDescription object for the given class
@@ -420,4 +491,19 @@ public class JavaClassBuilder {
             throws Throwable;
     private static native Object doFunctionCall0(long pgm, long fptr, long vptr, @Argument(0) Object... args)
             throws Throwable;
+    private static native Object getConstantValue0(long pgm, long cPtr) throws Throwable;
+}
+
+class StaticEntry {
+    public String fieldName;
+    public int modifiers;
+    public TypeDescription fieldType;
+    public long cPtr;
+
+    StaticEntry(String fieldName, int modifiers, TypeDescription fieldType, long cPtr) {
+        this.fieldName = fieldName;
+        this.modifiers = modifiers;
+        this.fieldType = fieldType;
+        this.cPtr = cPtr;
+    }
 }

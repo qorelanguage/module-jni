@@ -213,7 +213,7 @@ void Array::set(jarray array, Type elementType, jclass elementClass, int64 index
     }
 }
 
-jclass Array::getClassForValue(QoreValue v) {
+jclass Array::getClassForValue(QoreValue v, JniExternalProgramData* jpc) {
     switch (v.getType()) {
         case NT_INT: return Globals::classLong.toLocal();
         case NT_FLOAT: return Globals::classDouble.toLocal();
@@ -224,6 +224,11 @@ jclass Array::getClassForValue(QoreValue v) {
         case NT_HASH: return Globals::classHash.toLocal();
         case NT_LIST: return Globals::classObject.toLocal();
         case NT_OBJECT: {
+            Env env;
+            if (jpc) {
+                return (jclass)jpc->getJavaClassForQoreClass(env, v.get<QoreObject>()->getClass(), false).release();
+            }
+
             QoreObject* o = v.get<QoreObject>();
             ExceptionSink xsink;
             SimpleRefHolder<QoreJniPrivateData> obj(static_cast<QoreJniPrivateData*>(o->getReferencedPrivateData(CID_OBJECT, &xsink)));
@@ -233,7 +238,6 @@ jclass Array::getClassForValue(QoreValue v) {
                 }
                 return Globals::classQoreObject.toLocal();
             }
-            Env env;
             return env.getObjectClass(obj->getObject()).release();
         }
     }
@@ -271,7 +275,7 @@ LocalReference<jarray> Array::toJava(const QoreListNode* l, size_t start, JniExt
             continue;
 
         if (!elementClass) {
-            elementClass = getClassForValue(v);
+            elementClass = getClassForValue(v, jpc);
             typeInfo = v.getTypeInfo();
         } else {
             const QoreTypeInfo* newTypeInfo = v.getTypeInfo();

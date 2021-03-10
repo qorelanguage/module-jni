@@ -451,6 +451,12 @@ class MyTest {
     namespace are imported automatically into a special class with this name in the corresponding dynamic Java
     package.
 
+    @par Importing Constants Into Java
+
+    %Qore constants can be imported using the special \c $Constants class name; constants in a %Qore
+    namespace are imported automatically into a special class with this name as <tt><b>static final</b></tt> fields in
+    the corresponding dynamic Java package.
+
     @subsection jni_dynamic_imports_compile Using Dynamic API Imports While Compiling
 
     The @ref org.qore.jni.compiler.QoreJavaCompiler class must be used to compile bytecode using dynamic imports.
@@ -554,7 +560,7 @@ Object obj = newClassData.cls.getDeclaredConstructor().newInstance();
     Qore to Java Default Type Conversions
     |!Source %Qore Type|!Target Java Type
     |@ref bool_type "bool"|\c boolean
-    |@ref int_type "int"|\c int (note: precision is lost here)
+    |@ref int_type "int"|\c long
     |@ref float_type "float"|\c double
     |@ref string_type "string"|\c java.lang.String
     |@ref date_type "date"|\c java.time.ZonedDateTime or @ref org.qore.jni.QoreRelativeTime
@@ -689,6 +695,7 @@ set_save_object_callback(callback);
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_2_0 jni Module Version 2.0
+    - %Qore @ref int_type "int" values are now converted to Java \c long in order to maintain precision
     - the old hand-developed Java wrapper classes are deprecated as of this release in favor of
       @ref jni_dynamic_import_qore_python_in_java "dynamic imports"
     - implemented support for dynamically importing %Qore code into Java

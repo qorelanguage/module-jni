@@ -86,9 +86,9 @@ public:
 
     static jobject toObject(const QoreValue& value, jclass cls, JniExternalProgramData* jpc = nullptr);
 
-    static jobject toAnyObject(const QoreValue& value, JniExternalProgramData* jpc = nullptr);
+    static jobject toAnyObject(const QoreValue& value, JniExternalProgramData* jpc = nullptr, bool ignore_missing_class = false);
 
-    static jobject makeMap(const QoreHashNode& h, jclass cls);
+    static jobject makeMap(const QoreHashNode& h, jclass cls, JniExternalProgramData* jpc = nullptr);
 
     static jbyteArray makeByteArray(const BinaryNode& b);
 
