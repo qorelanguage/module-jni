@@ -94,7 +94,7 @@ class Array : public QoreJniPrivateData {
     DLLLOCAL static LocalReference<jarray> toObjectArray(const QoreListNode* l, jclass elementClass, size_t start = 0,
             JniExternalProgramData* jpc = nullptr);
 
-    DLLLOCAL static jclass getClassForValue(QoreValue v);
+    DLLLOCAL static jclass getClassForValue(QoreValue v, JniExternalProgramData* jpc = nullptr);
 
     DLLLOCAL static SimpleRefHolder<BinaryNode> getBinary(Env& env, jarray array);
 

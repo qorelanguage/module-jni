@@ -73,7 +73,7 @@ static jobject jni_number_to_jobject(const QoreNumberNode& num) {
     return env.newObject(Globals::classBigDecimal, Globals::ctorBigDecimal, &jargs[0]).release();
 }
 
-jobject QoreToJava::toAnyObject(const QoreValue& value, JniExternalProgramData* jpc) {
+jobject QoreToJava::toAnyObject(const QoreValue& value, JniExternalProgramData* jpc, bool ignore_missing_class) {
     Env env;
     switch (value.getType()) {
         case NT_BOOLEAN: {
@@ -104,7 +104,7 @@ jobject QoreToJava::toAnyObject(const QoreValue& value, JniExternalProgramData* 
         case NT_OBJECT: {
             QoreObject* o = const_cast<QoreObject*>(value.get<const QoreObject>());
             if (jpc) {
-                return jpc->getJavaObject(o).release();
+                return jpc->getJavaObject(o, ignore_missing_class).release();
             }
 
             jobject javaObjectRef = qjcm.getJavaObject(o);
@@ -119,7 +119,7 @@ jobject QoreToJava::toAnyObject(const QoreValue& value, JniExternalProgramData* 
             return qjcm.getJavaClosure(call);
         }
         case NT_HASH: {
-            return makeMap(*value.get<QoreHashNode>(), Globals::classHash);
+            return makeMap(*value.get<QoreHashNode>(), Globals::classHash, jpc);
         }
         case NT_BINARY: {
             return makeByteArray(*value.get<BinaryNode>());
@@ -129,9 +129,10 @@ jobject QoreToJava::toAnyObject(const QoreValue& value, JniExternalProgramData* 
         case NT_NULL:
             return nullptr;
         case NT_LIST:
-            return Array::toJava(value.get<QoreListNode>()).release();
+            return Array::toJava(value.get<QoreListNode>(), 0, jpc).release();
     }
-    QoreStringMaker desc("don't know how to convert a value of type '%s' to a Java object (expecting 'java.lang.Object')", value.getTypeName());
+    QoreStringMaker desc("XX(%d) don't know how to convert a value of type '%s' to a Java object (expecting " \
+        "'java.lang.Object')", value.getType(), value.getFullTypeName());
     throw BasicException(desc.c_str());
 }
 
@@ -142,14 +143,14 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProg
     if (cls) {
         Env env;
         if (env.isSameObject(cls, Globals::classObject)) {
-            return toAnyObject(value);
+            return toAnyObject(value, jpc);
         }
 
         switch (value.getType()) {
             // check compatible primitive types
             case NT_BOOLEAN: {
                 if (env.isSameObject(cls, Globals::classBoolean) || env.isSameObject(cls, Globals::classPrimitiveBoolean)) {
-                    return toAnyObject(value);
+                    return toAnyObject(value, jpc);
                 }
                 break;
             }
@@ -172,7 +173,7 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProg
 
             case NT_FLOAT: {
                 if (env.isSameObject(cls, Globals::classDouble) || env.isSameObject(cls, Globals::classPrimitiveDouble)) {
-                    return toAnyObject(value);
+                    return toAnyObject(value, jpc);
                 }
                 break;
             }
@@ -198,7 +199,7 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProg
             break;
         }
         case NT_HASH: {
-            return makeMap(*value.get<QoreHashNode>(), cls);
+            return makeMap(*value.get<QoreHashNode>(), cls, jpc);
         }
         case NT_OBJECT: {
             const QoreObject* o = value.get<QoreObject>();
@@ -254,7 +255,7 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProg
             }
 
             // convert primitive types to java objects if possible
-            return toAnyObject(value);
+            return toAnyObject(value, jpc);
         }
     }
 
@@ -283,7 +284,7 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProg
     return javaObjectRef.release();
 }
 
-jobject QoreToJava::makeMap(const QoreHashNode& h, jclass cls) {
+jobject QoreToJava::makeMap(const QoreHashNode& h, jclass cls, JniExternalProgramData* jpc) {
     Env env;
 
     // get constructor for class
@@ -306,7 +307,7 @@ jobject QoreToJava::makeMap(const QoreHashNode& h, jclass cls) {
     while (i.next()) {
         LocalReference<jstring> key = env.newString(i.getKey());
         QoreValue v(i.get());
-        LocalReference<jobject> value = toAnyObject(v);
+        LocalReference<jobject> value = toAnyObject(v, jpc);
 
         std::vector<jvalue> jargs(2);
         jargs[0].l = key;

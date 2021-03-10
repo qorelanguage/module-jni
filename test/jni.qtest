@@ -221,6 +221,21 @@ public class Main inherits QUnit::Test {
 
     javaCodegenTest() {
         try {
+            {
+                # compile and execute QoreDynamicTest12.java
+                QoreJavaCompiler compiler();
+                hash<auto> sources = {
+                    "org.qore.test.QoreDynamicTest12": File::readTextFile(get_script_dir() +
+                        "/../test/QoreDynamicTest12.java"),
+                };
+                hash<auto> cv = compiler.compile(sources);
+                #printf("%N\n", cv);
+                compiler::CompilerOutput newClassData = cv{"org.qore.test.QoreDynamicTest12"};
+                binary fdata = newClassData.file.openInputStream().readAllBytes();
+                assertEq(True, fdata.size() > 0);
+                object obj = define_class("org/qore/test/QoreDynamicTest12", fdata).newInstance();
+                assertEq(M_PI, obj.test());
+            }
 %ifndef NO_PYTHON
             {
                 # compile and execute QoreDynamicTest11.java
@@ -917,8 +932,21 @@ lorem ipsum\r
             DbTableDataProvider provider(local_table.getQoreObject().getTable());
             QoreJavaLangApiTest::testDataProvider(provider);
         } catch (hash<ExceptionInfo> ex) {
-            printf("%s\n", get_exception_string(ex));
             local_table.rollback();
+
+            if (ex.arg.typeCode() == NT_OBJECT) {
+                object arg = ex.arg;
+                while (arg && arg.hasCallableMethod("getCause")) {
+                    *object next = arg.getCause();
+                    if (next) {
+                        arg = next;
+                    } else {
+                        break;
+                    }
+                }
+                arg.printStackTrace();
+            }
+            printf("%s\n", get_exception_string(ex));
             rethrow;
         }
     }

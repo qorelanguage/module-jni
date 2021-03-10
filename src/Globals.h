@@ -47,6 +47,7 @@ DLLLOCAL void jni_delete_pgm(ExceptionSink& xsink);
 DLLLOCAL QoreProgram* jni_get_create_program(Env& env);
 
 DLLLOCAL constexpr const char* JniImportedFunctionClassName = "$Functions";
+DLLLOCAL constexpr const char* JniImportedConstantClassName = "$Constants";
 
 class Env;
 
@@ -186,8 +187,10 @@ public:
     DLLLOCAL static jmethodID methodQoreURLClassLoaderCheckInProgress;            // boolean checkInProgress(String)
 
     DLLLOCAL static GlobalReference<jclass> classJavaClassBuilder;                // org.qore.jni.JavaClassBuilder
-    DLLLOCAL static jmethodID methodJavaClassBuilderGetFunctionClassBuilder;      // static DynamicType.Builder<?> getClassBuilder(String bin_name)
+    DLLLOCAL static jmethodID methodJavaClassBuilderGetFunctionConstantClassBuilder; // static DynamicType.Builder<?> getFunctionConstantClassBuilder(String bin_name)
     DLLLOCAL static jmethodID methodJavaClassBuilderAddFunction;                  // static DynamicType.Builder<?> addFunction(DynamicType.Builder<?>, String, long, long, long, TypeDefinition, List<TypeDefinition>, boolean)
+    DLLLOCAL static jmethodID methodJavaClassBuilderAddStaticField;               // static DynamicType.Builder<?> addStaticField(DynamicType.Builder<?>, String, int, TypeDescription, long, ArrayList)
+    DLLLOCAL static jmethodID methodJavaClassBuilderCreateStaticInitializer;      // static DynamicType.Builder<?> createStaticInitializer(DynamicType.Builder<?>, String, long, ArrayList)
     DLLLOCAL static jmethodID methodJavaClassBuilderGetClassBuilder;              // static DynamicType.Builder<?> getClassBuilder(String, Class<?>, boolean, long)
     DLLLOCAL static jmethodID methodJavaClassBuilderAddConstructor;               // static DynamicType.Builder<?> addConstructor(DynamicType.Builder<?>, Class<?>, long, long, int, List<TypeDefinition>, boolean)
     DLLLOCAL static jmethodID methodJavaClassBuilderAddNormalMethod;              // static DynamicType.Builder<?> addNormalMethod(DynamicType.Builder<?>, String, long, long, int, TypeDefinition, List<TypeDefinition>, boolean, boolean)

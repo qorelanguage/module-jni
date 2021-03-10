@@ -338,7 +338,8 @@ static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
     if (!jpc) {
         QoreNamespace* jnins = qjcm.getJniNs().copy();
         pgm->getRootNS()->addNamespace(jnins);
-        pgm->setExternalData("jni", new JniExternalProgramData(jnins, pgm));
+        jpc = new JniExternalProgramData(jnins, pgm);
+        pgm->setExternalData("jni", jpc);
         pgm->addFeature(QORE_JNI_MODULE_NAME);
     }
 

@@ -86,20 +86,20 @@ class IgnorableException : public Exception {
  */
 class UnableToAttachException : public IgnorableException {
 public:
-   /**
-    * \brief Constructor.
-    * \param err the error code
-    */
-   DLLLOCAL UnableToAttachException(jint err) : err(err) {
-      printd(LogLevel, "JNI - error attaching thread %d, err: %d\n", q_gettid(), err);
-   }
+    /**
+     * \brief Constructor.
+     * \param err the error code
+     */
+    DLLLOCAL UnableToAttachException(jint err) : err(err) {
+        printd(LogLevel, "JNI - error attaching thread %d, err: %d\n", q_gettid(), err);
+    }
 
-   DLLLOCAL void convert(ExceptionSink *xsink) override {
-      xsink->raiseException("JNI-ERROR", "Unable to attach thread to the JVM, error %d", err);
-   }
+    DLLLOCAL void convert(ExceptionSink *xsink) override {
+        xsink->raiseException("JNI-ERROR", "Unable to attach thread to the JVM, error %d", err);
+    }
 
 private:
-   jint err;
+    jint err;
 };
 
 /**
@@ -107,16 +107,16 @@ private:
  */
 class UnableToRegisterException : public IgnorableException {
 public:
-   /**
-    * \brief Constructor.
-    */
-   DLLLOCAL UnableToRegisterException() {
-      printd(LogLevel, "JNI - error registering thread %ld with Qore\n", pthread_self());
-   }
+    /**
+     * \brief Constructor.
+     */
+    DLLLOCAL UnableToRegisterException() {
+        printd(LogLevel, "JNI - error registering thread %ld with Qore\n", pthread_self());
+    }
 
-   DLLLOCAL void convert(ExceptionSink *xsink) override {
-      xsink->raiseException("JNI-ERROR", "Unable to register thread with Qore");
-   }
+    DLLLOCAL void convert(ExceptionSink *xsink) override {
+        xsink->raiseException("JNI-ERROR", "Unable to register thread with Qore");
+    }
 };
 
 /**
@@ -125,12 +125,12 @@ public:
 class JavaException : public Exception {
 public:
     /**
-        * \brief Constructor.
-    */
+     * \brief Constructor.
+     */
     DLLLOCAL JavaException() {
     }
 
-    DLLLOCAL void convert(ExceptionSink *xsink) override;
+    DLLLOCAL void convert(ExceptionSink* xsink) override;
 
     DLLLOCAL void ignore() override;
 

@@ -320,7 +320,7 @@ public:
     DLLLOCAL void overrideCompatTypes(bool compat_types) {
         override_compat_types = true;
         this->compat_types = compat_types;
-        //printd(0, "JniExternalProgramData::overrideCompatTypes(%d) this: %p\n", compat_types, this);
+        //printd(5, "JniExternalProgramData::overrideCompatTypes(%d) this: %p\n", compat_types, this);
     }
 
     DLLLOCAL bool getCompatTypes() const {
@@ -360,10 +360,14 @@ public:
 
     DLLLOCAL jclass findJavaClass(const QoreClass& qc);
 
+    DLLLOCAL LocalReference<jclass> getClassForValue(const QoreObject* o);
+
+    DLLLOCAL LocalReference<jclass> getJavaClassForQoreClass(Env& env, const QoreClass* qc, bool ignore_missing_class);
+
     // Returns a Java object corresponding to the given Qore object
     /** A Java class for the given Qore class is created dynamically if necessary
      */
-    DLLLOCAL LocalReference<jobject> getJavaObject(const QoreObject* o);
+    DLLLOCAL LocalReference<jobject> getJavaObject(const QoreObject* o, bool ignore_missing_class = false);
 
     DLLLOCAL static JniExternalProgramData* setContext(QoreProgram*& pgm) {
         Env env;
@@ -409,10 +413,14 @@ protected:
 
     // returns Java byte code (byte[]) for the given Qore class
     DLLLOCAL LocalReference<jbyteArray> generateByteCodeIntern(Env& env, jobject class_loader,
-        const QoreClass* qcls, jstring jname = nullptr);
+        const QoreClass* qcls, QoreProgram* pgm, jstring jname = nullptr);
 
     // returns Java byte code (byte[]) for a wrapper class for Qore functions implemneted as static methods
     DLLLOCAL LocalReference<jbyteArray> generateFunctionClassIntern(Env& env, jobject class_loader, QoreProgram* pgm,
+        jstring jname, const char* ns_path = nullptr);
+
+    // returns Java byte code (byte[]) for a wrapper class for Qore constants implemneted as static fields
+    DLLLOCAL LocalReference<jbyteArray> generateConstantClassIntern(Env& env, jobject class_loader, QoreProgram* pgm,
         jstring jname, const char* ns_path = nullptr);
 
     // Returns a param list of Java type corresponding to the Qore types
@@ -442,6 +450,12 @@ protected:
 
     DLLLOCAL int addFunctions(Env& env, jobject class_loader, const QoreNamespace& ns, LocalReference<jobject>& bb,
         QoreProgram* pgm);
+
+    DLLLOCAL int addConstants(Env& env, jobject class_loader, jstring jname, const QoreNamespace& ns,
+        LocalReference<jobject>& bb, QoreProgram* pgm);
+
+    DLLLOCAL int addClassConstants(Env& env, jstring jname, const QoreClass& qcls,
+        LocalReference<jobject>& bb, QoreProgram* pgm);
 };
 
 DLLLOCAL QoreProgram* jni_get_program_context();

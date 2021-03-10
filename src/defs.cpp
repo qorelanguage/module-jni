@@ -234,12 +234,14 @@ void JavaException::convert(ExceptionSink* xsink) {
         }
     }
 
+    QoreProgram* pgm = nullptr;
+    jni_get_context_unconditional(pgm);
+
     // add Java call stack to Qore call stack
     QoreExternalProgramLocationWrapper loc;
     JniCallStack stack(throwable, loc);
 
     LocalReference<jclass> tcls(env->GetObjectClass(throwable));
-    QoreProgram* pgm = jni_get_program_context();
     xsink->raiseExceptionArg(loc.get(), "JNI-ERROR", new QoreObject(qjcm.findCreateQoreClass(tcls, pgm), pgm,
         new QoreJniPrivateData(throwable.as<jobject>())), desc.release(), stack);
 }
