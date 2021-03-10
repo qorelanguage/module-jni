@@ -38,17 +38,22 @@ void BaseMethod::init(Env &env) {
     LocalReference<jobjectArray> paramTypesArray = env.callObjectMethod(method,
         Globals::methodMethodGetParameterTypes, nullptr).as<jobjectArray>();
     jsize paramCount = env.getArrayLength(paramTypesArray);
-    paramTypes.reserve(paramCount);
-    for (jsize p = 0; p < paramCount; ++p) {
-        LocalReference<jclass> paramType = env.getObjectArrayElement(paramTypesArray, p).as<jclass>();
-        if (p == (paramCount - 1) && env.callBooleanMethod(paramType, Globals::methodClassIsArray, nullptr)) {
-            doVarArgs = true;
-        }
-        paramTypes.emplace_back(Globals::getType(paramType), paramType.makeGlobal());
-    }
 
     mods = env.callIntMethod(method, Globals::methodMethodGetModifiers, nullptr);
     varargs = env.callBooleanMethod(method, Globals::methodMethodIsVarArgs, nullptr);
+
+    paramTypes.reserve(paramCount);
+    for (jsize p = 0; p < paramCount; ++p) {
+        LocalReference<jclass> paramType = env.getObjectArrayElement(paramTypesArray, p).as<jclass>();
+        if (!varargs && (p == (paramCount - 1)) && env.callBooleanMethod(paramType, Globals::methodClassIsArray, nullptr)) {
+            LocalReference<jclass> elementClass =
+                env.callObjectMethod(paramType, Globals::methodClassGetComponentType, nullptr).as<jclass>();
+            if (elementClass && (Globals::getType(elementClass) != Type::Byte)) {
+                varargs = true;
+            }
+        }
+        paramTypes.emplace_back(Globals::getType(paramType), paramType.makeGlobal());
+    }
 }
 
 std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t arg_offset, JniExternalProgramData* jpc) const {
@@ -58,7 +63,7 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t arg
     // missing arguments are treated as null
     size_t argCount = args == nullptr ? 0 : (args->size() - arg_offset);
 
-    if (paramCount < argCount && !doVarArgs) {
+    if (paramCount < argCount && !varargs) {
         Env env;
         // get class and method name for exception text
         LocalReference<jstring> mcname = env.callObjectMethod(cls->getJavaObject(), Globals::methodClassGetName,
@@ -77,7 +82,7 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t arg
     std::vector<jvalue> jargs(paramCount);
     for (size_t index = 0; index < paramCount; ++index) {
         // process varargs with remaining arguments or with a single argument if appropriate
-        if (doVarArgs && (index == (paramCount - 1))
+        if (varargs && (index == (paramCount - 1))
             && !(argCount == paramCount && args->retrieveEntry(index + arg_offset).getType() == NT_LIST)) {
             // get array component type
             Env env;
@@ -134,8 +139,11 @@ LocalReference<jobjectArray> BaseMethod::convertArgsToArray(const QoreListNode* 
     // missing arguments are treated as null
     size_t argCount = args == nullptr ? 0 : (args->size() - arg_offset);
 
+    //printd(5, "BaseMethod::convertArgsToArray() args: %p paramCount: %d argCount: %d va: %d\n", args, paramCount,
+    //  argCount, varargs);
+
     Env env;
-    if (paramCount < argCount && !doVarArgs) {
+    if (paramCount < argCount && !varargs) {
         // get class and method name for exception text
         LocalReference<jstring> mcname = env.callObjectMethod(cls->getJavaObject(), Globals::methodClassGetName,
             nullptr).as<jstring>();
@@ -154,7 +162,7 @@ LocalReference<jobjectArray> BaseMethod::convertArgsToArray(const QoreListNode* 
         env.newObjectArray(paramCount + array_offset, Globals::classObject).as<jobjectArray>();
     for (size_t index = 0; index < paramCount; ++index) {
         // process varargs with remaining arguments or with a single argument if appropriate
-        if (doVarArgs && (index == (paramCount - 1))
+        if (varargs && (index == (paramCount - 1))
             && !(argCount == paramCount && args->retrieveEntry(index + arg_offset).getType() == NT_LIST)) {
             // get array component type
             Env env;
@@ -179,13 +187,15 @@ void BaseMethod::doObjectException(Env& env, jobject object) const {
     LocalReference<jstring> ocname = env.callObjectMethod(ocls, Globals::methodClassGetName, nullptr).as<jstring>();
     Env::GetStringUtfChars ocn(env, ocname);
 
-    LocalReference<jstring> mcname = env.callObjectMethod(cls->getJavaObject(), Globals::methodClassGetName, nullptr).as<jstring>();
+    LocalReference<jstring> mcname = env.callObjectMethod(cls->getJavaObject(), Globals::methodClassGetName,
+        nullptr).as<jstring>();
     Env::GetStringUtfChars mcn(env, mcname);
 
     QoreString mname;
     getName(mname);
 
-    QoreStringMaker desc("cannot invoke method %s.%s() on an object of class '%s' (%p)", mcn.c_str(), mname.c_str(), ocn.c_str(), object);
+    QoreStringMaker desc("cannot invoke method %s.%s() on an object of class '%s' (%p)", mcn.c_str(), mname.c_str(),
+        ocn.c_str(), object);
     throw BasicException(desc.c_str());
 }
 

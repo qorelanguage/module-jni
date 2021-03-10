@@ -213,8 +213,6 @@ protected:
     int mods;
     // varargs flag
     bool varargs;
-    // flag to collapse any trailing arguments into a final varargs argument (ex: String... args)
-    bool doVarArgs = false;
 };
 
 class Method : public BaseMethod {
