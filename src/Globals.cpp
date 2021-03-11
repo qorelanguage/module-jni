@@ -449,7 +449,6 @@ static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong 
     }
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
     JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
-    assert(pgm == reinterpret_cast<QoreProgram*>(ptr));
 
     QoreProgramContextHelper pch(pgm);
 
@@ -510,7 +509,6 @@ static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, j
     }
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
     JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
-    assert(pgm == reinterpret_cast<QoreProgram*>(ptr));
 
     QoreJniStackLocationHelper slh;
 
@@ -613,7 +611,6 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
     }
 
     JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
-    assert(pgm == reinterpret_cast<QoreProgram*>(ptr));
 
     QoreProgramContextHelper pch(pgm);
 
@@ -744,7 +741,6 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, QoreProgr
     QoreProgram* pgm0 = pgm;
 #endif
     JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
-    assert(pgm == pgm0);
     // must ensure that the thread is attached before executing Qore code
     Env env(jenv);
     QoreThreadAttachHelper attach_helper;
@@ -990,11 +986,7 @@ static jobject JNICALL java_class_builder_do_function_call(JNIEnv* jenv, jclass 
     assert(pgm);
     assert(func);
 
-#ifdef DEBUG
-    QoreProgram* pgm_orig = pgm;
-#endif
     JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
-    assert(pgm_orig == pgm);
 
     Env env(jenv);
 
@@ -1046,11 +1038,7 @@ static jobject JNICALL java_class_builder_get_constant_value(JNIEnv* jenv, jclas
     assert(pgm);
     assert(constant_entry);
 
-#ifdef DEBUG
-    QoreProgram* pgm_orig = pgm;
-#endif
     JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
-    assert(pgm_orig == pgm);
 
     Env env(jenv);
 
@@ -2224,7 +2212,7 @@ void Globals::defineQoreURLClassLoader(Env& env) {
 }
 
 bool Globals::init() {
-    Env env;
+    Env env(false);
 
     // check version first
     classSystem = env.findClass("java/lang/System").makeGlobal();
@@ -2729,8 +2717,9 @@ QoreProgram* Globals::createJavaContextProgram() {
 }
 
 QoreProgram* Globals::getJavaContextProgram() {
-    assert(qph);
-    return **qph;
+    static QoreThreadLock jcl;
+    AutoLocker al(jcl);
+    return createJavaContextProgram();
 }
 
 QoreJniStackLocationHelper::QoreJniStackLocationHelper() {
