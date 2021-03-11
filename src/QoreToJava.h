@@ -84,11 +84,14 @@ public:
         return static_cast<jshort>(value.getAsBigInt());
     }
 
-    static jobject toObject(const QoreValue& value, jclass cls, JniExternalProgramData* jpc = nullptr);
+    static jobject toObject(const QoreValue& value, jclass cls, JniExternalProgramData* jpc = nullptr,
+            bool ignore_missing_class = false);
 
-    static jobject toAnyObject(const QoreValue& value, JniExternalProgramData* jpc = nullptr, bool ignore_missing_class = false);
+    static jobject toAnyObject(const QoreValue& value, JniExternalProgramData* jpc = nullptr,
+            bool ignore_missing_class = false);
 
-    static jobject makeMap(const QoreHashNode& h, jclass cls, JniExternalProgramData* jpc = nullptr);
+    static jobject makeMap(const QoreHashNode& h, jclass cls, JniExternalProgramData* jpc = nullptr,
+        bool ignore_missing_class = false);
 
     static jbyteArray makeByteArray(const BinaryNode& b);
 
@@ -104,7 +107,9 @@ public:
             const QoreObject* o = n.get<const QoreObject>();
             if (o->getClass(CID_THROWABLE) != nullptr) {
                 ExceptionSink tempSink;
-                SimpleRefHolder<QoreJniPrivateData> obj(static_cast<QoreJniPrivateData*>(o->getReferencedPrivateData(CID_THROWABLE, &tempSink)));
+                SimpleRefHolder<QoreJniPrivateData> obj(
+                    static_cast<QoreJniPrivateData*>(o->getReferencedPrivateData(CID_THROWABLE, &tempSink))
+                );
                 if (!tempSink) {
                     env.throwException(static_cast<jthrowable>(obj->getObject()));
                     src.clear();
@@ -118,8 +123,10 @@ public:
 
         jvalue arg;
         arg.j = reinterpret_cast<jlong>(xsink.get());
-        LocalReference<jobject> obj = env.newObject(Globals::classQoreExceptionWrapper, Globals::ctorQoreExceptionWrapper, &arg);
-        xsink.release(); // from now on, the Java instance of QoreExceptionWrapper is responsible for the exception sink
+        LocalReference<jobject> obj = env.newObject(Globals::classQoreExceptionWrapper,
+            Globals::ctorQoreExceptionWrapper, &arg);
+        xsink.release();
+        // from now on, the Java instance of QoreExceptionWrapper is responsible for the exception sink
         env.throwException(obj.as<jthrowable>());
     }
 

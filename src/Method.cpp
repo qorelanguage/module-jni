@@ -89,7 +89,7 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t arg
             LocalReference<jclass> ccls = env.callObjectMethod(paramTypes[index].second,
                 Globals::methodClassGetComponentType, nullptr).as<jclass>();
 
-            jargs[index].l = Array::toObjectArray(args, ccls, index + arg_offset, jpc).release();
+            jargs[index].l = Array::toObjectArray(args, ccls, index + arg_offset, jpc, true).release();
             break;
         }
         assert(!args || args->empty() || (index < argCount));
@@ -123,7 +123,7 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t arg
             case Type::Reference:
             default:
                 assert(paramTypes[index].first == Type::Reference);
-                jargs[index].l = QoreToJava::toObject(qv, paramTypes[index].second, jpc);
+                jargs[index].l = QoreToJava::toObject(qv, paramTypes[index].second, jpc, true);
                 break;
         }
     }
@@ -170,13 +170,13 @@ LocalReference<jobjectArray> BaseMethod::convertArgsToArray(const QoreListNode* 
                 Globals::methodClassGetComponentType, nullptr).as<jclass>();
 
             env.setObjectArrayElement(jargs, index + array_offset,
-                Array::toObjectArray(args, ccls, index + arg_offset, jpc).release());
+                Array::toObjectArray(args, ccls, index + arg_offset, jpc, true).release());
             break;
         }
         assert(!args || args->empty() || (index < argCount));
         QoreValue qv = args ? args->retrieveEntry(index + arg_offset) : QoreValue();
         env.setObjectArrayElement(jargs, index + array_offset, QoreToJava::toObject(qv, paramTypes[index].second,
-            jpc));
+            jpc, true));
     }
 
     return jargs;

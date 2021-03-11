@@ -88,7 +88,7 @@ jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jo
             QoreToJava::wrapException(xsink);
             return nullptr;
         }
-        return QoreToJava::toObject(qv, nullptr, jpc);
+        return QoreToJava::toObject(qv, nullptr, jpc, true);
     } catch (Exception& e) {
         // FIXME: original exception should be included in this exception
         env.throwNew(env.findClass("java/lang/RuntimeException"), "could not execute Qore callback");
