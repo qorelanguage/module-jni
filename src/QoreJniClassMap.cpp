@@ -492,21 +492,10 @@ Class* QoreJniClassMap::loadProgramClass(const char* name, JniExternalProgramDat
 
     //printd(5, "QoreJniClassMap::loadProgramClass() '%s' jpc: %p\n", name, jpc);
 
-    try {
-        LocalReference<jclass> c = env.callObjectMethod(jpc->getClassLoader(),
-            Globals::methodQoreURLClassLoaderLoadResolveClass, &jarg).as<jclass>();
+    LocalReference<jclass> c = env.callObjectMethod(jpc->getClassLoader(),
+        Globals::methodQoreURLClassLoaderLoadClass, &jarg).as<jclass>();
 
-        return new Class(c.release());
-    } catch (jni::JavaException& e) {
-        printd(LogLevel, "QoreJniClassMap::loadProgramClass() '%s' LOCAL FAILED\n", name);
-        LocalReference<jthrowable> je = e.save();
-        // try to load from any thread context class loader
-        LocalReference<jobject> thread = env.callStaticObjectMethod(Globals::classThread,
-            Globals::methodThreadCurrentThread, nullptr);
-        LocalReference<jclass> c = env.callObjectMethod(jpc->getClassLoader(), Globals::methodClassLoaderLoadClass, &jarg).as<jclass>();
-        printd(LogLevel, "QoreJniClassMap::loadProgramClass() thread-local '%s': %p\n", name, *c);
-        return new Class(c.release());
-    }
+    return new Class(c.release());
 }
 
 JniQoreClass* QoreJniClassMap::findCreateQoreClass(LocalReference<jclass>& jc, QoreProgram* pgm) {
@@ -2422,7 +2411,13 @@ LocalReference<jclass> JniExternalProgramData::getJavaClassForQoreClass(Env& env
         jvalue jarg;
         jarg.l = jname;
         try {
+    // XXX DEBUG DELETEME
+    if (strstr(qc->getName(), "Logger")) printd(0, "JniExternalProgramData::getJavaClassForQoreClass() %s i: %d\n", qc->getName(), ignore_missing_class);
+
             LocalReference<jclass> jcls = env.callObjectMethod(classLoader, Globals::methodClassLoaderLoadClass, &jarg).as<jclass>();
+
+    // XXX DEBUG DELETEME
+    if (strstr(qc->getName(), "Logger")) printd(0, "JniExternalProgramData::getJavaClassForQoreClass() %s: %p\n", qc->getName(), (jclass)jcls);
 
             // save generated class
             i = q2jmap.insert(i, q2jmap_t::value_type(cls_hash, jcls.makeGlobal()));
