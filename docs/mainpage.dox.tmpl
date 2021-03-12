@@ -8,7 +8,7 @@
     %Qore APIs can be dynamically imported into Java programs at runtime; additionally a
     @ref org.qore.jni.compiler.QoreJavaCompiler "custom Java compiler" implementation is included that allows for
     building bytecode with the @ref org.qore.jni.QoreURLClassLoader "Qore class loader" that supports dynamic byte
-    code generation for %Qore and Python language bindings; see @ref jni_dynamic_import_qore_python_in_java for more
+    code generation for %Qore and Python language bindings; see @ref jni_dynamic_import_in_java for more
     information.
 
     Native API imports and bindings as well as run-time data translations between Java and %Qore and Java and Python
@@ -402,7 +402,7 @@ class MyTest {
     java -Djava.library.path=/usr/local/lib -cp qore-jni.jar:. MyTest
     @endverbatim
 
-    @subsection jni_dynamic_import_qore_python_in_java Importing Qore and Python APIs Dynamically in Java
+    @subsection jni_dynamic_import_in_java Importing Qore and Python APIs Dynamically in Java
 
     Dynamic %Qore and Python API imports are supported with \c qore-jni.jar at runtime; \c qore-jni-compiler.jar
     contains a compiler API that can build bytecode that supports providing dynamic imports to the Java compiler as
@@ -697,7 +697,7 @@ set_save_object_callback(callback);
     @subsection jni_2_0 jni Module Version 2.0
     - %Qore @ref int_type "int" values are now converted to Java \c long in order to maintain precision
     - the old hand-developed Java wrapper classes are deprecated as of this release in favor of
-      @ref jni_dynamic_import_qore_python_in_java "dynamic imports"
+      @ref jni_dynamic_import_in_java "dynamic imports"
     - implemented support for dynamically importing %Qore code into Java
       (<a href="https://github.com/qorelanguage/qore/issues/4091">issue 4091</a>)
 
