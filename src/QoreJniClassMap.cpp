@@ -2411,13 +2411,7 @@ LocalReference<jclass> JniExternalProgramData::getJavaClassForQoreClass(Env& env
         jvalue jarg;
         jarg.l = jname;
         try {
-    // XXX DEBUG DELETEME
-    if (strstr(qc->getName(), "Logger")) printd(0, "JniExternalProgramData::getJavaClassForQoreClass() %s i: %d\n", qc->getName(), ignore_missing_class);
-
             LocalReference<jclass> jcls = env.callObjectMethod(classLoader, Globals::methodClassLoaderLoadClass, &jarg).as<jclass>();
-
-    // XXX DEBUG DELETEME
-    if (strstr(qc->getName(), "Logger")) printd(0, "JniExternalProgramData::getJavaClassForQoreClass() %s: %p\n", qc->getName(), (jclass)jcls);
 
             // save generated class
             i = q2jmap.insert(i, q2jmap_t::value_type(cls_hash, jcls.makeGlobal()));
