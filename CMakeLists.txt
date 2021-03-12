@@ -36,6 +36,7 @@ else()
 endif()
 
 SET(_qore_jni_sentinel ${CMAKE_CURRENT_BINARY_DIR}/qore-jni.sentinel)
+SET(_qore_jni_compiler_sentinel ${CMAKE_CURRENT_BINARY_DIR}/qore-jni-compiler.sentinel)
 
 # adds a make rule for java -> class generation annd class -> inc generation
 MACRO(GENERATE_JAVA _input)
@@ -98,7 +99,7 @@ MACRO(GENERATE_JAR _input _output)
     add_custom_command(
         OUTPUT ${_inc_outfile}
         COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_input} ${_inc_outfile}
-        #DEPENDS ${_qore_jni_sentinel}
+        DEPENDS ${_qore_jni_sentinel} ${_qore_jni_compiler_sentinel}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
@@ -140,14 +141,14 @@ ENDMACRO(ADD_JAR_TARGETS)
 MACRO(ADD_JAVA_COMPILER_SOURCE _input)
     GET_FILENAME_COMPONENT(_base ${_input} NAME_WE)
     GET_FILENAME_COMPONENT(_pkgdir ${_input} PATH)
-    SET(_class_file ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/qore-jni-compiler.dir/${_pkgdir}/${_base}.class)
+    SET(_class_file ${_pkgdir}/${_base}.class)
 
     # generate rules to generate include files for compiler classes
     SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${_base}.inc)
     add_custom_command(
         OUTPUT ${_inc_outfile}
         COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_class_file} ${_inc_outfile}
-        DEPENDS ${_qore_jni_sentinel}
+        DEPENDS ${_qore_jni_compiler_sentinel}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
@@ -161,23 +162,23 @@ MACRO(ADD_JAVA_COMPILER_SOURCE _input)
     # generate rules for inner classes (if any)
     foreach (it ${ARGN})
         if (${it} MATCHES "^[0-9]+$")
-            SET(_inc_infile ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/qore-jni-compiler.dir/${_pkgdir}/${_base}$${it}.class)
+            SET(_inc_infile ${_pkgdir}/${_base}$${it}.class)
             SET(_inc_relinfile ${_pkgdir}/${_base}$${it}.class)
             # we need cmake to replace the "$" signs in inner class filenames with "$$" so they will be valid Makefile targets
             SET(_inc_infile_target ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${_base}$$${it}.class)
             SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${_base}_${it}.inc)
         else()
-            SET(_inc_infile ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/qore-jni-compiler.dir/${_pkgdir}/${it}.class)
+            SET(_inc_infile ${_pkgdir}/${it}.class)
             SET(_inc_relinfile ${_pkgdir}/${it}.class)
             # we need cmake to replace the "$" signs in inner class filenames with "$$" so they will be valid Makefile targets
-            SET(_inc_infile_target ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/qore-jni-compiler.dir/${_pkgdir}/${it}.class)
+            SET(_inc_infile_target ${_pkgdir}/${it}.class)
             SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${it}.inc)
         endif()
 
         add_custom_command(
             OUTPUT ${_inc_outfile}
             COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_inc_infile} ${_inc_outfile}
-            DEPENDS ${_qore_jni_sentinel}
+            DEPENDS ${_qore_jni_compiler_sentinel}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             VERBATIM
         )
@@ -281,6 +282,15 @@ add_custom_command(
     VERBATIM
 )
 
+add_custom_command(
+    OUTPUT ${_qore_jni_compiler_sentinel}
+    COMMAND ${Java_JAVAC_EXECUTABLE} ${CMAKE_JAVA_COMPILE_FLAGS} -d ${CMAKE_CURRENT_BINARY_DIR} ${JAVA_JAR_COMPILER_SRC} -cp qore-jni.jar
+    COMMAND ${CMAKE_COMMAND} -E touch ${_qore_jni_compiler_sentinel}
+    DEPENDS ${JAVA_JAR_COMPILER_SRC} qore-jni.jar
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+)
+
 add_jar_targets(org/qore/lang org/qore/lang/sqlutil org/qore/lang/mapper org/qore/lang/tablemapper org/qore/jni/QoreJavaDynamicApi.java)
 
 # generate jar manually
@@ -296,7 +306,7 @@ add_custom_command(
 add_custom_command(
     OUTPUT qore-jni.jar
     COMMAND ${CMAKE_SOURCE_DIR}/make-jar -o qore-jni.jar ${BYTE_BUDDY_JAR} ${CMAKE_CURRENT_BINARY_DIR}/qore-jni-qore.jar
-    DEPENDS qore-jni-qore.jar
+    DEPENDS ${BYTE_BUDDY_JAR} qore-jni-qore.jar
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
 )
