@@ -1593,19 +1593,21 @@ int JniExternalProgramData::addMethods(Env& env, jobject class_loader, const Qor
 }
 
 LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jobject class_loader,
-        const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname) {
-    printd(5, "JniExternalProgramData::generateByteCode() '%s' pgm: %p\n", qpath.c_str(), pgm);
+        const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname, const QoreClass* qcls) {
+    printd(5, "JniExternalProgramData::generateByteCode() '%s' pgm: %p qc: %p\n", qpath.c_str(), pgm, qcls);
     ExceptionSink xsink;
-    // set program context (and read lock) before calling QoreProgram::findClass()
-    QoreExternalProgramContextHelper pch(&xsink, pgm);
-    if (xsink) {
-        throw XsinkException(xsink);
-    }
+    if (!qcls) {
+        // set program context (and read lock) before calling QoreProgram::findClass()
+        QoreExternalProgramContextHelper pch(&xsink, pgm);
+        if (xsink) {
+            throw XsinkException(xsink);
+        }
 
-    const QoreClass* qcls = pgm->findClass(qpath.c_str(), &xsink);
-    if (xsink) {
-        assert(!qcls);
-        throw XsinkException(xsink);
+        qcls = pgm->findClass(qpath.c_str(), &xsink);
+        if (xsink) {
+            assert(!qcls);
+            throw XsinkException(xsink);
+        }
     }
     //printd(5, "JniExternalProgramData::generateByteCode() qpath: '%s': qcls: %p\n", qpath.c_str(), qcls);
 
@@ -2394,10 +2396,10 @@ LocalReference<jclass> JniExternalProgramData::getClassForValue(const QoreObject
         return env.getObjectClass(jo->getObject()).release();
     }
 
-    return getJavaClassForQoreClass(env, o->getClass(), false);
+    return getJavaClassForQoreClass(env, o->getClass());
 }
 
-LocalReference<jclass> JniExternalProgramData::getJavaClassForQoreClass(Env& env, const QoreClass* qc, bool ignore_missing_class) {
+LocalReference<jclass> JniExternalProgramData::getJavaClassForQoreClass(Env& env, const QoreClass* qc) {
     // ensure that class generation is atomic
     AutoLocker al(codeGenLock);
 
@@ -2408,27 +2410,22 @@ LocalReference<jclass> JniExternalProgramData::getJavaClassForQoreClass(Env& env
         // get Java name for class
         LocalReference<jstring> jname = get_java_name_for_class(env, *qc);
 
-        jvalue jarg;
-        jarg.l = jname;
-        try {
-            LocalReference<jclass> jcls = env.callObjectMethod(classLoader, Globals::methodClassLoaderLoadClass, &jarg).as<jclass>();
+        jvalue jargs[2];
+        jargs[0].l = jname;
+        jargs[1].j = (long)qc;
+        LocalReference<jclass> jcls = env.callObjectMethod(classLoader,
+            Globals::methodQoreURLClassLoaderLoadClassWithPtr, &jargs[0]).as<jclass>();
 
-            // save generated class
-            i = q2jmap.insert(i, q2jmap_t::value_type(cls_hash, jcls.makeGlobal()));
-            //printd(5, "JniExternalProgramData::getJavaClassForQoreClass() generated class for '%s': %p\n", qc->getName(), (jclass)i->second);
-        } catch (jni::Exception& e) {
-            if (ignore_missing_class) {
-                e.ignore();
-                return nullptr;
-            }
-            throw;
-        }
+        // save generated class
+        i = q2jmap.insert(i, q2jmap_t::value_type(cls_hash, jcls.makeGlobal()));
+        //printd(5, "JniExternalProgramData::getJavaClassForQoreClass() generated class for '%s': %p\n",
+        //  qc->getName(), (jclass)i->second);
     }
 
     return i->second.toLocal();
 }
 
-LocalReference<jobject> JniExternalProgramData::getJavaObject(const QoreObject* o, bool ignore_missing_class) {
+LocalReference<jobject> JniExternalProgramData::getJavaObject(const QoreObject* o) {
     if (!o->isValid()) {
         return nullptr;
     }
@@ -2439,11 +2436,7 @@ LocalReference<jobject> JniExternalProgramData::getJavaObject(const QoreObject* 
     }
 
     Env env;
-    LocalReference<jclass> jcls = getJavaClassForQoreClass(env, o->getClass(), ignore_missing_class);
-    if (ignore_missing_class && !jcls) {
-        return qjcm.getJavaObject(o);
-    }
-
+    LocalReference<jclass> jcls = getJavaClassForQoreClass(env, o->getClass());
     // return a new Java object with a weak reference to the actual Qore object
     jmethodID ctor = env.getMethod(jcls, "<init>", "(J)V");
     o->tRef();

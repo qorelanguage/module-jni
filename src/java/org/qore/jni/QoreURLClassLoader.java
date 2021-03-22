@@ -387,6 +387,49 @@ public class QoreURLClassLoader extends URLClassLoader {
         return super.loadClass(bin_name);
     }
 
+    //! Returns the Java class from the given Qore class with a Qore class ptr
+    /**
+     */
+    public Class<?> loadClassWithPtr(String bin_name, long class_ptr) throws ClassNotFoundException {
+        Class<?> rv;
+        synchronized(getClassLoadingLock(bin_name)) {
+            rv = findLoadedClass(bin_name);
+            if (rv != null) {
+                //System.out.printf("loadClass() %s returning loaded\n", bin_name);
+                return rv;
+            }
+            rv = tryGetPendingClass(bin_name);
+            if (rv != null) {
+                //System.out.printf("loadClass() %s returning pending\n", bin_name);
+                return rv;
+            }
+            QoreJavaFileObject file = classes.get(bin_name);
+            if (file != null) {
+                byte[] bytes = file.getByteCode();
+                //System.out.printf("loadClass() %s returning defineClass()\n", bin_name);
+                return defineClass(bin_name, bytes, 0, bytes.length);
+            }
+
+            // only remove from set if successful
+            try {
+                byte[] bytes = generateByteCode(bin_name, class_ptr);
+                rv = defineClassIntern(bin_name, bytes, 0, bytes.length);
+                //System.out.printf("findClass() this: %x pgm: %x dyn %s returning generated %s\n", hashCode(),
+                //    pgm_ptr, bin_name, rv);
+            } catch (ClassNotFoundException e1) {
+                //e1.printStackTrace();
+                // block left empty on purpose
+            } catch (RuntimeException e1) {
+                //e1.printStackTrace();
+                throw e1;
+            } catch (Throwable e1) {
+                //e1.printStackTrace();
+                throw new RuntimeException(e1);
+            }
+        }
+        return rv;
+    }
+
     //! Returns true if the given package name is dynamic
     static public boolean isDynamic(String bin_name) {
         return bin_name.equals("qore") || bin_name.equals("python")
@@ -639,6 +682,10 @@ public class QoreURLClassLoader extends URLClassLoader {
     }
 
     public synchronized byte[] generateByteCode(String bin_name) throws ClassNotFoundException {
+        return generateByteCode(bin_name, 0);
+    }
+
+    public synchronized byte[] generateByteCode(String bin_name, long class_ptr) throws ClassNotFoundException {
         //System.out.printf("QoreURLClassLoader.generateByteCode() class: '%s'\n", bin_name);
         byte[] rv = pendingClasses.get(bin_name);
         if (rv == null) {
@@ -646,7 +693,7 @@ public class QoreURLClassLoader extends URLClassLoader {
                 throw new ClassNotFoundException(String.format("%s is already being created", bin_name));
             }
             try {
-                rv = generateByteCodeIntern(bin_name);
+                rv = generateByteCodeIntern(bin_name, class_ptr);
             } finally {
                 removeInProgress(bin_name);
             }
@@ -655,7 +702,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         return rv;
     }
 
-    private byte[] generateByteCodeIntern(String bin_name) throws ClassNotFoundException {
+    private byte[] generateByteCodeIntern(String bin_name, long class_ptr) throws ClassNotFoundException {
         ClassModInfo info = new ClassModInfo(bin_name);
         if (info.cls == null) {
             throw new ClassNotFoundException(String.format("invalid dynamic import path '%s'", bin_name));
@@ -664,9 +711,9 @@ public class QoreURLClassLoader extends URLClassLoader {
         byte[] rv = null;
         if (pgm_ptr != 0) {
             try {
-                //System.out.printf("QoreURLClassLoader.generateByteCodeIntern() this: %x pgm: %x '%s'\n",
-                //    hashCode(), pgm_ptr, bin_name);
-                rv = generateByteCode0(pgm_ptr, info.cls, bin_name, info.mod, info.python);
+                //System.out.printf("QoreURLClassLoader.generateByteCodeIntern() this: %x pgm: %x '%s' cptr: %x\n",
+                //    hashCode(), pgm_ptr, bin_name, class_ptr);
+                rv = generateByteCode0(pgm_ptr, info.cls, bin_name, info.mod, info.python, class_ptr);
             } catch (ClassNotFoundException e) {
                 throw e;
             } catch (RuntimeException e) {
@@ -726,8 +773,8 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     static private native byte[] getCachedClass0(String bin_name);
     static private native byte[] getInternalClass0(String name);
-    private native byte[] generateByteCode0(long ptr, String qname, String name, String qore_module, boolean python)
-        throws Throwable;
+    private native byte[] generateByteCode0(long ptr, String qname, String name, String qore_module, boolean python,
+        long class_ptr) throws Throwable;
     static private native void getClassesInNamespace0(long ptr, String packageName, String mod, boolean python,
         ArrayList<String> result);
     static private native void getInternalClassesForPackage0(long ptr, String packageName, ArrayList<String> result);
