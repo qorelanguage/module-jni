@@ -73,7 +73,7 @@ static jobject jni_number_to_jobject(const QoreNumberNode& num) {
     return env.newObject(Globals::classBigDecimal, Globals::ctorBigDecimal, &jargs[0]).release();
 }
 
-jobject QoreToJava::toAnyObject(const QoreValue& value, JniExternalProgramData* jpc, bool ignore_missing_class) {
+jobject QoreToJava::toAnyObject(const QoreValue& value, JniExternalProgramData* jpc) {
     Env env;
     switch (value.getType()) {
         case NT_BOOLEAN: {
@@ -104,7 +104,7 @@ jobject QoreToJava::toAnyObject(const QoreValue& value, JniExternalProgramData* 
         case NT_OBJECT: {
             QoreObject* o = const_cast<QoreObject*>(value.get<const QoreObject>());
             if (jpc) {
-                return jpc->getJavaObject(o, ignore_missing_class).release();
+                return jpc->getJavaObject(o).release();
             }
 
             jobject javaObjectRef = qjcm.getJavaObject(o);
@@ -119,7 +119,7 @@ jobject QoreToJava::toAnyObject(const QoreValue& value, JniExternalProgramData* 
             return qjcm.getJavaClosure(call);
         }
         case NT_HASH: {
-            return makeMap(*value.get<QoreHashNode>(), Globals::classHash, jpc, ignore_missing_class);
+            return makeMap(*value.get<QoreHashNode>(), Globals::classHash, jpc);
         }
         case NT_BINARY: {
             return makeByteArray(*value.get<BinaryNode>());
@@ -129,15 +129,14 @@ jobject QoreToJava::toAnyObject(const QoreValue& value, JniExternalProgramData* 
         case NT_NULL:
             return nullptr;
         case NT_LIST:
-            return Array::toJava(value.get<QoreListNode>(), 0, jpc, ignore_missing_class).release();
+            return Array::toJava(value.get<QoreListNode>(), 0, jpc).release();
     }
     QoreStringMaker desc("XX(%d) don't know how to convert a value of type '%s' to a Java object (expecting " \
         "'java.lang.Object')", value.getType(), value.getFullTypeName());
     throw BasicException(desc.c_str());
 }
 
-jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProgramData* jpc,
-        bool ignore_missing_class) {
+jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProgramData* jpc) {
     if (value.isNullOrNothing())
         return nullptr;
 
@@ -203,7 +202,7 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProg
             break;
         }
         case NT_HASH: {
-            return makeMap(*value.get<QoreHashNode>(), cls, jpc, ignore_missing_class);
+            return makeMap(*value.get<QoreHashNode>(), cls, jpc);
         }
         case NT_OBJECT: {
             const QoreObject* o = value.get<QoreObject>();
@@ -288,8 +287,7 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProg
     return javaObjectRef.release();
 }
 
-jobject QoreToJava::makeMap(const QoreHashNode& h, jclass cls, JniExternalProgramData* jpc,
-        bool ignore_missing_class) {
+jobject QoreToJava::makeMap(const QoreHashNode& h, jclass cls, JniExternalProgramData* jpc) {
     Env env;
 
     // get constructor for class
@@ -312,7 +310,7 @@ jobject QoreToJava::makeMap(const QoreHashNode& h, jclass cls, JniExternalProgra
     while (i.next()) {
         LocalReference<jstring> key = env.newString(i.getKey());
         QoreValue v(i.get());
-        LocalReference<jobject> value = toAnyObject(v, jpc, ignore_missing_class);
+        LocalReference<jobject> value = toAnyObject(v, jpc);
 
         std::vector<jvalue> jargs(2);
         jargs[0].l = key;

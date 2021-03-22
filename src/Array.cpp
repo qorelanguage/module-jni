@@ -155,8 +155,8 @@ QoreValue Array::get(int64 index, QoreProgram* pgm, bool compat_types) const {
     return get(env, jobj.cast<jarray>(), elementType, elementClass, index, pgm, compat_types);
 }
 
-void Array::set(int64 index, const QoreValue &value, JniExternalProgramData* jpc, bool ignore_missing_class) {
-    set(jobj.cast<jarray>(), elementType, elementClass, index, value, jpc, ignore_missing_class);
+void Array::set(int64 index, const QoreValue &value, JniExternalProgramData* jpc) {
+    set(jobj.cast<jarray>(), elementType, elementClass, index, value, jpc);
 }
 
 QoreStringNodeHolder Array::deepToString() const {
@@ -174,7 +174,7 @@ QoreStringNodeHolder Array::deepToString(Env& env, jarray array) {
 }
 
 void Array::set(jarray array, Type elementType, jclass elementClass, int64 index, const QoreValue &value,
-        JniExternalProgramData* jpc, bool ignore_missing_class) {
+        JniExternalProgramData* jpc) {
     Env env;
     switch (elementType) {
         case Type::Boolean:
@@ -204,12 +204,11 @@ void Array::set(jarray array, Type elementType, jclass elementClass, int64 index
         case Type::Reference:
         default:
             assert(elementType == Type::Reference);
-            env.setObjectArrayElement((jobjectArray)array, index, QoreToJava::toObject(value, elementClass, jpc,
-                ignore_missing_class));
+            env.setObjectArrayElement((jobjectArray)array, index, QoreToJava::toObject(value, elementClass, jpc));
     }
 }
 
-LocalReference<jclass> Array::getClassForValue(QoreValue v, JniExternalProgramData* jpc, bool ignore_missing_class) {
+LocalReference<jclass> Array::getClassForValue(QoreValue v, JniExternalProgramData* jpc) {
     switch (v.getType()) {
         case NT_INT: return Globals::classLong.toLocal();
         case NT_FLOAT: return Globals::classDouble.toLocal();
@@ -222,7 +221,7 @@ LocalReference<jclass> Array::getClassForValue(QoreValue v, JniExternalProgramDa
         case NT_OBJECT: {
             Env env;
             if (jpc) {
-                return jpc->getJavaClassForQoreClass(env, v.get<QoreObject>()->getClass(), ignore_missing_class);
+                return jpc->getJavaClassForQoreClass(env, v.get<QoreObject>()->getClass());
             }
 
             QoreObject* o = v.get<QoreObject>();
@@ -242,20 +241,19 @@ LocalReference<jclass> Array::getClassForValue(QoreValue v, JniExternalProgramDa
 }
 
 LocalReference<jarray> Array::toObjectArray(const QoreListNode* l, jclass elementClass, size_t start,
-        JniExternalProgramData* jpc, bool ignore_missing_class) {
+        JniExternalProgramData* jpc) {
     assert(start < l->size());
     Type elementType = Globals::getType(elementClass);
 
     LocalReference<jarray> jarray = getNew(elementType, elementClass, l->size() - start);
     for (unsigned i = start, e = l->size(); i != e; ++i) {
-        set(jarray, elementType, elementClass, i - start, l->retrieveEntry(i), jpc, ignore_missing_class);
+        set(jarray, elementType, elementClass, i - start, l->retrieveEntry(i), jpc);
     }
 
     return jarray.release();
 }
 
-LocalReference<jarray> Array::toJava(const QoreListNode* l, size_t start, JniExternalProgramData* jpc,
-        bool ignore_missing_class) {
+LocalReference<jarray> Array::toJava(const QoreListNode* l, size_t start, JniExternalProgramData* jpc) {
     if (l->size() <= start)
         return nullptr;
 
@@ -272,7 +270,7 @@ LocalReference<jarray> Array::toJava(const QoreListNode* l, size_t start, JniExt
             continue;
 
         if (!elementClass) {
-            elementClass = getClassForValue(v, jpc, ignore_missing_class);
+            elementClass = getClassForValue(v, jpc);
             if (!elementClass) {
                 typeInfo = autoTypeInfo;
             } else {
@@ -291,7 +289,7 @@ LocalReference<jarray> Array::toJava(const QoreListNode* l, size_t start, JniExt
         elementClass = Globals::classObject.toLocal();
     }
 
-    return toObjectArray(l, elementClass, start, jpc, ignore_missing_class).release();
+    return toObjectArray(l, elementClass, start, jpc).release();
 }
 
 void Array::getArgList(ReferenceHolder<QoreListNode>& return_value, Env& env, jarray array, QoreProgram* pgm, bool varargs) {

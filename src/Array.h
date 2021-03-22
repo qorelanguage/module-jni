@@ -70,15 +70,14 @@ class Array : public QoreJniPrivateData {
 
     DLLLOCAL int64 length() const;
     DLLLOCAL QoreValue get(int64 index, QoreProgram* pgm, bool compat_types) const;
-    DLLLOCAL void set(int64 index, const QoreValue &value, JniExternalProgramData* jpc = nullptr,
-            bool ignore_missing_class = false);
+    DLLLOCAL void set(int64 index, const QoreValue &value, JniExternalProgramData* jpc = nullptr);
     DLLLOCAL QoreStringNodeHolder deepToString() const;
 
     DLLLOCAL static void getArgList(ReferenceHolder<QoreListNode>& return_value, Env& env, jarray array,
             QoreProgram* pgm, bool varargs = false);
 
     DLLLOCAL static void set(jarray array, Type elementType, jclass elementClass, int64 index,
-            const QoreValue &value, JniExternalProgramData* jpc = nullptr, bool ignore_missing_class = false);
+            const QoreValue &value, JniExternalProgramData* jpc = nullptr);
 
     DLLLOCAL static QoreStringNodeHolder deepToString(Env& env, jarray array);
 
@@ -91,12 +90,11 @@ class Array : public QoreJniPrivateData {
     DLLLOCAL static LocalReference<jarray> getNew(Type elementType, jclass elementClass, jsize size);
 
     DLLLOCAL static LocalReference<jarray> toJava(const QoreListNode* l, size_t start = 0,
-            JniExternalProgramData* jpc = nullptr, bool ignore_missing_class = false);
+            JniExternalProgramData* jpc = nullptr);
     DLLLOCAL static LocalReference<jarray> toObjectArray(const QoreListNode* l, jclass elementClass, size_t start = 0,
-            JniExternalProgramData* jpc = nullptr, bool ignore_missing_class = false);
+            JniExternalProgramData* jpc = nullptr);
 
-    DLLLOCAL static LocalReference<jclass> getClassForValue(QoreValue v, JniExternalProgramData* jpc = nullptr,
-            bool ignore_missing_class = false);
+    DLLLOCAL static LocalReference<jclass> getClassForValue(QoreValue v, JniExternalProgramData* jpc = nullptr);
 
     DLLLOCAL static SimpleRefHolder<BinaryNode> getBinary(Env& env, jarray array);
 

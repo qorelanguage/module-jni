@@ -312,7 +312,7 @@ public:
 
     // returns Java byte code (byte[]) for a Qore class
     DLLLOCAL LocalReference<jbyteArray> generateByteCode(Env& env, jobject class_loader,
-            const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname);
+            const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname, const QoreClass* qc);
 
     // returns a type description for a concrete type or a future type for Java bytecode generation
     DLLLOCAL LocalReference<jobject> getJavaTypeDefinition(Env& env, jobject class_loader, const QoreTypeInfo* ti);
@@ -362,12 +362,12 @@ public:
 
     DLLLOCAL LocalReference<jclass> getClassForValue(const QoreObject* o);
 
-    DLLLOCAL LocalReference<jclass> getJavaClassForQoreClass(Env& env, const QoreClass* qc, bool ignore_missing_class);
+    DLLLOCAL LocalReference<jclass> getJavaClassForQoreClass(Env& env, const QoreClass* qc);
 
     // Returns a Java object corresponding to the given Qore object
     /** A Java class for the given Qore class is created dynamically if necessary
      */
-    DLLLOCAL LocalReference<jobject> getJavaObject(const QoreObject* o, bool ignore_missing_class = false);
+    DLLLOCAL LocalReference<jobject> getJavaObject(const QoreObject* o);
 
     DLLLOCAL static JniExternalProgramData* setContext(QoreProgram*& pgm) {
         Env env;

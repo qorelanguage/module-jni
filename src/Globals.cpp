@@ -170,6 +170,7 @@ GlobalReference<jclass> Globals::classQoreURLClassLoader;
 jmethodID Globals::ctorQoreURLClassLoader;
 jmethodID Globals::methodQoreURLClassLoaderAddPath;
 jmethodID Globals::methodQoreURLClassLoaderLoadClass;
+jmethodID Globals::methodQoreURLClassLoaderLoadClassWithPtr;
 jmethodID Globals::methodQoreURLClassLoaderLoadResolveClass;
 jmethodID Globals::methodQoreURLClassLoaderSetContext;
 jmethodID Globals::methodQoreURLClassLoaderGetProgramPtr;
@@ -478,7 +479,7 @@ static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong 
     }
 
     try {
-        return QoreToJava::toAnyObject(*rv, jpc, true);
+        return QoreToJava::toAnyObject(*rv, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(xsink);
@@ -566,7 +567,7 @@ static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, j
     }
 
     try {
-        return QoreToJava::toAnyObject(*rv, jpc, true);
+        return QoreToJava::toAnyObject(*rv, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(xsink);
@@ -658,7 +659,7 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
     }
 
     try {
-        return QoreToJava::toAnyObject(*rv, jpc, true);
+        return QoreToJava::toAnyObject(*rv, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(xsink);
@@ -737,9 +738,6 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, QoreProgr
         const QoreExternalMethodVariant* v = nullptr, bool flatten = false) {
     assert(pgm);
     assert(obj_ptr);
-#ifdef DEBUG
-    QoreProgram* pgm0 = pgm;
-#endif
     JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
     // must ensure that the thread is attached before executing Qore code
     Env env(jenv);
@@ -802,7 +800,7 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, QoreProgr
             return nullptr;
         }
 
-        return QoreToJava::toAnyObject(*val, jpc, true);
+        return QoreToJava::toAnyObject(*val, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(xsink);
@@ -879,7 +877,7 @@ static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jobject jobj, 
     }
 
     try {
-        return QoreToJava::toAnyObject(*rv, jpc, true);
+        return QoreToJava::toAnyObject(*rv, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(xsink);
@@ -1025,7 +1023,7 @@ static jobject JNICALL java_class_builder_do_function_call(JNIEnv* jenv, jclass 
     }
 
     try {
-        return QoreToJava::toAnyObject(*rv, jpc, true);
+        return QoreToJava::toAnyObject(*rv, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(xsink);
@@ -1063,7 +1061,7 @@ static jobject JNICALL java_class_builder_get_constant_value(JNIEnv* jenv, jclas
     ValueHolder val(constant_entry->getReferencedValue(), &xsink);
     printd(5, "java_class_builder_get_constant_value() '%s' = %s\n", constant_entry->getName(), val->getFullTypeName());
     try {
-        return QoreToJava::toAnyObject(*val, jpc, true);
+        return QoreToJava::toAnyObject(*val, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(xsink);
@@ -1115,7 +1113,7 @@ int load_python_module(Env& env, JniExternalProgramData* jpc, QoreProgram* pgm) 
 }
 
 static jbyteArray JNICALL qore_url_classloader_generate_byte_code(JNIEnv* jenv, jobject class_loader, jlong ptr,
-        jstring nspath, jstring jname, jstring module, jboolean python) {
+        jstring nspath, jstring jname, jstring module, jboolean python, jlong class_ptr) {
     assert(ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
     Env env(jenv);
@@ -1161,7 +1159,8 @@ static jbyteArray JNICALL qore_url_classloader_generate_byte_code(JNIEnv* jenv, 
         printd(5, "qore_url_classloader_generate_byte_code() p: %p path: '%s' (mod: %p) class_loader: %x\n", pgm, qpath.c_str(),
             module, env.callIntMethod(class_loader, jni::Globals::methodObjectHashCode, nullptr));
 
-        return jpc->generateByteCode(env, class_loader, qpath, pgm, jname).release();
+        return jpc->generateByteCode(env, class_loader, qpath, pgm, jname,
+            reinterpret_cast<const QoreClass*>(class_ptr)).release();
     } catch (jni::QoreJniException& e) {
         QoreString buf;
         env.throwNew(env.findClass("java/lang/RuntimeException"), e.what(buf));
@@ -2046,7 +2045,7 @@ static JNINativeMethod qoreURLClassLoaderNativeMethods[] = {
     },
     {
         const_cast<char*>("generateByteCode0"),
-        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)[B"),
+        const_cast<char*>("(JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;ZJ)[B"),
         reinterpret_cast<void*>(qore_url_classloader_generate_byte_code),
     },
     {
@@ -2189,6 +2188,8 @@ void Globals::defineQoreURLClassLoader(Env& env) {
     methodQoreURLClassLoaderAddPath = env.getMethod(classQoreURLClassLoader, "addPath", "(Ljava/lang/String;)V");
     methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass",
         "(Ljava/lang/String;)Ljava/lang/Class;");
+    methodQoreURLClassLoaderLoadClassWithPtr = env.getMethod(classQoreURLClassLoader, "loadClassWithPtr",
+        "(Ljava/lang/String;J)Ljava/lang/Class;");
     methodQoreURLClassLoaderLoadResolveClass = env.getMethod(classQoreURLClassLoader, "loadResolveClass",
         "(Ljava/lang/String;)Ljava/lang/Class;");
     methodQoreURLClassLoaderSetContext = env.getMethod(classQoreURLClassLoader, "setContext", "()V");
