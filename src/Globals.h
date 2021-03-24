@@ -156,6 +156,9 @@ public:
     DLLLOCAL static GlobalReference<jclass> classQoreObject;                      // org.qore.jni.QoreObject
     DLLLOCAL static jmethodID ctorQoreObject;                                     // QoreObject(long)
 
+    DLLLOCAL static GlobalReference<jclass> classQoreJavaObjectPtr;               // org.qore.jni.QoreJavaObjectPtr
+    DLLLOCAL static jmethodID ctorQoreJavaObjectPtr;                              // QoreJavaObjectPtr(long)
+
     DLLLOCAL static GlobalReference<jclass> classQoreClosure;                     // org.qore.jni.QoreClosure
     DLLLOCAL static jmethodID ctorQoreClosure;                                    // QoreClosure(long)
     DLLLOCAL static jmethodID methodQoreClosureGet;                               // long QoreClosure.get()

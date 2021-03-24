@@ -1146,27 +1146,45 @@ lorem ipsum\r
             assertEq(85, ex.line);
         }
 
-        # test Hash APIs
-        assertEq(True, QoreJavaApiTest::testHashBool({"a": True}, "a"));
-        assertEq(1, QoreJavaApiTest::testHashInt({"a": new Integer(1)}, "a"));
-        assertEq(1.0, QoreJavaApiTest::testHashDouble({"a": 1.0}, "a"));
-        assertEq(2020-03-28, QoreJavaApiTest::testHashADate({"a": 2020-03-28}, "a"));
-        assertEq(<abcdef>, QoreJavaApiTest::testHashBinary({"a": <abcdef>}, "a"));
-        assertEq("test", QoreJavaApiTest::testHashString({"a": "test"}, "a"));
-        assertEq((1, "two", True), QoreJavaApiTest::testHashList({"a": (1, "two", True)}, "a"));
-        assertEq({"a": 1, "b": "two"}, QoreJavaApiTest::testHashListIterator({"a": (1,), "b": ("two",)}));
-        assertEq(True, QoreJavaApiTest::testHashAsBool({"a": 1}, "a"));
-        assertEq(True, QoreJavaApiTest::testHashAsBool({"a": "true"}, "a"));
-        assertEq(True, QoreJavaApiTest::testHashAsBool({"a": "1"}, "a"));
-        assertEq(1, QoreJavaApiTest::testHashAsInt({"a": 1.0}, "a"));
-        assertEq(1, QoreJavaApiTest::testHashAsByte({"a": True}, "a"));
-        assertEq(1, QoreJavaApiTest::testHashAsShort({"a": True}, "a"));
-        assertEq(1, QoreJavaApiTest::testHashAsInt({"a": True}, "a"));
-        assertEq(1, QoreJavaApiTest::testHashAsLong({"a": True}, "a"));
-        assertEq(1.0, QoreJavaApiTest::testHashAsFloat({"a": True}, "a"));
-        assertEq(1.0, QoreJavaApiTest::testHashAsDouble({"a": True}, "a"));
-        assertEq(1.0, QoreJavaApiTest::testHashAsDouble({"a": 1}, "a"));
-        assertEq("1", QoreJavaApiTest::testHashAsString({"a": 1}, "a"));
+        try {
+            # test Hash APIs
+            assertEq(True, QoreJavaApiTest::testHashBool({"a": True}, "a"));
+            assertEq(1, QoreJavaApiTest::testHashInt({"a": new Integer(1)}, "a"));
+            assertEq(1.0, QoreJavaApiTest::testHashDouble({"a": 1.0}, "a"));
+            assertEq(2020-03-28, QoreJavaApiTest::testHashADate({"a": 2020-03-28}, "a"));
+            assertEq(<abcdef>, QoreJavaApiTest::testHashBinary({"a": <abcdef>}, "a"));
+            assertEq("test", QoreJavaApiTest::testHashString({"a": "test"}, "a"));
+            assertEq((1, "two", True), QoreJavaApiTest::testHashList({"a": (1, "two", True)}, "a"));
+            assertEq({"a": 1, "b": "two"}, QoreJavaApiTest::testHashListIterator({"a": (1,), "b": ("two",)}));
+            assertEq(True, QoreJavaApiTest::testHashAsBool({"a": 1}, "a"));
+            assertEq(True, QoreJavaApiTest::testHashAsBool({"a": "true"}, "a"));
+            assertEq(True, QoreJavaApiTest::testHashAsBool({"a": "1"}, "a"));
+            assertEq(1, QoreJavaApiTest::testHashAsInt({"a": 1.0}, "a"));
+            assertEq(1, QoreJavaApiTest::testHashAsByte({"a": True}, "a"));
+            assertEq(1, QoreJavaApiTest::testHashAsShort({"a": True}, "a"));
+            assertEq(1, QoreJavaApiTest::testHashAsInt({"a": True}, "a"));
+            assertEq(1, QoreJavaApiTest::testHashAsLong({"a": True}, "a"));
+            assertEq(1.0, QoreJavaApiTest::testHashAsFloat({"a": True}, "a"));
+            assertEq(1.0, QoreJavaApiTest::testHashAsDouble({"a": True}, "a"));
+            assertEq(1.0, QoreJavaApiTest::testHashAsDouble({"a": 1}, "a"));
+            assertEq("1", QoreJavaApiTest::testHashAsString({"a": 1}, "a"));
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.arg.typeCode() == NT_OBJECT) {
+                object arg = ex.arg;
+                while (arg && arg.hasCallableMethod("getCause")) {
+                    *object next = arg.getCause();
+                    if (next) {
+                        arg = next;
+                    } else {
+                        break;
+                    }
+                }
+                printf("%s\n", arg.toString());
+                arg.printStackTrace();
+            }
+            printf("%s\n", get_exception_string(ex));
+            rethrow;
+        }
 
         QoreJavaApiTest::testHash1();
         assertEq({"a": 1}, TestHelper::getHash());
