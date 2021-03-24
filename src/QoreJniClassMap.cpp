@@ -353,7 +353,10 @@ void QoreJniClassMap::initBackground(QoreProgram* pgm) {
     qt2jmap[NT_FLOAT] = GlobalReference<jclass>((jclass)Globals::classPrimitiveDouble);
     qt2jmap[NT_BOOLEAN] = GlobalReference<jclass>((jclass)Globals::classPrimitiveBoolean);
     qt2jmap[NT_STRING] = env.findClass("java/lang/String").makeGlobal();
-    qt2jmap[NT_DATE] = env.findClass("java/time/ZonedDateTime").makeGlobal();
+
+    // NOTE: at runtime Qore values will be converted to either java.time.ZonedDateTime or org.qore.jni.QoreRelativeTime
+    qt2jmap[NT_DATE] = env.findClass("java/lang/Object").makeGlobal();
+
     qt2jmap[NT_NUMBER] = env.findClass("java/math/BigDecimal").makeGlobal();
     qt2jmap[NT_BINARY] = GlobalReference<jclass>((jclass)Globals::arrayClassByte);
     qt2jmap[NT_HASH] = GlobalReference<jclass>((jclass)Globals::classHash);
@@ -1670,12 +1673,12 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jo
     return rv;
 }
 
-static LocalReference<jstring> get_java_name_for_class(Env& env, const QoreClass& qc, const char* sep = ".") {
+static LocalReference<jstring> get_java_name_for_class(Env& env, const QoreClass& qc) {
     ValueHolder v(qc.getReferencedKeyValue(JNI_CK_JAVA_BIN_NAME), nullptr);
     if (v) {
         assert(v->getType() == NT_STRING);
         const char* jname = v->get<const QoreStringNode>()->c_str();
-        //printd(5, "get_java_name_for_class() cls '%s' -> embedded java '%s'\n", qc.getName(), jname);
+        printd(5, "get_java_name_for_class() cls '%s' -> embedded java '%s'\n", qc.getName(), jname);
         return env.newString(jname);
     }
 
@@ -1686,7 +1689,7 @@ static LocalReference<jstring> get_java_name_for_class(Env& env, const QoreClass
         ++start_pos;
     }
     pname.insert(0, "qore");
-    //printd(5, "get_java_name_for_class() cls '%s' -> java '%s'\n", qc.getName(), pname.c_str());
+    printd(5, "get_java_name_for_class() cls '%s' -> java '%s'\n", qc.getName(), pname.c_str());
     return env.newString(pname.c_str());
 }
 
@@ -1963,11 +1966,14 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
             }
 
             // get internal name for Qore class
-            LocalReference<jstring> jname = get_java_name_for_class(env, ci.getParentClass(), "/");
-            jvalue jarg;
-            jarg.l = jname;
-            parent_class = env.callObjectMethod(class_loader, Globals::methodQoreURLClassLoaderLoadResolveClass,
-                &jarg).as<jclass>();
+            LocalReference<jstring> jname = get_java_name_for_class(env, ci.getParentClass());
+
+            jvalue jargs[2];
+            jargs[0].l = jname;
+            jargs[1].j = (jlong)&ci.getParentClass();
+            parent_class = env.callObjectMethod(class_loader, Globals::methodQoreURLClassLoaderLoadClassWithPtr,
+                &jargs[0]).as<jclass>();
+
             parent_ptr = (jclass)parent_class;
             printd(5, "JniExternalProgramData::generateByteCodeIntern() cls: '%s' <- '%s'\n",
                 qcls->getName(), ci.getParentClass().getName());
@@ -2033,15 +2039,20 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
     jargs[1].l = class_loader;
 
     LocalReference<jbyteArray> rv;
+#if 0
     try {
         rv = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
             Globals::methodJavaClassBuilderGetByteCodeFromBuilder, &jargs[0]).as<jbyteArray>();
     } catch (...) {
         for (auto& i : strset) {
-            printf("%s\n", i.c_str());
+            printf("ERR '%s': %s\n", qcls->getName(), i.c_str());
         }
         throw;
     }
+#else
+    rv = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
+        Globals::methodJavaClassBuilderGetByteCodeFromBuilder, &jargs[0]).as<jbyteArray>();
+#endif
 
     //LocalReference<jbyteArray> rv = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
     //    Globals::methodJavaClassBuilderGetByteCodeFromBuilder, &jargs[0]).as<jbyteArray>();
@@ -2081,18 +2092,43 @@ LocalReference<jobject> JniExternalProgramData::getJavaTypeDefinition(Env& env, 
         return get_type_def_from_class(env, Globals::classObject);
     }
 
-    AutoLocker al(QoreJniClassMap::m);
+    // get internal name for Qore class
+    LocalReference<jstring> jname = get_java_name_for_class(env, *cls);
 
     printd(5, "JniExternalProgramData::getJavaTypeDefinition() type '%s' (%d) creating Java class for '%s' (%p)\n",
         qore_type_get_name(ti), t, cls->getName(), cls);
 
+    try {
+        AutoLocker al(QoreJniClassMap::m);
+
+        jvalue jargs[2];
+        jargs[0].l = jname;
+        jargs[1].j = (jlong)cls;
+        LocalReference<jclass> jcls = env.callObjectMethod(class_loader, Globals::methodQoreURLClassLoaderLoadClassWithPtr,
+            &jargs[0]).as<jclass>();
+        assert(jcls);
+        jargs[0].l = jcls;
+        return env.callStaticObjectMethod(Globals::classJavaClassBuilder,
+            Globals::methodJavaClassBuilderGetTypeDescriptionCls, &jargs[0]);
+    } catch (jni::Exception& e) {
+        e.ignore();
+    }
+
+    /** FIXME: we try to create the Java class here and then create a forward reference if it fails
+
+        The problem comes with circular references; valid forward references created here may not be resolvable to the
+        Qore type at runtime, because the Qore class may not be accessible - the solution to this is not currently clear
+
+        Ideally we would annotate the byte code with the ptr to the Qore class and then use it when the JVM resolves
+        the Java class
+    */
+
     printd(5, "JniExternalProgramData::getJavaTypeDefinition() type '%s' (%d) creating forward ref for Java " \
         "class for '%s' (%p)\n", qore_type_get_name(ti), t, cls->getName(), cls);
-    jvalue arg;
-    LocalReference<jstring> jname = get_java_name_for_class(env, *cls);
-    arg.l = jname;
+    jvalue jarg;
+    jarg.l = jname;
     return env.callStaticObjectMethod(Globals::classJavaClassBuilder,
-        Globals::methodJavaClassBuilderGetTypeDescriptionStr, &arg);
+        Globals::methodJavaClassBuilderGetTypeDescriptionStr, &jarg);
 }
 
 jobject QoreJniClassMap::getJavaObject(const QoreObject* o) {
@@ -2415,6 +2451,7 @@ LocalReference<jclass> JniExternalProgramData::getJavaClassForQoreClass(Env& env
         jargs[1].j = (long)qc;
         LocalReference<jclass> jcls = env.callObjectMethod(classLoader,
             Globals::methodQoreURLClassLoaderLoadClassWithPtr, &jargs[0]).as<jclass>();
+        assert(jcls);
 
         // save generated class
         i = q2jmap.insert(i, q2jmap_t::value_type(cls_hash, jcls.makeGlobal()));

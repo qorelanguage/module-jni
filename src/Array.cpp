@@ -214,7 +214,7 @@ LocalReference<jclass> Array::getClassForValue(QoreValue v, JniExternalProgramDa
         case NT_FLOAT: return Globals::classDouble.toLocal();
         case NT_BOOLEAN: return Globals::classBoolean.toLocal();
         case NT_STRING: return Globals::classString.toLocal();
-        case NT_DATE: return Globals::classZonedDateTime.toLocal();
+        case NT_DATE: return Globals::classObject.toLocal();
         case NT_NUMBER: return Globals::classBigDecimal.toLocal();
         case NT_HASH: return Globals::classHash.toLocal();
         case NT_LIST: return Globals::classObject.toLocal();

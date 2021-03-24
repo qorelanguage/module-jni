@@ -391,34 +391,33 @@ public class QoreURLClassLoader extends URLClassLoader {
     /**
      */
     public Class<?> loadClassWithPtr(String bin_name, long class_ptr) throws ClassNotFoundException {
+        //System.out.printf("loadClassWithPtr() %s: %x\n", bin_name, class_ptr);
         Class<?> rv;
         synchronized(getClassLoadingLock(bin_name)) {
             rv = findLoadedClass(bin_name);
             if (rv != null) {
-                //System.out.printf("loadClass() %s returning loaded\n", bin_name);
+                //System.out.printf("loadClassWithPtr() %s returning loaded\n", bin_name);
                 return rv;
             }
             rv = tryGetPendingClass(bin_name);
             if (rv != null) {
-                //System.out.printf("loadClass() %s returning pending\n", bin_name);
+                //System.out.printf("loadClassWithPtr() %s returning pending\n", bin_name);
                 return rv;
             }
             QoreJavaFileObject file = classes.get(bin_name);
             if (file != null) {
                 byte[] bytes = file.getByteCode();
-                //System.out.printf("loadClass() %s returning defineClass()\n", bin_name);
+                //System.out.printf("loadClassWithPtr() %s returning defineClass()\n", bin_name);
                 return defineClass(bin_name, bytes, 0, bytes.length);
             }
 
             // only remove from set if successful
             try {
+                //System.out.printf("loadClassWithPtr() %s about to call generateByteCode(%s, %x)\n", bin_name, bin_name, class_ptr);
                 byte[] bytes = generateByteCode(bin_name, class_ptr);
                 rv = defineClassIntern(bin_name, bytes, 0, bytes.length);
-                //System.out.printf("findClass() this: %x pgm: %x dyn %s returning generated %s\n", hashCode(),
+                //System.out.printf("loadClassWithPtr() this: %x pgm: %x dyn %s returning generated %s\n", hashCode(),
                 //    pgm_ptr, bin_name, rv);
-            } catch (ClassNotFoundException e1) {
-                //e1.printStackTrace();
-                // block left empty on purpose
             } catch (RuntimeException e1) {
                 //e1.printStackTrace();
                 throw e1;
@@ -686,7 +685,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     }
 
     public synchronized byte[] generateByteCode(String bin_name, long class_ptr) throws ClassNotFoundException {
-        //System.out.printf("QoreURLClassLoader.generateByteCode() class: '%s'\n", bin_name);
+        //System.out.printf("QoreURLClassLoader.generateByteCode() class: '%s' ptr: %x\n", bin_name, class_ptr);
         byte[] rv = pendingClasses.get(bin_name);
         if (rv == null) {
             if (markInProgress(bin_name)) {
@@ -714,6 +713,8 @@ public class QoreURLClassLoader extends URLClassLoader {
                 //System.out.printf("QoreURLClassLoader.generateByteCodeIntern() this: %x pgm: %x '%s' cptr: %x\n",
                 //    hashCode(), pgm_ptr, bin_name, class_ptr);
                 rv = generateByteCode0(pgm_ptr, info.cls, bin_name, info.mod, info.python, class_ptr);
+                //System.out.printf("QoreURLClassLoader.generateByteCodeIntern() this: %x pgm: %x '%s' cptr: %x " +
+                //    "rv: %s\n", hashCode(), pgm_ptr, bin_name, class_ptr, rv);
             } catch (ClassNotFoundException e) {
                 throw e;
             } catch (RuntimeException e) {
