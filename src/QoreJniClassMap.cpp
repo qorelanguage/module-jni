@@ -1488,6 +1488,13 @@ int JniExternalProgramData::addStaticMethods(Env& env, jobject class_loader,
     QoreExternalFunctionIterator vi(*m.getFunction());
     while (vi.next()) {
         const QoreExternalMethodVariant* v = reinterpret_cast<const QoreExternalMethodVariant*>(vi.getVariant());
+        // skip private:internal variants
+        if (v->getAccess() > Private) {
+            printd(5, "JniExternalProgramData::addStaticMethods() skipping static method: %s::%s(%s)\n",
+                qcls.getName(), m.getName(), v->getSignatureText());
+            continue;
+        }
+
         printd(5, "JniExternalProgramData::addStaticMethods() %s::%s(%s)\n",
             qcls.getName(), m.getName(), v->getSignatureText());
         assert(m.getMethodType() == MT_Static);
@@ -1516,6 +1523,13 @@ int JniExternalProgramData::addMethods(Env& env, jobject class_loader, const Qor
                     while (vi.next()) {
                         const QoreExternalMethodVariant* v =
                             reinterpret_cast<const QoreExternalMethodVariant*>(vi.getVariant());
+                        // skip private:internal variants
+                        if (v->getAccess() > Private) {
+                            printd(5, "JniExternalProgramData::addMethods() skipping constructor: %s::%s(%s)\n",
+                                qcls.getName(), m->getName(), v->getSignatureText());
+                            continue;
+                        }
+
                         printd(5, "JniExternalProgramData::addMethods() constructor: %s::%s(%s)\n",
                             qcls.getName(), m->getName(), v->getSignatureText());
 
@@ -1533,6 +1547,13 @@ int JniExternalProgramData::addMethods(Env& env, jobject class_loader, const Qor
                     while (vi.next()) {
                         const QoreExternalMethodVariant* v =
                             reinterpret_cast<const QoreExternalMethodVariant*>(vi.getVariant());
+                        // skip private:internal variants
+                        if (v->getAccess() > Private) {
+                            printd(5, "JniExternalProgramData::addMethods() skipping normal method: %s::%s(%s)\n",
+                                qcls.getName(), m->getName(), v->getSignatureText());
+                            continue;
+                        }
+
                         printd(5, "JniExternalProgramData::addMethods() normal method: %s::%s(%s)\n",
                             qcls.getName(), m->getName(), v->getSignatureText());
 
@@ -2475,11 +2496,14 @@ LocalReference<jobject> JniExternalProgramData::getJavaObject(const QoreObject* 
     Env env;
     LocalReference<jclass> jcls = getJavaClassForQoreClass(env, o->getClass());
     // return a new Java object with a weak reference to the actual Qore object
-    jmethodID ctor = env.getMethod(jcls, "<init>", "(J)V");
+    jmethodID ctor = env.getMethod(jcls, "<init>", "(Lorg/qore/jni/QoreJavaObjectPtr;)V");
     o->tRef();
     try {
         jvalue arg;
         arg.j = reinterpret_cast<jlong>(o);
+        LocalReference<jobject> jarg = env.newObject(Globals::classQoreJavaObjectPtr, Globals::ctorQoreJavaObjectPtr, &arg);
+
+        arg.l = jarg;
         return env.newObject(jcls, ctor, &arg);
     } catch (jni::Exception& e) {
         const_cast<QoreObject*>(o)->tDeref();

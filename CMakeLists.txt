@@ -206,6 +206,7 @@ generate_java(org/qore/jni/QoreJavaDynamicApi.java)
 generate_java(org/qore/jni/Hash.java 1 2 3 4 5 6 7 8 9 10)
 generate_java(org/qore/jni/JavaClassBuilder.java 1 2 StaticEntry)
 generate_java(org/qore/jni/QoreJavaFileObject.java)
+generate_java(org/qore/jni/QoreJavaObjectPtr.java)
 generate_jar(${BYTE_BUDDY_JAR} JavaJarByteBuddy)
 
 # add Java sources without native methods

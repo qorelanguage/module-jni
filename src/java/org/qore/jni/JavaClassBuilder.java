@@ -36,6 +36,7 @@ import net.bytebuddy.NamingStrategy;
 import net.bytebuddy.matcher.ElementMatchers;
 
 import org.qore.jni.QoreURLClassLoader;
+import org.qore.jni.QoreJavaObjectPtr;
 
 /** Helper class for building dynamic Java classes
  */
@@ -197,11 +198,11 @@ public class JavaClassBuilder {
 
         // add default constructor for already-created Qore objects
         ArrayList<Type> paramTypes = new ArrayList<Type>();
-        paramTypes.add(Long.TYPE);
+        paramTypes.add(QoreJavaObjectPtr.class);
         bb = (DynamicType.Builder<?>)bb.defineConstructor(Visibility.PUBLIC)
             .withParameters(paramTypes)
             .intercept(
-                MethodCall.invoke(parentClass.getConstructor(Long.TYPE))
+                MethodCall.invoke(parentClass.getConstructor(QoreJavaObjectPtr.class))
                     .onSuper()
                     .withArgument(0)
             );

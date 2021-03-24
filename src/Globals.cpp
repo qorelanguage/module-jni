@@ -160,6 +160,9 @@ GlobalReference<jclass> Globals::classQoreObjectWrapper;
 
 GlobalReference<jclass> Globals::classQoreClosureMarker;
 
+GlobalReference<jclass> Globals::classQoreJavaObjectPtr;
+jmethodID Globals::ctorQoreJavaObjectPtr;
+
 GlobalReference<jclass> Globals::classProxy;
 jmethodID Globals::methodProxyNewProxyInstance;
 
@@ -648,7 +651,9 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
         return nullptr;
     }
 
+    //printd(5, "instantiating Qore class '%s' with args: %p (%d)\n", cls->getName(), *qore_args, *qore_args ? (int)qore_args->size() : 0);
     ValueHolder rv(cls->execConstructor(*qore_args, &xsink), &xsink);
+    //printd(5, "got rv: %s\n", rv->getFullTypeName());
     if (xsink) {
         QoreToJava::wrapException(xsink);
         return nullptr;
@@ -1744,6 +1749,7 @@ static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperNa
 #include "JavaClassQoreURLClassLoader_1.inc"
 #include "JavaClassQoreURLClassLoader_2.inc"
 #include "JavaClassQoreJavaFileObject.inc"
+#include "JavaClassQoreJavaObjectPtr.inc"
 #include "JavaClassJavaClassBuilder.inc"
 #include "JavaClassJavaClassBuilder_1.inc"
 #include "JavaClassJavaClassBuilder_2.inc"
@@ -1814,6 +1820,7 @@ static ucmap_t ucmap = {
     {"org.qore.jni.QoreJavaClassBase", {java_org_qore_jni_QoreJavaClassBase_class_len, java_org_qore_jni_QoreJavaClassBase_class}},
     {"org.qore.jni.QoreJavaDynamicApi", {java_org_qore_jni_QoreJavaDynamicApi_class_len, java_org_qore_jni_QoreJavaDynamicApi_class}},
     {"org.qore.jni.QoreJavaFileObject", {java_org_qore_jni_QoreJavaFileObject_class_len, java_org_qore_jni_QoreJavaFileObject_class}},
+    {"org.qore.jni.QoreJavaObjectPtr", {java_org_qore_jni_QoreJavaObjectPtr_class_len, java_org_qore_jni_QoreJavaObjectPtr_class}},
     {"org.qore.jni.QoreObject", {java_org_qore_jni_QoreObject_class_len, java_org_qore_jni_QoreObject_class}},
     {"org.qore.jni.QoreObjectBase", {java_org_qore_jni_QoreObjectBase_class_len, java_org_qore_jni_QoreObjectBase_class}},
     {"org.qore.jni.QoreObjectWrapper", {java_org_qore_jni_QoreObjectWrapper_class_len, java_org_qore_jni_QoreObjectWrapper_class}},
@@ -2316,6 +2323,10 @@ bool Globals::init() {
     classQoreClosureMarker = findDefineClass(env, "org.qore.jni.QoreClosureMarker", nullptr,
         java_org_qore_jni_QoreClosureMarker_class, java_org_qore_jni_QoreClosureMarker_class_len).makeGlobal();
 
+    classQoreJavaObjectPtr = findDefineClass(env, "org.qore.jni.QoreJavaObjectPtr", nullptr,
+        java_org_qore_jni_QoreJavaObjectPtr_class, java_org_qore_jni_QoreJavaObjectPtr_class_len).makeGlobal();
+    ctorQoreJavaObjectPtr = env.getMethod(classQoreJavaObjectPtr, "<init>", "(J)V");
+
     classPrimitiveVoid = getPrimitiveClass(env, "java/lang/Void");
     classPrimitiveBoolean = getPrimitiveClass(env, "java/lang/Boolean");
     classPrimitiveByte = getPrimitiveClass(env, "java/lang/Byte");
@@ -2617,6 +2628,7 @@ void Globals::cleanup() {
     classQoreException = nullptr;
     classQoreObjectBase = nullptr;
     classQoreJavaClassBase = nullptr;
+    classQoreJavaObjectPtr = nullptr;
     classQoreObject = nullptr;
     classQoreClosure = nullptr;
     classQoreObjectWrapper = nullptr;
