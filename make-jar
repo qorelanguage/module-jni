@@ -35,7 +35,12 @@ class MakeInc {
 
         TmpDir tdir("", "", ".");
         chdir(tdir.path);
-        string args = opts.verbose ? "-uo" : "-uoq";
+        string args;
+        if (PlatformOS == "FreeBSD") {
+            args = opts.verbose ? "-o" : "-oq";
+        } else {
+            args = opts.verbose ? "-uo" : "-uoq";
+        }
         map system("unzip " + args + " " + (absolute_path($1) ? $1 : ("../" + $1))), ARGV;
         chdir("..");
         args = opts.verbose ? "cvf" : "cf";
