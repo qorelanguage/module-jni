@@ -1,0 +1,186 @@
+#!/usr/bin/env qore
+
+/** Used to compile all Java sources in a directory tree to class files and then create a jar from the built classes
+
+    Arguments not explicitly processed by this script should be in the format accepted by javac; all unrecognized
+    arguments are passed directly as-is to the compiler
+*/
+
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+
+# automatically set up CLASSPATH to required jars
+%module-cmd(jni) add-relative-classpath ../share/qore/java/qore-jni.jar
+%module-cmd(jni) add-relative-classpath ../share/qore/java/qore-jni-compiler.jar
+
+%module-cmd(jni) import org.qore.jni.compiler.QoreJavaCompiler
+%module-cmd(jni) import org.qore.jni.compiler.CompilerOutput
+%module-cmd(jni) import java.io.InputStream
+%module-cmd(jni) import java.io.FileOutputStream
+
+%requires Util
+
+%exec-class QJava2Jar
+
+class QJava2Jar {
+    public {
+        hash<auto> opts;
+        string start_dir;
+        string jar_path;
+
+        const ERR_COMPILATION_FAILURE = 1;
+        const ERR_INVALID_SOURCE      = 2;
+        const ERR_NO_SOURCES          = 3;
+
+        const BufSize = 16384;
+    }
+
+    constructor() {
+        parseOptions();
+        if (!start_dir || !jar_path) {
+            usage();
+            exit(0);
+        }
+
+        hash<string, string> srcs;
+        processPath(\srcs, start_dir);
+
+        if (!srcs) {
+            if (!opts.quiet) {
+                error(ERR_NO_SOURCES, "no sources to compile");
+            }
+            return;
+        }
+
+        map printf("%s: %d bytes\n", $1.key, $1.value.size()), srcs.pairIterator();
+
+        QoreJavaCompiler compiler(ARGV);
+        DiagnosticCollector diags();
+        on_error
+            map printf("%s:%d: %s\n", $1.getSource().getName(), $1.getLineNumber(), $1.getMessage()),
+                diags.getDiagnostics();
+        string file_list;
+        hash<string, CompilerOutput> cv = compiler.compile(srcs, diags);
+        foreach hash<auto> i in (cv.pairIterator()) {
+            string class_file_name = i.key;
+            class_file_name =~ s/\./\//g;
+            class_file_name += ".class";
+            string fn = start_dir + "/" + class_file_name;
+            io::InputStream stream = i.value.file.openInputStream();
+            on_exit stream.close();
+
+            io::File targetFile(fn);
+            io::FileOutputStream outStream(targetFile);
+            on_exit outStream.close();
+
+            while (binary b = stream.readNBytes(BufSize)) {
+                outStream.write(b, 0, b.size());
+            }
+
+            if (file_list) {
+                file_list += " ";
+            }
+            file_list += sprintf("%y", class_file_name);
+            printf("wrote: %y\n", fn);
+        }
+
+        # create jar file
+        if (!absolute_path(jar_path)) {
+            jar_path = normalize_dir(getcwd() + "/" + jar_path);
+        }
+        chdir(start_dir);
+        string args = opts.quiet ? "cf" : "cvf";
+        string cmd = sprintf("jar " + args + " %s %s", jar_path, file_list);
+        printf("cmd: %y\n", cmd);
+        system(cmd);
+        if (!opts.quiet) {
+            printf("created %y: %d file%s\n", jar_path, cv.size(), cv.size() == 1 ? "" : "s");
+        }
+    }
+
+    processPath(reference<hash<string, string>> srcs, string path, *string root, *bool ignore_invalid) {
+        *hash<StatInfo> h = hstat(path);
+        if (!h) {
+            error(ERR_INVALID_SOURCE, "%s: %s", path, strerror());
+        }
+        if (h.type == "DIRECTORY") {
+            if (!exists root) {
+                root = path;
+            }
+            scanDir(\srcs, path, root);
+            return;
+        }
+        if (h.type != "REGULAR") {
+            if (ignore_invalid) {
+                return;
+            }
+            error(ERR_INVALID_SOURCE, "%s: path is type %y; require \"REGULAR\" or \"DIRECTORY\"", path, h.type);
+        }
+        if (path !~ /\.java$/) {
+            if (ignore_invalid) {
+                return;
+            }
+            error(ERR_INVALID_SOURCE, "%s: can only handle .java files", path);
+        }
+        string key;
+        if (exists root) {
+            key = path[root.length() + 1..];
+        } else {
+            key = basename(path);
+        }
+        key =~ s/\.java//;
+
+        srcs{key} = File::readTextFile(path);
+    }
+
+    scanDir(reference<hash<string, string>> srcs, string path, string root) {
+        map processPath(\srcs, $1, root, True), glob(path + "/*");
+    }
+
+    error(int err, string fmt) {
+        if (!opts.quiet) {
+            stderr.printf("ERROR: %s\n", vsprintf(fmt, argv));
+        }
+        exit(err);
+    }
+
+    parseOptions() {
+        int l = ARGV.size();
+        for (int i = 0; i < l; ) {
+            string arg = ARGV[i];
+            if (arg == "-h" || arg == "--help") {
+                QJava2Jar::usage();
+                exit(0);
+            }
+            if (arg == "-q" || arg == "--quiet") {
+                opts.quiet = True;
+                splice ARGV, i, 1;
+                --l;
+                continue;
+            }
+            if (arg[0] != "-") {
+                if (jar_path) {
+                    start_dir = (extract ARGV, i, 1)[0];
+                    break;
+                }
+                jar_path = (extract ARGV, i, 1)[0];
+                continue;
+            }
+            ++i;
+        }
+    }
+
+    static usage() {
+        printf("%s: <jar name> <source directory>\n"
+            " -q,--quiet      suppress output\n"
+            " -h,--help       this help text\n"
+            "\nCompiles all java sources in the given source directory tree to class files and packages\n"
+            "the class files in a jar file.\n"
+            "\n*NOTE*: Arguments not explicitly listed above should be in the format accepted by javac;\n"
+              "        all unrecognized arguments are passed unmodified to the compiler\n",
+            get_script_name()
+        );
+    }
+}

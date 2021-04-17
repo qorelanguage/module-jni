@@ -15,7 +15,7 @@ if (POLICY CMP0042)
     cmake_policy(SET CMP0042 NEW)
 endif()
 
-find_package(Qore 0.9.5 REQUIRED)
+find_package(Qore 1.0 REQUIRED)
 find_package(JNI REQUIRED)
 find_package(Java REQUIRED)
 if (${Java_VERSION_MAJOR} LESS 11)
@@ -187,6 +187,11 @@ MACRO(ADD_JAVA_COMPILER_SOURCE _input)
     endforeach()
 ENDMACRO(ADD_JAVA_COMPILER_SOURCE)
 
+# binaries to install
+set (JNI_BIN_FILES
+    bin/qjava2jar
+)
+
 # Java sources built in to the binary module with an indication of inner classes, if any
 generate_java(org/qore/jni/QoreJavaApi.java)
 generate_java(org/qore/jni/QoreExceptionWrapper.java)
@@ -324,6 +329,10 @@ add_jar(qore-jni-compiler ${JAVA_JAR_COMPILER_SRC}
 add_dependencies(qore-jni-compiler qore-jni)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qore-jni-compiler.jar DESTINATION ${CMAKE_INSTALL_PREFIX}/share/qore/java)
+
+install(PROGRAMS ${JNI_BIN_FILES}
+    TYPE BIN
+)
 
 set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/Callbacks.java

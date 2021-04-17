@@ -36,7 +36,7 @@ class MakeInc {
         TmpDir tdir("", "", ".");
         chdir(tdir.path);
         string args = opts.verbose ? "-uo" : "-uoq";
-        map system("unzip " + args + " " + (absolute_path($1) ? $1 : ("../" + $1))), ARGV;
+        map system("unzip " + args + " \"" + (absolute_path($1) ? $1 : ("../" + $1)) + "\""), ARGV;
         chdir("..");
         args = opts.verbose ? "cvf" : "cf";
         system(sprintf("jar " + args + " %s -C %s .", opts.output, tdir.path));

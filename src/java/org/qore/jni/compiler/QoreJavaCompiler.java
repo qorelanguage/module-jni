@@ -16,6 +16,7 @@ import java.net.URLClassLoader;
 import java.net.URLDecoder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +95,7 @@ public class QoreJavaCompiler<T> {
      * @throws IllegalStateException if the Java compiler cannot be loaded.
      */
     public QoreJavaCompiler() {
-        this(null);
+        this((Iterable<String>)null);
     }
 
     /**
@@ -107,6 +108,18 @@ public class QoreJavaCompiler<T> {
      */
     public QoreJavaCompiler(Iterable<String> options) {
         this(QoreURLClassLoader.getCurrent(), options);
+    }
+
+    /**
+     * Construct a new instance which delegates to a new Qore classloader.
+     *
+     * @param options The compiler options (such as "-target" "1.5"). See the usage
+     *                for javac
+     *
+     * @throws IllegalStateException if the Java compiler cannot be loaded.
+     */
+    public QoreJavaCompiler(String[] options) {
+        this(QoreURLClassLoader.getCurrent(), options == null ? (Iterable<String>)null : Arrays.asList(options));
     }
 
     /**

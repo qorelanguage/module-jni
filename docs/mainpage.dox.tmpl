@@ -511,6 +511,9 @@ Object obj = newClassData.cls.getDeclaredConstructor().newInstance();
 # ...
     @endcode
 
+    @note the \c qjava2jar helper script can be used to compile Java sources using dynamic imports to a \c jar file;
+    ex: @verbatim qjava2jar my-jar.jar source_path -cp some-api.jar:another-api.jar -nowarn @endverbatim
+
     @section jni_compat JNI Module Compatibility Options
 
     This module supports the following compatibility option: \c "compat-types" which, when enabled, will disable the
