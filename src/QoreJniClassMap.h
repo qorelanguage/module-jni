@@ -369,6 +369,10 @@ public:
      */
     DLLLOCAL LocalReference<jobject> getJavaObject(const QoreObject* o);
 
+    DLLLOCAL jclass getQoreJavaClassBase() const {
+        return qoreJavaClassBase;
+    }
+
     DLLLOCAL static JniExternalProgramData* setContext(QoreProgram*& pgm) {
         Env env;
         return setContext(env, pgm);
@@ -387,6 +391,8 @@ protected:
     GlobalReference<jobject> classLoader;
     // dynamic API class
     GlobalReference<jclass> dynamicApi;
+    // base Java object for dynamically imported classes
+    GlobalReference<jclass> qoreJavaClassBase;
     // call reference for saving object references
     ResolvedCallReferenceNode* save_object_callback = nullptr;
 
