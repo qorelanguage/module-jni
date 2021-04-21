@@ -346,7 +346,10 @@ int BaseMethod::getParamTypes(Env& env, type_vec_t& paramTypeInfo, type_vec_t& a
         std::pair<Type, GlobalReference<jclass>>& i = paramTypes[j];
         const QoreTypeInfo* altType = nullptr;
 
-        paramTypeInfo.push_back(clsmap.getQoreType(i.second, altType, pgm));
+        const QoreTypeInfo* ti = clsmap.getQoreType(i.second, altType, pgm);
+        paramTypeInfo.push_back(ti);
+
+        //paramTypeInfo.push_back(clsmap.getQoreType(i.second, altType, pgm));
         if (altType) {
             if (altParamTypeInfo.empty()) {
                 altParamTypeInfo.reserve(len);
