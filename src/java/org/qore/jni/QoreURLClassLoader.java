@@ -440,6 +440,7 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     protected Class<?> defineClassIntern(String name, byte[] byte_code, int off, int len) throws ClassFormatError {
         Class<?> rv = defineClass(name, byte_code, off, len);
+
         if (enable_cache) {
             classCache.put(name, rv);
             //debugLog("QoreURLClassLoader.defineClassIntern() caching " + name);

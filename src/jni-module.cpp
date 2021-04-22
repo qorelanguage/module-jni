@@ -470,6 +470,8 @@ static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, Jn
     QoreString binary_name(java_name);
     binary_name.replaceAll("/", ".");
 
+    assert(jpc->getClassLoader());
+
     LocalReference<jclass> jcls = Globals::findDefineClass(env, binary_name.c_str(), jpc->getClassLoader(),
         static_cast<const unsigned char*>(byte_code->getPtr()), byte_code->size());
 

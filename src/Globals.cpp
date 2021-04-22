@@ -2133,6 +2133,7 @@ LocalReference<jclass> Globals::findDefineClass(Env& env, const char* name, jobj
         for (jsize i = 0; i < static_cast<jsize>(bufLen); ++i) {
             env.setByteArrayElement(jbyte_code, i, ((const char*)buf)[i]);
         }
+
         LocalReference<jstring> bname = env.newString(name);
         jargs[0].l = bname;
         jargs[1].l = jbyte_code;
