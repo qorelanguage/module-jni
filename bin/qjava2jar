@@ -82,7 +82,10 @@ class QJava2Jar {
             if (file_list) {
                 file_list += " ";
             }
-            file_list += sprintf("%y", class_file_name);
+            # must escape "$" chars in the name
+            class_file_name = sprintf("%y", class_file_name);
+            class_file_name =~ s/\$/\\$/g;
+            file_list += class_file_name;
             printf("wrote: %y\n", fn);
         }
 
@@ -92,7 +95,7 @@ class QJava2Jar {
         }
         chdir(start_dir);
         string args = opts.quiet ? "cf" : "cvf";
-        string cmd = sprintf("jar " + args + " %s %s", jar_path, file_list);
+        string cmd = sprintf("jar " + args + " %y %s", jar_path, file_list);
         printf("cmd: %y\n", cmd);
         system(cmd);
         if (!opts.quiet) {
