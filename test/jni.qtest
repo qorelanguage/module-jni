@@ -571,7 +571,7 @@ bG9yZW0gaXBzdW0=\r
             msg.setBody("body");
             msg.addTO(To);
 
-            msg.attach("foo.txt", MimeTypeText, "lorem ipsum");
+            msg.attach("foo.txt", MimeTypeText, "lorem ipsum", EncDefault);
             string r = msg.serialize();
 
             string refstr = "From: foo@bar.cz\r
