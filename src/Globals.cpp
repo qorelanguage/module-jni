@@ -2170,7 +2170,7 @@ static void check_java_version() {
 constexpr const char* INIT_PROP_NAME = "qore.QoreURLClassLoader.init";
 
 void Globals::defineQoreURLClassLoader(Env& env) {
-    //printd(5, "defineQoreURLClassLoader() starting\n");
+    printd(5, "defineQoreURLClassLoader() starting\n");
 
     findDefineClass(env, "org.qore.jni.QoreJavaFileObject", nullptr,
         java_org_qore_jni_QoreJavaFileObject_class, java_org_qore_jni_QoreJavaFileObject_class_len).makeGlobal();
@@ -2509,8 +2509,18 @@ bool Globals::init() {
     if (bootstrap) {
         classJavaClassBuilder = env.findClass("org/qore/jni/JavaClassBuilder").makeGlobal();
 
-        jmethodID ctorQoreURLClassLoaderSys = env.getMethod(classQoreURLClassLoader, "<init>", "()V");
-        syscl = env.newObject(classQoreURLClassLoader, ctorQoreURLClassLoaderSys, nullptr).makeGlobal();
+        //jmethodID ctorQoreURLClassLoaderSys = env.getMethod(classQoreURLClassLoader, "<init>", "()V");
+        //syscl = env.newObject(classQoreURLClassLoader, ctorQoreURLClassLoaderSys, nullptr).makeGlobal();
+
+        jmethodID ctorQoreURLClassLoaderSys = env.getMethod(classQoreURLClassLoader, "<init>", "(JLjava/lang/ClassLoader;)V");
+        jvalue jargs[2];
+        jargs[0].j = 0;
+        jargs[1].l = nullptr;
+        syscl = env.newObject(classQoreURLClassLoader, ctorQoreURLClassLoaderSys, &jargs[0]).makeGlobal();
+
+        jargs[0].z = true;
+        jmethodID methodQoreURLClassLoaderSetBootstrap = env.getMethod(classQoreURLClassLoader, "setBootstrap", "()V");
+        env.callVoidMethod(classQoreURLClassLoader, methodQoreURLClassLoaderSetBootstrap, &jargs[0]);
     } else {
         printd(5, "Globals::init() creating syscl\n");
         jmethodID ctorQoreURLClassLoaderSys = env.getMethod(classQoreURLClassLoader, "<init>", "(J)V");
@@ -2719,14 +2729,22 @@ jlong Globals::getContextProgram(jobject new_syscl, bool& created) {
 
 QoreProgram* Globals::createJavaContextProgram() {
     if (!qph) {
-        // create global QoreProgram object
-        qph.reset(new QoreProgramHelper(PO_NEW_STYLE, global_xsink));
+        try {
+            // create global QoreProgram object
+            qph.reset(new QoreProgramHelper(PO_NEW_STYLE, global_xsink));
 
-        QoreNamespace* jnins = qjcm.getJniNs().copy();
-        RootQoreNamespace* rns = (*qph)->getRootNS();
-        rns->addNamespace(jnins);
-        (*qph)->setExternalData("jni", new JniExternalProgramData(jnins, **qph));
+            QoreNamespace* jnins = qjcm.getJniNs().copy();
+            RootQoreNamespace* rns = (*qph)->getRootNS();
+            rns->addNamespace(jnins);
+            (*qph)->setExternalData("jni", new JniExternalProgramData(jnins, **qph));
+            printd(5, "Globals::createJavaContextProgram() created %p\n", **qph);
+        } catch (...) {
+            qph.reset();
+            throw;
+        }
     }
+    printd(5, "Globals::createJavaContextProgram() pgm: %p jpc: %p\n", **qph, (**qph)->getExternalData("jni"));
+    assert((**qph)->getExternalData("jni"));
     return **qph;
 }
 

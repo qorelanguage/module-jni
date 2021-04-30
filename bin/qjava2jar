@@ -41,7 +41,8 @@ class QJava2Jar {
         parseOptions();
         if (!start_dir || !jar_path) {
             usage();
-            exit(0);
+            set_return_value(0);
+            return;
         }
 
         hash<string, string> srcs;
@@ -51,6 +52,7 @@ class QJava2Jar {
             if (!opts.quiet) {
                 error(ERR_NO_SOURCES, "no sources to compile");
             }
+            set_return_value(1);
             return;
         }
 
@@ -86,7 +88,9 @@ class QJava2Jar {
             class_file_name = sprintf("%y", class_file_name);
             class_file_name =~ s/\$/\\$/g;
             file_list += class_file_name;
-            printf("wrote: %y\n", fn);
+            if (!opts.quiet) {
+                printf("wrote: %y\n", fn);
+            }
         }
 
         # create jar file

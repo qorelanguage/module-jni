@@ -1404,9 +1404,9 @@ int JniExternalProgramData::addNormalMethodVariant(Env& env, jobject class_loade
     }
 
     while (true) {
-        //printd(5, "JniExternalProgramData::addNormalMethodVariant() adding Java normal method %s %s::%s(%s) " \
-        //  len: %d\n", qore_type_get_name(v.getReturnTypeInfo()), qcls.getName(), m.getName(), v.getSignatureText(),
-        //  len);
+        printd(5, "JniExternalProgramData::addNormalMethodVariant() adding Java normal method %s %s::%s(%s) " \
+          "len: %d\n", qore_type_get_name(v.getReturnTypeInfo()), qcls.getName(), m.getName(), v.getSignatureText(),
+          len);
 
         if (!jph.checkVariant(params, QMT_NORMAL)) {
             std::vector<jvalue> jargs(9);
@@ -2366,6 +2366,8 @@ JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni, QoreProgram
         jargs[2].i = 0;
         jargs[3].i = java_org_qore_jni_QoreJavaDynamicApi_class_len;
 
+        printd(5, "JniExternalProgramData::JniExternalProgramData() jname: %p bc: %p cl: %d\n", (jobject)jname,
+            (jobject)jbyte_code, java_org_qore_jni_QoreJavaDynamicApi_class_len);
         dynamicApi = env.callObjectMethod(classLoader, Globals::methodQoreURLClassLoaderDefineResolveClass,
             &jargs[0]).as<jclass>().makeGlobal();
         methodQoreJavaDynamicApiInvokeMethod = env.getStaticMethod(dynamicApi, "invokeMethod",

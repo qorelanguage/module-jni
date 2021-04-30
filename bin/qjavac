@@ -1,0 +1,141 @@
+#!/usr/bin/env qore
+
+/** Used to compile Java source files to class files and then create a jar from the built classes
+
+    Arguments not explicitly processed by this script should be in the format accepted by javac; all unrecognized
+    arguments are passed directly as-is to the compiler
+*/
+
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+
+# automatically set up CLASSPATH to required jars
+%module-cmd(jni) add-relative-classpath ../share/qore/java/qore-jni.jar
+%module-cmd(jni) add-relative-classpath ../share/qore/java/qore-jni-compiler.jar
+
+%module-cmd(jni) import org.qore.jni.compiler.QoreJavaCompiler
+%module-cmd(jni) import org.qore.jni.compiler.CompilerOutput
+%module-cmd(jni) import org.qore.jni.compiler.QoreJavaCompilerException
+%module-cmd(jni) import java.io.InputStream
+%module-cmd(jni) import java.io.FileOutputStream
+
+%requires Util
+
+%exec-class QJavaCompilerCmd
+
+class QJavaCompilerCmd {
+    public {
+        hash<string, string> srcs;
+        hash<auto> opts;
+
+        const ERR_COMPILATION_FAILURE = 1;
+        const ERR_INVALID_SOURCE      = 2;
+        const ERR_NO_SOURCES          = 3;
+
+        const BufSize = 16384;
+    }
+
+    constructor() {
+        parseOptions();
+        if (!srcs) {
+            usage();
+            set_return_value(0);
+            return;
+        }
+
+        if (!srcs) {
+            if (!opts.quiet) {
+                error(ERR_NO_SOURCES, "no sources to compile");
+            }
+            set_return_value(1);
+            return;
+        }
+
+        map printf("%s: %d bytes\n", $1.key, $1.value.size()), srcs.pairIterator();
+
+        QoreJavaCompiler compiler(ARGV);
+        DiagnosticCollector diags();
+        string file_list;
+        try {
+            hash<string, CompilerOutput> cv = compiler.compile(srcs, diags);
+            foreach hash<auto> i in (cv.pairIterator()) {
+                string class_file_name = i.key;
+                class_file_name =~ s/\./\//g;
+                class_file_name += ".class";
+                string fn = class_file_name;
+                io::InputStream stream = i.value.file.openInputStream();
+                on_exit stream.close();
+
+                io::File targetFile(fn);
+                io::FileOutputStream outStream(targetFile);
+                on_exit outStream.close();
+
+                while (binary b = stream.readNBytes(BufSize)) {
+                    outStream.write(b, 0, b.size());
+                }
+
+                if (file_list) {
+                    file_list += " ";
+                }
+                # must escape "$" chars in the name
+                class_file_name = sprintf("%y", class_file_name);
+                class_file_name =~ s/\$/\\$/g;
+                file_list += class_file_name;
+                if (!opts.quiet) {
+                    printf("wrote: %y\n", fn);
+                }
+            }
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.arg instanceof QoreJavaCompilerException) {
+                map printf("%s:%d: %s\n", $1.getSource().getName(), $1.getLineNumber(), $1.getMessage()),
+                    diags.getDiagnostics();
+                set_return_value(2);
+                return;
+            }
+            rethrow;
+        }
+    }
+
+    error(int err, string fmt) {
+        if (!opts.quiet) {
+            stderr.printf("ERROR: %s\n", vsprintf(fmt, argv));
+        }
+        exit(err);
+    }
+
+    parseOptions() {
+        int l = ARGV.size();
+        for (int i = 0; i < l; ) {
+            string arg = ARGV[i];
+            if (arg == "-h" || arg == "--help") {
+                usage();
+                exit(0);
+            }
+            if (arg == "-q" || arg == "--quiet") {
+                opts.quiet = True;
+                splice ARGV, i, 1;
+                --l;
+                continue;
+            }
+            if (arg[0] != "-" && arg =~ /\.java$/i) {
+                srcs{normalize_dir(arg)} = File::readTextFile(arg);
+                splice ARGV, i, 1;
+                --l;
+                continue;
+            }
+            ++i;
+        }
+    }
+
+    static usage() {
+        printf("%s: <jar name> <source files...>\n"
+            " -q,--quiet      suppress output\n"
+            " -h,--help       this help text\n"
+            "\n*NOTE*: Arguments not explicitly listed above should be in the format accepted by javac;\n"
+              "        all unrecognized arguments are passed unmodified to the compiler\n",
+            get_script_name()
+        );
+    }
+}
