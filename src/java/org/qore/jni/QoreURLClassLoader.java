@@ -67,6 +67,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     private String classPath = new String();
     private long pgm_ptr = 0;
     private boolean enable_cache = false;
+    private boolean bootstrap = false;
 
     //! for caching files during compilation
     private final HashMap<String, QoreJavaFileObject> classes = new HashMap<String, QoreJavaFileObject>();
@@ -147,6 +148,11 @@ public class QoreURLClassLoader extends URLClassLoader {
         setContextProgram(this);
         //System.out.printf("QoreURLClassLoader(name: '%s', ClassLoader parent: %s) this: %x (pgm: %x)\n",
         //    name, (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")", hashCode(), pgm_ptr);
+    }
+
+    //! Sets the bootstrap flag
+    public void setBootstrap() {
+        bootstrap = true;
     }
 
     /**
@@ -373,16 +379,18 @@ public class QoreURLClassLoader extends URLClassLoader {
         }
 
         ClassLoader parent = getParent();
-        if (parent == null) {
+        if (parent == null && !bootstrap) {
             parent = getSystemClassLoader();
         }
-        try {
-            //return parent.loadClass(bin_name);
-            rv = parent.loadClass(bin_name);
-            //System.out.printf("loadClass() %s returning loaded\n", bin_name);
-            return rv;
-        } catch (ClassNotFoundException e) {
-            // ignore
+        if (parent != null) {
+            try {
+                //return parent.loadClass(bin_name);
+                rv = parent.loadClass(bin_name);
+                //System.out.printf("loadClass() %s returning loaded\n", bin_name);
+                return rv;
+            } catch (ClassNotFoundException e) {
+                // ignore
+            }
         }
         return super.loadClass(bin_name);
     }

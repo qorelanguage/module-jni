@@ -190,6 +190,7 @@ ENDMACRO(ADD_JAVA_COMPILER_SOURCE)
 # binaries to install
 set (JNI_BIN_FILES
     bin/qjava2jar
+    bin/qjavac
 )
 
 # Java sources built in to the binary module with an indication of inner classes, if any
