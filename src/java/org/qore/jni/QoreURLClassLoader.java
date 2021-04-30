@@ -380,7 +380,6 @@ public class QoreURLClassLoader extends URLClassLoader {
 
         ClassLoader parent = getParent();
         if (parent == null && !bootstrap) {
-            System.out.println("about to call getSystemClassLoader()");
             parent = getSystemClassLoader();
         }
         if (parent != null) {
