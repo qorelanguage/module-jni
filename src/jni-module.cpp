@@ -114,6 +114,8 @@ static void jni_thread_cleanup(void*) {
     jni::Jvm::threadCleanup();
 }
 
+static bool bootstrap = false;
+
 static QoreStringNode* jni_module_init() {
     if (jni_init_failed) {
         return new QoreStringNode("jni module initialization failed");
@@ -152,7 +154,7 @@ static QoreStringNode* jni_module_init() {
     }
 
     try {
-        Globals::init();
+        bootstrap = Globals::init();
     } catch (QoreStandardException &e) {
         throw;
     } catch (JavaException& e) {
@@ -229,6 +231,12 @@ static void jni_module_ns_init(QoreNamespace* rns, QoreNamespace* qns) {
         QoreNamespace* jnins = qjcm.getJniNs().copy();
         rns->addNamespace(jnins);
         pgm->setExternalData("jni", new JniExternalProgramData(jnins, pgm));
+    }
+
+    if (bootstrap) {
+        // mark initialization complete in the bootstrap class loader
+        Globals::bootstrapInitDone();
+        bootstrap = false;
     }
 }
 

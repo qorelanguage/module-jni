@@ -304,6 +304,8 @@ public:
     // returns true if this is a Java bootstrap init
     DLLLOCAL static bool init();
 
+    DLLLOCAL static void bootstrapInitDone();
+
     DLLLOCAL static void cleanup();
     DLLLOCAL static Type getType(jclass cls);
 
@@ -328,8 +330,8 @@ public:
 
     // if already initialized, first tries to find the class, and then defines it only if not found, otherwise
     // defines the class
-    DLLLOCAL static LocalReference<jclass> findDefineClass(Env& env, const char* name, jobject loader, const unsigned char* buf,
-        jsize bufLen);
+    DLLLOCAL static LocalReference<jclass> findDefineClass(Env& env, const char* name, jobject loader,
+            const unsigned char* buf, jsize bufLen);
 
 private:
     DLLLOCAL static ExceptionSink global_xsink;
