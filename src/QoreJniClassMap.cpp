@@ -539,9 +539,23 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name, co
         }
     } else {
         jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
-        if (!jpc) {
-            throw BasicException("no JNI context in current Program");
+
+        // ensure that the jni module symbols are loaded into the new Program object
+        ExceptionSink xsink;
+        MM.runTimeLoadModule("jni", pgm, &xsink);
+        if (xsink) {
+            throw XsinkException(xsink);
         }
+
+        jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+        assert(jpc);
+        /*
+        if (!jpc) {
+            QoreStringMaker desc("no JNI context in current Program; while creating Qore class for '%s'",
+                name.c_str());
+            throw BasicException(desc.c_str());
+        }
+        */
     }
 
     JniQoreClass* qc = jpc->find(jpath);
@@ -800,12 +814,13 @@ void QoreJniClassMap::addSuperClasses(JniQoreClass* qc, Class* jc, const char* j
 void QoreJniClassMap::addSuperClass(Env& env, JniQoreClass& qc, jni::Class* parent, bool interface, QoreProgram* pgm,
         JniExternalProgramData* jpc) {
     //printd(LogLevel, "QoreJniClassMap::addSuperClass() %s parent: %p if: %d pgm: %p jpc: %p qcb: %p jo: %p\n",
-    //  qc.getPath(), parent, interface, pgm, jpc, jpc->getQoreJavaClassBase(), parent->getJavaObject());
+    //  qc.getPath(), parent, interface, pgm, jpc, (jclass)Globals::classQoreJavaClassBase, parent->getJavaObject());
     // see if the parent class wraps a Qore class
-    if (!interface && !env.isSameObject(jpc->getQoreJavaClassBase(), parent->getJavaObject())) {
+    if (!interface && !env.isSameObject(Globals::classQoreJavaClassBase, parent->getJavaObject())) {
         jvalue jarg;
         jarg.l = parent->getJavaObject();
-        if (env.callBooleanMethod(jpc->getQoreJavaClassBase(), Globals::methodClassIsAssignableFrom, &jarg)) {
+
+        if (env.callBooleanMethod(Globals::classQoreJavaClassBase, Globals::methodClassIsAssignableFrom, &jarg)) {
             // get class field
             bool throw_exception = false;
             QoreClass* qore_parent;
@@ -849,6 +864,10 @@ void QoreJniClassMap::addSuperClass(Env& env, JniQoreClass& qc, jni::Class* pare
     if (pc) {
         parent->deref();
     } else {
+        // make sure we are not trying to create a Qore class for a dynamic class that already exists in Qore
+        assert(!jpath.startsWith("qore"));
+        assert(!jpath.startsWith("python"));
+
         bool base;
         SimpleRefHolder<Class> cls(loadClass(jpath.c_str(), base, jpc));
 
@@ -975,7 +994,7 @@ const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls, const QoreTypeInfo*
     if (jpc) {
         jvalue jarg;
         jarg.l = cls;
-        if (env.callBooleanMethod(jpc->getQoreJavaClassBase(), Globals::methodClassIsAssignableFrom, &jarg)) {
+        if (env.callBooleanMethod(Globals::classQoreJavaClassBase, Globals::methodClassIsAssignableFrom, &jarg)) {
             jfieldID class_field = env.getStaticField(cls, "$qore_cls_ptr", "J");
             const QoreClass* qc = reinterpret_cast<const QoreClass*>(
                 env.getStaticLongField(cls, class_field)
@@ -2016,7 +2035,7 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
         }
     }
     if (!parent_ptr) {
-        parent_ptr = qoreJavaClassBase;
+        parent_ptr = (jclass)Globals::classQoreJavaClassBase;
         printd(5, "JniExternalProgramData::generateByteCodeIntern() cls: '%s' parent: QoreBaseClass\n",
             qcls->getName());
     }
@@ -2377,14 +2396,9 @@ JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni, QoreProgram
         methodQoreJavaDynamicApiGetField = env.getStaticMethod(dynamicApi, "getField",
             "(Ljava/lang/reflect/Field;Ljava/lang/Object;)Ljava/lang/Object;");
 
-        jname = env.newString("org.qore.jni.QoreJavaClassBase");
-        jargs[0].l = jname;
-        qoreJavaClassBase = env.callObjectMethod(classLoader, Globals::methodClassLoaderLoadClass, &jargs[0])
-            .as<jclass>().makeGlobal();
-
         printd(LogLevel, "JniExternalProgramData::JniExternalProgramData(): this: %p: dynamic API created: %p " \
             "classloader: %p QoreJavaClassBase: %p\n", this, getDynamicApi(), getClassLoader(),
-            (jclass)qoreJavaClassBase);
+            (jclass)Globals::classQoreJavaClassBase);
     }
 
     // setup classpath
@@ -2420,12 +2434,6 @@ JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& par
         jni = qjcm.getJniNs().copy();
         pgm->getRootNS()->addNamespace(jni);
     }
-
-    jvalue jarg;
-    LocalReference<jstring> jname = env.newString("org.qore.jni.QoreJavaClassBase");
-    jarg.l = jname;
-    qoreJavaClassBase = env.callObjectMethod(classLoader, Globals::methodClassLoaderLoadClass, &jarg)
-        .as<jclass>().makeGlobal();
 }
 
 void JniExternalProgramData::addClasspath(const char* path) {

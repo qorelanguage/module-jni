@@ -397,15 +397,6 @@ QoreProgram* jni_get_create_program_intern(Env& env) {
     try {
         attach_helper.attach();
         jni_pgm = new QoreProgram;
-        /*
-        // ensure that the jni module symbols are loaded into the new Program object
-        ExceptionSink xsink;
-        MM.runTimeLoadModule("jni", jni_pgm, &xsink);
-        if (xsink) {
-            QoreToJava::wrapException(xsink);
-            return nullptr;
-        }
-        */
         return jni_pgm;
     } catch (Exception& e) {
         env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
@@ -414,9 +405,17 @@ QoreProgram* jni_get_create_program_intern(Env& env) {
 }
 
 QoreProgram* jni_get_create_program(Env& env) {
+    if (jni_pgm) {
+        return jni_pgm;
+    }
+
     // grab mutex
     std::unique_lock<std::mutex> init_lock(jni_pgm_mutex);
 
+    // check again in the lock
+    if (jni_pgm) {
+        return jni_pgm;
+    }
     return jni_get_create_program_intern(env);
 }
 
@@ -1569,15 +1568,10 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreC
     QoreProgram* pgm = qc->getProgram();
     if (!pgm) {
         pgm = jni_get_program_context();
+        if (!pgm) {
+            pgm = jni_get_create_program(env);
+        }
     }
-
-    if (!pgm) {
-        printd(5, "qore_object_create() no Program ctx!\n");
-        QoreStringMaker desc("no Program context for class '%s'", qc->getName());
-        env.throwNew(env.findClass("java/lang/RuntimeException"), desc.c_str());
-        return 0;
-    }
-
     QoreThreadAttachHelper attach_helper;
     try {
         attach_helper.attach();
@@ -2518,9 +2512,8 @@ bool Globals::init() {
         jargs[1].l = nullptr;
         syscl = env.newObject(classQoreURLClassLoader, ctorQoreURLClassLoaderSys, &jargs[0]).makeGlobal();
 
-        jargs[0].z = true;
         jmethodID methodQoreURLClassLoaderSetBootstrap = env.getMethod(classQoreURLClassLoader, "setBootstrap", "()V");
-        env.callVoidMethod(classQoreURLClassLoader, methodQoreURLClassLoaderSetBootstrap, &jargs[0]);
+        env.callVoidMethod(syscl, methodQoreURLClassLoaderSetBootstrap, nullptr);
     } else {
         printd(5, "Globals::init() creating syscl\n");
         jmethodID ctorQoreURLClassLoaderSys = env.getMethod(classQoreURLClassLoader, "<init>", "(J)V");
@@ -2610,6 +2603,12 @@ bool Globals::init() {
         "findBaseClassMethodConflict", "(Ljava/lang/Class;Ljava/lang/String;Ljava/util/List;Z)Z");
 
     return bootstrap;
+}
+
+void Globals::bootstrapInitDone() {
+    Env env(false);
+    jmethodID methodQoreURLClassLoaderClearBootstrap = env.getMethod(classQoreURLClassLoader, "clearBootstrap", "()V");
+    env.callVoidMethod(syscl, methodQoreURLClassLoaderClearBootstrap, nullptr);
 }
 
 void Globals::cleanup() {
@@ -2738,6 +2737,13 @@ QoreProgram* Globals::createJavaContextProgram() {
             rns->addNamespace(jnins);
             (*qph)->setExternalData("jni", new JniExternalProgramData(jnins, **qph));
             printd(5, "Globals::createJavaContextProgram() created %p\n", **qph);
+        } catch (jni::JavaException& e) {
+#ifdef DEBUG
+            SimpleRefHolder<QoreStringNode> err(e.toString());
+            printd(5, "Globals::createJavaContextProgram(): %s\n", err->c_str());
+#endif
+            qph.reset();
+            throw;
         } catch (...) {
             qph.reset();
             throw;

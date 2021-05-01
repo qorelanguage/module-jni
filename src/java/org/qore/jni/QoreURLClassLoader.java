@@ -67,7 +67,12 @@ public class QoreURLClassLoader extends URLClassLoader {
     private String classPath = new String();
     private long pgm_ptr = 0;
     private boolean enable_cache = false;
+    // when used to bootstrap Java; cannot call getsystemClassLoader()
     private boolean bootstrap = false;
+    // when used as the system class loader
+    /** if true, we need to ensure that this object loads classes to make dynamic imports work
+    */
+    private boolean startup = false;
 
     //! for caching files during compilation
     private final HashMap<String, QoreJavaFileObject> classes = new HashMap<String, QoreJavaFileObject>();
@@ -109,7 +114,15 @@ public class QoreURLClassLoader extends URLClassLoader {
         enable_cache = true;
         setContextProgram(this);
         //System.out.printf("QoreURLClassLoader(ClassLoader parent: %s) this: %x (pgm: %x)\n",
-        //    (parent == null ? "null" : parent.getClass().getCanonicalName()) + ")", hashCode(), pgm_ptr);
+        //    (parent == null ? "null" : parent.getClass().getCanonicalName()), hashCode(), pgm_ptr);
+
+        startup = true;
+
+        // set classpath from system classpath
+        String cp = System.getProperty("java.class.path");
+        if (cp != null && !cp.isEmpty()) {
+            addPath(cp);
+        }
     }
 
     //! constructor for using this class as the boot classloader for the module
@@ -153,6 +166,11 @@ public class QoreURLClassLoader extends URLClassLoader {
     //! Sets the bootstrap flag
     public void setBootstrap() {
         bootstrap = true;
+    }
+
+    //! Clears the bootstrap flag
+    public void clearBootstrap() {
+        bootstrap = false;
     }
 
     /**
@@ -338,8 +356,8 @@ public class QoreURLClassLoader extends URLClassLoader {
      * Loads classes; returns pending classes injected by the jni module or the compiler
      */
     public Class<?> loadClass(String bin_name) throws ClassNotFoundException {
-        //System.out.printf("QoreURLClassLoader.loadClass() this: %x '%s' pgm: %x\n", hashCode(),
-        //    bin_name, pgm_ptr);
+        //System.out.printf("QoreURLClassLoader.loadClass() this: %x '%s' pgm: %x (bootstrap: %s startup: %s)\n",
+        //    hashCode(), bin_name, pgm_ptr, bootstrap, startup);
         Class<?> rv = findLoadedClass(bin_name);
         if (rv != null) {
             //System.out.printf("loadClass() %s returning loaded\n", bin_name);
@@ -378,20 +396,39 @@ public class QoreURLClassLoader extends URLClassLoader {
             }
         }
 
-        ClassLoader parent = getParent();
-        if (parent == null && !bootstrap) {
-            parent = getSystemClassLoader();
-        }
-        if (parent != null) {
+        boolean direct = !startup
+            || bin_name.startsWith("java.")
+            || bin_name.startsWith("org.qore.jni.")
+            || bin_name.startsWith("org.qore.lang.");
+        if (direct) {
+            ClassLoader parent = getParent();
+            if (parent == null && !bootstrap) {
+                parent = getSystemClassLoader();
+            }
+            if (parent != null) {
+                try {
+                    //return parent.loadClass(bin_name);
+                    rv = parent.loadClass(bin_name);
+                    //System.out.printf("loadClass() %s returning parent\n", bin_name);
+                    return rv;
+                } catch (ClassNotFoundException e) {
+                    // ignore
+                }
+            }
+        } else if (startup) {
             try {
-                //return parent.loadClass(bin_name);
-                rv = parent.loadClass(bin_name);
-                //System.out.printf("loadClass() %s returning loaded\n", bin_name);
-                return rv;
+                // we must load classes first when we are a "startup" class loader, so that referenced dynamic
+                // classes will be loadable
+                rv = super.findClass(bin_name);
+                if (rv != null) {
+                    //System.out.printf("loadClass() %s returning super.findClass()\n", bin_name);
+                    return rv;
+                }
             } catch (ClassNotFoundException e) {
                 // ignore
             }
         }
+        //System.out.printf("loadClass() %s call super...\n", bin_name);
         return super.loadClass(bin_name);
     }
 

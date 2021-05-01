@@ -26,6 +26,11 @@ public class QoreJavaApi {
         try {
             QoreURLClassLoader.getProgramPtr();
         } catch (NullPointerException e0) {
+
+            //ClassLoader ldr = QoreJavaApi.class.getClassLoader();
+            //System.out.printf("QoreJavaApi.initQore() cl: %x (%s)\n", ldr.hashCode(),
+            //  ldr.getClass().getCanonicalName());
+
             // initialize jni module
             long ptr;
             try {
@@ -46,29 +51,6 @@ public class QoreJavaApi {
                 }
                 // now we can run our native methods
                 ptr = initQore0();
-
-                /*
-                try {
-                    // load the qore library from \c java.library.path
-                    System.loadLibrary("qore");
-                    // now we can run our native methods
-                    ptr = initQore0();
-                } catch (UnsatisfiedLinkError e2) {
-                    // no qore library; no jni module
-                    // check for environment variable to Qore lib
-                    String qore_lib_loc = System.getenv("QORE_LIBRARY");
-                    if (qore_lib_loc != null) {
-                        // load the qore library dynamically, which will result in the jni module being loaded automatically
-                        // do to a JNI_OnLoad() function in libqore that initializes the Qore library and loads the jni
-                        // module
-                        System.load(qore_lib_loc);
-                        // now we can run our native methods
-                        ptr = initQore0();
-                    } else {
-                        throw e2;
-                    }
-                }
-                */
             }
             QoreURLClassLoader.setProgramPtr(ptr);
         }
