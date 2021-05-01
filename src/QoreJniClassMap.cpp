@@ -1742,7 +1742,12 @@ static LocalReference<jstring> get_java_name_for_class(Env& env, const QoreClass
         pname.replace(start_pos, 2, ".");
         ++start_pos;
     }
-    pname.insert(0, "qore");
+    // if it's already a Java class, then return the original Java binary name
+    if (pname.rfind(".Jni.", 0) == 0) {
+        pname.erase(0, 5);
+    } else {
+        pname.insert(0, "qore");
+    }
     printd(5, "get_java_name_for_class() cls '%s' -> java '%s'\n", qc.getName(), pname.c_str());
     return env.newString(pname.c_str());
 }
