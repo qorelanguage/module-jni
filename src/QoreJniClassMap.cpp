@@ -528,6 +528,18 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInBase(QoreString& name, const
             return qc;
     }
 
+    // issue: 4231: workaround for the headless awt toolkit; we cannot initialize sun.awt.dnd.SunDropTargetEvent,
+    // because the DataTransferer for the headless awt toolkit is null, and this will cause an initializer exception
+    // in this class when initializing the static member "ToolkitThreadBlockedHandler handler"
+    if (name == "sun.awt.dnd.SunDropTargetEvent") {
+        Env env;
+        if (env.callBooleanMethod(Globals::classGraphicsEnvironment, Globals::methodGraphicsEnvironmentIsHeadless,
+            nullptr)) {
+            printd(5, "retuning Object for '%s' when running in a headless environment\n", name.c_str());
+            return QC_OBJECT;
+        }
+    }
+
     // see if we have an inner class
     int ic_idx = name.rfind('$');
     if (ic_idx != -1) {

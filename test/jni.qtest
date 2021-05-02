@@ -161,6 +161,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("jni test", "1.0") {
+        addTestCase("awt test", \awtTest());
         addTestCase("code test", \testCode());
         addTestCase("smtpclient test", \smtpClientTest());
         addTestCase("mailmessage test", \mailMessageTest());
@@ -201,6 +202,12 @@ public class Main inherits QUnit::Test {
         if (m_options.verbose > 2) {
             vprintf("HTTP: " + fmt, argv);
         }
+    }
+
+    awtTest() {
+        # issue #4221: this will fail in hadless environments without the fix
+        lang::Class cls = load_class("java/awt/GraphicsEnvironment");
+        assertEq(Type::Object, cls.type());
     }
 
     testCode() {
