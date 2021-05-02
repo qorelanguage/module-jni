@@ -292,9 +292,10 @@ extern "C" int jni_module_import(ExceptionSink* xsink, QoreProgram* pgm, const c
     QoreString arg(import);
     try {
         if (arg[-1] != '*') {
+            Env env;
             //printd(5, "jni_module_import() non wc lcc arg: '%s' (pgm: %p)\n", arg.c_str(), pgm);
             // the following call adds the class to the current program as well
-            qjcm.findCreateQoreClass(arg.c_str(), pgm);
+            qjcm.findCreateQoreClass(env, arg.c_str(), pgm);
         } else {
             QoreNamespace* ns = qore_jni_wildcard_import(arg, pgm, jpc);
             if (!ns) {
@@ -364,7 +365,7 @@ static void qore_jni_mc_import(const QoreString& cmd_arg, QoreProgram* pgm, JniE
     assert(pgm->checkFeature(QORE_JNI_MODULE_NAME));
 
     // process import statement
-    printd(LogLevel, "jni_module_parse_cmd() pgm: %p arg: %s c: %c\n", pgm, arg.getBuffer(), arg[-1]);
+    printd(LogLevel, "qore_jni_mc_import() pgm: %p arg: %s c: %c\n", pgm, arg.getBuffer(), arg[-1]);
 
     // see if there is a wildcard at the end
     if (arg[-1] == '*') {
@@ -374,7 +375,7 @@ static void qore_jni_mc_import(const QoreString& cmd_arg, QoreProgram* pgm, JniE
         Env env;
         env.callVoidMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderSetContext, nullptr);
         // the following call adds the class to the current program as well
-        qjcm.findCreateQoreClass(arg.c_str(), pgm);
+        qjcm.findCreateQoreClass(env, arg.c_str(), pgm, jpc);
     }
 }
 
@@ -513,6 +514,8 @@ static void qore_jni_mc_set_property(const QoreString& arg, QoreProgram* pgm, Jn
     QoreString property(&arg, end);
     QoreString value(arg.c_str() + end + 1);
 
+    //printd(5, "qore_jni_mc_set_property() '%s' = '%s'\n", property.c_str(), value.c_str());
+
     jni::Env env;
 
     LocalReference<jstring> jprop = env.newString(property.c_str());
@@ -549,7 +552,8 @@ QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {
     QoreProgram* pgm = ns->getProgram();
     assert(pgm);
     try {
-        QoreClass* qc = qjcm.findCreateQoreClass(cp.c_str(), pgm);
+        Env env;
+        QoreClass* qc = qjcm.findCreateQoreClass(env, cp.c_str(), pgm);
         printd(LogLevel, "jni_class_handler() cp: %s returning qc: %p\n", cp.c_str(), qc);
         return qc;
     } catch (jni::JavaException& e) {

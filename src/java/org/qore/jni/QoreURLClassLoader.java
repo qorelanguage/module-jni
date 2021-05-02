@@ -364,6 +364,18 @@ public class QoreURLClassLoader extends URLClassLoader {
             return rv;
         }
 
+        if (bin_name.startsWith("java.")
+            || bin_name.startsWith("javax.")
+            || bin_name.startsWith("sun.")
+            || bin_name.startsWith("org.qore.jni.")
+            || bin_name.startsWith("org.qore.lang.")) {
+
+            //return super.loadClass(bin_name);
+            rv = super.loadClass(bin_name);
+            //System.out.printf("loadClass() %s resolved %s with super: %s\n", bin_name, rv, rv.getClass().getClassLoader());
+            return rv;
+        }
+
         rv = tryGetPendingClass(bin_name);
         if (rv != null) {
             //System.out.printf("loadClass() %s returning pending\n", bin_name);
@@ -381,7 +393,7 @@ public class QoreURLClassLoader extends URLClassLoader {
             try {
                 byte[] bytes = generateByteCode(bin_name);
                 rv = defineClassIntern(bin_name, bytes, 0, bytes.length);
-                //System.out.printf("findClass() this: %x pgm: %x dyn %s returning generated %s\n", hashCode(),
+                //System.out.printf("loadClass() this: %x pgm: %x dyn %s returning generated %s\n", hashCode(),
                 //    pgm_ptr, bin_name, rv);
                 return rv;
             } catch (ClassNotFoundException e1) {
@@ -396,26 +408,22 @@ public class QoreURLClassLoader extends URLClassLoader {
             }
         }
 
-        boolean direct = !startup
-            || bin_name.startsWith("java.")
-            || bin_name.startsWith("org.qore.jni.")
-            || bin_name.startsWith("org.qore.lang.");
-        if (direct) {
+        if (!startup) {
             ClassLoader parent = getParent();
-            if (parent == null && !bootstrap) {
-                parent = getSystemClassLoader();
+            if (parent == null) {
+                parent = !bootstrap ? getSystemClassLoader() : getPlatformClassLoader();
             }
             if (parent != null) {
                 try {
                     //return parent.loadClass(bin_name);
                     rv = parent.loadClass(bin_name);
-                    //System.out.printf("loadClass() %s returning parent\n", bin_name);
+                    //System.out.printf("loadClass() %s returning parent: %s\n", bin_name, rv);
                     return rv;
                 } catch (ClassNotFoundException e) {
                     // ignore
                 }
             }
-        } else if (startup) {
+        } else {
             try {
                 // we must load classes first when we are a "startup" class loader, so that referenced dynamic
                 // classes will be loadable

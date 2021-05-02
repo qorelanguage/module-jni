@@ -143,16 +143,17 @@ public:
     // takes an internal name (ex: java/lang/Class)
     DLLLOCAL jclass findLoadClass(const QoreString& name, QoreProgram* pgm = nullptr);
 
-    DLLLOCAL JniQoreClass* findCreateQoreClass(LocalReference<jclass>& jc, QoreProgram* pgm);
+    DLLLOCAL JniQoreClass* findCreateQoreClass(Env& env, LocalReference<jclass>& jc, QoreProgram* pgm);
 
     // create the Qore class from the Java binary name (ex: java.lang.Object)
-    DLLLOCAL JniQoreClass* findCreateQoreClass(const char* name, QoreProgram* pgm);
+    DLLLOCAL JniQoreClass* findCreateQoreClass(Env& env, const char* name, QoreProgram* pgm,
+            JniExternalProgramData* jpc = nullptr);
 
-    DLLLOCAL JniQoreClass* findCreateQoreClass(QoreString& name, const char* jpath, Class* c, bool base,
+    DLLLOCAL JniQoreClass* findCreateQoreClass(Env& env, QoreString& name, const char* jpath, Class* c, bool base,
             QoreProgram* pgm) {
-        printd(5, "QoreJniClassMap::findCreateQoreClass() '%s' base: %d pgm: %p\n", jpath, base, pgm);
+        //printd(5, "QoreJniClassMap::findCreateQoreClass() '%s' base: %d pgm: %p\n", jpath, base, pgm);
         return base
-            ? findCreateQoreClassInBase(name, jpath, c, pgm)
+            ? findCreateQoreClassInBase(env, name, jpath, c, pgm)
             : findCreateQoreClassInProgram(name, jpath, c, pgm);
     }
 
@@ -211,8 +212,8 @@ protected:
 
     DLLLOCAL JniQoreClass* createClassInNamespace(QoreNamespace* ns, QoreNamespace& jns, const char* jpath,
         Class* jc, JniQoreClass* qc, QoreJniClassMapBase& map, QoreProgram* pgm);
-    DLLLOCAL JniQoreClass* findCreateQoreClassInBase(QoreString& name, const char* jpath, Class* c, QoreProgram* pgm);
-    DLLLOCAL Class* loadClass(const char* name, bool& base, JniExternalProgramData* jpc = nullptr);
+    DLLLOCAL JniQoreClass* findCreateQoreClassInBase(Env& env, QoreString& name, const char* jpath, Class* c, QoreProgram* pgm);
+    DLLLOCAL Class* loadClass(Env& env, const char* name, bool& base, JniExternalProgramData* jpc = nullptr);
 
 private:
     // initialization flag
@@ -226,7 +227,7 @@ private:
 
     DLLLOCAL jarray getJavaArrayIntern(Env& env, const QoreListNode* l, jclass cls, JniExternalProgramData* jpc);
 
-    DLLLOCAL Class* loadProgramClass(const char* name, JniExternalProgramData* jpc);
+    DLLLOCAL Class* loadProgramClass(Env& env, const char* name, JniExternalProgramData* jpc);
 
     class InitSignaler {
     public:

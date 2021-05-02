@@ -99,6 +99,7 @@ public:
     DLLLOCAL static GlobalReference<jclass> classThrowable;                       // java.lang.Throwable
     DLLLOCAL static jmethodID methodThrowableGetMessage;                          // String Throwable.getMessage()
     DLLLOCAL static jmethodID methodThrowableGetStackTrace;                       // String Throwable.getStackTrace()
+    DLLLOCAL static jmethodID methodThrowableGetCause;                            // String Throwable.getCause()
 
     DLLLOCAL static GlobalReference<jclass> classStackTraceElement;               // java.lang.StackTraceElement
     DLLLOCAL static jmethodID methodStackTraceElementGetClassName;                // String StackTraceElement.getClassName()
@@ -203,6 +204,10 @@ public:
     DLLLOCAL static jmethodID methodJavaClassBuilderGetTypeDescriptionCls;        // static TypeDescription getTypeDescription(Class<?>)
     DLLLOCAL static jmethodID methodJavaClassBuilderGetTypeDescriptionStr;        // static TypeDescription getTypeDescription(String)
     DLLLOCAL static jmethodID methodJavaClassBuilderFindBaseClassMethodConflict;  // static boolean findBaseClassMethodConflict(Class<?>, String, List<TypeDescription>, boolean)
+
+    // to check for headless AWT to avoid importing classes that cannot be initialized when headless
+    DLLLOCAL static GlobalReference<jclass> classGraphicsEnvironment;             // java.awt.GraphicsEnvironment
+    DLLLOCAL static jmethodID methodGraphicsEnvironmentIsHeadless;                // boolean GraphicsEnvironment.isHeadless()
 
     DLLLOCAL static GlobalReference<jclass> classThread;                          // java.lang.Thread
     DLLLOCAL static jmethodID methodThreadCurrentThread;                          // Thread Thread.currentThread()

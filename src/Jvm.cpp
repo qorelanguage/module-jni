@@ -71,6 +71,7 @@ QoreStringNode* Jvm::createVM() {
         // disable JIT
         options[vm_args.nOptions++].optionString = (char*)"-Xint";
     }
+
 #ifdef QORE_JNI_SUPPORT_CLASSPATH
     if (!classpath.empty()) {
         classpath.prepend("-Djava.class.path=");

@@ -120,7 +120,16 @@ class QJavaCompilerCmd {
                 continue;
             }
             if (arg[0] != "-" && arg =~ /\.java$/i) {
-                srcs{normalize_dir(arg)} = File::readTextFile(arg);
+                string cwd = getcwd();
+                string name = normalize_dir(arg);
+                int cl = cwd.length();
+                cwd += "/";
+                if (name[0..cl] == cwd) {
+                    splice name, 0, cl + 1;
+                }
+                name =~ s/\.java$//;
+                name =~ s/\//./g;
+                srcs{name} = File::readTextFile(arg);
                 splice ARGV, i, 1;
                 --l;
                 continue;

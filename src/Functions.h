@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,12 @@ public:
     // 'name' must be in UTF-8 encoding
     static Class* loadClass(const char* name) {
         Env env;
+        printd(LogLevel, "loadClass '%s'\n", name);
+        return new Class(env.findClass(name));
+    }
+
+    // 'name' must be in UTF-8 encoding
+    static Class* loadClass(Env& env, const char* name) {
         printd(LogLevel, "loadClass '%s'\n", name);
         return new Class(env.findClass(name));
     }
