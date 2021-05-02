@@ -163,6 +163,10 @@ public:
     DLLLOCAL static jmethodID methodQoreURLClassLoaderAddPendingClass;            // void QoreURLClassLoader.addPendingClass(String, byte[])
     DLLLOCAL static jmethodID methodQoreURLClassLoaderDefineResolveClass;         // Class<?> defineResolveClass​(String, byte[], int, int)
 
+    // to check for headless AWT to avoid importing classes that cannot be initialized when headless
+    DLLLOCAL static GlobalReference<jclass> classGraphicsEnvironment;             // java.awt.GraphicsEnvironment
+    DLLLOCAL static jmethodID methodGraphicsEnvironmentIsHeadless;                // boolean GraphicsEnvironment.isHeadless()
+
     DLLLOCAL static GlobalReference<jclass> classThread;                          // java.lang.Thread
     DLLLOCAL static jmethodID methodThreadCurrentThread;                          // Thread Thread.currentThread()
     DLLLOCAL static jmethodID methodThreadGetContextClassLoader;                  // ClassLoader Thread.getContextClassLoader()
