@@ -338,6 +338,7 @@ public class QoreJavaCompiler<T> {
                 final String packageName = dotPos == -1 ? "" : qualifiedClassName.substring(0, dotPos);
                 final JavaFileObjectImpl source = new JavaFileObjectImpl(className, javaSource);
                 sources.add(source);
+                //System.out.printf("compile pkg: '%s' source: '%s'\n", packageName, className + JAVA_EXTENSION);
                 // Store the source file in the FileManager via package/class name.
                 // For source files, we add a .java extension
                 javaFileManager.putFileForInput(StandardLocation.SOURCE_PATH, packageName,

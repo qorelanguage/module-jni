@@ -95,6 +95,7 @@ jmethodID Globals::methodClassGetMethod;
 GlobalReference<jclass> Globals::classThrowable;
 jmethodID Globals::methodThrowableGetMessage;
 jmethodID Globals::methodThrowableGetStackTrace;
+jmethodID Globals::methodThrowableGetCause;
 
 GlobalReference<jclass> Globals::classStackTraceElement;
 jmethodID Globals::methodStackTraceElementGetClassName;
@@ -199,6 +200,9 @@ jmethodID Globals::methodJavaClassBuilderGetByteCodeFromBuilder;
 jmethodID Globals::methodJavaClassBuilderGetTypeDescriptionCls;
 jmethodID Globals::methodJavaClassBuilderGetTypeDescriptionStr;
 jmethodID Globals::methodJavaClassBuilderFindBaseClassMethodConflict;
+
+GlobalReference<jclass> Globals::classGraphicsEnvironment;
+jmethodID Globals::methodGraphicsEnvironmentIsHeadless;
 
 GlobalReference<jclass> Globals::classThread;
 jmethodID Globals::methodThreadCurrentThread;
@@ -1610,7 +1614,7 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreC
         if (strcmp(qpath.c_str(), jcname.c_str())) {
             //printd(5, "qore_object_create() '%s' != '%s'; creating Qore class for '%s'\n", qpath.c_str(),
             //    jcname.c_str(), jcname.c_str());
-            jqc = qjcm.findCreateQoreClass(jcls, pgm);
+            jqc = qjcm.findCreateQoreClass(env, jcls, pgm);
         } else {
             jqc = qc;
         }
@@ -2247,6 +2251,7 @@ bool Globals::init() {
     classThrowable = env.findClass("java/lang/Throwable").makeGlobal();
     methodThrowableGetMessage = env.getMethod(classThrowable, "getMessage", "()Ljava/lang/String;");
     methodThrowableGetStackTrace = env.getMethod(classThrowable, "getStackTrace", "()[Ljava/lang/StackTraceElement;");
+    methodThrowableGetCause = env.getMethod(classThrowable, "getCause", "()Ljava/lang/Throwable;");
 
     classStackTraceElement = env.findClass("java/lang/StackTraceElement").makeGlobal();
     methodStackTraceElementGetClassName = env.getMethod(classStackTraceElement, "getClassName", "()Ljava/lang/String;");
@@ -2602,6 +2607,9 @@ bool Globals::init() {
     methodJavaClassBuilderFindBaseClassMethodConflict = env.getStaticMethod(classJavaClassBuilder,
         "findBaseClassMethodConflict", "(Ljava/lang/Class;Ljava/lang/String;Ljava/util/List;Z)Z");
 
+    classGraphicsEnvironment = env.findClass("java/awt/GraphicsEnvironment").makeGlobal();;
+    methodGraphicsEnvironmentIsHeadless = env.getStaticMethod(classGraphicsEnvironment, "isHeadless", "()Z");
+
     return bootstrap;
 }
 
@@ -2648,6 +2656,7 @@ void Globals::cleanup() {
     classClassLoader = nullptr;
     classQoreURLClassLoader = nullptr;
     classJavaClassBuilder = nullptr;
+    classGraphicsEnvironment = nullptr;
     classThread = nullptr;
     classHashMap = nullptr;
     classHash = nullptr;

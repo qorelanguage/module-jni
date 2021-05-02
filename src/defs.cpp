@@ -131,33 +131,54 @@ QoreStringNode* JavaException::toString() const {
         //not happen, but if it does, we simply report the QoreExceptionWrapper as if it were a normal Java exception
     }
 
-    LocalReference<jstring> excName = static_cast<jstring>(env->CallObjectMethod(env->GetObjectClass(throwable),
-        Globals::methodClassGetName));
-    if (env->ExceptionCheck()) {
-        env->ExceptionClear();
-        return new QoreStringNode("Unable to get exception class name: another exception thrown");
-    }
+    SimpleRefHolder<QoreStringNode> desc(new QoreStringNode(QCS_UTF8));
 
-    const char* chars = env->GetStringUTFChars(excName, nullptr);
-    if (!chars) {
-        env->ExceptionClear();
-        return new QoreStringNode("Unable to get exception class name: GetStringUTFChars() failed");
-    }
-    SimpleRefHolder<QoreStringNode> desc(new QoreStringNode(chars, QCS_UTF8));
-    env->ReleaseStringUTFChars(excName, chars);
+    while (true) {
+        LocalReference<jstring> excName = static_cast<jstring>(env->CallObjectMethod(env->GetObjectClass(throwable),
+            Globals::methodClassGetName));
+        if (env->ExceptionCheck()) {
+            env->ExceptionClear();
+            return new QoreStringNode("Unable to get exception class name: another exception thrown");
+        }
 
-    LocalReference<jstring> msg = static_cast<jstring>(env->CallObjectMethod(throwable, Globals::methodThrowableGetMessage));
-    if (env->ExceptionCheck()) {
-        env->ExceptionClear();
-    } else if (msg != nullptr) {
-        desc->concat(": ");
-        chars = env->GetStringUTFChars(msg, nullptr);
+        const char* chars = env->GetStringUTFChars(excName, nullptr);
         if (!chars) {
             env->ExceptionClear();
-        } else {
-            desc->concat(chars);
-            env->ReleaseStringUTFChars(msg, chars);
+            return new QoreStringNode("Unable to get exception class name: GetStringUTFChars() failed");
         }
+        //printd(5, "chars: %s\n", chars);
+        if (!desc->empty()) {
+            desc->concat(": ");
+        }
+        desc->concat(chars);
+        env->ReleaseStringUTFChars(excName, chars);
+
+        LocalReference<jstring> msg = static_cast<jstring>(env->CallObjectMethod(throwable, Globals::methodThrowableGetMessage));
+        //printd(5, "msg: %p\n", (jstring)msg);
+        if (env->ExceptionCheck()) {
+            env->ExceptionClear();
+        } else if (msg != nullptr) {
+            desc->concat(": ");
+            chars = env->GetStringUTFChars(msg, nullptr);
+            if (!chars) {
+                env->ExceptionClear();
+            } else {
+                desc->concat(chars);
+                env->ReleaseStringUTFChars(msg, chars);
+            }
+        }
+
+        /*
+        jmethodID methodThrowablePrintStackTrace = env->GetMethodID(Globals::classThrowable, "printStackTrace", "()V");
+        env->CallVoidMethod(throwable, methodThrowablePrintStackTrace);
+        */
+
+        LocalReference<jthrowable> cause = static_cast<jthrowable>(env->CallObjectMethod(throwable, Globals::methodThrowableGetCause));
+        //printd(5, "cause: %p\n", (jthrowable)cause);
+        if (!cause) {
+            break;
+        }
+        throwable = cause.release();
     }
     return desc.release();
 }
@@ -242,8 +263,11 @@ void JavaException::convert(ExceptionSink* xsink) {
     JniCallStack stack(throwable, loc);
 
     LocalReference<jclass> tcls(env->GetObjectClass(throwable));
-    xsink->raiseExceptionArg(loc.get(), "JNI-ERROR", new QoreObject(qjcm.findCreateQoreClass(tcls, pgm), pgm,
-        new QoreJniPrivateData(throwable.as<jobject>())), desc.release(), stack);
+    {
+        Env jenv(env);
+        xsink->raiseExceptionArg(loc.get(), "JNI-ERROR", new QoreObject(qjcm.findCreateQoreClass(jenv, tcls, pgm), pgm,
+            new QoreJniPrivateData(throwable.as<jobject>())), desc.release(), stack);
+    }
 }
 
 void JavaException::ignoreOrRethrowNoClass() {

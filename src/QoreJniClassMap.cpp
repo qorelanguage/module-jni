@@ -285,6 +285,8 @@ void QoreJniClassMap::initBackground(QoreProgram* pgm) {
     // add "java" to "Jni" namespace
     default_jns->addInitialNamespace(javans);
 
+    Env env;
+
     // add "Object" class
     // find/create parent namespace in default / master Jni namespace first
     const char* sn;
@@ -292,20 +294,21 @@ void QoreJniClassMap::initBackground(QoreProgram* pgm) {
 
     QC_OBJECT = new JniQoreClass(pgm, "Object", "Jni::java::lang::Object", "java.lang.Object");
     CID_OBJECT = QC_OBJECT->getID();
-    createClassInNamespace(ns, *default_jns, "java/lang/Object", Functions::loadClass("java/lang/Object"), QC_OBJECT, *this, pgm);
+    createClassInNamespace(ns, *default_jns, "java/lang/Object",
+        Functions::loadClass(env, "java/lang/Object"), QC_OBJECT, *this, pgm);
 
-    QC_CLASS = findCreateQoreClass("java.lang.Class", pgm);
+    QC_CLASS = findCreateQoreClass(env, "java.lang.Class", pgm);
     CID_CLASS = QC_CLASS->getID();
-    QC_METHOD = findCreateQoreClass("java.lang.reflect.Method", pgm);
+    QC_METHOD = findCreateQoreClass(env, "java.lang.reflect.Method", pgm);
     CID_METHOD = QC_METHOD->getID();
-    QC_CLASSLOADER = findCreateQoreClass("java.lang.ClassLoader", pgm);
+    QC_CLASSLOADER = findCreateQoreClass(env, "java.lang.ClassLoader", pgm);
     CID_CLASSLOADER = QC_CLASSLOADER->getID();
-    QC_THROWABLE = findCreateQoreClass("java.lang.Throwable", pgm);
+    QC_THROWABLE = findCreateQoreClass(env, "java.lang.Throwable", pgm);
     CID_THROWABLE = QC_THROWABLE->getID();
-    QC_INVOCATIONHANDLER = findCreateQoreClass("java.lang.reflect.InvocationHandler", pgm);
+    QC_INVOCATIONHANDLER = findCreateQoreClass(env, "java.lang.reflect.InvocationHandler", pgm);
     CID_INVOCATIONHANDLER = QC_INVOCATIONHANDLER->getID();
 
-    QC_ZONEDDATETIME = findCreateQoreClass("java.time.ZonedDateTime", pgm);
+    QC_ZONEDDATETIME = findCreateQoreClass(env, "java.time.ZonedDateTime", pgm);
     CID_ZONEDDATETIME = QC_ZONEDDATETIME->getID();
 
     // populate classes after initial hierarchy done
@@ -349,7 +352,6 @@ void QoreJniClassMap::initBackground(QoreProgram* pgm) {
     }
 
     // initialize Qore base type -> java class map
-    Env env;
     qt2jmap[NT_INT] = GlobalReference<jclass>((jclass)Globals::classPrimitiveLong);
     qt2jmap[NT_FLOAT] = GlobalReference<jclass>((jclass)Globals::classPrimitiveDouble);
     qt2jmap[NT_BOOLEAN] = GlobalReference<jclass>((jclass)Globals::classPrimitiveBoolean);
@@ -400,13 +402,14 @@ jclass QoreJniClassMap::findLoadClass(const char* jpath, QoreProgram* pgm) {
 
             //printd(5, "findLoadClass() '%s': qc: %p pgm: %p jpc: %p\n", jpath, qc, pgm, jpc);
             if (!qc) {
+                Env env;
                 bool base;
-                SimpleRefHolder<Class> cls(loadClass(jpath, base, jpc));
+                SimpleRefHolder<Class> cls(loadClass(env, jpath, base, jpc));
 
                 QoreString cpath(jpath);
                 cpath.replaceAll("/", ".");
                 //cpath.replaceAll("$", "__");
-                qc = findCreateQoreClass(cpath, jpath, cls.release(), base, pgm);
+                qc = findCreateQoreClass(env, cpath, jpath, cls.release(), base, pgm);
                 //printd(5, "findLoadClass() '%s': %p (created) pgm: %p\n", jpath, qc, pgm);
             } else {
                 //printd(LogLevel, "findLoadClass() '%s': %p (cached 2)\n", jpath, qc);
@@ -456,7 +459,7 @@ QoreValue QoreJniClassMap::getValue(LocalReference<jobject>& obj, QoreProgram* p
         return (int64)env.callCharMethod(obj, Globals::methodCharacterCharValue, nullptr);
 
     assert(pgm);
-    return new QoreObject(qjcm.findCreateQoreClass(jc, pgm), pgm, new QoreJniPrivateData(obj));
+    return new QoreObject(qjcm.findCreateQoreClass(env, jc, pgm), pgm, new QoreJniPrivateData(obj));
 }
 
 static LocalReference<jstring> get_dot_name(Env& env, const char* name) {
@@ -466,13 +469,16 @@ static LocalReference<jstring> get_dot_name(Env& env, const char* name) {
     return env.newString(nname.c_str());
 }
 
-Class* QoreJniClassMap::loadClass(const char* name, bool& base, JniExternalProgramData* jpc) {
+Class* QoreJniClassMap::loadClass(Env& env, const char* name, bool& base, JniExternalProgramData* jpc) {
     try {
         base = true;
 
         // first we try to load with the builtin classloader
-        return Functions::loadClass(name);
+        return Functions::loadClass(env, name);
     } catch (jni::JavaException& e) {
+        // NOTE: JavaException::toString() ignores the exception
+        //SimpleRefHolder<QoreStringNode> desc(e.toString());
+        //printd(5, "loadClass() %s failed: %s\n", name, desc->c_str());
         e.ignore();
     }
     base = false;
@@ -485,11 +491,10 @@ Class* QoreJniClassMap::loadClass(const char* name, bool& base, JniExternalProgr
                 "program-specific classloader present", name);
         }
     }
-    return loadProgramClass(name, jpc);
+    return loadProgramClass(env, name, jpc);
 }
 
-Class* QoreJniClassMap::loadProgramClass(const char* name, JniExternalProgramData* jpc) {
-    Env env;
+Class* QoreJniClassMap::loadProgramClass(Env& env, const char* name, JniExternalProgramData* jpc) {
     LocalReference<jstring> jname = get_dot_name(env, name).release();
     jvalue jarg;
     jarg.l = jname;
@@ -502,8 +507,7 @@ Class* QoreJniClassMap::loadProgramClass(const char* name, JniExternalProgramDat
     return new Class(c.release());
 }
 
-JniQoreClass* QoreJniClassMap::findCreateQoreClass(LocalReference<jclass>& jc, QoreProgram* pgm) {
-    Env env;
+JniQoreClass* QoreJniClassMap::findCreateQoreClass(Env& env, LocalReference<jclass>& jc, QoreProgram* pgm) {
     LocalReference<jstring> clsName = env.callObjectMethod(jc, Globals::methodClassGetName, nullptr).as<jstring>();
     Env::GetStringUtfChars tname(env, clsName);
 
@@ -519,7 +523,7 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClass(LocalReference<jclass>& jc, Q
     LocalReference<jobject> cl = env.callObjectMethod(jc, Globals::methodClassGetClassLoader, nullptr);
     bool base = (!baseClassLoader && !cl) || (cl && baseClassLoader && env.isSameObject(baseClassLoader, cl));
     printd(5, "QoreJniClassMap::findCreateQoreClass() '%s' base: %d\n", jpath.c_str(), base);
-    return findCreateQoreClass(cname, jpath.c_str(), new Class(jc), base, pgm);
+    return findCreateQoreClass(env, cname, jpath.c_str(), new Class(jc), base, pgm);
 }
 
 JniQoreClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name, const char* jpath, Class* c, QoreProgram* pgm) {
@@ -549,13 +553,6 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name, co
 
         jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
         assert(jpc);
-        /*
-        if (!jpc) {
-            QoreStringMaker desc("no JNI context in current Program; while creating Qore class for '%s'",
-                name.c_str());
-            throw BasicException(desc.c_str());
-        }
-        */
     }
 
     JniQoreClass* qc = jpc->find(jpath);
@@ -601,7 +598,8 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name, co
     return qc;
 }
 
-JniQoreClass* QoreJniClassMap::findCreateQoreClass(const char* name, QoreProgram* pgm) {
+JniQoreClass* QoreJniClassMap::findCreateQoreClass(Env& env, const char* name, QoreProgram* pgm,
+        JniExternalProgramData* jpc) {
     QoreString jpath(name);
     jpath.replaceAll(".", "/");
     jpath.replaceAll("__", "$");
@@ -614,21 +612,23 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClass(const char* name, QoreProgram
     }
     //printd(LogLevel, "QoreJniClassMap::findCreateQoreClass() '%s' not cached\n", name);
 
-    JniExternalProgramData* jpc = pgm
-        ? static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"))
-        : jni_get_context(pgm);
-    assert(jpc);
+    if (!jpc) {
+        jpc = pgm
+            ? static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"))
+            : jni_get_context(pgm);
+        assert(jpc);
+    }
 
     // first try to load the class if possible
     bool base;
-    SimpleRefHolder<Class> cls(loadClass(jpath.c_str(), base, jpc));
+    SimpleRefHolder<Class> cls(loadClass(env, jpath.c_str(), base, jpc));
 
     QoreString cname(name);
     // create the class in the correct namespace
-    return findCreateQoreClass(cname, jpath.c_str(), cls.release(), base, pgm);
+    return findCreateQoreClass(env, cname, jpath.c_str(), cls.release(), base, pgm);
 }
 
-JniQoreClass* QoreJniClassMap::findCreateQoreClassInBase(QoreString& name, const char* jpath, Class* c,
+JniQoreClass* QoreJniClassMap::findCreateQoreClassInBase(Env& env, QoreString& name, const char* jpath, Class* c,
         QoreProgram* pgm) {
     SimpleRefHolder<Class> cls(c);
 
@@ -642,6 +642,18 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInBase(QoreString& name, const
         JniQoreClass* qc = find(jpath);
         if (qc)
             return qc;
+    }
+
+    // workaround for the headless awt toolkit; we cannot initialize sun.awt.dnd.SunDropTargetEvent, because
+    // the DataTransferer for the headless awt toolkit is null, and this will cause an initializer exception
+    // in this class when initializing the static member "ToolkitThreadBlockedHandler handler"
+    if (name == "sun.awt.dnd.SunDropTargetEvent") {
+        Env env;
+        if (env.callBooleanMethod(Globals::classGraphicsEnvironment, Globals::methodGraphicsEnvironmentIsHeadless,
+            nullptr)) {
+            printd(5, "retuning Object for '%s' when running in a headless environment\n", name.c_str());
+            return QC_OBJECT;
+        }
     }
 
     // see if we have an inner class
@@ -869,10 +881,10 @@ void QoreJniClassMap::addSuperClass(Env& env, JniQoreClass& qc, jni::Class* pare
         assert(!jpath.startsWith("python"));
 
         bool base;
-        SimpleRefHolder<Class> cls(loadClass(jpath.c_str(), base, jpc));
+        SimpleRefHolder<Class> cls(loadClass(env, jpath.c_str(), base, jpc));
 
         QoreString cstr(chars.c_str());
-        pc = findCreateQoreClass(cstr, jpath.c_str(), cls.release(), base, pgm);
+        pc = findCreateQoreClass(env, cstr, jpath.c_str(), cls.release(), base, pgm);
     }
 
     // only add if no other parent class already inherits the interface
@@ -1023,8 +1035,8 @@ const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls, const QoreTypeInfo*
             printd(LogLevel, "QoreJniClassMap::getQoreType() creating cname: '%s' jname: '%s'\n", cname.c_str(),
                 jname.c_str());
             bool base;
-            SimpleRefHolder<Class> cls(loadClass(jname.c_str(), base, jpc));
-            qc = findCreateQoreClass(cname, jname.c_str(), cls.release(), base, pgm);
+            SimpleRefHolder<Class> cls(loadClass(env, jname.c_str(), base, jpc));
+            qc = findCreateQoreClass(env, cname, jname.c_str(), cls.release(), base, pgm);
         }
     }
 
