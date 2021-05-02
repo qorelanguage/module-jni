@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set +e
 set -x
 
 export ENV_FILE=/tmp/env.sh
@@ -63,12 +63,10 @@ gosu qore:qore ${PAYARA_HOME}/bin/asadmin create-jms-resource --restype javax.jm
 export QORE_MODULE_DIR=${MODULE_SRC_DIR}/qlib:${QORE_MODULE_DIR}
 cd ${MODULE_SRC_DIR}
 for test in test/*.qtest; do
-    # skip jms tests for now
-    if [ -z "`$test`" ]; then
-        date
-        gosu qore:qore qore $test -vv
-        RESULTS="$RESULTS $?"
-    fi
+    date
+    gosu qore:qore qore $test -vv
+    RESULTS="$RESULTS $?"
+    date
 done
 
 # check the results

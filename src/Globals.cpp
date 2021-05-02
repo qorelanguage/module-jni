@@ -157,6 +157,9 @@ jmethodID Globals::methodQoreURLClassLoaderGetProgramPtr;
 jmethodID Globals::methodQoreURLClassLoaderAddPendingClass;
 jmethodID Globals::methodQoreURLClassLoaderDefineResolveClass;
 
+GlobalReference<jclass> Globals::classGraphicsEnvironment;
+jmethodID Globals::methodGraphicsEnvironmentIsHeadless;
+
 GlobalReference<jclass> Globals::classThread;
 jmethodID Globals::methodThreadCurrentThread;
 jmethodID Globals::methodThreadGetContextClassLoader;
@@ -1225,6 +1228,9 @@ void Globals::init() {
     classCharacter = env.findClass("java/lang/Character").makeGlobal();
     ctorCharacter = env.getMethod(classCharacter, "<init>", "(C)V");
     methodCharacterCharValue = env.getMethod(classCharacter, "charValue", "()C");
+
+    classGraphicsEnvironment = env.findClass("java/awt/GraphicsEnvironment").makeGlobal();;
+    methodGraphicsEnvironmentIsHeadless = env.getStaticMethod(classGraphicsEnvironment, "isHeadless", "()Z");
 }
 
 void Globals::cleanup() {
@@ -1259,6 +1265,7 @@ void Globals::cleanup() {
     classProxy = nullptr;
     classClassLoader = nullptr;
     classQoreURLClassLoader = nullptr;
+    classGraphicsEnvironment = nullptr;
     classThread = nullptr;
     classHashMap = nullptr;
     classHash = nullptr;
