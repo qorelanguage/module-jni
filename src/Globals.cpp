@@ -2508,13 +2508,14 @@ bool Globals::init() {
     if (bootstrap) {
         classJavaClassBuilder = env.findClass("org/qore/jni/JavaClassBuilder").makeGlobal();
 
-        //jmethodID ctorQoreURLClassLoaderSys = env.getMethod(classQoreURLClassLoader, "<init>", "()V");
-        //syscl = env.newObject(classQoreURLClassLoader, ctorQoreURLClassLoaderSys, nullptr).makeGlobal();
+        // create the classloader with the system classloader as a parent
+        jmethodID meth = env.getStaticMethod(classClassLoader, "getSystemClassLoader", "()Ljava/lang/ClassLoader;");
+        LocalReference<jobject> cl = env.callStaticObjectMethod(classClassLoader, meth, nullptr);
 
         jmethodID ctorQoreURLClassLoaderSys = env.getMethod(classQoreURLClassLoader, "<init>", "(JLjava/lang/ClassLoader;)V");
         jvalue jargs[2];
         jargs[0].j = 0;
-        jargs[1].l = nullptr;
+        jargs[1].l = cl;
         syscl = env.newObject(classQoreURLClassLoader, ctorQoreURLClassLoaderSys, &jargs[0]).makeGlobal();
 
         jmethodID methodQoreURLClassLoaderSetBootstrap = env.getMethod(classQoreURLClassLoader, "setBootstrap", "()V");
