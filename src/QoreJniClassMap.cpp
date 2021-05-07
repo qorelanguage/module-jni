@@ -656,6 +656,14 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInBase(Env& env, QoreString& n
         }
     }
 
+#ifdef __APPLE__
+    // initializing java.awt.* classes can lead to a deadlock on macOS
+    if (name.startsWith("java.awt")) {
+        printd(5, "retuning Object for '%s' when running on Darwin\n", name.c_str());
+        return QC_OBJECT;
+    }
+#endif
+
     // see if we have an inner class
     int ic_idx = name.rfind('$');
     if (ic_idx != -1) {
