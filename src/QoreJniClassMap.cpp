@@ -1671,7 +1671,7 @@ int JniExternalProgramData::addMethods(Env& env, jobject class_loader, const Qor
 
 LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jobject class_loader,
         const Env::GetStringUtfChars* qpath, QoreProgram* pgm, jstring jname, const QoreClass* qcls) {
-    printd(5, "JniExternalProgramData::generateByteCode() '%s' pgm: %p qc: %p\n", qpath.c_str(), pgm, qcls);
+    printd(5, "JniExternalProgramData::generateByteCode() '%s' pgm: %p qc: %p\n", qpath->c_str(), pgm, qcls);
     ExceptionSink xsink;
     if (!qcls) {
         assert(qpath);
