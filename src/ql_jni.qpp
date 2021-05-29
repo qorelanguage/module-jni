@@ -311,4 +311,52 @@ Jni::java::lang::Object get_class_loader() {
         return QoreValue();
     }
 }
+
+//! Returns dynamically generated Java byte code for the given %Qore class
+/** @par Example:
+    @code{.py}
+binary byte_code = get_byte_code("::Qore::Thread::Condition");
+    @endcode
+
+    @param class_name the class name (can include a namespace path) to the %Qore class
+
+    @return the dynamically generated Java byte code for the class
+
+    @throws CLASS-NOT-FOUND the %Qore class could not be found
+
+    @note Other exceptions can also be thrown during bytecode generation
+
+    @since jni 2.0
+*/
+binary get_byte_code(string class_name) {
+    TempEncodingHelper cn(class_name, QCS_UTF8, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    try {
+        jni::Env env;
+
+        QoreProgram* pgm = jni_get_program_context();
+        JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+        assert(jpc);
+
+        const QoreClass* cls = pgm->findClass(cn->c_str(), xsink);
+        if (*xsink) {
+            return QoreValue();
+        }
+        if (!cls) {
+            xsink->raiseException("CLASS-NOT-FOUND", "cannot find Qore class '%s'", cn->c_str());
+            return QoreValue();
+        }
+
+        LocalReference<jstring> jname = get_java_name_for_class(env, *cls);
+        LocalReference<jbyteArray> byte_code = jpc->generateByteCode(env, jpc->getClassLoader(), nullptr, pgm, jname,
+            cls);
+        return Array::getBinary(env, byte_code).release();
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        return QoreValue();
+    }
+}
 //@}

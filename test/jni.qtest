@@ -230,6 +230,12 @@ public class Main inherits QUnit::Test {
     }
 
     javaCodegenTest() {
+        binary b0 = get_byte_code("::Qore::Thread::Mutex");
+        assertEq(Type::Binary, b0.type());
+        binary b1 = get_byte_code("Mutex");
+        assertEq(Type::Binary, b1.type());
+        assertEq(b0, b1);
+
         try {
             {
                 # compile and execute QoreDynamicTest12.java

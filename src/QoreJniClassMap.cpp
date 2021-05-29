@@ -1670,17 +1670,19 @@ int JniExternalProgramData::addMethods(Env& env, jobject class_loader, const Qor
 }
 
 LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jobject class_loader,
-        const Env::GetStringUtfChars& qpath, QoreProgram* pgm, jstring jname, const QoreClass* qcls) {
-    printd(5, "JniExternalProgramData::generateByteCode() '%s' pgm: %p qc: %p\n", qpath.c_str(), pgm, qcls);
+        const Env::GetStringUtfChars* qpath, QoreProgram* pgm, jstring jname, const QoreClass* qcls) {
+    printd(5, "JniExternalProgramData::generateByteCode() '%s' pgm: %p qc: %p\n", qpath ? qpath->c_str() : "n/a",
+        pgm, qcls);
     ExceptionSink xsink;
     if (!qcls) {
+        assert(qpath);
         // set program context (and read lock) before calling QoreProgram::findClass()
         QoreExternalProgramContextHelper pch(&xsink, pgm);
         if (xsink) {
             throw XsinkException(xsink);
         }
 
-        qcls = pgm->findClass(qpath.c_str(), &xsink);
+        qcls = pgm->findClass(qpath->c_str(), &xsink);
         if (xsink) {
             assert(!qcls);
             throw XsinkException(xsink);
@@ -1690,7 +1692,7 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jo
 
     if (!qcls) {
         // check if we are looking for a "$Functions" class
-        QoreString cname(qpath.c_str());
+        QoreString cname(qpath->c_str());
         qore_offset_t i = cname.rfind("::");
         if (i >= 0) {
             cname.replace(0, i + 2, (const char*)nullptr);
@@ -1700,7 +1702,7 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jo
             AutoLocker al(codeGenLock);
 
             if (i > 0) {
-                QoreString ns_path(qpath.c_str(), i);
+                QoreString ns_path(qpath->c_str(), i);
 
                 // create function class
                 return generateFunctionClassIntern(env, class_loader, pgm, jname, ns_path.c_str());
@@ -1714,7 +1716,7 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jo
             AutoLocker al(codeGenLock);
 
             if (i > 0) {
-                QoreString ns_path(qpath.c_str(), i);
+                QoreString ns_path(qpath->c_str(), i);
 
                 // create constant class
                 return generateConstantClassIntern(env, class_loader, pgm, jname, ns_path.c_str());
@@ -1728,7 +1730,7 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jo
         Env::GetStringUtfChars java_name(env, jname);
         ReferenceHolder<QoreListNode> feature_list(pgm->getFeatureList(), &xsink);
         QoreStringMaker desc("Java class '%s' cannot be generated, because Qore class '%s' cannot be found; loaded " \
-            "modules: ", java_name.c_str(), qpath.c_str());
+            "modules: ", java_name.c_str(), qpath->c_str());
         ConstListIterator fi(*feature_list);
         while (fi.next()) {
             desc.sprintf("%s, ", fi.getValue().get<const QoreStringNode>()->c_str());
@@ -1742,12 +1744,13 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jo
     // ensure exclusive access while creating java classes
     AutoLocker al(codeGenLock);
 
-    //printd(5, "JniExternalProgramData::generateByteCode() qpath: '%s' (%p)\n", qpath.c_str(), qcls);
+    //printd(5, "JniExternalProgramData::generateByteCode() qpath: '%s' (%p)\n", qpath ? qpath->c_str() : "n/a",
+    //  qcls);
     LocalReference<jbyteArray> rv = generateByteCodeIntern(env, class_loader, qcls, pgm, jname).as<jbyteArray>();
     return rv;
 }
 
-static LocalReference<jstring> get_java_name_for_class(Env& env, const QoreClass& qc) {
+LocalReference<jstring> get_java_name_for_class(Env& env, const QoreClass& qc) {
     ValueHolder v(qc.getReferencedKeyValue(JNI_CK_JAVA_BIN_NAME), nullptr);
     if (v) {
         assert(v->getType() == NT_STRING);
