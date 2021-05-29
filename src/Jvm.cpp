@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -90,7 +90,7 @@ QoreStringNode* Jvm::createVM() {
 }
 
 void Jvm::destroyVM() {
-    assert(vm != nullptr);
+    assert(vm);
 
     Globals::cleanup();
     vm->DestroyJavaVM();
@@ -132,9 +132,7 @@ JNIEnv* Jvm::attachAndGetEnv(bool& new_attach) {
 }
 
 void Jvm::threadCleanup() {
-    assert(vm != nullptr);
-
-    if (env != nullptr) {
+    if (vm && env) {
         printd(LogLevel, "JNI - detaching thread, env: %p\n", env);
         vm->DetachCurrentThread();
         env = nullptr;
