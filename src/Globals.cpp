@@ -1167,7 +1167,7 @@ static jbyteArray JNICALL qore_url_classloader_generate_byte_code(JNIEnv* jenv, 
         printd(5, "qore_url_classloader_generate_byte_code() p: %p path: '%s' (mod: %p) class_loader: %x\n", pgm, qpath.c_str(),
             module, env.callIntMethod(class_loader, jni::Globals::methodObjectHashCode, nullptr));
 
-        return jpc->generateByteCode(env, class_loader, qpath, pgm, jname,
+        return jpc->generateByteCode(env, class_loader, &qpath, pgm, jname,
             reinterpret_cast<const QoreClass*>(class_ptr)).release();
     } catch (jni::QoreJniException& e) {
         QoreString buf;
