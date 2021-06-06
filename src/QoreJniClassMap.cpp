@@ -1123,15 +1123,15 @@ JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni) : jni(n_jni
 }
 
 JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& parent, QoreProgram* pgm) :
-    // reuse the same classLoader as the parent
-    classLoader(GlobalReference<jobject>::fromLocal(parent.classLoader.toLocal())),
-    // reuse the same dynamic API as the parent
-    dynamicApi(GlobalReference<jclass>::fromLocal(parent.dynamicApi.toLocal())),
-    methodQoreJavaDynamicApiInvokeMethod(parent.methodQoreJavaDynamicApiInvokeMethod),
-    methodQoreJavaDynamicApiInvokeMethodNonvirtual(parent.methodQoreJavaDynamicApiInvokeMethodNonvirtual),
-    methodQoreJavaDynamicApiGetField(parent.methodQoreJavaDynamicApiGetField),
-    override_compat_types(parent.override_compat_types),
-    compat_types(parent.compat_types) {
+        // reuse the same classLoader as the parent
+        classLoader(GlobalReference<jobject>::fromLocal(parent.classLoader.toLocal())),
+        // reuse the same dynamic API as the parent
+        dynamicApi(GlobalReference<jclass>::fromLocal(parent.dynamicApi.toLocal())),
+        methodQoreJavaDynamicApiInvokeMethod(parent.methodQoreJavaDynamicApiInvokeMethod),
+        methodQoreJavaDynamicApiInvokeMethodNonvirtual(parent.methodQoreJavaDynamicApiInvokeMethodNonvirtual),
+        methodQoreJavaDynamicApiGetField(parent.methodQoreJavaDynamicApiGetField),
+        override_compat_types(parent.override_compat_types),
+        compat_types(parent.compat_types) {
     // copy the parent's class map to this one
     jcmap = parent.jcmap;
     // find Jni namespace in new Program if present
@@ -1140,6 +1140,12 @@ JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& par
         jni = qjcm.getJniNs().copy();
         pgm->getRootNS()->addNamespace(jni);
     }
+}
+
+JniExternalProgramData::~JniExternalProgramData() {
+    Env env;
+    env.callVoidMethod(classLoader, Globals::methodQoreURLClassLoaderClearProgramPtr, nullptr);
+    classLoader = nullptr;
 }
 
 void JniExternalProgramData::addClasspath(const char* path) {
