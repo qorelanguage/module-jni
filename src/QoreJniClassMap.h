@@ -273,9 +273,7 @@ public:
     // delete the copy constructor
     JniExternalProgramData(const JniExternalProgramData& parent) = delete;
 
-    DLLLOCAL virtual ~JniExternalProgramData() {
-        classLoader = nullptr;
-    }
+    DLLLOCAL virtual ~JniExternalProgramData();
 
     DLLLOCAL jobject getClassLoader() const {
         return classLoader;

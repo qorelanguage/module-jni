@@ -2464,6 +2464,12 @@ JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& par
     }
 }
 
+JniExternalProgramData::~JniExternalProgramData() {
+    Env env;
+    env.callVoidMethod(classLoader, Globals::methodQoreURLClassLoaderClearProgramPtr, nullptr);
+    classLoader = nullptr;
+}
+
 void JniExternalProgramData::addClasspath(const char* path) {
     Env env;
     LocalReference<jstring> jname = env.newString(path);
