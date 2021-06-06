@@ -156,6 +156,7 @@ jmethodID Globals::methodQoreURLClassLoaderSetContext;
 jmethodID Globals::methodQoreURLClassLoaderGetProgramPtr;
 jmethodID Globals::methodQoreURLClassLoaderAddPendingClass;
 jmethodID Globals::methodQoreURLClassLoaderDefineResolveClass;
+jmethodID Globals::methodQoreURLClassLoaderClearProgramPtr;
 
 GlobalReference<jclass> Globals::classGraphicsEnvironment;
 jmethodID Globals::methodGraphicsEnvironmentIsHeadless;
@@ -398,6 +399,13 @@ static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong 
         return nullptr;
     }
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
+    if (!pgm) {
+        pgm = getProgram();
+        if (!pgm) {
+            env.throwNew(env.findClass("java/lang/RuntimeException"), "no Qore program context");
+            return nullptr;
+        }
+    }
 
     QoreProgramContextHelper pch(pgm);
 
@@ -445,6 +453,7 @@ static jobject JNICALL java_api_call_function_save(JNIEnv* jenv, jobject obj, jl
     return java_api_call_function_internal(jenv, obj, ptr, true, name, args);
 }
 
+
 static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, jlong ptr, jboolean save,
     jstring class_name, jstring method_name, jobjectArray args) {
     Env env(jenv);
@@ -456,6 +465,13 @@ static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, j
         return nullptr;
     }
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
+    if (!pgm) {
+        pgm = getProgram();
+        if (!pgm) {
+            env.throwNew(env.findClass("java/lang/RuntimeException"), "no Qore program context");
+            return nullptr;
+        }
+    }
 
     QoreJniStackLocationHelper slh;
 
@@ -526,7 +542,6 @@ static jobject JNICALL java_api_call_static_method_save(JNIEnv* jenv, jobject ob
 
 // private native static QoreObject newObjectSave0(long pgm_ptr, String class_name, Object...args);
 static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong ptr, jstring cname, jobjectArray args) {
-    assert(ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
     Env env(jenv);
     QoreThreadAttachHelper attach_helper;
@@ -535,6 +550,13 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
     } catch (Exception& e) {
         env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
         return nullptr;
+    }
+    if (!pgm) {
+        pgm = getProgram();
+        if (!pgm) {
+            env.throwNew(env.findClass("java/lang/RuntimeException"), "no Qore program context");
+            return nullptr;
+        }
     }
 
     QoreProgramContextHelper pch(pgm);
@@ -657,7 +679,6 @@ static jboolean JNICALL qore_object_instance_of(JNIEnv* jenv, jclass, jlong ptr,
 }
 
 static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, jlong pgm_ptr, jlong obj_ptr, jboolean save, jstring mname, jobjectArray args) {
-    assert(pgm_ptr);
     assert(obj_ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(pgm_ptr);
     // must ensure that the thread is attached before executing Qore code
@@ -668,6 +689,13 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, jlong pgm
     } catch (Exception& e) {
         env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
         return nullptr;
+    }
+    if (!pgm) {
+        pgm = getProgram();
+        if (!pgm) {
+            env.throwNew(env.findClass("java/lang/RuntimeException"), "no Qore program context");
+            return nullptr;
+        }
     }
 
     ExceptionSink xsink;
@@ -738,6 +766,14 @@ static jobject JNICALL qore_closure_call(JNIEnv* jenv, jclass jcls, jlong pgm_pt
 
 static jobject JNICALL qore_closure_call_save(JNIEnv* jenv, jclass jcls, jlong pgm_ptr, jlong obj_ptr, jobjectArray args) {
     return qore_object_closure_call_internal(jenv, jcls, pgm_ptr, obj_ptr, true, nullptr, args);
+}
+
+static void JNICALL qore_closure_finalize(JNIEnv*, jclass, jlong ptr) {
+    assert(ptr);
+    ResolvedCallReferenceNode* call = reinterpret_cast<ResolvedCallReferenceNode*>(ptr);
+    ExceptionSink xsink;
+    call->deref(&xsink);
+    // NOTE: any exceptions would be printed to stderr; no way to capture them in any case
 }
 
 static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jclass, jlong ptr, jstring mname) {
@@ -941,6 +977,11 @@ static JNINativeMethod qoreClosureNativeMethods[] = {
         const_cast<char*>("(JJ[Ljava/lang/Object;)Ljava/lang/Object;"),
         reinterpret_cast<void*>(qore_closure_call_save)
     },
+    {
+        const_cast<char*>("finalize0"),
+        const_cast<char*>("(J)V"),
+        reinterpret_cast<void*>(qore_closure_finalize)
+    },
 };
 
 static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperName) {
@@ -1140,6 +1181,7 @@ void Globals::init() {
     methodQoreURLClassLoaderAddPendingClass = env.getMethod(classQoreURLClassLoader, "addPendingClass",
         "(Ljava/lang/String;[B)V");
     methodQoreURLClassLoaderDefineResolveClass = env.getMethod(classQoreURLClassLoader, "defineResolveClass", "(Ljava/lang/String;[BII)Ljava/lang/Class;");
+    methodQoreURLClassLoaderClearProgramPtr = env.getMethod(classQoreURLClassLoader, "clearProgramPtr", "()V");
 
     findDefineClass(env, "org/qore/jni/QoreURLClassLoader$1", nullptr, java_org_qore_jni_QoreURLClassLoader_1_class,
         java_org_qore_jni_QoreURLClassLoader_1_class_len);

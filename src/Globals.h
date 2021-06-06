@@ -162,6 +162,7 @@ public:
     DLLLOCAL static jmethodID methodQoreURLClassLoaderGetProgramPtr;              // long QoreURLClassLoader.getProgramPtr()
     DLLLOCAL static jmethodID methodQoreURLClassLoaderAddPendingClass;            // void QoreURLClassLoader.addPendingClass(String, byte[])
     DLLLOCAL static jmethodID methodQoreURLClassLoaderDefineResolveClass;         // Class<?> defineResolveClass​(String, byte[], int, int)
+    DLLLOCAL static jmethodID methodQoreURLClassLoaderClearProgramPtr;            // void ClearProgramPtr()
 
     // to check for headless AWT to avoid importing classes that cannot be initialized when headless
     DLLLOCAL static GlobalReference<jclass> classGraphicsEnvironment;             // java.awt.GraphicsEnvironment
