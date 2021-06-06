@@ -3,16 +3,22 @@
  */
 package org.qore.jni;
 
-import org.qore.jni.QoreObjectBase;
-
 //! Java QoreClosure class
 /**
     @since jni 1.2
 */
-public class QoreClosure extends QoreObjectBase {
+public class QoreClosure {
+    //! a pointer to the Qore object
+    protected long obj;
+
     //! creates the wrapper object with a pointer to an object; this Java object holds a weak reference to the Qore object passed here
     public QoreClosure(long obj) {
-        super(obj);
+        this.obj = obj;
+    }
+
+    //! returns the pointer to the object
+    public long get() {
+        return obj;
     }
 
     //! calls the closure / call reference with the given arguments and returns the result
@@ -69,6 +75,17 @@ public class QoreClosure extends QoreObjectBase {
         return callSave0(QoreURLClassLoader.getProgramPtr(), obj, args);
     }
 
+    //! releases the Qore reference
+    @SuppressWarnings("deprecation")
+    @Override
+    protected void finalize() throws Throwable {
+        if (obj != 0) {
+            finalize0(obj);
+            obj = 0;
+        }
+    }
+
     private native Object call0(long pgm_ptr, long obj_ptr, Object... args);
     private native Object callSave0(long pgm_ptr, long obj_ptr, Object... args);
+    private native void finalize0(long obj_ptr);
 }
