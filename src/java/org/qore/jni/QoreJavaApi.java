@@ -58,15 +58,17 @@ public class QoreJavaApi {
 
     //! Calls the given Qore function with the given arguments and returns the result
     public static Object callFunction(String name, Object... args) throws Throwable {
-        //QoreURLClassLoader cl = QoreURLClassLoader.getCurrent();
-        //System.out.println("cl: " + (cl != null ? cl.toString() : "null"));
+        QoreURLClassLoader cl = QoreURLClassLoader.getCurrent();
+        //System.out.format("cl: %s func: '%s' pgm: %x\n", (cl != null ? cl.toString() : "null"), name,
+        //    cl.getProgramPtr());
         return callFunction0(QoreURLClassLoader.getProgramPtr(), name, args);
     }
 
     //! Calls a Qore function and returns the result as a Java Object, takes a variable number of arguments
     public static Object callFunctionArgs(String name, Object[] args) throws Throwable {
-        //QoreURLClassLoader cl = QoreURLClassLoader.getCurrent();
-        //System.out.println("cl: " + (cl != null ? cl.toString() : "null"));
+        QoreURLClassLoader cl = QoreURLClassLoader.getCurrent();
+        //System.out.format("cl: %s func: '%s' pgm: %x\n", (cl != null ? cl.toString() : "null"), name,
+        //    cl.getProgramPtr());
         return callFunction0(QoreURLClassLoader.getProgramPtr(), name, args);
     }
 

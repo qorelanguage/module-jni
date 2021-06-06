@@ -518,6 +518,10 @@ public class QoreURLClassLoader extends URLClassLoader {
         return pgm_ptr;
     }
 
+    public void clearProgramPtr() {
+        pgm_ptr = 0;
+    }
+
     public static long getProgramPtr() {
         return current.get().pgm_ptr;
     }

@@ -186,6 +186,7 @@ jmethodID Globals::methodQoreURLClassLoaderDefineClassUnconditional;
 jmethodID Globals::methodQoreURLClassLoaderGetPtr;
 jmethodID Globals::methodQoreURLClassLoaderGetCurrent;
 jmethodID Globals::methodQoreURLClassLoaderCheckInProgress;
+jmethodID Globals::methodQoreURLClassLoaderClearProgramPtr;
 
 GlobalReference<jclass> Globals::classJavaClassBuilder;
 jmethodID Globals::methodJavaClassBuilderGetClassBuilder;
@@ -503,6 +504,7 @@ static jobject JNICALL java_api_call_function_save(JNIEnv* jenv, jobject obj, jl
     return java_api_call_function_internal(jenv, obj, ptr, true, name, args);
 }
 
+
 static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, jlong ptr, jboolean save,
         jstring class_name, jstring method_name, jobjectArray args, const QoreClass* cls = nullptr,
         const QoreMethod* m = nullptr, const QoreExternalMethodVariant* v = nullptr) {
@@ -594,7 +596,6 @@ static jobject JNICALL java_api_call_static_method_save(JNIEnv* jenv, jobject ob
 // private native static QoreObject newObjectSave0(long pgm_ptr, String class_name, Object...args);
 static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong ptr, jstring cname,
         jobjectArray args) {
-    assert(ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
 
     Env env(jenv);
@@ -744,7 +745,6 @@ static jboolean JNICALL qore_object_instance_of(JNIEnv* jenv, jclass, jlong ptr,
 static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, QoreProgram* pgm, jlong obj_ptr, jboolean save,
         jstring mname, jobjectArray args, const QoreMethod* m = nullptr,
         const QoreExternalMethodVariant* v = nullptr, bool flatten = false) {
-    assert(pgm);
     assert(obj_ptr);
     JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
     // must ensure that the thread is attached before executing Qore code
@@ -2227,6 +2227,7 @@ void Globals::defineQoreURLClassLoader(Env& env) {
         "()Lorg/qore/jni/QoreURLClassLoader;");
     methodQoreURLClassLoaderCheckInProgress = env.getMethod(classQoreURLClassLoader, "checkInProgress",
         "(Ljava/lang/String;)Z");
+    methodQoreURLClassLoaderClearProgramPtr = env.getMethod(classQoreURLClassLoader, "clearProgramPtr", "()V");
 
     //printd(5, "defineQoreURLClassLoader() done\n");
 }
