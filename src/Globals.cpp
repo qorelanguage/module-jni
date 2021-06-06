@@ -740,6 +740,14 @@ static jobject JNICALL qore_closure_call_save(JNIEnv* jenv, jclass jcls, jlong p
     return qore_object_closure_call_internal(jenv, jcls, pgm_ptr, obj_ptr, true, nullptr, args);
 }
 
+static void JNICALL qore_closure_finalize(JNIEnv*, jclass, jlong ptr) {
+    assert(ptr);
+    ResolvedCallReferenceNode* call = reinterpret_cast<ResolvedCallReferenceNode*>(ptr);
+    ExceptionSink xsink;
+    call->deref(&xsink);
+    // NOTE: any exceptions would be printed to stderr; no way to capture them in any case
+}
+
 static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jclass, jlong ptr, jstring mname) {
     assert(ptr);
     QoreObject* obj = reinterpret_cast<QoreObject*>(ptr);
@@ -940,6 +948,11 @@ static JNINativeMethod qoreClosureNativeMethods[] = {
         const_cast<char*>("callSave0"),
         const_cast<char*>("(JJ[Ljava/lang/Object;)Ljava/lang/Object;"),
         reinterpret_cast<void*>(qore_closure_call_save)
+    },
+    {
+        const_cast<char*>("finalize0"),
+        const_cast<char*>("(J)V"),
+        reinterpret_cast<void*>(qore_closure_finalize)
     },
 };
 
