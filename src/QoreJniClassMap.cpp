@@ -2465,8 +2465,12 @@ JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& par
 }
 
 JniExternalProgramData::~JniExternalProgramData() {
-    Env env;
-    env.callVoidMethod(classLoader, Globals::methodQoreURLClassLoaderClearProgramPtr, nullptr);
+    try {
+        Env env;
+        env.callVoidMethod(classLoader, Globals::methodQoreURLClassLoaderClearProgramPtr, nullptr);
+    } catch (UnableToAttachException& e) {
+        // ignore error - raised when destructions is run after the JVM has shut down
+    }
     classLoader = nullptr;
 }
 

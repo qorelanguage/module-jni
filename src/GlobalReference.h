@@ -50,93 +50,93 @@ template<typename T>
 class GlobalReference {
 
 public:
-   /**
-    * \brief Creates an instance.
-    * \param ref the global reference
-    */
-   GlobalReference(T ref = nullptr) : ref(ref) {
-      assert(ref == nullptr || Jvm::getEnv()->GetObjectRefType(ref) == JNIGlobalRefType);
-      if (ref != nullptr) {
-         printd(LogLevel + 1, "GlobalReference created: %p\n", ref);
-      }
-   }
+    /**
+     * \brief Creates an instance.
+     * \param ref the global reference
+     */
+    GlobalReference(T ref = nullptr) : ref(ref) {
+        assert(ref == nullptr || Jvm::getEnv()->GetObjectRefType(ref) == JNIGlobalRefType);
+        if (ref != nullptr) {
+            printd(LogLevel + 1, "GlobalReference created: %p\n", ref);
+        }
+    }
 
-   /**
-    * \brief Destroys the global reference represented by this instance.
-    */
-   ~GlobalReference() {
-      del();
-   }
+    /**
+     * \brief Destroys the global reference represented by this instance.
+     */
+    ~GlobalReference() {
+        del();
+    }
 
-   /**
-    * \brief Move constructor.
-    * \param src the source global reference wrapper
-    */
-   GlobalReference(GlobalReference &&src) : ref(src.ref) {
-      src.ref = nullptr;
-   }
+    /**
+     * \brief Move constructor.
+     * \param src the source global reference wrapper
+     */
+    GlobalReference(GlobalReference &&src) : ref(src.ref) {
+        src.ref = nullptr;
+    }
 
-   /**
-    * \brief Move assignment.
-    * \param src the source global reference wrapper
-    * \return *this
-    */
-   GlobalReference &operator=(GlobalReference &&src) {
-      del();
-      ref = src.ref;
-      src.ref = nullptr;
-      return *this;
-   }
+    /**
+     * \brief Move assignment.
+     * \param src the source global reference wrapper
+     * \return *this
+     */
+    GlobalReference &operator=(GlobalReference &&src) {
+        del();
+        ref = src.ref;
+        src.ref = nullptr;
+        return *this;
+    }
 
-   /**
-    * \brief Implicit conversion to the reference type.
-    */
-   operator T() const {
-      return ref;
-   }
+    /**
+     * \brief Implicit conversion to the reference type.
+     */
+    operator T() const {
+        return ref;
+    }
 
-   template<typename T2>
-   T2 cast() const {
-      return static_cast<T2>(ref);
-   }
+    template<typename T2>
+    T2 cast() const {
+        return static_cast<T2>(ref);
+    }
 
-   /**
-    * \brief Creates a global reference from a local reference.
-    * \param ref the local reference
-    * \return global reference
-    */
-   static GlobalReference<T> fromLocal(T ref) {
-      assert(ref != nullptr);
-      T global = static_cast<T>(Jvm::getEnv()->NewGlobalRef(ref));
-      if (global == nullptr) {
-         throw JavaException();
-      }
-      return global;
-   }
+    /**
+     * \brief Creates a global reference from a local reference.
+     * \param ref the local reference
+     * \return global reference
+     */
+    static GlobalReference<T> fromLocal(T ref) {
+        assert(ref != nullptr);
+        T global = static_cast<T>(Jvm::getEnv()->NewGlobalRef(ref));
+        if (global == nullptr) {
+            throw JavaException();
+        }
+        return global;
+    }
 
-   /**
-    * \brief Returns a local reference from the global reference
-    * \return the local reference
-    */
-   DLLLOCAL T toLocal() const;
-
-private:
-   GlobalReference(const GlobalReference &) = delete;
-   GlobalReference &operator=(const GlobalReference &) = delete;
-
-   void del() {
-      if (ref != nullptr) {
-         try {
-            printd(LogLevel + 1, "GlobalReference deleted: %p\n", ref);
-            Jvm::attachAndGetEnv()->DeleteGlobalRef(ref);
-         } catch (Exception &) {
-            printd(LogLevel, "Unable to delete GlobalReference");
-         }
-      }
-   }
+    /**
+     * \brief Returns a local reference from the global reference
+     * \return the local reference
+     */
+    DLLLOCAL T toLocal() const;
 
 private:
-   T ref;
+    GlobalReference(const GlobalReference &) = delete;
+    GlobalReference &operator=(const GlobalReference &) = delete;
+
+    void del() {
+        if (ref != nullptr) {
+            try {
+                printd(LogLevel + 1, "GlobalReference deleted: %p\n", ref);
+                Jvm::attachAndGetEnv()->DeleteGlobalRef(ref);
+            } catch (Exception& e) {
+                printd(LogLevel, "Unable to delete GlobalReference");
+            }
+        }
+    }
+
+private:
+    T ref;
 };
 
 } // namespace jni
