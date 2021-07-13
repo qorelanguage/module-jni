@@ -30,9 +30,12 @@
 #include "Class.h"
 #include "JniQoreClass.h"
 
+#include <set>
 #include <map>
 #include <mutex>
 #include <condition_variable>
+
+typedef std::set<std::string> strset_t;
 
 DLLLOCAL QoreClass* initJavaArrayClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initQoreInvocationHandlerClass(QoreNamespace& ns);
@@ -122,11 +125,12 @@ public:
 
     DLLLOCAL QoreValue getValue(LocalReference<jobject>& jobj, QoreProgram* pgm, bool compat_types);
 
-    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls, const QoreTypeInfo*& altType, QoreProgram* pgm = nullptr);
+    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls, const QoreTypeInfo*& altType,
+            QoreProgram* pgm = nullptr, bool literal = false);
 
-    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls, QoreProgram* pgm = nullptr) {
+    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls, QoreProgram* pgm = nullptr, bool literal = false) {
         const QoreTypeInfo* altType = nullptr;
-        return getQoreType(cls, altType, pgm);
+        return getQoreType(cls, altType, pgm, literal);
     }
 
     DLLLOCAL QoreNamespace& getJniNs() {
@@ -445,7 +449,7 @@ protected:
         const QoreClass& qcls, const QoreMethod& m, QoreJavaParamHelper& jph, LocalReference<jobject>& bb);
 
     DLLLOCAL int addMethods(Env& env, jobject class_loader, const QoreClass& qcls, LocalReference<jobject>& bb,
-        jclass parent_class);
+        jclass parent_class, strset_t& mset, const QoreClass* other_base = nullptr);
 
     DLLLOCAL int addFunctions(Env& env, jobject class_loader, const QoreNamespace& ns, LocalReference<jobject>& bb,
         QoreProgram* pgm);

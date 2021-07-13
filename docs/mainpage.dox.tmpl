@@ -717,6 +717,14 @@ set_save_object_callback(callback);
 
     @section jnireleasenotes jni Module Release Notes
 
+    @subsection jni_2_0_1 jni Module Version 2.0.1
+    - fixed importing abstract %Qore methods into Java; Java methods are no longer marked as taking trailing vararg
+      arguments
+      (<a href="https://github.com/qorelanguage/qore/issues/4282">issue 4282</a>)
+    - fixed importing %Qore classes with multiple inheritance into Java; methods from other non-primary base classes
+      are now also imported into the dynamic Java class
+      (<a href="https://github.com/qorelanguage/qore/issues/4091">issue 4091</a>)
+
     @subsection jni_2_0 jni Module Version 2.0
     - %Qore @ref int_type "int" values are now converted to Java \c long in order to maintain precision
     - the old hand-developed Java wrapper classes are deprecated as of this release in favor of
