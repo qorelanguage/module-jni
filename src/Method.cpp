@@ -336,7 +336,7 @@ void BaseMethod::getName(QoreString& str) const {
 }
 
 int BaseMethod::getParamTypes(Env& env, type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo,
-        QoreJniClassMap& clsmap, QoreProgram* pgm) {
+        QoreJniClassMap& clsmap, QoreProgram* pgm, bool literal) {
     unsigned len = paramTypes.size();
     if (len) {
         paramTypeInfo.reserve(len);
@@ -346,7 +346,7 @@ int BaseMethod::getParamTypes(Env& env, type_vec_t& paramTypeInfo, type_vec_t& a
         std::pair<Type, GlobalReference<jclass>>& i = paramTypes[j];
         const QoreTypeInfo* altType = nullptr;
 
-        const QoreTypeInfo* ti = clsmap.getQoreType(i.second, altType, pgm);
+        const QoreTypeInfo* ti = clsmap.getQoreType(i.second, altType, pgm, literal);
         paramTypeInfo.push_back(ti);
 
         //paramTypeInfo.push_back(clsmap.getQoreType(i.second, altType, pgm));

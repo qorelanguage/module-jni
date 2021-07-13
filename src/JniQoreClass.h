@@ -42,6 +42,8 @@ public:
 
         setPublicMemberFlag();
         setGateAccessFlag();
+        setLanguage("Java");
+        setRelaxedAbstractMatch();
     }
 
     DLLLOCAL JniQoreClass(const JniQoreClass& old) : QoreBuiltinClass(old), jname(old.jname) {
