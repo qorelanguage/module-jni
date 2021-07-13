@@ -1223,7 +1223,7 @@ jobject JniExternalProgramData::getJavaParamList(Env& env, jobject class_loader,
         jarg.l = ptype;
         env.callBooleanMethod(plist, Globals::methodArrayListAdd, &jarg);
     }
-    if (v.getCodeFlags() & QCF_USES_EXTRA_ARGS) {
+    if (!is_abstract && v.getCodeFlags() & QCF_USES_EXTRA_ARGS) {
         // add Object... as the final parameter
         jvalue jarg;
         LocalReference<jobject> jtype(get_type_def_from_class(env, (jclass)Globals::arrayClassObject));
