@@ -504,7 +504,6 @@ static jobject JNICALL java_api_call_function_save(JNIEnv* jenv, jobject obj, jl
     return java_api_call_function_internal(jenv, obj, ptr, true, name, args);
 }
 
-
 static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, jlong ptr, jboolean save,
         jstring class_name, jstring method_name, jobjectArray args, const QoreClass* cls = nullptr,
         const QoreMethod* m = nullptr, const QoreExternalMethodVariant* v = nullptr) {
@@ -516,6 +515,7 @@ static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, j
         env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
         return nullptr;
     }
+
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
     JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
 
@@ -971,7 +971,7 @@ static jobject JNICALL java_class_builder_do_normal_call(JNIEnv* jenv, jclass jc
 }
 
 static jobject JNICALL java_class_builder_do_static_call(JNIEnv* jenv, jclass jcls, jstring mname, jlong qcls,
-        jlong mptr, jlong vptr, jobjectArray args) {
+        jlong pgmptr, jlong mptr, jlong vptr, jobjectArray args) {
     printd(5, "java_class_builder_do_static_call() jcls: %p qcls: %p, args: %p\n", jcls, qcls, args);
 
     Env env(jenv);
@@ -983,12 +983,11 @@ static jobject JNICALL java_class_builder_do_static_call(JNIEnv* jenv, jclass jc
     }
 
     const QoreClass* qc = reinterpret_cast<const QoreClass*>(qcls);
-    QoreProgram* pgm = qc->getProgram();
-    if (!pgm) {
-        jni_get_context_unconditional(pgm);
-    }
 
-    return java_api_call_static_method_internal(jenv, nullptr, reinterpret_cast<jlong>(pgm), true, nullptr, mname,
+    //printd(5, "java_class_builder_do_static_call() mname: %p mptr: %p pgmptr: %p cpgm: %p curr pgm: %p\n", mname,
+    //    mptr, pgmptr, qc->getProgram(), getProgram());
+
+    return java_api_call_static_method_internal(jenv, nullptr, pgmptr, true, nullptr, mname,
         args, qc, reinterpret_cast<const QoreMethod*>(mptr),
         reinterpret_cast<const QoreExternalMethodVariant*>(vptr));
 }
@@ -2106,7 +2105,7 @@ static JNINativeMethod qoreURLClassLoaderNativeMethods[] = {
 static JNINativeMethod javaClassBuilderNativeMethods[] = {
     {
         const_cast<char*>("doStaticCall0"),
-        const_cast<char*>("(Ljava/lang/String;JJJ[Ljava/lang/Object;)Ljava/lang/Object;"),
+        const_cast<char*>("(Ljava/lang/String;JJJJ[Ljava/lang/Object;)Ljava/lang/Object;"),
         reinterpret_cast<void*>(java_class_builder_do_static_call),
     },
     {
@@ -2610,7 +2609,7 @@ bool Globals::init() {
         "Lnet/bytebuddy/description/type/TypeDefinition;Ljava/util/List;ZZ)" \
         "Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderAddStaticMethod = env.getStaticMethod(classJavaClassBuilder, "addStaticMethod",
-        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JJI" \
+        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JJJI" \
         "Lnet/bytebuddy/description/type/TypeDefinition;Ljava/util/List;Z)" \
         "Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderGetByteCodeFromBuilder = env.getStaticMethod(classJavaClassBuilder, "getByteCodeFromBuilder",
