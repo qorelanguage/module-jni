@@ -1520,7 +1520,7 @@ int JniExternalProgramData::addStaticMethodVariant(Env& env, jobject class_loade
 
     while (true) {
         if (!jph.checkVariant(params, QMT_STATIC)) {
-            std::vector<jvalue> jargs(8);
+            std::vector<jvalue> jargs(9);
             jargs[0].l = bb;
             LocalReference<jstring> mname = env.newString(m.getName());
             jargs[1].l = mname;
