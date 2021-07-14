@@ -718,6 +718,9 @@ set_save_object_callback(callback);
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_2_0_1 jni Module Version 2.0.1
+    - fixed a bug where parameters of %Qore type \c null or \c nothing would cause runtime errors when importing
+      the method into Java
+      (<a href="https://github.com/qorelanguage/qore/issues/4287">issue 4287</a>)
     - fixed static method calls of imported %Qore methods in Java; the calling context is now set correctly
       (<a href="https://github.com/qorelanguage/qore/issues/4286">issue 4286</a>)
     - fixed importing abstract %Qore methods into Java; Java methods are no longer marked as taking trailing vararg

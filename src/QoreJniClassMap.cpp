@@ -1235,7 +1235,7 @@ jobject JniExternalProgramData::getJavaParamList(Env& env, jobject class_loader,
     LocalReference<jobject> plist = env.newObject(Globals::classArrayList, Globals::ctorArrayList, nullptr);
 
     for (const QoreTypeInfo* i : params) {
-        LocalReference<jobject> ptype = getJavaTypeDefinition(env, class_loader, i);
+        LocalReference<jobject> ptype = getJavaTypeDefinition(env, class_loader, i, true);
         printd(5, "%s: adding %s -> %p\n", v.getSignatureText(), type_get_name(i), *ptype);
 
         jvalue jarg;
@@ -1967,7 +1967,7 @@ int JniExternalProgramData::addConstants(Env& env, jobject class_loader, jstring
         jargs[0].l = bb;
         jargs[1].l = jcname;
         jargs[2].i = qore_jni_get_acc_visibility(c.getAccess());
-        LocalReference<jobject> const_type = getJavaTypeDefinition(env, class_loader, typeInfo);
+        LocalReference<jobject> const_type = getJavaTypeDefinition(env, class_loader, typeInfo, true);
         jargs[3].l = const_type;
         jargs[4].j = (jlong)&c;
         jargs[5].l = ilist;
@@ -2059,7 +2059,7 @@ int JniExternalProgramData::addClassConstants(Env& env, jstring jname, const Qor
         jargs[0].l = bb;
         jargs[1].l = jcname;
         jargs[2].i = qore_jni_get_acc_visibility(c.getAccess());
-        LocalReference<jobject> const_type = getJavaTypeDefinition(env, (jobject)classLoader, typeInfo);
+        LocalReference<jobject> const_type = getJavaTypeDefinition(env, (jobject)classLoader, typeInfo, true);
         jargs[3].l = const_type;
         jargs[4].j = (jlong)&c;
         jargs[5].l = ilist;
@@ -2226,11 +2226,14 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
 }
 
 LocalReference<jobject> JniExternalProgramData::getJavaTypeDefinition(Env& env, jobject class_loader,
-        const QoreTypeInfo* ti) {
+        const QoreTypeInfo* ti, bool no_void) {
     qore_type_t t = qore_type_get_base_type(ti);
     printd(5, "JniExternalProgramData::getJavaTypeDefinition() looking up type '%s' (%d) cl: %x\n",
         qore_type_get_name(ti), t, env.callIntMethod((jobject)class_loader, jni::Globals::methodObjectHashCode, nullptr));
     if (t != NT_OBJECT) {
+        if (no_void && (t == NT_NOTHING || t == NT_NULL)) {
+            return get_type_def_from_class(env, Globals::classObject);
+        }
         LocalReference<jclass> jtype(QoreJniClassMap::getPrimitiveType(t));
         return get_type_def_from_class(env, (jclass)jtype);
     }

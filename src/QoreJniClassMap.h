@@ -318,7 +318,7 @@ public:
             const Env::GetStringUtfChars* qpath, QoreProgram* pgm, jstring jname, const QoreClass* qc);
 
     // returns a type description for a concrete type or a future type for Java bytecode generation
-    DLLLOCAL LocalReference<jobject> getJavaTypeDefinition(Env& env, jobject class_loader, const QoreTypeInfo* ti);
+    DLLLOCAL LocalReference<jobject> getJavaTypeDefinition(Env& env, jobject class_loader, const QoreTypeInfo* ti, bool no_void = false);
 
     DLLLOCAL void overrideCompatTypes(bool compat_types) {
         override_compat_types = true;
