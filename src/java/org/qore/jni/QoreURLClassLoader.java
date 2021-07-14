@@ -364,16 +364,13 @@ public class QoreURLClassLoader extends URLClassLoader {
             return rv;
         }
 
-        if (bin_name.startsWith("java.")
-            || bin_name.startsWith("javax.")
-            || bin_name.startsWith("sun.")
-            || bin_name.startsWith("org.qore.jni.")
-            || bin_name.startsWith("org.qore.lang.")) {
-
+        try {
             //return super.loadClass(bin_name);
             rv = super.loadClass(bin_name);
             //System.out.printf("loadClass() %s resolved %s with super: %s\n", bin_name, rv, rv.getClass().getClassLoader());
             return rv;
+        } catch (ClassNotFoundException e) {
+            // ignore and keep trying here
         }
 
         rv = tryGetPendingClass(bin_name);

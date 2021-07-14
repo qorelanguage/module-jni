@@ -1524,17 +1524,18 @@ int JniExternalProgramData::addStaticMethodVariant(Env& env, jobject class_loade
             jargs[0].l = bb;
             LocalReference<jstring> mname = env.newString(m.getName());
             jargs[1].l = mname;
-            jargs[2].j = reinterpret_cast<jlong>(&m);
-            jargs[3].j = reinterpret_cast<jlong>(&v);
-            jargs[4].i = qore_jni_get_acc_visibility(v.getAccess());
+            jargs[2].j = (jlong)getProgram(),
+            jargs[3].j = reinterpret_cast<jlong>(&m);
+            jargs[4].j = reinterpret_cast<jlong>(&v);
+            jargs[5].i = qore_jni_get_acc_visibility(v.getAccess());
             LocalReference<jobject> return_type = getJavaTypeDefinition(env, class_loader, v.getReturnTypeInfo());
-            jargs[5].l = return_type;
-            jargs[6].l = params;
-            jargs[7].z = v.getCodeFlags() & QCF_USES_EXTRA_ARGS;
+            jargs[6].l = return_type;
+            jargs[7].l = params;
+            jargs[8].z = v.getCodeFlags() & QCF_USES_EXTRA_ARGS;
 
-            printd(5, "JniExternalProgramData::addStaticMethodVariant() static %s %s %s::%s(%s): adding (len: %d)\n",
+            printd(5, "JniExternalProgramData::addStaticMethodVariant() static %s %s %s::%s(%s): adding (len: %d) pgm: %p cpgm: %p\n",
                 v.getAccessString(), qore_type_get_name(v.getReturnTypeInfo()), qcls.getName(), m.getName(),
-                v.getSignatureText(), len);
+                v.getSignatureText(), len, getProgram(), qore_get_call_program_context());
             bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
                 Globals::methodJavaClassBuilderAddStaticMethod, &jargs[0]);
             printd(5, "JniExternalProgramData::addStaticMethodVariant() bb: %p\n", (jobject)bb);
@@ -1619,7 +1620,7 @@ int JniExternalProgramData::addMethods(Env& env, jobject class_loader, const Qor
 
                 case MT_Normal: {
                     if (other_base && (mset.find(m->getName()) != mset.end())) {
-                        printf("skipping %s qcls: %s\n", m->getName(), qcls.getName());
+                        //printd(5, "JniExternalProgramData::addMethods() skipping %s qcls: %s\n", m->getName(), qcls.getName());
                         break;
                     }
                     QoreExternalFunctionIterator vi(*m->getFunction());

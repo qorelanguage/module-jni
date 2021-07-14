@@ -61,13 +61,21 @@ public class JavaClassBuilder {
         try {
             objArray = Class.forName("[L" + Object.class.getCanonicalName() + ";");
 
-            Class<?>[] args = new Class<?>[5];
+            Class<?>[] args = new Class<?>[6];
+            args[0] = String.class;
+            args[1] = Long.TYPE;
+            args[2] = Long.TYPE;
+            args[3] = Long.TYPE;
+            args[4] = Long.TYPE;
+            args[5] = objArray;
+            mStaticCall = JavaClassBuilder.class.getDeclaredMethod("doStaticCall", args);
+
+            args = new Class<?>[5];
             args[0] = String.class;
             args[1] = Long.TYPE;
             args[2] = Long.TYPE;
             args[3] = Long.TYPE;
             args[4] = objArray;
-            mStaticCall = JavaClassBuilder.class.getDeclaredMethod("doStaticCall", args);
             mNormalCall = JavaClassBuilder.class.getDeclaredMethod("doNormalCall", args);
 
             args = new Class<?>[4];
@@ -314,7 +322,7 @@ public class JavaClassBuilder {
     }
 
     //! add static method
-    public static DynamicType.Builder<?> addStaticMethod(DynamicType.Builder<?> bb, String methodName, long mptr,
+    public static DynamicType.Builder<?> addStaticMethod(DynamicType.Builder<?> bb, String methodName, long pgm, long mptr,
             long vptr, int visibility, TypeDefinition returnType, List<TypeDefinition> paramTypes, boolean varargs) {
         if (paramTypes == null) {
             paramTypes = new ArrayList<TypeDefinition>();
@@ -334,6 +342,7 @@ public class JavaClassBuilder {
                 MethodCall.invoke(mStaticCall)
                 .with(methodName)
                 .withField(CLASS_FIELD)
+                .with(pgm)
                 .with(mptr)
                 .with(vptr)
                 .withArgumentArray()
@@ -353,16 +362,19 @@ public class JavaClassBuilder {
     /** makes a static method call
      *
      * @param methodName the name of the method
+     * @param qclsptr the class pointer
+     * @param mptr the method pointer
+     * @param vptr the variant pointer
      * @param args the arguments to the call, if any, can be null
      * @return the result of the call
      * @throws Throwable any exception thrown in Qore
      */
     @RuntimeType
-    public static Object doStaticCall(String methodName, long qclsptr, long mptr, long vptr,
+    public static Object doStaticCall(String methodName, long qclsptr, long pgm, long mptr, long vptr,
             @Argument(0) Object... args) throws Throwable {
         //System.out.println(String.format("JavaClassBuilder::doStaticCall() %s() cptr: %d args: %s", methodName,
         //  qclsptr, Arrays.toString(args)));
-        return doStaticCall0(methodName, qclsptr, mptr, vptr, args);
+        return doStaticCall0(methodName, qclsptr, pgm, mptr, vptr, args);
     }
 
     /** makes a normal method call
@@ -486,8 +498,8 @@ public class JavaClassBuilder {
         return Visibility.PRIVATE;
     }
 
-    private static native Object doStaticCall0(String methodName, long qclsptr, long mptr, long vptr, Object... args)
-            throws Throwable;
+    private static native Object doStaticCall0(String methodName, long qclsptr, long pgm, long mptr, long vptr,
+            Object... args) throws Throwable;
     private static native Object doNormalCall0(String methodName, long qobjptr, long mptr, long vptr, Object... args)
             throws Throwable;
     private static native Object doFunctionCall0(long pgm, long fptr, long vptr, @Argument(0) Object... args)
