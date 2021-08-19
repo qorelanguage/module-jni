@@ -2639,14 +2639,15 @@ LocalReference<jobject> JniExternalProgramData::getJavaObject(const QoreObject* 
     }
 
     Env env;
-    LocalReference<jclass> jcls = getJavaClassForQoreClass(env, o->getClass());
+    LocalReference<jclass> jcls = getJavaClassForQoreClass(env, o->getSurfaceClass());
     // return a new Java object with a weak reference to the actual Qore object
     jmethodID ctor = env.getMethod(jcls, "<init>", "(Lorg/qore/jni/QoreJavaObjectPtr;)V");
     o->tRef();
     try {
         jvalue arg;
         arg.j = reinterpret_cast<jlong>(o);
-        LocalReference<jobject> jarg = env.newObject(Globals::classQoreJavaObjectPtr, Globals::ctorQoreJavaObjectPtr, &arg);
+        LocalReference<jobject> jarg = env.newObject(Globals::classQoreJavaObjectPtr, Globals::ctorQoreJavaObjectPtr,
+            &arg);
 
         arg.l = jarg;
         return env.newObject(jcls, ctor, &arg);

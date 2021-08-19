@@ -779,6 +779,7 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, QoreProgr
         if (mname || m) {
             // this is a method call and "obj" is a QoreObject*
             obj = reinterpret_cast<QoreObject*>(obj_ptr);
+
             if (!m) {
                 Env::GetStringUtfChars method_name(env, mname);
                 val = obj->evalMethod(method_name.c_str(), *qore_args, &xsink);
@@ -789,6 +790,21 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, QoreProgr
                 printd(5, "qore_object_closure_call_internal() %s::%s() (v: %p id: %d) %d arg(s) obj: %p\n",
                     m->getClassName(), m->getName(), v, m->getClass()->getID(), (int)len, obj);
                 val = obj->evalMethodVariant(*m, v, *qore_args, &xsink);
+
+                if (xsink) {
+                    QoreStringMaker desc("cls: '%s' mcls: '%s' valid: %d mvalid: %d", obj->getClassName(), m->getClass()->getName(), obj->isValid(), obj->validInstanceOfStrict(*m->getClass()));
+                    xsink.raiseException("INFO", desc.c_str());
+                }
+
+                // check for errors from objects with injected classes; make sure the error was raised due to
+                // injection issues
+                if (xsink && obj->isValid()
+                    && !obj->validInstanceOfStrict(*m->getClass())
+                    && xsink.getExceptionErr().getType() == NT_STRING
+                    && *xsink.getExceptionErr().get<const QoreStringNode>() == "OBJECT-ALREADY-DELETED") {
+                    xsink.clear();
+                    val = obj->evalMethod(m->getName(), *qore_args, &xsink);
+                }
             }
         } else {
             obj = nullptr;
