@@ -2160,15 +2160,22 @@ static void check_java_version() {
     LocalReference<jstring> str = env.callStaticObjectMethod(Globals::classSystem,
         Globals::methodSystemGetProperty, &jargs[0]).as<jstring>();
 
+    int mver = -1;
     Env::GetStringUtfChars jver(env, str);
     const char* p = strchr(jver.c_str(), '.');
-    if (!p) {
-        throw QoreStandardException("JAVA-VERSION-ERROR", "the jni module was compiled with Java %d, but runtime " \
-            "Java version cannot be determined; please install the correct version of Java and try again (%d)",
-            JAVA_VERSION_MAJOR);
+    if (p) {
+        QoreString maj(jver.c_str(), p - jver.c_str());
+        mver = atoi(maj.c_str());
+    } else {
+        p = strchr(jver.c_str(), '-');
+        if (p) {
+            mver = atoi(jver.c_str());
+        } else {
+            throw QoreStandardException("JAVA-VERSION-ERROR", "the jni module was compiled with Java %d, but runtime " \
+                "Java version cannot be determined from '%s'; please install the correct version of Java and try again (%d)",
+                JAVA_VERSION_MAJOR, jver.c_str());
+        }
     }
-    QoreString maj(jver.c_str(), p - jver.c_str());
-    int mver = atoi(maj.c_str());
     if (JAVA_VERSION_MAJOR != mver) {
         throw QoreStandardException("JAVA-VERSION-ERROR", "the jni module was compiled with Java %d; the runtime " \
             "Java version is %s; please install the correct version of Java and try again", JAVA_VERSION_MAJOR,

@@ -717,6 +717,10 @@ set_save_object_callback(callback);
 
     @section jnireleasenotes jni Module Release Notes
 
+    @subsection jni_2_0_2 jni Module Version 2.0.2
+    - fixed a bug where a runtime error was generated when used with Java 17 or above
+      (<a href="https://github.com/qorelanguage/qore/issues/4300">issue 4300</a>)
+
     @subsection jni_2_0_1 jni Module Version 2.0.1
     - fixed a bug where parameters of %Qore type \c null or \c nothing would cause runtime errors when importing
       the method into Java
