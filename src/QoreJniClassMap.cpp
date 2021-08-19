@@ -1533,9 +1533,11 @@ int JniExternalProgramData::addStaticMethodVariant(Env& env, jobject class_loade
             jargs[7].l = params;
             jargs[8].z = v.getCodeFlags() & QCF_USES_EXTRA_ARGS;
 
-            printd(5, "JniExternalProgramData::addStaticMethodVariant() static %s %s %s::%s(%s): adding (len: %d) pgm: %p cpgm: %p\n",
+            printd(5, "JniExternalProgramData::addStaticMethodVariant() static %s %s %s::%s(%s): adding (len: %d) " \
+                "pgm: %p cpgm: %p varargs: %d\n",
                 v.getAccessString(), qore_type_get_name(v.getReturnTypeInfo()), qcls.getName(), m.getName(),
-                v.getSignatureText(), len, getProgram(), qore_get_call_program_context());
+                v.getSignatureText(), len, getProgram(), qore_get_call_program_context(),
+                v.getCodeFlags() & QCF_USES_EXTRA_ARGS);
             bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
                 Globals::methodJavaClassBuilderAddStaticMethod, &jargs[0]);
             printd(5, "JniExternalProgramData::addStaticMethodVariant() bb: %p\n", (jobject)bb);

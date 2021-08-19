@@ -532,7 +532,8 @@ static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, j
     ReferenceHolder<QoreListNode> qore_args(&xsink);
 
     if (len) {
-        Array::getArgList(qore_args, env, args, pgm);
+        Array::getArgList(qore_args, env, args, pgm,
+            (v && v->getCodeFlags() & QCF_USES_EXTRA_ARGS) ? true : false);
     }
 
     if (!m) {

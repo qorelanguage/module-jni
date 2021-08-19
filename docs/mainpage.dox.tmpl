@@ -718,6 +718,9 @@ set_save_object_callback(callback);
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_2_0_2 jni Module Version 2.0.2
+    - fixed a bug where vararg arguments were not handled correctly when dynamically-generated Java called a %Qore or
+      %Python static method
+      (<a href="https://github.com/qorelanguage/qore/issues/4302">issue 4302</a>)
     - fixed a bug where a runtime error was generated when used with Java 17 or above
       (<a href="https://github.com/qorelanguage/qore/issues/4300">issue 4300</a>)
 
