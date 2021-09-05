@@ -46,8 +46,9 @@ DLLLOCAL extern bool jni_qore_init;
 DLLLOCAL void jni_delete_pgm(ExceptionSink& xsink);
 DLLLOCAL QoreProgram* jni_get_create_program(Env& env);
 
-DLLLOCAL constexpr const char* JniImportedFunctionClassName = "$Functions";
-DLLLOCAL constexpr const char* JniImportedConstantClassName = "$Constants";
+DLLLOCAL const std::string JniImportedFunctionClassName = "$Functions";
+DLLLOCAL const std::string JniImportedConstantClassName = "$Constants";
+DLLLOCAL const std::string JniImportedFakeModuleClassName = "$";
 
 class Env;
 

@@ -1417,7 +1417,6 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
             QoreToJava::wrapException(xsink);
             return nullptr;
         }
-
     }
 
     if (module && !python && load_module(env, mod_str, pgm )) {
@@ -1444,13 +1443,29 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
         } else {
             assert(module);
             ns = get_module_root_ns(mod_str.c_str(), pgm);
-            printd(5, "qore_url_classloader_get_classes_in_namespace() mod_str: '%s' ns: %p\n", mod_str.c_str(), ns);
+            printd(5, "qore_url_classloader_get_classes_in_namespace() loaded module mod_str: '%s' ns: %p\n",
+                mod_str.c_str(), ns);
         }
 
         printd(5, "qore_url_classloader_get_classes_in_namespace() pgm: %p '%s': %p (%s)\n", pgm, nsname.c_str(), ns,
             ns ? ns->getName() : "n/a");
         if (ns) {
             QoreString java_pfx;
+
+            // issue #4304: add fake "$" class to result list when we are loading modules
+            if (module) {
+                // add to the ArrayList<String> var
+                std::string pname;
+                if (java_pfx.empty()) {
+                    get_java_pfx(java_pfx, python, mod_str.c_str(), py_path, nsname.c_str());
+                }
+                pname = java_pfx.c_str();
+                pname += "$";
+                LocalReference<jstring> bin_name = env.newString(pname.c_str());
+                jvalue jarg;
+                jarg.l = bin_name;
+                env.callBooleanMethod(arraylist, Globals::methodArrayListAdd, &jarg);
+            }
 
             QoreNamespaceClassIterator i(*ns);
             while (i.next()) {

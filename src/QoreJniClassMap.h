@@ -409,6 +409,10 @@ protected:
     typedef std::map<std::string, GlobalReference<jclass>> q2jmap_t;
     q2jmap_t q2jmap;
 
+    // map of paths to fake "$" Qore classes
+    typedef std::map<std::string, QoreBuiltinClass*> fake_cls_map_t;
+    fake_cls_map_t fake_cls_map;
+
     // override compat-types
     bool override_compat_types = false;
     // compat-types values
@@ -459,6 +463,8 @@ protected:
 
     DLLLOCAL int addClassConstants(Env& env, jstring jname, const QoreClass& qcls,
         LocalReference<jobject>& bb, QoreProgram* pgm);
+
+    DLLLOCAL QoreBuiltinClass* getFakeClassForPath(QoreProgram* pgm, const Env::GetStringUtfChars* qpath);
 };
 
 DLLLOCAL LocalReference<jstring> get_java_name_for_class(Env& env, const QoreClass& qc);
