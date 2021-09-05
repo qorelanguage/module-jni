@@ -1776,20 +1776,27 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jo
             // create constant class
             return generateConstantClassIntern(env, class_loader, pgm, jname);
         }
-
-        // get java name for error message
-        Env::GetStringUtfChars java_name(env, jname);
-        ReferenceHolder<QoreListNode> feature_list(pgm->getFeatureList(), &xsink);
-        QoreStringMaker desc("Java class '%s' cannot be generated, because Qore class '%s' cannot be found; loaded " \
-            "modules: ", java_name.c_str(), qpath->c_str());
-        ConstListIterator fi(*feature_list);
-        while (fi.next()) {
-            desc.sprintf("%s, ", fi.getValue().get<const QoreStringNode>()->c_str());
+        if (cname == JniImportedFakeModuleClassName) {
+            printd(5, "JniExternalProgramData::generateByteCode() '%s' ('%s') pgm: %p qc: %p\n",
+                qpath ? qpath->c_str() : "n/a", cname.c_str(), pgm, qcls);
+            qcls = getFakeClassForPath(pgm, qpath);
         }
-        desc.terminate(desc.size() - 2);
-        desc.concat(')');
-        env.throwNew(env.findClass("java/lang/ClassNotFoundException"), desc.c_str());
-        return nullptr;
+
+        if (!qcls) {
+            // get java name for error message
+            Env::GetStringUtfChars java_name(env, jname);
+            ReferenceHolder<QoreListNode> feature_list(pgm->getFeatureList(), &xsink);
+            QoreStringMaker desc("Java class '%s' cannot be generated, because Qore class '%s' cannot be found; loaded " \
+                "modules: ", java_name.c_str(), qpath->c_str());
+            ConstListIterator fi(*feature_list);
+            while (fi.next()) {
+                desc.sprintf("%s, ", fi.getValue().get<const QoreStringNode>()->c_str());
+            }
+            desc.terminate(desc.size() - 2);
+            desc.concat(')');
+            env.throwNew(env.findClass("java/lang/ClassNotFoundException"), desc.c_str());
+            return nullptr;
+        }
     }
 
     // ensure exclusive access while creating java classes
@@ -1799,6 +1806,25 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jo
     //  qcls);
     LocalReference<jbyteArray> rv = generateByteCodeIntern(env, class_loader, qcls, pgm, jname).as<jbyteArray>();
     return rv;
+}
+
+QoreBuiltinClass* JniExternalProgramData::getFakeClassForPath(QoreProgram* pgm, const Env::GetStringUtfChars* qpath) {
+    std::string cpath(qpath->c_str());
+
+    // ensure exclusive access while searching the fake class map
+    AutoLocker al(codeGenLock);
+
+    fake_cls_map_t::iterator i = fake_cls_map.lower_bound(cpath);
+    if (i != fake_cls_map.end() && i->first == cpath) {
+        return i->second;
+    }
+
+    // create new fake class
+    QoreBuiltinClass* cls = new QoreBuiltinClass("$", cpath.c_str());
+    // store in map
+    fake_cls_map.insert(i, fake_cls_map_t::value_type(cpath, cls));
+    printd(5, "JniExternalProgramData::getFakeClassForPath() '%s' -> %p\n", cpath.c_str(), cls);
+    return cls;
 }
 
 LocalReference<jstring> get_java_name_for_class(Env& env, const QoreClass& qc) {
@@ -1829,7 +1855,7 @@ LocalReference<jstring> get_java_name_for_class(Env& env, const QoreClass& qc) {
 int JniExternalProgramData::addFunctionVariant(Env& env, jobject class_loader, LocalReference<jobject>& bb,
         const QoreExternalFunction& func, const QoreExternalVariant& v, QoreProgram* pgm, QoreJavaParamHelper& jph) {
     printd(5, "JniExternalProgramData::addFunctionVariant() adding Java method static %s %s::%s(%s) " \
-        "pgm: %p\n", qore_type_get_name(v.getReturnTypeInfo()), JniImportedFunctionClassName, func.getName(),
+        "pgm: %p\n", qore_type_get_name(v.getReturnTypeInfo()), JniImportedFunctionClassName.c_str(), func.getName(),
         v.getSignatureText(), pgm);
 
     // first get the params
@@ -1851,7 +1877,7 @@ int JniExternalProgramData::addFunctionVariant(Env& env, jobject class_loader, L
             jargs[7].z = v.getCodeFlags() & QCF_USES_EXTRA_ARGS;
 
             printd(5, "JniExternalProgramData::addFunctionVariant() static public %s %s::%s(%s): adding (len: %d) " \
-                "rt: %p\n", qore_type_get_name(v.getReturnTypeInfo()), JniImportedFunctionClassName,
+                "rt: %p\n", qore_type_get_name(v.getReturnTypeInfo()), JniImportedFunctionClassName.c_str(),
                 func.getName(), v.getSignatureText(), len, (jobject)return_type);
             bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
                 Globals::methodJavaClassBuilderAddFunction, &jargs[0]);
@@ -1861,7 +1887,7 @@ int JniExternalProgramData::addFunctionVariant(Env& env, jobject class_loader, L
             jph.add(params);
         } else {
             printd(5, "JniExternalProgramData::addFunctionVariant() static %s %s::%s(%s): skipping duplicate " \
-                "variant (len: %d)\n", qore_type_get_name(v.getReturnTypeInfo()), JniImportedFunctionClassName,
+                "variant (len: %d)\n", qore_type_get_name(v.getReturnTypeInfo()), JniImportedFunctionClassName.c_str(),
                 func.getName(), v.getSignatureText(), len);
         }
 
@@ -1903,7 +1929,7 @@ LocalReference<jbyteArray> JniExternalProgramData::generateFunctionClassIntern(E
     if (!ns) {
         assert(ns_path);
         QoreStringMaker desc("cannot find Qore namespace '%s' to generate '%s' class for importing functions to Java",
-            ns_path, JniImportedFunctionClassName);
+            ns_path, JniImportedFunctionClassName.c_str());
         env.throwNew(env.findClass("java/lang/ClassNotFoundException"), desc.c_str());
         return nullptr;
     }
@@ -2000,7 +2026,7 @@ LocalReference<jbyteArray> JniExternalProgramData::generateConstantClassIntern(E
     if (!ns) {
         assert(ns_path);
         QoreStringMaker desc("cannot find Qore namespace '%s' to generate '%s' class for importing constants to Java",
-            ns_path, JniImportedConstantClassName);
+            ns_path, JniImportedConstantClassName.c_str());
         env.throwNew(env.findClass("java/lang/ClassNotFoundException"), desc.c_str());
         return nullptr;
     }
@@ -2548,6 +2574,11 @@ JniExternalProgramData::~JniExternalProgramData() {
         env.callVoidMethod(classLoader, Globals::methodQoreURLClassLoaderClearProgramPtr, nullptr);
     } catch (UnableToAttachException& e) {
         // ignore error - raised when destructions is run after the JVM has shut down
+    }
+
+    // delete fake "$" classes
+    for (auto& i : fake_cls_map) {
+        delete i.second;
     }
     classLoader = nullptr;
 }

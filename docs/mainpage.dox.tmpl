@@ -417,25 +417,27 @@ class MyTest {
     The following special packages provide access to dynamically-generated classes:
     - <b><tt>python.</tt></b><i>[path...]</i>: indicates that the given path should be imported from Python to Java (after being
       imported to %Qore if necessary).
-    - <b><tt>pythonmod.</tt></b><i>mod</i><tt>.</tt><i>[path...]</i>: indicates that the given path should be mapped to %Qore
-      namespaces and/or classes after loading the Python module <i>mod</i> and importing into %Qore; the Java package
-      segments after <tt><b>pythonmod.</b></tt><i>mod</i><tt>.</tt> are then converted to the equivalent %Qore namespace path
+    - <b><tt>pythonmod.</tt></b><i>mod</i><b><tt>.$</tt></b>: indicates that the given %Python module should be loaded
+      and imported into %Qore, afterwards the classes can be imported into Java using the standard Java package path
+      with \c python instead of \c pythonmod.  \c pythonmod should always be used with the placeholder \c "$" class to
+      ensure that the module is loaded, and the real classes should be imported using the \c python package
     - \c \b qore: indicates that the given path should be mapped to %Qore namespaces and/or classes; the Java package
       segments after <tt><b>qore.</b></tt> are then converted to the equivalent %Qore namespace path
-    - <b><tt>qoremod.</tt></b><i>mod</i><tt>.</tt><i>[path...]</i>: indicates that the given path should be mapped to %Qore
-      namespaces and/or classes after loading the %Qore module <i>mod</i>; the Java package
-      segments after <tt><b>qoremod.</b></tt><i>mod</i><tt>.</tt> are then converted to the equivalent %Qore namespace path
+    - <b><tt>qoremod.</tt></b><i>mod</i><b><tt>.$</tt></b>: indicates that the given %Qore module should be imported
+      into the program container, afterwards the classes can be imported into Java using the standard Java package
+      path with \c python instead of \c qoremod.  \c qoremod should always be used with the placeholder  \c "$" class
+      to ensure that the module is loaded, and the real classes should be imported using the \c qore package
 
     For example:
-    - <tt>import python.os.$Functions</tt> would import all functions in the \c os module to Java in the
+    - <b><tt>import python.os.$Functions</tt></b> would import all functions in the \c os module to Java in the
       \c python.os.$Functions class, assuming the \c os module has already been imported into Python beforehand,
       otherwise to import a Python module and then import symbols from that module, use the following option
-    - <tt>import pythonmod.json.JSONEncoder;</tt> would cause the \c json Python module to be loaded and imported
-      into %Qore and then for the \c JSONEncoder class to be imported into Java automatically
-    - <tt>import qore.Qore.Thread.ThreadPool;</tt> would cause the %Qore <tt>::Qore::Thread::ThreadPool</tt>
+    - <b><tt>import pythonmod.json.$;</tt></b> would cause the \c json Python module to be loaded and imported
+      into %Qore and then <b><tt>import python.json.JSONEncoder;</tt></b> will import the \c JSONEncoder class into Java
+    - <b><tt>import qore.Qore.Thread.ThreadPool;</tt></b> would cause the %Qore <tt>::Qore::Thread::ThreadPool</tt>
       class to be imported automatically into Java
-    - <tt>import qoremod.RestClient.RestClient;</tt> would cause the \c RestClient %Qore module to be loaded and then
-      for the \c RestClient class to be imported automatically
+    - <b><tt>import qoremod.RestClient.$;</tt></b> would cause the \c RestClient %Qore module to be loaded and then
+      <b><tt>import qore.RestClient.RestClient;</tt></b> will import the \c RestClient class into Java
 
     %Qore and Python classes imported as above can then be used as Java classes for instantiation or as base classes
     for Java subclasses.
@@ -446,6 +448,9 @@ class MyTest {
       dynamically into Python
     - Python and %Qore classes from modules can be imported in two different ways as per above, each import variant
       results in a Java class with a binary path specific to the import statement
+    - Do not import symbols directly into Java using import statements with the \c pythonmod and \c qoremod
+      "magic packages"; this will import the classes using a temporary package path which can cause conflicts with
+      other symbols using the standard package paths.
 
     @par Importing Functions Into Java
 
@@ -716,6 +721,11 @@ set_save_object_callback(callback);
     @endcode
 
     @section jnireleasenotes jni Module Release Notes
+
+    @subsection jni_2_0_3 jni Module Version 2.0.3
+    - implemented the magic \c '$' target when importing %Qore or %Python modules with import statements with the
+      \c qoremod or \c pythonmod special packages
+      (<a href="https://github.com/qorelanguage/qore/issues/4304">issue 4304</a>)
 
     @subsection jni_2_0_2 jni Module Version 2.0.2
     - fixed a bug where vararg arguments were not handled correctly when dynamically-generated Java called a %Qore or
