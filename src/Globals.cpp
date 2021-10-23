@@ -2182,6 +2182,16 @@ LocalReference<jclass> Globals::findDefineClass(Env& env, const char* name, jobj
     }
 }
 
+static bool digits_only(const char* s) {
+    while (*s) {
+        if (!isdigit(*s++)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 static void check_java_version() {
     jni::Env env;
     LocalReference<jstring> jprop = env.newString("java.version");
@@ -2200,9 +2210,10 @@ static void check_java_version() {
         mver = atoi(maj.c_str());
     } else {
         p = strchr(jver.c_str(), '-');
-        if (p) {
+        if (p || digits_only(jver.c_str())) {
             mver = atoi(jver.c_str());
         } else {
+            mver = atoi(jver.c_str());
             throw QoreStandardException("JAVA-VERSION-ERROR", "the jni module was compiled with Java %d, but runtime " \
                 "Java version cannot be determined from '%s'; please install the correct version of Java and try again (%d)",
                 JAVA_VERSION_MAJOR, jver.c_str());
