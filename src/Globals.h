@@ -81,6 +81,7 @@ public:
 
     DLLLOCAL static GlobalReference<jclass> classClass;                           // java.lang.Class
     DLLLOCAL static jmethodID methodClassIsArray;                                 // boolean Class.isArray()
+    DLLLOCAL static jmethodID methodClassIsInterface;                             // boolean Class.isInterface()
     DLLLOCAL static jmethodID methodClassGetComponentType;                        // Class<?> Class.getComponentType()
     DLLLOCAL static jmethodID methodClassGetClassLoader;                          // ClassLoader Class.getClassLoader()
     DLLLOCAL static jmethodID methodClassGetName;                                 // String Class.getName()

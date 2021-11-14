@@ -38,6 +38,8 @@
 #include "LocalReference.h"
 #include "Object.h"
 
+#include <classfile_constants.h>
+
 namespace jni {
 
 class Field;
@@ -57,7 +59,7 @@ public:
      * \param cls a local reference to a Java class
      * \throws JavaException if a global reference cannot be created
      */
-    DLLLOCAL Class(const LocalReference<jclass>& cls) : cls(cls.makeGlobal()) {
+    DLLLOCAL Class(const LocalReference<jclass>& cls) : cls(cls.makeGlobal()), mods(getModifiersIntern()) {
         printd(LogLevel, "Class::Class() this: %p cls: %p\n", this, static_cast<jclass>(this->cls));
         assert(static_cast<jclass>(this->cls));
     }
@@ -95,7 +97,9 @@ public:
     DLLLOCAL LocalReference<jobjectArray> getDeclaredFields();
 
     // returns class modifiers as an integer
-    DLLLOCAL int getModifiers();
+    DLLLOCAL int getModifiers() const {
+        return mods;
+    }
 
     DLLLOCAL void trackMethod(BaseMethod* m);
 
@@ -104,11 +108,18 @@ public:
         return cls.toLocal();
     }
 
+    DLLLOCAL bool isAbstract() const {
+        return mods & JVM_ACC_ABSTRACT;
+    }
+
 private:
     GlobalReference<jclass> cls;
     // for tracking Method objects associated with this Class
     typedef std::vector<BaseMethod*> mlist_t;
     mlist_t mlist;
+    int mods;
+
+    DLLLOCAL int getModifiersIntern() const;
 };
 
 } // namespace jni

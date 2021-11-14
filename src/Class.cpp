@@ -71,7 +71,7 @@ LocalReference<jobjectArray> Class::getDeclaredFields() {
     return env.callObjectMethod(cls, Globals::methodClassGetDeclaredFields, nullptr).as<jobjectArray>();
 }
 
-int Class::getModifiers() {
+int Class::getModifiersIntern() const {
     Env env;
     return env.callIntMethod(cls, Globals::methodClassGetModifiers, nullptr);
 }

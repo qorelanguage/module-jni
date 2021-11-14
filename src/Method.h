@@ -146,6 +146,10 @@ public:
         return mods & JVM_ACC_STATIC;
     }
 
+    bool isClassAbstract() const {
+        return cls->isAbstract();
+    }
+
     jobject getJavaObject() const override {
         return method;
     }

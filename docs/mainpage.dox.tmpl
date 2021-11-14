@@ -722,6 +722,12 @@ set_save_object_callback(callback);
 
     @section jnireleasenotes jni Module Release Notes
 
+    @subsection jni_2_0_4 jni Module Version 2.0.4
+    - fixed a bug handling %Qore callbacks in native Java threads
+      (<a href="https://github.com/qorelanguage/qore/issues/4340">issue 4340</a>)
+    - fixed a bug handling Java interfaces as parents of a Java class
+      (<a href="https://github.com/qorelanguage/qore/issues/4337">issue 4337</a>)
+
     @subsection jni_2_0_3 jni Module Version 2.0.3
     - implemented the magic \c '$' target when importing %Qore or %Python modules with import statements with the
       \c qoremod or \c pythonmod special packages

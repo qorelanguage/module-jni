@@ -53,7 +53,8 @@ QoreCodeDispatcher::~QoreCodeDispatcher() {
 
 jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jobjectArray jargs) {
     if (q_libqore_shutdown()) {
-        env.throwNew(env.findClass("java/lang/RuntimeException"), "could not execute Qore callback; the Qore library has already been shut down");
+        env.throwNew(env.findClass("java/lang/RuntimeException"), "could not execute Qore callback; the Qore library "
+            "has already been shut down");
         return nullptr;
     }
 
@@ -89,9 +90,18 @@ jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jo
             return nullptr;
         }
         return QoreToJava::toObject(qv, nullptr, jpc);
+    } catch (jni::Exception& e) {
+        e.convert(&xsink);
+        QoreToJava::wrapException(xsink);
     } catch (Exception& e) {
-        // FIXME: original exception should be included in this exception
-        env.throwNew(env.findClass("java/lang/RuntimeException"), "could not execute Qore callback");
+        ExceptionSink xsink;
+        e.convert(&xsink);
+        QoreString errstr;
+        QoreStringValueHelper err(xsink.getExceptionErr());
+        QoreStringValueHelper desc(xsink.getExceptionDesc());
+        errstr.sprintf("failed to execute Qore callback: %s: %s", err->c_str(), desc->c_str());
+        xsink.clear();
+        env.throwNew(env.findClass("java/lang/RuntimeException"), errstr.c_str());
         return nullptr;
     }
 }
