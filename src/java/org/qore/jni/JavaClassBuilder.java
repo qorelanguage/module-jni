@@ -18,6 +18,7 @@ import net.bytebuddy.description.modifier.Ownership;
 import net.bytebuddy.description.modifier.Visibility;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.description.type.TypeDefinition;
+import net.bytebuddy.description.type.TypeList;
 import net.bytebuddy.description.modifier.MethodArguments;
 import net.bytebuddy.description.method.MethodDescription.Token;
 import net.bytebuddy.description.field.FieldDescription;
@@ -181,8 +182,9 @@ public class JavaClassBuilder {
 
     //! Returns a builder object for a dynamic class
     public static DynamicType.Builder<?> getClassBuilder(String className, Class<?> parentClass,
-            boolean is_abstract, long cptr) throws NoSuchMethodException {
-        DynamicType.Builder<?> bb = new ByteBuddy()
+            ArrayList<Type> interfaces, boolean is_abstract, long cptr) throws NoSuchMethodException {
+        DynamicType.Builder<?> bb;
+        bb = new ByteBuddy()
             .with(TypeValidation.DISABLED)
             .with(new NamingStrategy.AbstractBase() {
                 @Override
@@ -191,6 +193,13 @@ public class JavaClassBuilder {
                 }
             })
             .subclass(parentClass, ConstructorStrategy.Default.NO_CONSTRUCTORS);
+
+        // add interfaces to class
+        if (interfaces != null) {
+            for (Type t : interfaces) {
+                bb = bb.implement(t);
+            }
+        }
 
         int modifiers = ACC_PUBLIC;
         if (is_abstract) {

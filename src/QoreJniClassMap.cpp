@@ -532,6 +532,8 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name, co
     // ensure that these locks are always acquired in order
     AutoLocker al(m);
 
+    ExceptionSink xsink;
+
     // check current Program's namespace
     JniExternalProgramData* jpc;
     if (!pgm) {
@@ -543,7 +545,6 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name, co
         jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
 
         // ensure that the jni module symbols are loaded into the new Program object
-        ExceptionSink xsink;
         MM.runTimeLoadModule("jni", pgm, &xsink);
         if (xsink) {
             throw XsinkException(xsink);
@@ -554,13 +555,21 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name, co
     }
 
     JniQoreClass* qc = jpc->find(jpath);
-    if (qc)
+    if (qc) {
         return qc;
+    }
+
+    assert(pgm);
+    QoreExternalProgramContextHelper epch(&xsink, pgm);
+    if (xsink) {
+        throw XsinkException(xsink);
+    }
 
     // grab current Program's parse lock before manipulating namespaces
     CurrentProgramRuntimeExternalParseContextHelper pch;
-    if (!pch)
-        throw BasicException("could not attach to deleted Qore Program");
+    if (!pch) {
+        throw BasicException("could not attach to deleted Qore Program when creating class in Qore program");
+    }
 
     // see if we have an inner class
     int ic_idx = name.rfind('$');
@@ -698,10 +707,17 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInBase(Env& env, QoreString& n
     JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
     // now add to the current Program's namespace
     if (jpc) {
+        assert(pgm);
+        ExceptionSink xsink;
+        QoreExternalProgramContextHelper epch(&xsink, pgm);
+        if (xsink) {
+            throw XsinkException(xsink);
+        }
+
         // grab current Program's parse lock before manipulating namespaces
         CurrentProgramRuntimeExternalParseContextHelper pch;
         if (!pch) {
-            throw BasicException("0: could not attach to deleted Qore Program");
+            throw BasicException("could not attach to deleted Qore Program when creating Qore class in base");
         }
 
         {
@@ -2115,6 +2131,9 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
     // get parent class
     LocalReference<jclass> parent_class;
     jclass parent_ptr = nullptr;
+    // issue #4337: get list of parent interfaces
+    LocalReference<jobject> parent_interfaces;
+
     // get single base class - Java and Qore's inheritance models are not compatible
     // we can only set a single class for the Java base class
     {
@@ -2133,10 +2152,23 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
             parent_class = env.callObjectMethod(class_loader, Globals::methodQoreURLClassLoaderLoadClassWithPtr,
                 &jargs[0]).as<jclass>();
 
-            parent_ptr = (jclass)parent_class;
-            printd(5, "JniExternalProgramData::generateByteCodeIntern() cls: '%s' <- '%s'\n",
-                qcls->getName(), ci.getParentClass().getName());
-            break;
+            // check if parent class is actually a Java interface
+            if (env.callBooleanMethod(parent_class, Globals::methodClassIsInterface, nullptr)) {
+                if (!parent_interfaces) {
+                    parent_interfaces = env.newObject(Globals::classArrayList, Globals::ctorArrayList, nullptr);
+                }
+                jvalue jarg;
+                jarg.l = parent_class;
+                env.callBooleanMethod(parent_interfaces, Globals::methodArrayListAdd, &jarg);
+                parent_class = nullptr;
+                printd(5, "JniExternalProgramData::generateByteCodeIntern() cls: '%s' <- interface '%s'\n",
+                    qcls->getName(), ci.getParentClass().getName());
+            } else {
+                parent_ptr = (jclass)parent_class;
+                printd(5, "JniExternalProgramData::generateByteCodeIntern() cls: '%s' <- '%s'\n",
+                    qcls->getName(), ci.getParentClass().getName());
+                break;
+            }
         }
     }
     if (!parent_ptr) {
@@ -2160,11 +2192,12 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
         jname = njname;
     }
 
-    std::vector<jvalue> jargs(4);
+    std::vector<jvalue> jargs(5);
     jargs[0].l = jname;
     jargs[1].l = parent_ptr;
-    jargs[2].z = qcls->isAbstract();
-    jargs[3].j = cptr;
+    jargs[2].l = parent_interfaces;
+    jargs[3].z = qcls->isAbstract();
+    jargs[4].j = cptr;
 
     LocalReference<jobject> bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
         Globals::methodJavaClassBuilderGetClassBuilder, &jargs[0]);
@@ -2398,6 +2431,12 @@ static void exec_java_constructor(const QoreMethod& qmeth, BaseMethod* m, QoreOb
         // issue #3585: set context for external java threads
         QoreProgram* pgm = qmeth.getClass()->getProgram();
         JniExternalProgramData* jpc = JniExternalProgramData::setContext(pgm);
+
+        // issue #xxxx: check if class is abstract, if so we need to create a new class an instantiate it
+        if (m->isClassAbstract()) {
+            printf("abstract %s::%s()\n", qmeth.getName(), qmeth.getClassName());
+        }
+
         self->setPrivate(qmeth.getClass()->getID(), new QoreJniPrivateData(m->newQoreInstance(args, jpc)));
     } catch (jni::Exception& e) {
         e.convert(xsink);

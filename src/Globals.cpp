@@ -76,6 +76,7 @@ jmethodID Globals::methodObjectHashCode;
 
 GlobalReference<jclass> Globals::classClass;
 jmethodID Globals::methodClassIsArray;
+jmethodID Globals::methodClassIsInterface;
 jmethodID Globals::methodClassGetComponentType;
 jmethodID Globals::methodClassGetClassLoader;
 jmethodID Globals::methodClassGetName;
@@ -780,7 +781,6 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, QoreProgr
         if (mname || m) {
             // this is a method call and "obj" is a QoreObject*
             obj = reinterpret_cast<QoreObject*>(obj_ptr);
-
             if (!m) {
                 Env::GetStringUtfChars method_name(env, mname);
                 val = obj->evalMethod(method_name.c_str(), *qore_args, &xsink);
@@ -2337,6 +2337,7 @@ bool Globals::init() {
     // needed for exception handling
     classClass = env.findClass("java/lang/Class").makeGlobal();
     methodClassIsArray = env.getMethod(classClass, "isArray", "()Z");
+    methodClassIsInterface = env.getMethod(classClass, "isInterface", "()Z");
     methodClassGetComponentType = env.getMethod(classClass, "getComponentType", "()Ljava/lang/Class;");
     methodClassGetClassLoader = env.getMethod(classClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
     methodClassGetName = env.getMethod(classClass, "getName", "()Ljava/lang/String;");
@@ -2635,7 +2636,7 @@ bool Globals::init() {
         sizeof(javaClassBuilderNativeMethods) / sizeof(JNINativeMethod));
 
     methodJavaClassBuilderGetClassBuilder = env.getStaticMethod(classJavaClassBuilder, "getClassBuilder",
-        "(Ljava/lang/String;Ljava/lang/Class;ZJ)" \
+        "(Ljava/lang/String;Ljava/lang/Class;Ljava/util/ArrayList;ZJ)" \
         "Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderGetFunctionConstantClassBuilder = env.getStaticMethod(classJavaClassBuilder, "getFunctionConstantClassBuilder",
         "(Ljava/lang/String;)Lnet/bytebuddy/dynamic/DynamicType$Builder;");

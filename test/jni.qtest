@@ -264,7 +264,7 @@ public class Main inherits QUnit::Test {
             }
 %ifndef NO_PYTHON
             {
-                # compile and execute QoreDynamicTest9.java
+                # compile and execute QoreDynamicTest14.java
                 QoreJavaCompiler compiler();
                 hash<auto> sources = {
                     "org.qore.test.QoreDynamicTest14": File::readTextFile(get_script_dir() +
@@ -279,6 +279,81 @@ public class Main inherits QUnit::Test {
                 assertEq("{\"a\": 1}", obj.test({"a": 1}));
             }
 %endif
+
+            {
+                # compile and execute QoreDynamicTest15.java
+                QoreJavaCompiler compiler();
+                hash<auto> sources = {
+                    "org.qore.test.QoreDynamicTest15": File::readTextFile(get_script_dir() +
+                        "/../test/QoreDynamicTest15.java"),
+                };
+                hash<auto> cv = compiler.compile(sources);
+                #printf("%N\n", cv);
+                compiler::CompilerOutput newClassData = cv{"org.qore.test.QoreDynamicTest15"};
+                binary fdata = newClassData.file.openInputStream().readAllBytes();
+                assertEq(True, fdata.size() > 0);
+
+                Program p(PO_NEW_STYLE);
+                p.setScriptPath(get_script_path());
+                p.issueModuleCmd("jni", "define-class org/qore/test/QoreDynamicTest15 " + fdata.toBase64());
+                p.issueModuleCmd("jni", "define-class org/qore/test/TestClass "
+                    + cv{"org.qore.test.TestClass"}.file.openInputStream().readAllBytes().toBase64());
+
+                p.parse("
+class X inherits QoreDynamicTest15 {
+    int get() {
+        return 1;
+    }
+}
+
+int sub test() {
+    X x();
+    TestClass c();
+    return c.get(x);
+}", "test");
+
+                assertEq(2, p.callFunction("test"));
+            }
+
+            {
+                # compile and execute QoreDynamicTest16.java
+                QoreJavaCompiler compiler();
+                hash<auto> sources = {
+                    "org.qore.test.QoreDynamicTest16": File::readTextFile(get_script_dir() +
+                        "/../test/QoreDynamicTest16.java"),
+                };
+                hash<auto> cv = compiler.compile(sources);
+                #printf("%N\n", cv);
+                compiler::CompilerOutput newClassData = cv{"org.qore.test.QoreDynamicTest16"};
+                binary fdata = newClassData.file.openInputStream().readAllBytes();
+                assertEq(True, fdata.size() > 0);
+
+                Program p(PO_NEW_STYLE);
+                p.setScriptPath(get_script_path());
+                p.issueModuleCmd("jni", "define-class org/qore/test/QoreDynamicTest16 " + fdata.toBase64());
+                p.issueModuleCmd("jni", "define-class org/qore/test/TestClass "
+                    + cv{"org.qore.test.TestClass"}.file.openInputStream().readAllBytes().toBase64());
+
+                p.parse("
+class X inherits QoreDynamicTest16 {
+    public {
+        static string topic;
+    }
+    nothing messageArrived(string topic, *Jni::java::lang::Class c) {
+        X::topic = topic;
+    }
+}
+
+string sub test() {
+    X x();
+    TestClass c();
+    c.get(x);
+    return X::topic;
+}
+", "test");
+
+                assertEq("test", p.callFunction("test"));
+            }
 
             {
                 Program p(PO_NEW_STYLE);
