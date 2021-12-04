@@ -93,7 +93,8 @@ jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jo
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(xsink);
-    } catch (Exception& e) {
+        return nullptr;
+    } catch (QoreStandardException& e) {
         ExceptionSink xsink;
         e.convert(&xsink);
         QoreString errstr;

@@ -722,6 +722,10 @@ set_save_object_callback(callback);
 
     @section jnireleasenotes jni Module Release Notes
 
+    @subsection jni_2_0_5 jni Module Version 2.0.5
+    - fixed a memory error in exception handling in %Qore to Java tyype conversions that could cause a core dump
+      (<a href="https://github.com/qorelanguage/qore/issues/4349">issue 4349</a>)
+
     @subsection jni_2_0_4 jni Module Version 2.0.4
     - fixed a bug handling %Qore callbacks in native Java threads
       (<a href="https://github.com/qorelanguage/qore/issues/4340">issue 4340</a>)
