@@ -383,7 +383,6 @@ static void qore_jni_mc_add_classpath(const QoreString& cmd_arg, QoreProgram* pg
     QoreString arg(cmd_arg);
     q_env_subst(arg);
     printd(LogLevel, "qore_jni_mc_add_classpath() jpc: %p arg: '%s'\n", jpc, arg.c_str());
-
     jpc->addClasspath(arg.c_str());
 }
 
@@ -394,9 +393,10 @@ static void qore_jni_mc_add_relative_classpath(const QoreString& arg, QoreProgra
     cwd_str = pgm->getScriptDir();
 
     if (!cwd_str) {
-        char* cwd = getcwd(0, 0);
+        char* cwd = getcwd(nullptr, 0);
         if (!cwd) {
-            throw QoreJniException("JNI-ADD-RELATIVE-CLASSPATH-ERROR", "cannot determine relative path; there is no information in the Program context and cannot get current working directory: %s", strerror(errno));
+            throw QoreJniException("JNI-ADD-RELATIVE-CLASSPATH-ERROR", "cannot determine relative path; there is no " \
+                "information in the Program context and cannot get current working directory: %s", strerror(errno));
         }
         ON_BLOCK_EXIT(free, cwd);
         cwd_str = new QoreStringNode(cwd);

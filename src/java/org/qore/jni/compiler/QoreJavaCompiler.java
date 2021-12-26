@@ -402,7 +402,7 @@ public class QoreJavaCompiler<T> {
     }
 
     public void injectClass(String binName, byte[] byteCode) {
-        System.out.printf("inject class %s: %d bytes\n", binName, byteCode.length);
+        //System.out.printf("inject class %s: %d bytes\n", binName, byteCode.length);
         classLoader.addPendingClass(binName, byteCode);
     }
 

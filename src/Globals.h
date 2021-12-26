@@ -134,6 +134,7 @@ public:
     DLLLOCAL static jmethodID methodConstructorToString;                          // String Constructor.toString()
     DLLLOCAL static jmethodID methodConstructorGetModifiers;                      // int Constructor.getModifiers()
     DLLLOCAL static jmethodID methodConstructorIsVarArgs;                         // boolean Constructor.isVarArgs()
+    DLLLOCAL static jmethodID methodConstructorNewInstance;                       // Object newInstance(Object...)
 
     DLLLOCAL static GlobalReference<jclass> classQoreInvocationHandler;           // org.qore.jni.QoreInvocationHandler
     DLLLOCAL static jmethodID ctorQoreInvocationHandler;                          // QoreInvocationHandler(long)

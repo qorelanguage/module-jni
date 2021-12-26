@@ -129,6 +129,7 @@ jmethodID Globals::methodConstructorGetParameterTypes;
 jmethodID Globals::methodConstructorToString;
 jmethodID Globals::methodConstructorGetModifiers;
 jmethodID Globals::methodConstructorIsVarArgs;
+jmethodID Globals::methodConstructorNewInstance;
 
 GlobalReference<jclass> Globals::classQoreInvocationHandler;
 jmethodID Globals::ctorQoreInvocationHandler;
@@ -1607,12 +1608,11 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreC
         return 0;
     }
 
-    QoreProgram* pgm = qc->getProgram();
+    // create the object in the current object's Program; using the QoreClass's program will result in the wrong
+    // classloader being used to resolve any dependent classes
+    QoreProgram* pgm = jni_get_program_context();
     if (!pgm) {
-        pgm = jni_get_program_context();
-        if (!pgm) {
-            pgm = jni_get_create_program(env);
-        }
+        pgm = jni_get_create_program(env);
     }
     QoreThreadAttachHelper attach_helper;
     try {
@@ -1656,7 +1656,7 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreC
         } else {
             jqc = qc;
         }
-        printd(5, "qore_object_create() executing constructor for Qore class '%s' (%s), Java class '%s' (%s)\n",
+        printd(5, "qore_object_create() executing constructor for Qore class '%s' (%s) Java class '%s' (%s)\n",
             qpath.c_str(), qc->getName(), jcname.c_str(), jqc->getName());
 
         // ensure class can be instantiated
@@ -2433,6 +2433,7 @@ bool Globals::init() {
     methodConstructorToString = env.getMethod(classConstructor, "toString", "()Ljava/lang/String;");
     methodConstructorGetModifiers = env.getMethod(classConstructor, "getModifiers", "()I");
     methodConstructorIsVarArgs = env.getMethod(classConstructor, "isVarArgs", "()Z");
+    methodConstructorNewInstance = env.getMethod(classConstructor, "newInstance", "([Ljava/lang/Object;)Ljava/lang/Object;");
 
     classQoreInvocationHandler = findDefineClass(env, "org.qore.jni.QoreInvocationHandler", nullptr,
         java_org_qore_jni_QoreInvocationHandler_class, java_org_qore_jni_QoreInvocationHandler_class_len).makeGlobal();

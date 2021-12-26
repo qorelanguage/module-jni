@@ -24,14 +24,30 @@ package org.qore.jni;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Field;
 
 //! This class provides methods that allow Java to interface with Qore code
 /**
  */
 public class QoreJavaDynamicApi {
+    //! creates an instance of the given class
+    public static Object newInstance(Constructor<?> c, Object... args) throws Throwable {
+        try {
+            c.trySetAccessible();
+            return c.newInstance(args);
+        } catch (InvocationTargetException e) {
+            Throwable e0 = e;
+            while (e0 instanceof InvocationTargetException) {
+                e0 = e0.getCause();
+            }
+            throw e0;
+        }
+    }
+
     //! invokes the given method on the given object and returns the return value
     public static Object invokeMethod(Method m, Object obj, Object... args) throws Throwable {
         try {

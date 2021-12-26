@@ -54,7 +54,7 @@ public:
      * \param id the method id
      * \param isStatic true if the method is static
      */
-    BaseMethod(Class *cls, jmethodID id, bool isStatic) : cls(cls), id(id) {
+    BaseMethod(Class* cls, jmethodID id, bool isStatic) : cls(cls), id(id) {
         printd(LogLevel, "BaseMethod::BaseMethod(), this: %p, cls: %p, id: %p\n", this, cls, id);
         Env env;
         method = env.toReflectedMethod(cls->getJavaObject(), id, isStatic).makeGlobal();
@@ -71,12 +71,24 @@ public:
         Env env;
         id = env.fromReflectedMethod(method);
         this->method = GlobalReference<jobject>::fromLocal(method);
-        printd(LogLevel, "BaseMethod::BaseMethod(), this: %p, cls: %p, id: %p\n", this, cls, id);
+        printd(LogLevel, "BaseMethod::BaseMethod() this: %p cls: %p id: %p\n", this, cls, id);
+        init(env);
+    }
+
+    /**
+     * \brief Constructor.
+     * \param method an instance of java.lang.reflect.Method
+     * \cls the Class object for the method
+     */
+    DLLLOCAL BaseMethod(Env& env, jobject method, Class* cls) : cls(cls) {
+        id = env.fromReflectedMethod(method);
+        this->method = GlobalReference<jobject>::fromLocal(method);
+        printd(LogLevel, "BaseMethod::BaseMethod() this: %p cls: %p id: %p\n", this, cls, id);
         init(env);
     }
 
     DLLLOCAL ~BaseMethod() {
-        printd(LogLevel, "BaseMethod::~BaseMethod(), this: %p, cls: %p, id: %p\n", this, cls, id);
+        printd(LogLevel, "BaseMethod::~BaseMethod() this: %p cls: %p id: %p\n", this, cls, id);
 
         /*
         Env env;
@@ -209,7 +221,7 @@ protected:
 
     Class* cls;
     jmethodID id;
-    GlobalReference<jobject> method;             // the instance of java.lang.reflect.Method
+    GlobalReference<jobject> method;     // the instance of java.lang.reflect.Method or java.lang.reflect.Constructor
     GlobalReference<jclass> retValClass;
     Type retValType;
     std::vector<std::pair<Type, GlobalReference<jclass>>> paramTypes;
