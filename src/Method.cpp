@@ -322,9 +322,20 @@ QoreValue BaseMethod::newInstance(const QoreListNode* args, QoreProgram* pgm) {
 LocalReference<jobject> BaseMethod::newQoreInstance(const QoreListNode* args, JniExternalProgramData* jpc) {
     //printd(5, "BaseMethod::newQoreInstance() this: %p cls: %p id: %p args: %p (%d)\n", this, cls->getJavaObject(), id,
     //    args, args ? (int)args->size() : 0);
-    std::vector<jvalue> jargs = convertArgs(args, 0, jpc);
+
+    // add the object as the first argument
+    LocalReference<jobjectArray> vargs = convertArgsToArray(args, 0, 0, jpc).release();
     Env env;
-    return env.newObject(cls->getJavaObject(), id, &jargs[0]);
+    assert((jobject)method);
+    //env.callVoidMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderSetContext, nullptr);
+
+    // public static Object newInstance(Constructor c, Object... args);
+    std::vector<jvalue> jargs(2);
+    jargs[0].l = method;
+    // process method arguments
+    jargs[1].l = vargs;
+
+    return env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getNewInstanceId(), &jargs[0]);
 }
 
 void BaseMethod::getName(QoreString& str) const {

@@ -292,6 +292,11 @@ public:
         return dynamicApi;
     }
 
+    DLLLOCAL jmethodID getNewInstanceId() const {
+        assert(methodQoreJavaDynamicApiNewInstance);
+        return methodQoreJavaDynamicApiNewInstance;
+    }
+
     DLLLOCAL jmethodID getInvokeMethodId() const {
         assert(methodQoreJavaDynamicApiInvokeMethod);
         return methodQoreJavaDynamicApiInvokeMethod;
@@ -393,6 +398,8 @@ protected:
     // call reference for saving object references
     ResolvedCallReferenceNode* save_object_callback = nullptr;
 
+    // QoreJavaDynamicApi.newInstance()
+    jmethodID methodQoreJavaDynamicApiNewInstance = 0;
     // QoreJavaDynamicApi.invokeNethod()
     jmethodID methodQoreJavaDynamicApiInvokeMethod = 0;
     // QoreJavaDynamicApi.invokeNethodNonvirtual()
@@ -417,6 +424,9 @@ protected:
     bool override_compat_types = false;
     // compat-types values
     bool compat_types = false;
+
+    // initializes the dynamic API in the constructor
+    DLLLOCAL void initDynamicApi(Env& env);
 
     // returns Java byte code (byte[]) for the given Qore class
     DLLLOCAL LocalReference<jbyteArray> generateByteCodeIntern(Env& env, jobject class_loader,

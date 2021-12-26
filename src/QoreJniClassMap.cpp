@@ -159,6 +159,7 @@ JniExternalProgramData* jni_get_context() {
 JniExternalProgramData* jni_get_context(QoreProgram*& pgm) {
     JniExternalProgramData* jpc;
 
+    /*
     // first try to get the actual Program context
     pgm = qore_get_call_program_context();
     if (pgm) {
@@ -167,6 +168,7 @@ JniExternalProgramData* jni_get_context(QoreProgram*& pgm) {
             return jpc;
         }
     }
+    */
     pgm = getProgram();
     if (pgm) {
         jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
@@ -174,7 +176,14 @@ JniExternalProgramData* jni_get_context(QoreProgram*& pgm) {
             return jpc;
         }
     }
-    pgm = nullptr;
+    pgm = qore_get_call_program_context();
+    if (pgm) {
+        jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+        if (jpc) {
+            return jpc;
+        }
+        pgm = nullptr;
+    }
     return nullptr;
 }
 
@@ -192,6 +201,7 @@ JniExternalProgramData* jni_get_context_unconditional(QoreProgram*& pgm) {
         }
     }
 
+    /*
     pgm = qore_get_call_program_context();
     if (pgm) {
         jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
@@ -199,8 +209,17 @@ JniExternalProgramData* jni_get_context_unconditional(QoreProgram*& pgm) {
             return jpc;
         }
     }
+    */
 
     pgm = getProgram();
+    if (pgm) {
+        jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+        if (jpc) {
+            return jpc;
+        }
+    }
+
+    pgm = qore_get_call_program_context();
     if (pgm) {
         jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
         if (jpc) {
@@ -940,7 +959,7 @@ void QoreJniClassMap::doConstructors(JniQoreClass& qc, jni::Class* jc, QoreProgr
         // get Constructor object
         LocalReference<jobject> c = env.getObjectArrayElement(conArray, i);
 
-        SimpleRefHolder<BaseMethod> meth(new BaseMethod(c, jc));
+        SimpleRefHolder<BaseMethod> meth(new BaseMethod(env, c, jc));
 
 #ifdef DEBUG
         LocalReference<jstring> conStr = env.callObjectMethod(c,
@@ -984,8 +1003,7 @@ void QoreJniClassMap::doConstructors(JniQoreClass& qc, jni::Class* jc, QoreProgr
     }
 }
 
-const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls, const QoreTypeInfo*& altType, QoreProgram* pgm
-        , bool literal) {
+const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls, const QoreTypeInfo*& altType, QoreProgram* pgm, bool literal) {
     assert(!altType);
     Env env;
 
@@ -2429,13 +2447,16 @@ static void exec_java_constructor(const QoreMethod& qmeth, BaseMethod* m, QoreOb
         q_rt_flags_t rtflags, ExceptionSink* xsink) {
     try {
         // issue #3585: set context for external java threads
-        QoreProgram* pgm = qmeth.getClass()->getProgram();
+        //QoreProgram* pgm = qmeth.getClass()->getProgram();
+        QoreProgram* pgm = self->getProgram(); //qmeth.getClass()->getProgram();
         JniExternalProgramData* jpc = JniExternalProgramData::setContext(pgm);
 
-        // issue #xxxx: check if class is abstract, if so we need to create a new class an instantiate it
+        /*
+        // issue #xxxx: check if class is abstract, if so we need to create a new class and instantiate it
         if (m->isClassAbstract()) {
             printf("abstract %s::%s()\n", qmeth.getName(), qmeth.getClassName());
         }
+        */
 
         self->setPrivate(qmeth.getClass()->getID(), new QoreJniPrivateData(m->newQoreInstance(args, jpc)));
     } catch (jni::Exception& e) {
@@ -2459,7 +2480,8 @@ static QoreValue exec_java_static_method(const QoreMethod& meth, BaseMethod* m, 
 static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObject* self, QoreJniPrivateData* jd,
         const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
     // NOTE: Java base classes will have no Qore program context
-    QoreProgram* pgm = meth.getClass()->getProgram();
+    // always use the current object's Program, otherwise the wrong ClassLoader will be used
+    QoreProgram* pgm = self->getProgram();
     // issue #3585: set context for external java threads
     JniExternalProgramData::setContext(pgm);
     QoreProgramContextHelper pch(pgm);
@@ -2539,38 +2561,7 @@ JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni, QoreProgram
             &jargs[0]).makeGlobal();
     }
 
-    {
-        // define the QoreJavaDynamicApi class using our new classloader
-        LocalReference<jstring> jname = env.newString("org.qore.jni.QoreJavaDynamicApi");
-
-        // make byte array
-        LocalReference<jbyteArray> jbyte_code =
-            env.newByteArray(java_org_qore_jni_QoreJavaDynamicApi_class_len).as<jbyteArray>();
-        for (jsize i = 0; (unsigned)i < java_org_qore_jni_QoreJavaDynamicApi_class_len; ++i) {
-            env.setByteArrayElement(jbyte_code, i, java_org_qore_jni_QoreJavaDynamicApi_class[i]);
-        }
-
-        std::vector<jvalue> jargs(4);
-        jargs[0].l = jname;
-        jargs[1].l = jbyte_code;
-        jargs[2].i = 0;
-        jargs[3].i = java_org_qore_jni_QoreJavaDynamicApi_class_len;
-
-        printd(5, "JniExternalProgramData::JniExternalProgramData() jname: %p bc: %p cl: %d\n", (jobject)jname,
-            (jobject)jbyte_code, java_org_qore_jni_QoreJavaDynamicApi_class_len);
-        dynamicApi = env.callObjectMethod(classLoader, Globals::methodQoreURLClassLoaderDefineResolveClass,
-            &jargs[0]).as<jclass>().makeGlobal();
-        methodQoreJavaDynamicApiInvokeMethod = env.getStaticMethod(dynamicApi, "invokeMethod",
-            "(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
-        methodQoreJavaDynamicApiInvokeMethodNonvirtual = env.getStaticMethod(dynamicApi, "invokeMethodNonvirtual",
-            "(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
-        methodQoreJavaDynamicApiGetField = env.getStaticMethod(dynamicApi, "getField",
-            "(Ljava/lang/reflect/Field;Ljava/lang/Object;)Ljava/lang/Object;");
-
-        printd(LogLevel, "JniExternalProgramData::JniExternalProgramData(): this: %p: dynamic API created: %p " \
-            "classloader: %p QoreJavaClassBase: %p\n", this, getDynamicApi(), getClassLoader(),
-            (jclass)Globals::classQoreJavaClassBase);
-    }
+    initDynamicApi(env);
 
     // setup classpath
     TempString classpath(SystemEnvironment::get("QORE_JNI_CLASSPATH"));
@@ -2581,14 +2572,9 @@ JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni, QoreProgram
 
 JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& parent, Env& env, QoreProgram* pgm) :
         classLoader(nullptr),
-        // reuse the same dynamic API as the parent
-        dynamicApi(GlobalReference<jclass>::fromLocal(parent.dynamicApi.toLocal())),
-        methodQoreJavaDynamicApiInvokeMethod(parent.methodQoreJavaDynamicApiInvokeMethod),
-        methodQoreJavaDynamicApiInvokeMethodNonvirtual(parent.methodQoreJavaDynamicApiInvokeMethodNonvirtual),
-        methodQoreJavaDynamicApiGetField(parent.methodQoreJavaDynamicApiGetField),
         override_compat_types(parent.override_compat_types),
         compat_types(parent.compat_types) {
-    // clone the parent's classLoader
+    // create the classLoader and set the parent
     {
         jvalue jargs[2];
         jargs[0].j = (jlong)pgm;
@@ -2596,6 +2582,8 @@ JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& par
         classLoader = env.newObject(Globals::classQoreURLClassLoader, Globals::ctorQoreURLClassLoader,
             &jargs[0]).makeGlobal();
     }
+
+    initDynamicApi(env);
 
     // copy the parent's class map to this one
     jcmap = parent.jcmap;
@@ -2620,6 +2608,41 @@ JniExternalProgramData::~JniExternalProgramData() {
         delete i.second;
     }
     classLoader = nullptr;
+}
+
+void JniExternalProgramData::initDynamicApi(Env& env) {
+    // define the QoreJavaDynamicApi class using our new classloader
+    LocalReference<jstring> jname = env.newString("org.qore.jni.QoreJavaDynamicApi");
+
+    // make byte array
+    LocalReference<jbyteArray> jbyte_code =
+        env.newByteArray(java_org_qore_jni_QoreJavaDynamicApi_class_len).as<jbyteArray>();
+    for (jsize i = 0; (unsigned)i < java_org_qore_jni_QoreJavaDynamicApi_class_len; ++i) {
+        env.setByteArrayElement(jbyte_code, i, java_org_qore_jni_QoreJavaDynamicApi_class[i]);
+    }
+
+    std::vector<jvalue> jargs(4);
+    jargs[0].l = jname;
+    jargs[1].l = jbyte_code;
+    jargs[2].i = 0;
+    jargs[3].i = java_org_qore_jni_QoreJavaDynamicApi_class_len;
+
+    printd(5, "JniExternalProgramData::JniExternalProgramData() jname: %p bc: %p cl: %d\n", (jobject)jname,
+        (jobject)jbyte_code, java_org_qore_jni_QoreJavaDynamicApi_class_len);
+    dynamicApi = env.callObjectMethod(classLoader, Globals::methodQoreURLClassLoaderDefineResolveClass,
+        &jargs[0]).as<jclass>().makeGlobal();
+    methodQoreJavaDynamicApiNewInstance = env.getStaticMethod(dynamicApi, "newInstance",
+        "(Ljava/lang/reflect/Constructor;[Ljava/lang/Object;)Ljava/lang/Object;");
+    methodQoreJavaDynamicApiInvokeMethod = env.getStaticMethod(dynamicApi, "invokeMethod",
+        "(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+    methodQoreJavaDynamicApiInvokeMethodNonvirtual = env.getStaticMethod(dynamicApi, "invokeMethodNonvirtual",
+        "(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+    methodQoreJavaDynamicApiGetField = env.getStaticMethod(dynamicApi, "getField",
+        "(Ljava/lang/reflect/Field;Ljava/lang/Object;)Ljava/lang/Object;");
+
+    printd(LogLevel, "JniExternalProgramData::JniExternalProgramData(): this: %p: dynamic API created: %p " \
+        "classloader: %p QoreJavaClassBase: %p\n", this, getDynamicApi(), getClassLoader(),
+        (jclass)Globals::classQoreJavaClassBase);
 }
 
 void JniExternalProgramData::addClasspath(const char* path) {

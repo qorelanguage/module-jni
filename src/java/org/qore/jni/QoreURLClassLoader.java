@@ -356,6 +356,14 @@ public class QoreURLClassLoader extends URLClassLoader {
      * Loads classes; returns pending classes injected by the jni module or the compiler
      */
     public Class<?> loadClass(String bin_name) throws ClassNotFoundException {
+        /*
+        // XXX DELETEME DEBUG
+        if (bin_name.equals("org.apache.kafka.clients.consumer.KafkaConsumer")
+            || bin_name.equals("org.apache.kafka.common.header.Headers")) {
+            System.out.println(String.format("loadClass(%s) %x (pgm %x)", bin_name, hashCode(), pgm_ptr));
+        }
+        */
+
         //System.out.printf("QoreURLClassLoader.loadClass() this: %x '%s' pgm: %x (bootstrap: %s startup: %s)\n",
         //    hashCode(), bin_name, pgm_ptr, bootstrap, startup);
         Class<?> rv = findLoadedClass(bin_name);
@@ -541,7 +549,7 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     //! Adds a path to the classpath
     public void addPath(String classpath) {
-        //debugLog("addPath: " + classpath);
+        //debugLog(String.format("%x: addPath: %s", hashCode(), classpath));
         String seps = File.pathSeparator; // separators
 
         // want to accept both system separator and ';'

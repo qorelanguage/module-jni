@@ -722,6 +722,14 @@ set_save_object_callback(callback);
 
     @section jnireleasenotes jni Module Release Notes
 
+    @subsection jni_2_0_6 jni Module Version 2.0.6
+    - fixed a bug where Java method args in array format were not always converted from %Qore values correctly
+      (<a href="https://github.com/qorelanguage/qore/issues/4372">issue 4372</a>)
+    - fixed a bug where the %Qore \c Program and Java \c ClassLoader context was not always set correctly when
+      instantiating %Qore classes from Java when there were dependencies on dynamic classes, leading to class
+      resolution errors
+      (<a href="https://github.com/qorelanguage/qore/issues/4371">issue 4371</a>)
+
     @subsection jni_2_0_5 jni Module Version 2.0.5
     - fixed a memory error in exception handling in %Qore to Java tyype conversions that could cause a core dump
       (<a href="https://github.com/qorelanguage/qore/issues/4349">issue 4349</a>)

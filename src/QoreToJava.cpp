@@ -157,18 +157,35 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProg
             }
 
             case NT_INT: {
-                if (env.isSameObject(cls, Globals::classInteger)
-                    || env.isSameObject(cls, Globals::classPrimitiveInt)) {
-                    jvalue arg;
-                    int64 v = value.getAsBigInt();
-                    arg.i = (int)v;
-                    return env.newObject(Globals::classInteger, Globals::ctorInteger, &arg).release();
-                }
                 if (env.isSameObject(cls, Globals::classLong) || env.isSameObject(cls, Globals::classPrimitiveLong)) {
                     jvalue arg;
                     int64 v = value.getAsBigInt();
-                    arg.j = v;
+                    arg.j = (jlong)v;
                     return env.newObject(Globals::classLong, Globals::ctorLong, &arg).release();
+                }
+                if (env.isSameObject(cls, Globals::classInteger) || env.isSameObject(cls, Globals::classPrimitiveInt)) {
+                    jvalue arg;
+                    int64 v = value.getAsBigInt();
+                    arg.i = (jint)v;
+                    return env.newObject(Globals::classInteger, Globals::ctorInteger, &arg).release();
+                }
+                if (env.isSameObject(cls, Globals::classShort) || env.isSameObject(cls, Globals::classPrimitiveShort)) {
+                    jvalue arg;
+                    int64 v = value.getAsBigInt();
+                    arg.s = (jshort)v;
+                    return env.newObject(Globals::classShort, Globals::ctorShort, &arg).release();
+                }
+                if (env.isSameObject(cls, Globals::classCharacter) || env.isSameObject(cls, Globals::classPrimitiveChar)) {
+                    jvalue arg;
+                    int64 v = value.getAsBigInt();
+                    arg.s = (jchar)v;
+                    return env.newObject(Globals::classCharacter, Globals::ctorCharacter, &arg).release();
+                }
+                if (env.isSameObject(cls, Globals::classByte) || env.isSameObject(cls, Globals::classPrimitiveByte)) {
+                    jvalue arg;
+                    int64 v = value.getAsBigInt();
+                    arg.s = (jbyte)v;
+                    return env.newObject(Globals::classByte, Globals::ctorByte, &arg).release();
                 }
                 break;
             }

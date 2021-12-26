@@ -37,7 +37,7 @@ public class Main inherits QUnit::Test {
         Field oa = clazz.getDeclaredField("oa");
         Field ia = clazz.getDeclaredField("ia");
 
-        binary byteArray = ba.get();
+        list<int> byteArray = ba.get();
         list<auto> objectArray = oa.get();
         list<auto> intArray = ia.get();
 
@@ -63,7 +63,7 @@ public class Main inherits QUnit::Test {
         Field oa = clazz.getDeclaredField("oa");
         Field ia = clazz.getDeclaredField("ia");
 
-        binary byteArray = ba.get(instance);
+        list<int> byteArray = ba.get(instance);
         list<auto> objectArray = oa.get(instance);
         list<auto> intArray = ia.get(instance);
 
