@@ -1,7 +1,7 @@
 
 package org.qore.test;
 
-import pythonmod.json.$;
+import pythonmod.json.$json;
 import python.json.JSONEncoder;
 import org.qore.jni.Hash;
 

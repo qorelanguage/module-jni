@@ -1,7 +1,7 @@
 
 package org.qore.test;
 
-import qoremod.RestClient.$;
+import qoremod.RestClient.$RestClient;
 import qore.RestClient.RestClient;
 
 import org.qore.jni.Hash;

@@ -48,7 +48,6 @@ DLLLOCAL QoreProgram* jni_get_create_program(Env& env);
 
 DLLLOCAL const std::string JniImportedFunctionClassName = "$Functions";
 DLLLOCAL const std::string JniImportedConstantClassName = "$Constants";
-DLLLOCAL const std::string JniImportedFakeModuleClassName = "$";
 
 class Env;
 

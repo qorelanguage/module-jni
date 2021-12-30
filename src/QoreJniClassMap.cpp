@@ -1810,7 +1810,7 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jo
             // create constant class
             return generateConstantClassIntern(env, class_loader, pgm, jname);
         }
-        if (cname == JniImportedFakeModuleClassName) {
+        if (cname[0] == '$') {
             printd(5, "JniExternalProgramData::generateByteCode() '%s' ('%s') pgm: %p qc: %p\n",
                 qpath ? qpath->c_str() : "n/a", cname.c_str(), pgm, qcls);
             qcls = getFakeClassForPath(pgm, qpath);
