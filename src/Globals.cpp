@@ -1453,7 +1453,7 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
         if (ns) {
             QoreString java_pfx;
 
-            // issue #4304: add fake "$" class to result list when we are loading modules
+            // issue #4304: add fake '$<mod>' classes to result list when we are loading modules
             if (module) {
                 // add to the ArrayList<String> var
                 std::string pname;
@@ -1462,6 +1462,7 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
                 }
                 pname = java_pfx.c_str();
                 pname += "$";
+                pname += mod_str.c_str();
                 LocalReference<jstring> bin_name = env.newString(pname.c_str());
                 jvalue jarg;
                 jarg.l = bin_name;
