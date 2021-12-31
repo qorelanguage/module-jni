@@ -304,6 +304,12 @@ jmethodID Globals::methodBooleanWrapperSetTrue;
 std::string QoreJniStackLocationHelper::jni_no_call_name = "<jni_module_java_no_runtime_stack_info>";
 QoreExternalProgramLocationWrapper QoreJniStackLocationHelper::jni_loc_builtin("<jni_module_unknown>", -1, -1);
 
+// for the module namespace cache
+QoreThreadLock qmnc_lock;
+typedef std::map<std::string, const QoreNamespace*> qmnc_t;
+typedef std::map<QoreProgram*, qmnc_t> qmnpc_t;
+qmnpc_t qmnc;
+
 // issue #3310: allow Java-only programs to manage a Qore Program object
 #include <mutex>
 static std::mutex jni_pgm_mutex;
@@ -1122,7 +1128,7 @@ typedef int (*python_module_import_t)(ExceptionSink* xsink, QoreProgram* pgm, co
 static python_module_import_t python_module_import = nullptr;
 
 // throws a Java exception and return -1 on failure
-int load_python_module(Env& env, JniExternalProgramData* jpc, QoreProgram* pgm) {
+int load_python_module(Env& env, QoreProgram* pgm) {
     static bool python_loaded = false;
 
     if (!python_loaded) {
@@ -1150,7 +1156,11 @@ static jbyteArray JNICALL qore_url_classloader_generate_byte_code(JNIEnv* jenv, 
     assert(ptr);
     QoreProgram* pgm = reinterpret_cast<QoreProgram*>(ptr);
     Env env(jenv);
-    Env::GetStringUtfChars qpath(env, nspath);
+    QoreString qpath;
+    if (nspath) {
+        Env::GetStringUtfChars jqpath(env, nspath);
+        qpath = jqpath.c_str();
+    }
 
     // must ensure that the thread is attached before calling Qore APIs
     QoreThreadAttachHelper attach_helper;
@@ -1182,16 +1192,23 @@ static jbyteArray JNICALL qore_url_classloader_generate_byte_code(JNIEnv* jenv, 
             return nullptr;
         }
 
-        if (module && !python) {
+        if (module) {
             Env::GetStringUtfChars mod_str(env, module);
-            if (load_module(env, mod_str, pgm)) {
-                return nullptr;
+            printd(5, "qore_url_classloader_generate_byte_code() mod: '%s' python: %d\n", mod_str.c_str(), python);
+            if (!python) {
+                if (load_module(env, mod_str, pgm)) {
+                    return nullptr;
+                }
+            } else {
+                qpath.insert("::", 0);
+                qpath.insert(mod_str.c_str(), 0);
+                qpath.insert("::Python::", 0);
             }
         }
         printd(5, "qore_url_classloader_generate_byte_code() p: %p path: '%s' (mod: %p) class_loader: %x\n", pgm, qpath.c_str(),
             module, env.callIntMethod(class_loader, jni::Globals::methodObjectHashCode, nullptr));
 
-        return jpc->generateByteCode(env, class_loader, &qpath, pgm, jname,
+        return jpc->generateByteCode(env, class_loader, qpath, pgm, jname,
             reinterpret_cast<const QoreClass*>(class_ptr)).release();
     } catch (jni::JavaException& e) {
         e.convert(&xsink);
@@ -1290,15 +1307,31 @@ static const QoreNamespace* get_module_root_ns_intern(const char* name, const Qo
     return nullptr;
 }
 
-static const QoreNamespace* get_module_root_ns(const char* name, QoreProgram* mod_pgm) {
+const QoreNamespace* get_module_root_ns(const char* name, QoreProgram* mod_pgm) {
+    AutoLocker al(qmnc_lock);
+    qmnpc_t::iterator pi = qmnc.lower_bound(mod_pgm);
+    qmnc_t::iterator i;
+    if (pi == qmnc.end() || pi->first != mod_pgm) {
+        pi = qmnc.insert(pi, qmnpc_t::value_type(mod_pgm, qmnc_t()));
+        i = pi->second.end();
+    } else {
+        i = pi->second.lower_bound(name);
+        if (i != pi->second.end() && i->first == name) {
+            return i->second;
+        }
+    }
+
     ReferenceHolder<QoreHashNode> all_mod_info(MM.getModuleHash(), nullptr);
     mod_dep_map_t mod_dep_map;
 
-    // otherwise look for a public namespace and then find the ealiest ancestor provided by the module
+    // look for a public namespace and then find the earliest ancestor provided by the module
     const QoreNamespace* root_ns = mod_pgm->getRootNS();
     const QoreNamespace* rv = get_module_root_ns_intern(name, *root_ns, *all_mod_info, mod_dep_map, true);
     if (!rv) {
         rv = get_module_root_ns_intern(name, *root_ns, *all_mod_info, mod_dep_map, false);
+    }
+    if (rv) {
+        pi->second.insert(i, qmnc_t::value_type(name, rv));
     }
     return rv;
 }
@@ -1399,12 +1432,12 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
         }
     }
 
-    printd(5, "qore_url_classloader_get_classes_in_namespace() qname: '%s' (%p) module: '%s' (%p) python: %d " \
+    printd(5, "qore_url_classloader_get_classes_in_namespace() qname: '%s' (%p) module: '%s' (%p) python: %d "
         "py_path: '%s'\n", nsname.c_str(), qname, mod_str.c_str(), module, python, py_path.c_str());
 
     if (python) {
         try {
-            if (!python_module_import && load_python_module(env, jpc, pgm)) {
+            if (!python_module_import && load_python_module(env, pgm)) {
                 return nullptr;
             }
             printd(5, "qore_url_classloader_get_classes_in_namespace() python import path: '%s'\n", py_path.c_str());
@@ -1412,7 +1445,6 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
                 QoreToJava::wrapException(xsink);
                 return nullptr;
             }
-
         } catch (AbstractException& e) {
             e.convert(&xsink);
             QoreToJava::wrapException(xsink);
@@ -1420,7 +1452,7 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
         }
     }
 
-    if (module && !python && load_module(env, mod_str, pgm )) {
+    if (module && !python && load_module(env, mod_str, pgm)) {
         return nullptr;
     }
 
@@ -1436,6 +1468,15 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
             QoreString ns_path = py_path;
             ns_path.replaceAll(".", "::");
             ns = pgm->findNamespace(ns_path.c_str());
+#if QORE_VERSION_CODE >= 10013
+            if (!module) {
+                ValueHolder pm(ns->getReferencedKeyValue("python_module"), nullptr);
+                printd(5, "python_module: '%s'\n", pm ? pm->get<QoreStringNode>()->c_str() : "n/a");
+                if (pm->getType() == NT_STRING) {
+                    mod_str = pm->get<QoreStringNode>()->c_str();
+                }
+            }
+#endif
             printd(5, "qore_url_classloader_get_classes_in_namespace() py_path: '%s' => '%s' ns: %p\n",
                 py_path.c_str(), ns_path.c_str(), ns);
         } else if (qname) {
@@ -1448,25 +1489,15 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
                 mod_str.c_str(), ns);
         }
 
-        printd(5, "qore_url_classloader_get_classes_in_namespace() pgm: %p '%s': %p (%s)\n", pgm, nsname.c_str(), ns,
-            ns ? ns->getName() : "n/a");
+        printd(5, "qore_url_classloader_get_classes_in_namespace() pgm: %p '%s': %p (%s -> %s)\n", pgm,
+            nsname.c_str(), ns, ns ? ns->getName() : "n/a", ns ? ns->getPath(true).c_str() : "n/a");
         if (ns) {
             QoreString java_pfx;
 
-            // issue #4304: add fake '$<mod>' classes to result list when we are loading modules
-            if (module) {
-                // add to the ArrayList<String> var
-                std::string pname;
-                if (java_pfx.empty()) {
-                    get_java_pfx(java_pfx, python, mod_str.c_str(), py_path, nsname.c_str());
-                }
-                pname = java_pfx.c_str();
-                pname += "$";
-                pname += mod_str.c_str();
-                LocalReference<jstring> bin_name = env.newString(pname.c_str());
-                jvalue jarg;
-                jarg.l = bin_name;
-                env.callBooleanMethod(arraylist, Globals::methodArrayListAdd, &jarg);
+            if (!mod_str && ns->getModuleName()) {
+                // do not allow Qore symbols provided by modules to be accessed from the "qore" package
+                // or Python symbols provided by modules to be accessed from the 'python' package
+                return nullptr;
             }
 
             QoreNamespaceClassIterator i(*ns);
@@ -1494,7 +1525,7 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
                 env.callBooleanMethod(arraylist, Globals::methodArrayListAdd, &jarg);
             }
             QoreNamespaceFunctionIterator fi(*ns);
-            while (i.next()) {
+            while (fi.next()) {
                 // if there is at least one, then create the special "$Functions" class
                 if (java_pfx.empty()) {
                     get_java_pfx(java_pfx, python, mod_str.c_str(), py_path, nsname.c_str());
@@ -1502,6 +1533,7 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
                 std::string pname = java_pfx.c_str();
                 pname += JniImportedFunctionClassName;
 
+                printd(5, "function pname: '%s'\n", pname.c_str());
                 LocalReference<jstring> bin_name = env.newString(pname.c_str());
 
                 jvalue jarg;
@@ -1511,7 +1543,7 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
                 break;
             }
             QoreNamespaceConstantIterator ci(*ns);
-            while (i.next()) {
+            while (ci.next()) {
                 // if there is at least one, then create the special "$Constants" class
                 if (java_pfx.empty()) {
                     get_java_pfx(java_pfx, python, mod_str.c_str(), py_path, nsname.c_str());
@@ -2573,8 +2605,9 @@ bool Globals::init() {
     if (bootstrap) {
         classJavaClassBuilder = env.findClass("org/qore/jni/JavaClassBuilder").makeGlobal();
 
+        // cannot call ClassLoader.getSystemClassLoader() when QoreURLClassLoader is used as the system class loader
         // create the classloader with the system classloader as a parent
-        jmethodID meth = env.getStaticMethod(classClassLoader, "getSystemClassLoader", "()Ljava/lang/ClassLoader;");
+        jmethodID meth = env.getStaticMethod(classClassLoader, "getPlatformClassLoader", "()Ljava/lang/ClassLoader;");
         LocalReference<jobject> cl = env.callStaticObjectMethod(classClassLoader, meth, nullptr);
 
         jmethodID ctorQoreURLClassLoaderSys = env.getMethod(classQoreURLClassLoader, "<init>", "(JLjava/lang/ClassLoader;)V");
@@ -2640,7 +2673,8 @@ bool Globals::init() {
     methodJavaClassBuilderGetClassBuilder = env.getStaticMethod(classJavaClassBuilder, "getClassBuilder",
         "(Ljava/lang/String;Ljava/lang/Class;Ljava/util/ArrayList;ZJ)" \
         "Lnet/bytebuddy/dynamic/DynamicType$Builder;");
-    methodJavaClassBuilderGetFunctionConstantClassBuilder = env.getStaticMethod(classJavaClassBuilder, "getFunctionConstantClassBuilder",
+    methodJavaClassBuilderGetFunctionConstantClassBuilder = env.getStaticMethod(classJavaClassBuilder,
+        "getFunctionConstantClassBuilder",
         "(Ljava/lang/String;)Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderAddFunction = env.getStaticMethod(classJavaClassBuilder, "addFunction",
         "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JJJ" \
@@ -2650,7 +2684,8 @@ bool Globals::init() {
         "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;I" \
         "Lnet/bytebuddy/description/type/TypeDescription;JLjava/util/ArrayList;)" \
         "Lnet/bytebuddy/dynamic/DynamicType$Builder;");
-    methodJavaClassBuilderCreateStaticInitializer = env.getStaticMethod(classJavaClassBuilder, "createStaticInitializer",
+    methodJavaClassBuilderCreateStaticInitializer = env.getStaticMethod(classJavaClassBuilder,
+        "createStaticInitializer",
         "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JLjava/util/ArrayList;)" \
         "Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderAddConstructor = env.getStaticMethod(classJavaClassBuilder, "addConstructor",
@@ -2664,7 +2699,8 @@ bool Globals::init() {
         "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JJJI" \
         "Lnet/bytebuddy/description/type/TypeDefinition;Ljava/util/List;Z)" \
         "Lnet/bytebuddy/dynamic/DynamicType$Builder;");
-    methodJavaClassBuilderGetByteCodeFromBuilder = env.getStaticMethod(classJavaClassBuilder, "getByteCodeFromBuilder",
+    methodJavaClassBuilderGetByteCodeFromBuilder = env.getStaticMethod(classJavaClassBuilder,
+        "getByteCodeFromBuilder",
         "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Lorg/qore/jni/QoreURLClassLoader;)[B");
     methodJavaClassBuilderGetTypeDescriptionCls = env.getStaticMethod(classJavaClassBuilder, "getTypeDescription",
         "(Ljava/lang/Class;)Lnet/bytebuddy/description/type/TypeDescription;");
@@ -2681,7 +2717,8 @@ bool Globals::init() {
 
 void Globals::bootstrapInitDone() {
     Env env(false);
-    jmethodID methodQoreURLClassLoaderClearBootstrap = env.getMethod(classQoreURLClassLoader, "clearBootstrap", "()V");
+    jmethodID methodQoreURLClassLoaderClearBootstrap = env.getMethod(classQoreURLClassLoader, "clearBootstrap",
+        "()V");
     env.callVoidMethod(syscl, methodQoreURLClassLoaderClearBootstrap, nullptr);
 }
 

@@ -1,8 +1,7 @@
 
 package org.qore.test;
 
-import pythonmod.json.$json;
-import python.json.JSONEncoder;
+import pythonmod.json.JSONEncoder;
 import org.qore.jni.Hash;
 
 public class QoreDynamicTest14 extends JSONEncoder {

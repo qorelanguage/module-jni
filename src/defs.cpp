@@ -168,10 +168,10 @@ QoreStringNode* JavaException::toString() const {
             }
         }
 
-        /*
+        ///*
         jmethodID methodThrowablePrintStackTrace = env->GetMethodID(Globals::classThrowable, "printStackTrace", "()V");
         env->CallVoidMethod(throwable, methodThrowablePrintStackTrace);
-        */
+        //*/
 
         LocalReference<jthrowable> cause = static_cast<jthrowable>(env->CallObjectMethod(throwable, Globals::methodThrowableGetCause));
         //printd(5, "cause: %p\n", (jthrowable)cause);

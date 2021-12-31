@@ -54,7 +54,11 @@ class ClassModInfo {
             } else {
                 mod = bin_name.substring(8);
                 cls = null;
-                return;
+            }
+            if (mod.equals("python")) {
+                python = true;
+                cls = "Python::" + cls;
+                mod = null;
             }
         } else if (bin_name.startsWith("python.")) {
             python = true;
