@@ -386,6 +386,9 @@ private:
     DLLLOCAL void checkInit() const;
 };
 
+// find the root namespace for the given module in the given QoreProgram
+DLLLOCAL const QoreNamespace* get_module_root_ns(const char* name, QoreProgram* mod_pgm);
+
 } // namespace jni
 
 #endif // QORE_JNI_GLOBALS_H_

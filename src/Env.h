@@ -1370,6 +1370,19 @@ public:
             return chars[i];
         }
 
+        DLLLOCAL operator bool() const {
+            return (bool)chars;
+        }
+
+        DLLLOCAL GetStringUtfChars& operator=(const char* new_chars) {
+            if (str) {
+                env.env->ReleaseStringUTFChars(*str, chars);
+                str = nullptr;
+            }
+            chars = new_chars;
+            return *this;
+        }
+
     private:
         Env& env;
         const LocalReference<jstring>* str;

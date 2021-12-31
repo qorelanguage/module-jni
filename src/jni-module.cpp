@@ -124,6 +124,8 @@ static QoreStringNode* jni_module_init() {
 
     jni::jni_qore_init = true;
 
+    qore_set_module_option("jni", "jni-version", JNI_VERSION_10);
+
     QoreStringNode* err = nullptr;
 
     ValueHolder jvm_ptr(qore_get_module_option("jni", "jvm-ptr"), nullptr);
@@ -219,7 +221,6 @@ static QoreStringNode* jni_module_init() {
         jni_compat_types = true;
     }
 
-    qore_set_module_option("jni", "jni-version", JNI_VERSION_1_8);
     //printd(5, "jni_module_init() jni module init done\n");
     return nullptr;
 }

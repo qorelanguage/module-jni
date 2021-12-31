@@ -127,7 +127,8 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     //! constructor for using this class as the boot classloader for the module
     public QoreURLClassLoader() {
-        super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
+        //super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
+        super("QoreURLClassLoader", new URL[]{}, ClassLoader.getPlatformClassLoader());
         setContext();
         enable_cache = true;
         setContextProgram(this);
@@ -136,7 +137,8 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     //! constructor for using this class as the boot classloader for the module
     public QoreURLClassLoader(long p_ptr) {
-        super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
+        //super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
+        super("QoreURLClassLoader", new URL[]{}, ClassLoader.getPlatformClassLoader());
         setContext();
         pgm_ptr = p_ptr;
         //System.out.printf("QoreURLClassLoader(long p_ptr: %x) this: %x\n", p_ptr, hashCode());
@@ -279,11 +281,6 @@ public class QoreURLClassLoader extends URLClassLoader {
     protected Class<?> findClass(String bin_name) throws ClassNotFoundException {
         //System.out.printf("findClass() this: %x %s\n", hashCode(), bin_name);
         try {
-        /*
-        for (URL url : getURLs()) {
-            System.out.printf("findClass(%s) this: %x elem: %s\n", bin_name, hashCode(), url.toString());
-        }
-        */
 
         Class<?> rv;
 
@@ -356,14 +353,6 @@ public class QoreURLClassLoader extends URLClassLoader {
      * Loads classes; returns pending classes injected by the jni module or the compiler
      */
     public Class<?> loadClass(String bin_name) throws ClassNotFoundException {
-        /*
-        // XXX DELETEME DEBUG
-        if (bin_name.equals("org.apache.kafka.clients.consumer.KafkaConsumer")
-            || bin_name.equals("org.apache.kafka.common.header.Headers")) {
-            System.out.println(String.format("loadClass(%s) %x (pgm %x)", bin_name, hashCode(), pgm_ptr));
-        }
-        */
-
         //System.out.printf("QoreURLClassLoader.loadClass() this: %x '%s' pgm: %x (bootstrap: %s startup: %s)\n",
         //    hashCode(), bin_name, pgm_ptr, bootstrap, startup);
         Class<?> rv = findLoadedClass(bin_name);
@@ -435,6 +424,7 @@ public class QoreURLClassLoader extends URLClassLoader {
                 // we must load classes first when we are a "startup" class loader, so that referenced dynamic
                 // classes will be loadable
                 rv = super.findClass(bin_name);
+
                 if (rv != null) {
                     //System.out.printf("loadClass() %s returning super.findClass()\n", bin_name);
                     return rv;
@@ -443,6 +433,7 @@ public class QoreURLClassLoader extends URLClassLoader {
                 // ignore
             }
         }
+
         //System.out.printf("loadClass() %s call super...\n", bin_name);
         return super.loadClass(bin_name);
     }
@@ -558,6 +549,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         }
         for (StringTokenizer st = new StringTokenizer(classpath, seps, false); st.hasMoreTokens();) {
             String pathentry = st.nextToken();
+            //debugLog("addPath(): " + pathentry);
             String basename = null;
 
             if (pathentry.length() == 0) {
@@ -599,6 +591,7 @@ public class QoreURLClassLoader extends URLClassLoader {
             } else if (!fileentry.exists()) { // s/never be due getCanonicalFile() above
                 errorLog("Could not find classpath element '" + fileentry + "'");
             } else if (fileentry.isDirectory()) {
+                //debugLog("adding dir: " + fileentry.getName() + " (" + fileentry.toString() + ")");
                 addURL(createUrl(fileentry));
             } else if (isLoadable(fileentry.getName())) {
                 //debugLog("adding jar: " + fileentry.getName() + " (" + fileentry.toString() + ")");
@@ -617,7 +610,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         ClassModInfo info = new ClassModInfo(packageName, true);
         getClassesInNamespace0(pgm_ptr, info.cls, info.mod, info.python, rv);
         //System.out.printf("getClassesInNamespace(%s) pgm: %x cls: '%s' mod: '%s' rv: %s\n", packageName, pgm_ptr,
-        //  info.cls, info.mod, rv);
+        //    info.cls, info.mod, rv);
 
         if (rv.size() == 0) {
             ClassLoader parent = getParent();
