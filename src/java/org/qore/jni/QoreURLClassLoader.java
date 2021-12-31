@@ -127,7 +127,6 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     //! constructor for using this class as the boot classloader for the module
     public QoreURLClassLoader() {
-        //super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
         super("QoreURLClassLoader", new URL[]{}, ClassLoader.getPlatformClassLoader());
         setContext();
         enable_cache = true;
@@ -137,7 +136,8 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     //! constructor for using this class as the boot classloader for the module
     public QoreURLClassLoader(long p_ptr) {
-        //super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
+        // NOTE: we cannot call getSystemClassLoader() here, as this constructor is used when this class is used as
+        // the ssytem class loader
         super("QoreURLClassLoader", new URL[]{}, ClassLoader.getPlatformClassLoader());
         setContext();
         pgm_ptr = p_ptr;

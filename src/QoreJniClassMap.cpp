@@ -1836,27 +1836,6 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jo
     return rv;
 }
 
-/*
-QoreBuiltinClass* JniExternalProgramData::getFakeClassForPath(QoreProgram* pgm, const Env::GetStringUtfChars* qpath) {
-    std::string cpath(qpath->c_str());
-
-    // ensure exclusive access while searching the fake class map
-    AutoLocker al(codeGenLock);
-
-    fake_cls_map_t::iterator i = fake_cls_map.lower_bound(cpath);
-    if (i != fake_cls_map.end() && i->first == cpath) {
-        return i->second;
-    }
-
-    // create new fake class
-    QoreBuiltinClass* cls = new QoreBuiltinClass("$", cpath.c_str());
-    // store in map
-    fake_cls_map.insert(i, fake_cls_map_t::value_type(cpath, cls));
-    printd(5, "JniExternalProgramData::getFakeClassForPath() '%s' -> %p\n", cpath.c_str(), cls);
-    return cls;
-}
-*/
-
 static void convert_qore_ns_to_java_pkg(std::string& str) {
     size_t start_pos = 0;
     while ((start_pos = str.find("::", start_pos)) != std::string::npos) {

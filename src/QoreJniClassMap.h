@@ -473,8 +473,6 @@ protected:
 
     DLLLOCAL int addClassConstants(Env& env, jstring jname, const QoreClass& qcls,
         LocalReference<jobject>& bb, QoreProgram* pgm);
-
-    //DLLLOCAL QoreBuiltinClass* getFakeClassForPath(QoreProgram* pgm, const Env::GetStringUtfChars* qpath);
 };
 
 DLLLOCAL LocalReference<jstring> get_java_name_for_class(Env& env, const QoreClass& qc);
