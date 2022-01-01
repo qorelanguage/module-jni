@@ -388,7 +388,15 @@ public:
 
     DLLLOCAL static bool compatTypes();
 
+    DLLLOCAL LocalReference<jstring> getJavaNameForClass(Env& env, const QoreClass& qc);
+
+    DLLLOCAL bool addInjectedModule(const char* mod);
+
+    DLLLOCAL bool isInjectedModule(const char* mod) const;
+
 protected:
+    // owning QoreProgram object
+    QoreProgram* pgm;
     // Jni namespace pointer for the current Program
     QoreNamespace* jni;
     // class loader
@@ -424,6 +432,11 @@ protected:
     bool override_compat_types = false;
     // compat-types values
     bool compat_types = false;
+
+    // injected module set
+    typedef std::set<std::string> strset_t;
+    strset_t injected_module_set;
+    mutable QoreThreadLock injected_module_lock;
 
     // initializes the dynamic API in the constructor
     DLLLOCAL void initDynamicApi(Env& env);
@@ -474,8 +487,6 @@ protected:
     DLLLOCAL int addClassConstants(Env& env, jstring jname, const QoreClass& qcls,
         LocalReference<jobject>& bb, QoreProgram* pgm);
 };
-
-DLLLOCAL LocalReference<jstring> get_java_name_for_class(Env& env, const QoreClass& qc);
 
 DLLLOCAL QoreProgram* jni_get_program_context();
 DLLLOCAL JniExternalProgramData* jni_get_context();

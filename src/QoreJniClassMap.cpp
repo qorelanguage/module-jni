@@ -1758,6 +1758,7 @@ int JniExternalProgramData::addMethods(Env& env, jobject class_loader, const Qor
 LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jobject class_loader,
         const QoreString& qpath, QoreProgram* pgm, jstring jname, const QoreClass* qcls) {
     printd(5, "JniExternalProgramData::generateByteCode() '%s' pgm: %p qc: %p\n", qpath.c_str(), pgm, qcls);
+    assert(pgm == this->pgm);
     ExceptionSink xsink;
     if (!qcls) {
         assert(!qpath.empty());
@@ -1844,12 +1845,13 @@ static void convert_qore_ns_to_java_pkg(std::string& str) {
     }
 }
 
-LocalReference<jstring> get_java_name_for_class(Env& env, const QoreClass& qc) {
+LocalReference<jstring> JniExternalProgramData::getJavaNameForClass(Env& env, const QoreClass& qc) {
     ValueHolder v(qc.getReferencedKeyValue(JNI_CK_JAVA_BIN_NAME), nullptr);
     if (v) {
         assert(v->getType() == NT_STRING);
         const char* jname = v->get<const QoreStringNode>()->c_str();
-        printd(5, "get_java_name_for_class() cls '%s' -> embedded java '%s'\n", qc.getName(), jname);
+        printd(5, "JniExternalProgramData::getJavaNameForClass() cls '%s' -> embedded java '%s'\n", qc.getName(),
+            jname);
         return env.newString(jname);
     }
 
@@ -1866,7 +1868,7 @@ LocalReference<jstring> get_java_name_for_class(Env& env, const QoreClass& qc) {
             if (!strcmp(mod, "python")) {
                 const QoreNamespace* ns = qc.getNamespace();
                 ValueHolder pm(ns->getReferencedKeyValue("python_module"), nullptr);
-                printd(5, "get_java_name_for_class() pname: '%s' ns: '%s pm: %s\n", pname.c_str(),
+                printd(5, "JniExternalProgramData::getJavaNameForClass() pname: '%s' ns: '%s pm: %s\n", pname.c_str(),
                     ns->getPath(true).c_str(), pm->getFullTypeName());
                 if (pm) {
                     pname = pm->get<QoreStringNode>()->c_str();
@@ -1879,35 +1881,41 @@ LocalReference<jstring> get_java_name_for_class(Env& env, const QoreClass& qc) {
             }
 #endif
             if (!done) {
-                QoreProgram* pgm = qc.getProgram();
-                if (!pgm) {
-                    pgm = getProgram();
-                }
-                assert(pgm);
-                const QoreNamespace* ns = get_module_root_ns(mod, pgm);
-                assert(ns);
-                std::string nspath = ns->getPath(true);
-                if (pname.rfind(nspath, 0) == 0) {
-                    printd(5, "pname before '%s' (nspath: '%s')\n", pname.c_str(), nspath.c_str());
-                    // create namespace path from the module's main namespace
-                    pname.erase(0, nspath.size());
-                    printd(5, "pname after '%s'\n", pname.c_str());
-                }
-                convert_qore_ns_to_java_pkg(pname);
+                if (isInjectedModule(mod)) {
+                    convert_qore_ns_to_java_pkg(pname);
+                    pname.insert(0, "qore");
+                } else {
+                    QoreProgram* pgm = qc.getProgram();
+                    if (!pgm) {
+                        pgm = getProgram();
+                        assert(pgm);
+                    }
+                    const QoreNamespace* ns = get_module_root_ns(mod, pgm);
+                    assert(ns);
+                    std::string nspath = ns->getPath(true);
+                    if (pname.rfind(nspath, 0) == 0) {
+                        printd(5, "pname before '%s' (nspath: '%s')\n", pname.c_str(), nspath.c_str());
+                        // create namespace path from the module's main namespace
+                        pname.erase(0, nspath.size());
+                        printd(5, "pname after '%s' (pgm: %p jpc: %p mod: %s)\n", pname.c_str(), pgm, this, mod);
+                    }
+                    convert_qore_ns_to_java_pkg(pname);
 
-                pname.insert(0, mod);
-                if (strcmp(mod, "python")) {
-                    pname.insert(0, "qoremod.");
+                    pname.insert(0, mod);
+                    if (strcmp(mod, "python")) {
+                        pname.insert(0, "qoremod.");
+                    }
                 }
             }
 
-            printd(5, "get_java_name_for_class() cls '%s' -> java '%s'\n", qc.getName(), pname.c_str());
+            printd(5, "JniExternalProgramData::getJavaNameForClass() cls '%s' -> java '%s'\n", qc.getName(),
+                pname.c_str());
         } else {
             convert_qore_ns_to_java_pkg(pname);
             pname.insert(0, "qore");
         }
     }
-    printd(5, "get_java_name_for_class() cls '%s' -> java '%s'\n", qc.getName(), pname.c_str());
+    printd(5, "JniExternalProgramData::getJavaNameForClass() cls '%s' -> java '%s'\n", qc.getName(), pname.c_str());
     return env.newString(pname.c_str());
 }
 
@@ -2189,7 +2197,7 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
             }
 
             // get internal name for Qore class
-            LocalReference<jstring> jname = get_java_name_for_class(env, ci.getParentClass());
+            LocalReference<jstring> jname = getJavaNameForClass(env, ci.getParentClass());
 
             jvalue jargs[2];
             jargs[0].l = jname;
@@ -2232,7 +2240,7 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
 
     LocalReference<jstring> njname;
     if (!jname) {
-        njname = get_java_name_for_class(env, *qcls);
+        njname = getJavaNameForClass(env, *qcls);
         //printd(5, "JniExternalProgramData::generateByteCodeIntern() cls '%s' -> java '%s' (generated)\n",
         //    qcls->getName(), pname.c_str());
         jname = njname;
@@ -2352,7 +2360,7 @@ LocalReference<jobject> JniExternalProgramData::getJavaTypeDefinition(Env& env, 
     }
 
     // get internal name for Qore class
-    LocalReference<jstring> jname = get_java_name_for_class(env, *cls);
+    LocalReference<jstring> jname = getJavaNameForClass(env, *cls);
 
     printd(5, "JniExternalProgramData::getJavaTypeDefinition() type '%s' (%d) creating Java class for '%s' (%p)\n",
         qore_type_get_name(ti), t, cls->getName(), cls);
@@ -2566,17 +2574,19 @@ void QoreJniClassMap::doFields(JniQoreClass& qc, jni::Class* jc, QoreProgram* pg
     }
 }
 
-JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni, QoreProgram* pgm) : jni(n_jni) {
+JniExternalProgramData::JniExternalProgramData(QoreNamespace* jni, QoreProgram* pgm) : pgm(pgm), jni(jni) {
     assert(jni);
     Env env(false);
 
+    assert(pgm);
+    /*
     // issue #3310: if there is no Program context - for example, if we are being called from a pure Java context -
     // create one to provide Qore functionality to Java
-    assert(pgm);
     if (!pgm) {
         pgm = jni_get_create_program(env);
     }
     assert(pgm);
+    */
 
     // set up QoreURLClassLoader constructor args
     {
@@ -2599,6 +2609,7 @@ JniExternalProgramData::JniExternalProgramData(QoreNamespace* n_jni, QoreProgram
 }
 
 JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& parent, Env& env, QoreProgram* pgm) :
+        pgm(pgm),
         classLoader(nullptr),
         override_compat_types(parent.override_compat_types),
         compat_types(parent.compat_types) {
@@ -2733,7 +2744,7 @@ LocalReference<jclass> JniExternalProgramData::getJavaClassForQoreClass(Env& env
     q2jmap_t::iterator i = q2jmap.lower_bound(cls_hash);
     if (i == q2jmap.end() || i->first != cls_hash) {
         // get Java name for class
-        LocalReference<jstring> jname = get_java_name_for_class(env, *qc);
+        LocalReference<jstring> jname = getJavaNameForClass(env, *qc);
 
         jvalue jargs[2];
         jargs[0].l = jname;
@@ -2778,5 +2789,26 @@ LocalReference<jobject> JniExternalProgramData::getJavaObject(const QoreObject* 
         const_cast<QoreObject*>(o)->tDeref();
         throw;
     }
+}
+
+bool JniExternalProgramData::addInjectedModule(const char* modstr) {
+    std::string mod(modstr);
+    AutoLocker al(injected_module_lock);
+
+    strset_t::iterator i = injected_module_set.lower_bound(mod);
+    if (i == injected_module_set.end() || (*i) != mod) {
+        injected_module_set.insert(i, mod);
+        printd(5, "JniExternalProgramData::addInjectedModule() this: %p mod: '%s'\n", this, modstr);
+        return true;
+    }
+    return false;
+}
+
+bool JniExternalProgramData::isInjectedModule(const char* mod) const {
+    AutoLocker al(injected_module_lock);
+    bool rv = injected_module_set.find(mod) != injected_module_set.end();
+    printd(5, "JniExternalProgramData::isInjectedModule() this: %p find '%s': %d (size: %d)\n", this, mod, rv,
+        (int)injected_module_set.size());
+    return rv;
 }
 }

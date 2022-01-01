@@ -67,7 +67,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     private String classPath = new String();
     private long pgm_ptr = 0;
     private boolean enable_cache = false;
-    // when used to bootstrap Java; cannot call getsystemClassLoader()
+    // when used to bootstrap Java, cannot call getSystemClassLoader()
     private boolean bootstrap = false;
     // when used as the system class loader
     /** if true, we need to ensure that this object loads classes to make dynamic imports work
@@ -131,14 +131,12 @@ public class QoreURLClassLoader extends URLClassLoader {
         setContext();
         enable_cache = true;
         setContextProgram(this);
-        //System.out.printf("QoreURLClassLoader() this: %x (pgm: %x)\n", hashCode(), pgm_ptr);
+        System.out.printf("QoreURLClassLoader() this: %x (pgm: %x)\n", hashCode(), pgm_ptr);
     }
 
     //! constructor for using this class as the boot classloader for the module
     public QoreURLClassLoader(long p_ptr) {
-        // NOTE: we cannot call getSystemClassLoader() here, as this constructor is used when this class is used as
-        // the ssytem class loader
-        super("QoreURLClassLoader", new URL[]{}, ClassLoader.getPlatformClassLoader());
+        super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
         setContext();
         pgm_ptr = p_ptr;
         //System.out.printf("QoreURLClassLoader(long p_ptr: %x) this: %x\n", p_ptr, hashCode());

@@ -97,6 +97,7 @@ static void qore_jni_mc_define_pending_class(const QoreString& arg, QoreProgram*
 static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 static void qore_jni_mc_set_compat_types(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 static void qore_jni_mc_set_property(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
+static void qore_jni_mc_mark_module_injected(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 
 // module cmds
 typedef std::map<std::string, qore_jni_module_cmd_t> mcmap_t;
@@ -108,6 +109,7 @@ static mcmap_t mcmap = {
     {"define-class", qore_jni_mc_define_class},
     {"set-compat-types", qore_jni_mc_set_compat_types},
     {"set-property", qore_jni_mc_set_property},
+    {"mark-module-injected", qore_jni_mc_mark_module_injected},
 };
 
 static void jni_thread_cleanup(void*) {
@@ -185,7 +187,7 @@ static QoreStringNode* jni_module_init() {
             // setup signal mask
             sigemptyset(&mask);
             for (auto& sig : new_sig_vec) {
-                //printd(LogLevel, "python_module_init() unblocking signal %d\n", sig);
+                //printd(LogLevel, "jni_module_init() unblocking signal %d\n", sig);
                 sigaddset(&mask, sig);
             }
             // unblock threads
@@ -199,6 +201,7 @@ static QoreStringNode* jni_module_init() {
 
     try {
         QoreProgram* pgm = Globals::createJavaContextProgram();
+        printd(5, "jni_module_init() pgm: %p\n", pgm);
         // issue #4006: ensure there is a program context for initialization
         QoreProgramContextHelper pgm_ctx(pgm);
 
@@ -529,6 +532,14 @@ static void qore_jni_mc_set_property(const QoreString& arg, QoreProgram* pgm, Jn
     LocalReference<jstring> str = env.callStaticObjectMethod(Globals::classSystem,
         Globals::methodSystemSetProperty, &jargs[0]).as<jstring>();
     str = nullptr;
+}
+
+static void qore_jni_mc_mark_module_injected(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
+    assert(pgm);
+    assert(pgm->checkFeature(QORE_JNI_MODULE_NAME));
+    assert(jpc);
+
+    jpc->addInjectedModule(arg.c_str());
 }
 
 QoreClass* jni_class_handler(QoreNamespace* ns, const char* cname) {

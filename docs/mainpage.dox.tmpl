@@ -446,6 +446,9 @@ class MyTest {
       dynamically into Python
     - The \c pythonmod and \c qoremod magic packages are used to ensure that modules are imported both at compile and
       runtime and that the resulting dynamically-generated Java classes have consistent binary names
+    - Symbols imported from %Qore modules can be treated as non-module symbols by using the \c mark-module-injected
+      module command; ex: @code{.qore} %module-cmd(jni) mark-module-injected InjectedModule @endcode would mark all
+      symbols from %Qore module \c InjectedModule as non-module symbols
 
     @par Importing Functions Into Java
 
@@ -723,7 +726,8 @@ set_save_object_callback(callback);
       (<a href="https://github.com/qorelanguage/qore/issues/4375">issue 4375</a>)
     - fixed a bug where @ref org.qore.jni.QoreURLClassLoader could not be used as the system class loader
       (<a href="https://github.com/qorelanguage/qore/issues/4374">issue 4374</a>)
-    - fixed a bug where %Qore and %Python dynamic module imports into Java did not have unique fake class names
+    - fixed a bug where %Qore and %Python dynamic module imports were not created with consistent Java binary names;
+      also to facilitate handling injected symbols, the \c mark-module-injected module command was implemented
       (<a href="https://github.com/qorelanguage/qore/issues/4373">issue 4373</a>)
     - fixed a bug where Java method args in array format were not always converted from %Qore values correctly
       (<a href="https://github.com/qorelanguage/qore/issues/4372">issue 4372</a>)

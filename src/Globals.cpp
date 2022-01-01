@@ -410,6 +410,8 @@ QoreProgram* jni_get_create_program_intern(Env& env) {
     try {
         attach_helper.attach();
         jni_pgm = new QoreProgram;
+        jni_pgm->setScriptPath("Qore jni module static Program context");
+        printd(5, "jni_get_create_program_intern() pgm: %p\n", jni_pgm);
         return jni_pgm;
     } catch (Exception& e) {
         env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
@@ -1433,7 +1435,8 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
     }
 
     printd(5, "qore_url_classloader_get_classes_in_namespace() qname: '%s' (%p) module: '%s' (%p) python: %d "
-        "py_path: '%s'\n", nsname.c_str(), qname, mod_str.c_str(), module, python, py_path.c_str());
+        "py_path: '%s' pgm: %p jpc: %p\n", nsname.c_str(), qname, mod_str.c_str(), module, python, py_path.c_str(),
+        pgm, jpc);
 
     if (python) {
         try {
@@ -1489,15 +1492,25 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
                 mod_str.c_str(), ns);
         }
 
-        printd(5, "qore_url_classloader_get_classes_in_namespace() pgm: %p '%s': %p (%s -> %s)\n", pgm,
-            nsname.c_str(), ns, ns ? ns->getName() : "n/a", ns ? ns->getPath(true).c_str() : "n/a");
+#ifdef DEBUG
+        {
+            QoreStringNodeHolder name(pgm->getScriptPath());
+            printd(5, "qore_url_classloader_get_classes_in_namespace() pgm: %p (%s) '%s': ns: %p ('%s')\n", pgm,
+                name ? name->c_str() : "n/a", nsname.c_str(), ns, ns ? ns->getPath(true).c_str() : "n/a");
+        }
+#endif
         if (ns) {
             QoreString java_pfx;
 
-            if (!mod_str && ns->getModuleName()) {
-                // do not allow Qore symbols provided by modules to be accessed from the "qore" package
-                // or Python symbols provided by modules to be accessed from the 'python' package
-                return nullptr;
+            if (!mod_str) {
+                const char* mod = ns->getModuleName();
+                if (mod && !jpc->isInjectedModule(mod)) {
+                    // do not allow Qore symbols provided by modules to be accessed from the "qore" package
+                    // or Python symbols provided by modules to be accessed from the 'python' package
+                    printd(5, "qore_url_classloader_get_classes_in_namespace() not scanning ns %p (from mod %s)\n",
+                        ns, ns->getModuleName());
+                    return nullptr;
+                }
             }
 
             QoreNamespaceClassIterator i(*ns);
@@ -1578,7 +1591,8 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
     return nullptr;
 }
 
-static jlong JNICALL qore_url_classloader_get_context_program(JNIEnv* jenv, jclass jcls, jobject new_syscl, jobject created) {
+static jlong JNICALL qore_url_classloader_get_context_program(JNIEnv* jenv, jclass jcls, jobject new_syscl,
+        jobject created) {
     Env env(jenv);
     QoreThreadAttachHelper attach_helper;
     try {
@@ -1593,6 +1607,7 @@ static jlong JNICALL qore_url_classloader_get_context_program(JNIEnv* jenv, jcla
     if (pcreated) {
         env.callVoidMethod(created, Globals::methodBooleanWrapperSetTrue, nullptr);
     }
+    printd(5, "qore_url_classloader_get_context_program() rv: %p created: %d\n", rv, pcreated);
     return rv;
 }
 
@@ -1609,7 +1624,8 @@ static jobject JNICALL qore_url_classloader_clear_compilation_cache(JNIEnv* jenv
     return nullptr;
 }
 
-static jobject JNICALL qore_url_classloader_shutdown_context(JNIEnv* jenv, jclass jcls, jobject new_syscl, jobject created) {
+static jobject JNICALL qore_url_classloader_shutdown_context(JNIEnv* jenv, jclass jcls, jobject new_syscl,
+        jobject created) {
     QoreThreadAttachHelper attach_helper;
     try {
         attach_helper.attach();
@@ -2828,7 +2844,7 @@ jlong Globals::getContextProgram(jobject new_syscl, bool& created) {
     if (!qph) {
         createJavaContextProgram();
 
-        printd(5, "Globals::getContextProgram() new_sycl: %p syscl: %p\n", new_syscl, (jobject)syscl);
+        printd(5, "Globals::getContextProgram() new_sycl: %p syscl: %p pgm: %p\n", new_syscl, (jobject)syscl, **qph);
         if (new_syscl && !syscl) {
             syscl = GlobalReference<jobject>::fromLocal(new_syscl);
             created = true;
@@ -2848,6 +2864,7 @@ QoreProgram* Globals::createJavaContextProgram() {
             RootQoreNamespace* rns = (*qph)->getRootNS();
             rns->addNamespace(jnins);
             (*qph)->setExternalData("jni", new JniExternalProgramData(jnins, **qph));
+            (*qph)->setScriptPath("Qore jni module global Program context");
             printd(5, "Globals::createJavaContextProgram() created %p\n", **qph);
         } catch (jni::JavaException& e) {
 #ifdef DEBUG
