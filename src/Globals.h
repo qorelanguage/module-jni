@@ -43,8 +43,6 @@ enum class Type {
 };
 
 DLLLOCAL extern bool jni_qore_init;
-DLLLOCAL void jni_delete_pgm(ExceptionSink& xsink);
-DLLLOCAL QoreProgram* jni_get_create_program(Env& env);
 
 DLLLOCAL const std::string JniImportedFunctionClassName = "$Functions";
 DLLLOCAL const std::string JniImportedConstantClassName = "$Constants";
@@ -312,8 +310,6 @@ public:
     // returns true if this is a Java bootstrap init
     DLLLOCAL static bool init();
 
-    DLLLOCAL static void bootstrapInitDone();
-
     DLLLOCAL static void cleanup();
     DLLLOCAL static Type getType(jclass cls);
 
@@ -390,5 +386,8 @@ private:
 DLLLOCAL const QoreNamespace* get_module_root_ns(const char* name, QoreProgram* mod_pgm);
 
 } // namespace jni
+
+// callled from the QoireURLClassLoader's constructor when used as the system classloader
+DLLLOCAL QoreStringNode* jni_module_init_finalize(bool system = false);
 
 #endif // QORE_JNI_GLOBALS_H_

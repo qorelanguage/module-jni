@@ -351,7 +351,7 @@ binary get_byte_code(string class_name) {
         }
 
         LocalReference<jstring> jname = jpc->getJavaNameForClass(env, *cls);
-        LocalReference<jbyteArray> byte_code = jpc->generateByteCode(env, jpc->getClassLoader(), QoreString(), pgm, jname,
+        LocalReference<jbyteArray> byte_code = jpc->generateByteCode(env, jpc->getClassLoader(), QoreString(), jname,
             cls);
         return Array::getBinary(env, byte_code).release();
     } catch (jni::Exception& e) {

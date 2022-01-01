@@ -55,6 +55,45 @@ public class QoreJavaApi {
         }
     }
 
+    //! Initialize the \c qore library and the \c jni module in memory only from a native Java thread
+    /** This method ensures that the qore library is loaded when the jni module is bootstrapped from Java
+
+        This requires the platform-dependent \c qore library to be found in a directory set in the
+        \c java.library.path or by setting the \c QORE_LIBRARY environment variable to the absolute path of the
+        \c qore library.
+
+        If neither of these are set, then calling this method will result in a \c java.lang.UnsatisfiedLinkError
+        exception being raised.
+
+        This method is also safe to call when the Qore library and the jni module have been initialized already.
+     */
+    public static void initQoreBootstrap() throws Throwable {
+        //System.out.println("DBG: QoreJavaApi::initQoreBootstrap()");
+        try {
+            QoreURLClassLoader.getProgramPtr();
+        } catch (NullPointerException e0) {
+            // initialize jni module
+            try {
+                // try to get a Qore context for a Java thread not associated with a Qore Program object
+                // but within a process initialized by the Qore library and the jni module
+                initQoreBootstrap0();
+            } catch (UnsatisfiedLinkError e1) {
+                // check for environment variable to Qore lib
+                String qore_lib_loc = System.getenv("QORE_LIBRARY");
+                if (qore_lib_loc != null) {
+                    // load the qore library dynamically, which will result in the jni module being loaded automatically
+                    // do to a JNI_OnLoad() function in libqore that initializes the Qore library and loads the jni
+                    // module
+                    System.load(qore_lib_loc);
+                } else {
+                    // load the qore library from \c java.library.path
+                    System.loadLibrary("qore");
+                }
+                initQoreBootstrap0();
+            }
+        }
+    }
+
     //! Calls the given Qore function with the given arguments and returns the result
     public static Object callFunction(String name, Object... args) throws Throwable {
         QoreURLClassLoader cl = QoreURLClassLoader.getCurrent();
@@ -200,6 +239,7 @@ public class QoreJavaApi {
     }
 
     private native static long initQore0();
+    private native static void initQoreBootstrap0();
     private native static Object callFunction0(long pgm_ptr, String name, Object... args);
     private native static Object callFunctionSave0(long pgm_ptr, String name, Object... args);
     private native static Object callStaticMethod0(long pgm_ptr, String class_name, String method_name, Object... args);

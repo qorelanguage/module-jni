@@ -117,6 +117,43 @@ static void jni_thread_cleanup(void*) {
 }
 
 static bool bootstrap = false;
+static bool already_initialized = false;
+static bool deferred_ns_init = false;
+
+QoreStringNode* jni_module_init_finalize(bool system) {
+    tclist.push(jni_thread_cleanup, nullptr);
+
+    try {
+        QoreProgram* pgm = Globals::createJavaContextProgram();
+        printd(5, "jni_module_init_finalize() pgm: %p\n", pgm);
+        // issue #4006: ensure there is a program context for initialization
+        QoreProgramContextHelper pgm_ctx(pgm);
+
+        qjcm.init(pgm, already_initialized);
+    } catch (jni::Exception& e) {
+        tclist.pop(false);
+        qore_release_signals(sig_vec, QORE_JNI_MODULE_NAME);
+        jni::Jvm::destroyVM();
+        // display exception info on the console as an unhandled exception
+        if (system) {
+            throw;
+            return nullptr;
+        } else {
+            ExceptionSink xsink;
+            e.convert(&xsink);
+            return new QoreStringNode("JNI-FINALIZATION-ERR");
+        }
+    }
+
+    ExceptionSink xsink;
+    ValueHolder v(qore_get_module_option("jni", "compat-types"), &xsink);
+    if (v) {
+        jni_compat_types = true;
+    }
+
+    printd(5, "jni_module_init_finalize() jni module init done\n");
+    return nullptr;
+}
 
 static QoreStringNode* jni_module_init() {
     if (jni_init_failed) {
@@ -131,7 +168,6 @@ static QoreStringNode* jni_module_init() {
     QoreStringNode* err = nullptr;
 
     ValueHolder jvm_ptr(qore_get_module_option("jni", "jvm-ptr"), nullptr);
-    bool already_initialized;
     if (jvm_ptr->getType() == NT_INT) {
         jni::Jvm::setVmPtr(reinterpret_cast<JavaVM*>(jvm_ptr->getAsBigInt()));
         already_initialized = true;
@@ -197,50 +233,25 @@ static QoreStringNode* jni_module_init() {
 
 #endif
 
-    tclist.push(jni_thread_cleanup, nullptr);
-
-    try {
-        QoreProgram* pgm = Globals::createJavaContextProgram();
-        printd(5, "jni_module_init() pgm: %p\n", pgm);
-        // issue #4006: ensure there is a program context for initialization
-        QoreProgramContextHelper pgm_ctx(pgm);
-
-        qjcm.init(pgm, already_initialized);
-    } catch (jni::Exception& e) {
-        // display exception info on the console as an unhandled exception
-        {
-            ExceptionSink xsink;
-            e.convert(&xsink);
-        }
-        tclist.pop(false);
-        qore_release_signals(sig_vec, QORE_JNI_MODULE_NAME);
-        jni::Jvm::destroyVM();
-        return new QoreStringNode("ERR");
+    if (!bootstrap) {
+        return jni_module_init_finalize();
     }
 
-    ExceptionSink xsink;
-    ValueHolder v(qore_get_module_option("jni", "compat-types"), &xsink);
-    if (v) {
-        jni_compat_types = true;
-    }
-
-    //printd(5, "jni_module_init() jni module init done\n");
     return nullptr;
 }
 
 static void jni_module_ns_init(QoreNamespace* rns, QoreNamespace* qns) {
     QoreProgram* pgm = getProgram();
+    // we can ignore the first program to be initialized when bootstrapping
+    if (bootstrap && !deferred_ns_init) {
+        deferred_ns_init = true;
+        return;
+    }
     assert(pgm->getRootNS() == rns);
     if (!pgm->getExternalData("jni")) {
         QoreNamespace* jnins = qjcm.getJniNs().copy();
         rns->addNamespace(jnins);
         pgm->setExternalData("jni", new JniExternalProgramData(jnins, pgm));
-    }
-
-    if (bootstrap) {
-        // mark initialization complete in the bootstrap class loader
-        Globals::bootstrapInitDone();
-        bootstrap = false;
     }
 }
 
@@ -249,8 +260,6 @@ static void jni_module_delete() {
     Globals::clearGlobalContext();
     {
         ExceptionSink xsink;
-        // delete any Program object
-        jni::jni_delete_pgm(xsink);
         qjcm.destroy(xsink);
     }
     tclist.pop(false);

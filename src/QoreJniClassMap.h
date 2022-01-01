@@ -320,7 +320,7 @@ public:
 
     // returns Java byte code (byte[]) for a Qore class
     DLLLOCAL LocalReference<jbyteArray> generateByteCode(Env& env, jobject class_loader,
-            const QoreString& qpath, QoreProgram* pgm, jstring jname, const QoreClass* qc);
+            const QoreString& qpath, jstring jname, const QoreClass* qc);
 
     // returns a type description for a concrete type or a future type for Java bytecode generation
     DLLLOCAL LocalReference<jobject> getJavaTypeDefinition(Env& env, jobject class_loader, const QoreTypeInfo* ti, bool no_void = false);
@@ -443,7 +443,7 @@ protected:
 
     // returns Java byte code (byte[]) for the given Qore class
     DLLLOCAL LocalReference<jbyteArray> generateByteCodeIntern(Env& env, jobject class_loader,
-        const QoreClass* qcls, QoreProgram* pgm, jstring jname = nullptr);
+        const QoreClass* qcls, jstring jname = nullptr);
 
     // returns Java byte code (byte[]) for a wrapper class for Qore functions implemneted as static methods
     DLLLOCAL LocalReference<jbyteArray> generateFunctionClassIntern(Env& env, jobject class_loader, QoreProgram* pgm,

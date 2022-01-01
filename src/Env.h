@@ -1379,6 +1379,11 @@ public:
             return !strcmp(str, chars);
         }
 
+        DLLLOCAL bool operator!=(const char* str) const {
+            assert(chars);
+            return strcmp(str, chars);
+        }
+
         DLLLOCAL GetStringUtfChars& operator=(const char* new_chars) {
             if (str) {
                 env.env->ReleaseStringUTFChars(*str, chars);

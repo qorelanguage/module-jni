@@ -146,44 +146,53 @@ static std::string get_class_hash(const QoreClass& qc) {
 }
 
 QoreProgram* jni_get_program_context() {
-    QoreProgram* pgm;
+    QoreProgram* pgm = nullptr;
     jni_get_context(pgm);
     return pgm;
 }
 
+QoreProgram* jni_get_program_context_unconditional() {
+    QoreProgram* pgm = nullptr;;
+    jni_get_context_unconditional(pgm);
+    return pgm;
+}
+
 JniExternalProgramData* jni_get_context() {
-    QoreProgram* pgm;
+    QoreProgram* pgm = nullptr;
     return jni_get_context(pgm);
 }
 
 JniExternalProgramData* jni_get_context(QoreProgram*& pgm) {
     JniExternalProgramData* jpc;
 
-    /*
-    // first try to get the actual Program context
-    pgm = qore_get_call_program_context();
+    // first try to get any provided context
     if (pgm) {
         jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
         if (jpc) {
             return jpc;
         }
     }
-    */
-    pgm = getProgram();
-    if (pgm) {
+
+    // next try to get the actual Program context of the current object
+    QoreProgram* pgm0 = getProgram();
+    if (pgm0 && pgm0 != pgm) {
+        pgm = pgm0;
         jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
         if (jpc) {
             return jpc;
         }
     }
-    pgm = qore_get_call_program_context();
-    if (pgm) {
+
+    // then try the Program context of the code
+    pgm0 = qore_get_call_program_context();
+    if (pgm0 && pgm0 != pgm) {
+        pgm = pgm0;
         jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
         if (jpc) {
             return jpc;
         }
-        pgm = nullptr;
     }
+    pgm = nullptr;
     return nullptr;
 }
 
@@ -193,43 +202,12 @@ JniExternalProgramData* jni_get_context_unconditional() {
 }
 
 JniExternalProgramData* jni_get_context_unconditional(QoreProgram*& pgm) {
-    JniExternalProgramData* jpc;
-    if (pgm) {
+    JniExternalProgramData* jpc = jni_get_context(pgm);
+    if (!jpc) {
+        pgm = Globals::getJavaContextProgram();
         jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
-        if (jpc) {
-            return jpc;
-        }
+        assert(jpc);
     }
-
-    /*
-    pgm = qore_get_call_program_context();
-    if (pgm) {
-        jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
-        if (jpc) {
-            return jpc;
-        }
-    }
-    */
-
-    pgm = getProgram();
-    if (pgm) {
-        jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
-        if (jpc) {
-            return jpc;
-        }
-    }
-
-    pgm = qore_get_call_program_context();
-    if (pgm) {
-        jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
-        if (jpc) {
-            return jpc;
-        }
-    }
-
-    pgm = Globals::getJavaContextProgram();
-    jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
-    assert(jpc);
     return jpc;
 }
 
@@ -1756,9 +1734,8 @@ int JniExternalProgramData::addMethods(Env& env, jobject class_loader, const Qor
 }
 
 LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jobject class_loader,
-        const QoreString& qpath, QoreProgram* pgm, jstring jname, const QoreClass* qcls) {
+        const QoreString& qpath, jstring jname, const QoreClass* qcls) {
     printd(5, "JniExternalProgramData::generateByteCode() '%s' pgm: %p qc: %p\n", qpath.c_str(), pgm, qcls);
-    assert(pgm == this->pgm);
     ExceptionSink xsink;
     if (!qcls) {
         assert(!qpath.empty());
@@ -1833,7 +1810,7 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jo
     AutoLocker al(codeGenLock);
 
     //printd(5, "JniExternalProgramData::generateByteCode() qpath: '%s' (%p)\n", qpath.c_str(), qcls);
-    LocalReference<jbyteArray> rv = generateByteCodeIntern(env, class_loader, qcls, pgm, jname).as<jbyteArray>();
+    LocalReference<jbyteArray> rv = generateByteCodeIntern(env, class_loader, qcls, jname).as<jbyteArray>();
     return rv;
 }
 
@@ -2178,7 +2155,7 @@ int JniExternalProgramData::addClassConstants(Env& env, jstring jname, const Qor
 // This is the C++ interface to the JavaClassBuilder class in Java (i.e. the Java ByteBuddy interface) for building
 // Java classes in bytecode
 LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& env, jobject class_loader,
-        const QoreClass* qcls, QoreProgram* pgm, jstring jname) {
+        const QoreClass* qcls, jstring jname) {
     //printd(5, "JniExternalProgramData::generateByteCodeIntern() '%s'\n", qcls->getName());
 
     // get parent class
@@ -2579,14 +2556,6 @@ JniExternalProgramData::JniExternalProgramData(QoreNamespace* jni, QoreProgram* 
     Env env(false);
 
     assert(pgm);
-    /*
-    // issue #3310: if there is no Program context - for example, if we are being called from a pure Java context -
-    // create one to provide Qore functionality to Java
-    if (!pgm) {
-        pgm = jni_get_create_program(env);
-    }
-    assert(pgm);
-    */
 
     // set up QoreURLClassLoader constructor args
     {

@@ -29,6 +29,7 @@ class QJavaCompilerCmd {
     public {
         hash<string, string> srcs;
         hash<auto> opts;
+        string output_dir;
 
         const ERR_COMPILATION_FAILURE = 1;
         const ERR_INVALID_SOURCE      = 2;
@@ -68,7 +69,7 @@ class QJavaCompilerCmd {
                 io::InputStream stream = i.value.file.openInputStream();
                 on_exit stream.close();
 
-                io::File targetFile(fn);
+                io::File targetFile(output_dir + DirSep + fn);
                 io::FileOutputStream outStream(targetFile);
                 on_exit outStream.close();
 
@@ -130,6 +131,9 @@ class QJavaCompilerCmd {
                 name =~ s/\.java$//;
                 name =~ s/\//./g;
                 srcs{name} = File::readTextFile(arg);
+                if (!output_dir) {
+                    output_dir = dirname(arg);
+                }
                 splice ARGV, i, 1;
                 --l;
                 continue;

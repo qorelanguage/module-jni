@@ -721,6 +721,9 @@ set_save_object_callback(callback);
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_2_0_6 jni Module Version 2.0.6
+    - fixed a bug where \c qjavac wrote output files in the current working directory instead of in the directory of
+      the input file
+      (<a href="https://github.com/qorelanguage/qore/issues/4376">issue 4376</a>)
     - fixed a bug where %Qore and %Python functions could not be imported into the special \c $Functions Java class if
       the enclosing namespace had less than two classes in it
       (<a href="https://github.com/qorelanguage/qore/issues/4375">issue 4375</a>)
