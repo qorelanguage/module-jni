@@ -577,11 +577,14 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
 
     JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
 
-    QoreProgramContextHelper pch(pgm);
+    ExceptionSink xsink;
+    QoreExternalProgramContextHelper pch(&xsink, pgm);
+    if (xsink) {
+        QoreToJava::wrapException(xsink);
+        return nullptr;
+    }
 
     QoreJniStackLocationHelper slh;
-
-    ExceptionSink xsink;
 
     jsize len = args ? env.getArrayLength(args) : 0;
     ReferenceHolder<QoreListNode> qore_args(&xsink);
