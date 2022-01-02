@@ -4,7 +4,7 @@
 
     Qore Programming Language JNI Module
 
-    Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -2595,6 +2595,11 @@ JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& par
 
     // copy the parent's class map to this one
     jcmap = parent.jcmap;
+
+#if QORE_VERSION_CODE >= 10013
+    ProgramRuntimeExternalParseContextHelper pch(pgm);
+#endif
+
     // find Jni namespace in new Program if present
     jni = pgm->findNamespace("Jni");
     if (!jni) {
@@ -2686,6 +2691,26 @@ bool JniExternalProgramData::compatTypes() {
     // issue #3153: no context is available when called from a static method
     JniExternalProgramData* jpc = jni_get_context_unconditional();
     return jpc->getCompatTypes();
+}
+
+JniExternalProgramData* JniExternalProgramData::getCreateJniProgramData(QoreProgram* pgm) {
+    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+    //printd(5, "parse-cmd '%s' jpc: %p jnins: %p\n", arg.c_str(), jpc, jpc ? jpc->getJniNamespace() : nullptr);
+    if (!jpc) {
+#if QORE_VERSION_CODE >= 10013
+        ProgramRuntimeExternalParseContextHelper pch(pgm);
+#endif
+        QoreNamespace* jnins = pgm->findNamespace("::Jni");
+        if (!jnins) {
+            jnins = qjcm.getJniNs().copy();
+            pgm->getRootNS()->addNamespace(jnins);
+        }
+        jpc = new JniExternalProgramData(jnins, pgm);
+        pgm->setExternalData("jni", jpc);
+        pgm->addFeature(QORE_JNI_MODULE_NAME);
+    }
+
+    return jpc;
 }
 
 LocalReference<jclass> JniExternalProgramData::getClassForValue(const QoreObject* o) {

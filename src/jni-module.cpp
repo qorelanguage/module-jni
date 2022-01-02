@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -46,10 +46,9 @@
 #include "QoreJniClassMap.h"
 #include "Method.h"
 #include "QoreToJava.h"
+#include "Globals.h"
 
 using namespace jni;
-
-#define QORE_JNI_MODULE_NAME "jni"
 
 #ifndef Q_WINDOWS
 #include <signal.h>
@@ -293,15 +292,8 @@ extern "C" QoreNamespace* jni_module_find_create_java_namespace(QoreString& arg,
 
 // exported function
 extern "C" int jni_module_import(ExceptionSink* xsink, QoreProgram* pgm, const char* import) {
-    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
-    if (!jpc) {
-        QoreNamespace* jnins = qjcm.getJniNs().copy();
-        pgm->getRootNS()->addNamespace(jnins);
-        jpc = new JniExternalProgramData(jnins, pgm);
-        pgm->setExternalData("jni", jpc);
-        pgm->addFeature(QORE_JNI_MODULE_NAME);
-    }
-    //printd(5, "jni_module_import '%s' jpc: %p jnins: %p pgm: %p\n", import, jpc, jpc->getJniNamespace(), pgm);
+    JniExternalProgramData* jpc = JniExternalProgramData::getCreateJniProgramData(pgm);
+        //printd(5, "jni_module_import '%s' jpc: %p jnins: %p pgm: %p\n", import, jpc, jpc->getJniNamespace(), pgm);
     QoreString arg(import);
     try {
         if (arg[-1] != '*') {
@@ -355,16 +347,7 @@ static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
 
     // we must use "getProgram()" here for the parse context QoreProgram
     QoreProgram* pgm = getProgram();
-    JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
-    //printd(5, "parse-cmd '%s' jpc: %p jnins: %p\n", arg.c_str(), jpc, jpc ? jpc->getJniNamespace() : nullptr);
-    if (!jpc) {
-        QoreNamespace* jnins = qjcm.getJniNs().copy();
-        pgm->getRootNS()->addNamespace(jnins);
-        jpc = new JniExternalProgramData(jnins, pgm);
-        pgm->setExternalData("jni", jpc);
-        pgm->addFeature(QORE_JNI_MODULE_NAME);
-    }
-
+    JniExternalProgramData* jpc = JniExternalProgramData::getCreateJniProgramData(pgm);
     try {
         i->second(arg, pgm, jpc);
     } catch (jni::Exception& e) {

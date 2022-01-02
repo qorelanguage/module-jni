@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,8 @@
 #include "Env.h"
 
 DLLLOCAL QoreStringNode* jni_module_init_intern();
+
+#define QORE_JNI_MODULE_NAME "jni"
 
 namespace jni {
 
