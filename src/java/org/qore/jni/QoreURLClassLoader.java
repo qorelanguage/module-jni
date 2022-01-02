@@ -347,6 +347,23 @@ public class QoreURLClassLoader extends URLClassLoader {
         return loadClass(name);
     }
 
+    /** Check if the class is loaded in this class loader or in the parent if it's a QoreURLClassLoader
+     *
+     * @param bin_name the class to check
+     * @return the class if it's loaded
+     */
+    public Class<?> checkLoadedClass(String bin_name) {
+        Class<?> rv = findLoadedClass(bin_name);
+        if (rv != null) {
+            return rv;
+        }
+        ClassLoader parent = getParent();
+        if (parent instanceof QoreURLClassLoader) {
+            return ((QoreURLClassLoader)parent).checkLoadedClass(bin_name);
+        }
+        return null;
+    }
+
     // NOTE: loadClass(String, boolean) performs synchronization
     /**
      * Loads classes; returns pending classes injected by the jni module or the compiler
@@ -354,7 +371,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     public Class<?> loadClass(String bin_name) throws ClassNotFoundException {
         //System.out.printf("QoreURLClassLoader.loadClass() this: %x '%s' pgm: %x (startup: %s)\n",
         //    hashCode(), bin_name, pgm_ptr, startup);
-        Class<?> rv = findLoadedClass(bin_name);
+        Class<?> rv = checkLoadedClass(bin_name);
         if (rv != null) {
             //System.out.printf("loadClass() %s returning loaded\n", bin_name);
             return rv;
@@ -387,6 +404,14 @@ public class QoreURLClassLoader extends URLClassLoader {
             // only remove from set if successful
             try {
                 byte[] bytes = generateByteCode(bin_name);
+
+                // have to check if the class was loaded in the meantime
+                rv = checkLoadedClass(bin_name);
+                if (rv != null) {
+                    //System.out.printf("loadClassWithPtr() %s returning loaded after bytecode generation\n", bin_name);
+                    return rv;
+                }
+
                 rv = defineClassIntern(bin_name, bytes, 0, bytes.length);
                 //System.out.printf("loadClass() this: %x pgm: %x dyn %s returning generated %s\n", hashCode(),
                 //    pgm_ptr, bin_name, rv);
@@ -444,7 +469,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         //debugLog(String.format("loadClassWithPtr() %s: %x", bin_name, class_ptr));
         Class<?> rv;
         synchronized(getClassLoadingLock(bin_name)) {
-            rv = findLoadedClass(bin_name);
+            rv = checkLoadedClass(bin_name);
             if (rv != null) {
                 //System.out.printf("loadClassWithPtr() %s returning loaded\n", bin_name);
                 return rv;
@@ -468,7 +493,7 @@ public class QoreURLClassLoader extends URLClassLoader {
                 byte[] bytes = generateByteCode(bin_name, class_ptr);
 
                 // have to check if the class was loaded in the meantime
-                rv = findLoadedClass(bin_name);
+                rv = checkLoadedClass(bin_name);
                 if (rv != null) {
                     //System.out.printf("loadClassWithPtr() %s returning loaded after bytecode generation\n", bin_name);
                     return rv;
