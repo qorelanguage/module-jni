@@ -61,10 +61,18 @@ class ThreadTest4 implements Runnable {
     static public String result;
 
     public void run() {
+        // we register the Java thread here to ensure that Qore objects will be persistent in thread-local data
+        // while this thread is executing, otherwise the object created below is also deleted implicitly
+        // immediately
+        QoreJavaApi.registerJavaThread();
         try {
             QoreObject obj = QoreJavaApi.newObjectSave("TestClass2");
             result = (String)obj.callMethod("getString");
         } catch (Throwable e) {
+            System.out.printf("Java thread error: %s\n", e);
+        } finally {
+            // deregister the Qore thread
+            QoreJavaApi.deregisterJavaThread();
         }
     }
 }

@@ -352,7 +352,7 @@ static int save_object_thread(Env& env, const QoreValue& rv, QoreProgram* pgm, E
              data->setKeyValue(domain_name, list_holder.release(), &xsink);
         }
         if (xsink) {
-            QoreToJava::wrapException(xsink);
+            QoreToJava::wrapException(env, xsink);
             return -1;
         }
 #ifdef DEBUG
@@ -375,11 +375,12 @@ static int save_object(Env& env, const QoreValue& rv, QoreProgram* pgm, Exceptio
     if (jpc) {
         ResolvedCallReferenceNode* save_object_callback = jpc->getSaveObjectCallback();
         if (save_object_callback) {
+            printd(5, "save_object() running callback %p\n", save_object_callback);
             ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), &xsink);
             args->push(rv.refSelf(), &xsink);
             save_object_callback->execValue(*args, &xsink);
             if (xsink) {
-                QoreToJava::wrapException(xsink);
+                QoreToJava::wrapException(env, xsink);
                 return -1;
             }
             return 0;
@@ -433,7 +434,7 @@ static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong 
     ValueHolder rv(pgm->callFunction(fname.c_str(), *qore_args, &xsink), &xsink);
 
     if (xsink) {
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
 
@@ -445,7 +446,7 @@ static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong 
         return QoreToJava::toAnyObject(*rv, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
 }
@@ -480,7 +481,7 @@ static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, j
     ExceptionSink xsink;
     QoreExternalProgramContextHelper epch(&xsink, pgm);
     if (xsink) {
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
 
@@ -507,7 +508,7 @@ static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, j
                 if (!xsink) {
                     xsink.raiseException("UNKNOWN-CLASS", "cannot resolve class '%s'", cname.c_str());
                 }
-                QoreToJava::wrapException(xsink);
+                QoreToJava::wrapException(env, xsink);
                 return nullptr;
             }
         }
@@ -516,14 +517,14 @@ static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, j
         if (!m) {
             xsink.raiseException("UNKNOWN-METHOD", "cannot resolve static method '%s::%s()'", cls->getName(),
                 mname.c_str());
-            QoreToJava::wrapException(xsink);
+            QoreToJava::wrapException(env, xsink);
             return nullptr;
         }
     }
 
     ValueHolder rv(QoreObject::evalStaticMethodVariant(*m, m->getClass(), v, *qore_args, &xsink), &xsink);
     if (xsink) {
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
 
@@ -535,7 +536,7 @@ static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, j
         return QoreToJava::toAnyObject(*rv, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
 }
@@ -577,10 +578,12 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
 
     JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
 
+    printd(5, "java_api_new_object_save() pgm: %p\n", pgm);
+
     ExceptionSink xsink;
     QoreExternalProgramContextHelper pch(&xsink, pgm);
     if (xsink) {
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
 
@@ -594,7 +597,7 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
     }
 
     Env::GetStringUtfChars clsname(env, cname);
-    //printd(LogLevel, "java_api_new_object() class '%s' args: %p %d\n", clsname.c_str(), *qore_args, len);
+    printd(5, "java_api_new_object() class '%s' args: %p %d\n", clsname.c_str(), *qore_args, len);
 
     const QoreClass* cls = pgm->findClass(clsname.c_str(), &xsink);
     if (cls && !xsink) {
@@ -611,15 +614,15 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
     }
 
     if (xsink) {
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
 
-    //printd(5, "instantiating Qore class '%s' with args: %p (%d)\n", cls->getName(), *qore_args, *qore_args ? (int)qore_args->size() : 0);
+    printd(5, "instantiating Qore class '%s' with args: %p (%d)\n", cls->getName(), *qore_args, *qore_args ? (int)qore_args->size() : 0);
     ValueHolder rv(cls->execConstructor(*qore_args, &xsink), &xsink);
-    //printd(5, "got rv: %s\n", rv->getFullTypeName());
+    printd(5, "got rv: %s\n", rv->getFullTypeName());
     if (xsink) {
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
 
@@ -631,9 +634,26 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
         return QoreToJava::toAnyObject(*rv, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
+}
+
+static jboolean JNICALL java_api_register_java_thread(JNIEnv* jenv, jobject obj) {
+    int rc = q_register_foreign_thread();
+    jboolean rv;
+    if (rc == QFT_OK) {
+        printd(5, "java_api_register_java_thread(): thread attached to Qore\n");
+        rv = true;
+    } else {
+        printd(5, "java_api_register_java_thread(): thread not attached to Qore (rc: %d)\n", rc);
+        rv = false;
+    }
+    return rv;
+}
+
+static void JNICALL java_api_deregister_java_thread(JNIEnv* jenv, jobject obj) {
+    q_deregister_foreign_thread();
 }
 
 static void JNICALL qore_exception_wrapper_finalize(JNIEnv*, jclass, jlong ptr) {
@@ -786,7 +806,7 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, QoreProgr
         return QoreToJava::toAnyObject(*val, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
     } catch (const std::bad_alloc& e) {
         // translate OOM C++ exception to a Java exception
         env.throwNew(env.findClass("java/lang/OutOfMemoryError"), e.what());
@@ -849,7 +869,7 @@ static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jobject jobj, 
     {
         QoreExternalProgramContextHelper epch(&xsink, pgm);
         if (xsink) {
-            QoreToJava::wrapException(xsink);
+            QoreToJava::wrapException(env, xsink);
             return nullptr;
         }
 
@@ -857,7 +877,7 @@ static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jobject jobj, 
         rv = obj->evalMember(mem.c_str(), &xsink);
     }
     if (xsink) {
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
 
@@ -871,7 +891,7 @@ static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jobject jobj, 
         return QoreToJava::toAnyObject(*rv, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
 }
@@ -991,7 +1011,7 @@ static jobject JNICALL java_class_builder_do_function_call(JNIEnv* jenv, jclass 
     ExceptionSink xsink;
     QoreExternalProgramContextHelper epch(&xsink, pgm);
     if (xsink) {
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
 
@@ -1004,7 +1024,7 @@ static jobject JNICALL java_class_builder_do_function_call(JNIEnv* jenv, jclass 
 
     ValueHolder rv(func->evalFunction(v, *qore_args, pgm, &xsink), &xsink);
     if (xsink) {
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
 
@@ -1016,7 +1036,7 @@ static jobject JNICALL java_class_builder_do_function_call(JNIEnv* jenv, jclass 
         return QoreToJava::toAnyObject(*rv, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
 }
@@ -1041,7 +1061,7 @@ static jobject JNICALL java_class_builder_get_constant_value(JNIEnv* jenv, jclas
     ExceptionSink xsink;
     QoreExternalProgramContextHelper epch(&xsink, pgm);
     if (xsink) {
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
 
@@ -1054,7 +1074,7 @@ static jobject JNICALL java_class_builder_get_constant_value(JNIEnv* jenv, jclas
         return QoreToJava::toAnyObject(*val, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
         return nullptr;
     }
 }
@@ -1163,10 +1183,10 @@ static jbyteArray JNICALL qore_url_classloader_generate_byte_code(JNIEnv* jenv, 
             reinterpret_cast<const QoreClass*>(class_ptr)).release();
     } catch (jni::JavaException& e) {
         e.convert(&xsink);
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
     } catch (const std::bad_alloc& e) {
         // translate OOM C++ exception to a Java exception
         env.throwNew(env.findClass("java/lang/OutOfMemoryError"), e.what());
@@ -1394,12 +1414,12 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
             }
             printd(5, "qore_url_classloader_get_classes_in_namespace() python import path: '%s'\n", py_path.c_str());
             if (python_module_import(&xsink, pgm, py_path.c_str(), nullptr)) {
-                QoreToJava::wrapException(xsink);
+                QoreToJava::wrapException(env, xsink);
                 return nullptr;
             }
         } catch (AbstractException& e) {
             e.convert(&xsink);
-            QoreToJava::wrapException(xsink);
+            QoreToJava::wrapException(env, xsink);
             return nullptr;
         }
     }
@@ -1526,7 +1546,7 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
     } catch (jni::Exception& e) {
         ExceptionSink xsink;
         e.convert(&xsink);
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
     } catch (const std::bad_alloc& e) {
         // translate OOM C++ exception to a Java exception
         env.throwNew(env.findClass("java/lang/OutOfMemoryError"), e.what());
@@ -1665,7 +1685,7 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreC
 
         // ensure class can be instantiated
         if (jqc->runtimeCheckInstantiateClass(&xsink)) {
-            QoreToJava::wrapException(xsink);
+            QoreToJava::wrapException(env, xsink);
             return 0;
         }
 
@@ -1683,7 +1703,7 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreC
 
         ValueHolder obj(qc->execConstructor(*jqc, *qore_args, true, &xsink), &xsink);
         if (xsink) {
-            QoreToJava::wrapException(xsink);
+            QoreToJava::wrapException(env, xsink);
             return 0;
         }
 
@@ -1707,7 +1727,7 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreC
         env.throwNew(env.findClass("java/lang/RuntimeException"), e.what(buf));
     } catch (jni::Exception& e) {
         e.convert(&xsink);
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
     } catch (const std::bad_alloc& e) {
         // translate OOM C++ exception to a Java exception
         env.throwNew(env.findClass("java/lang/OutOfMemoryError"), e.what());
@@ -1750,7 +1770,7 @@ static void JNICALL qore_object_destroy(JNIEnv* jenv, jclass, jlong ptr) {
         }
     } catch (jni::Exception& e) {
         e.convert(&xsink);
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
     } catch (const std::bad_alloc& e) {
         // translate OOM C++ exception to a Java exception
         env.throwNew(env.findClass("java/lang/OutOfMemoryError"), e.what());
@@ -1940,7 +1960,7 @@ static jobject JNICALL qore_url_classloader_get_internal_classes_for_package(JNI
     } catch (jni::Exception& e) {
         ExceptionSink xsink;
         e.convert(&xsink);
-        QoreToJava::wrapException(xsink);
+        QoreToJava::wrapException(env, xsink);
     } catch (const std::bad_alloc& e) {
         // translate OOM C++ exception to a Java exception
         env.throwNew(env.findClass("java/lang/OutOfMemoryError"), e.what());
@@ -2004,6 +2024,18 @@ static JNINativeMethod qoreJavaApiNativeMethods[] = {
         const_cast<char*>("newObjectSave0"),
         const_cast<char*>("(JLjava/lang/String;[Ljava/lang/Object;)Lorg/qore/jni/QoreObject;"),
         reinterpret_cast<void*>(java_api_new_object_save)
+    },
+    {
+        // private native static boolean registerJavaThread0();
+        const_cast<char*>("registerJavaThread0"),
+        const_cast<char*>("()Z"),
+        reinterpret_cast<void*>(java_api_register_java_thread)
+    },
+    {
+        // private native static void deregisterJavaThread0();
+        const_cast<char*>("deregisterJavaThread0"),
+        const_cast<char*>("()V"),
+        reinterpret_cast<void*>(java_api_deregister_java_thread)
     },
 };
 

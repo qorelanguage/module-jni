@@ -466,6 +466,14 @@ public class QoreURLClassLoader extends URLClassLoader {
                 //System.out.printf("loadClassWithPtr() this: %x %s about to call generateByteCode(%s, %x)\n",
                 //    hashCode(), bin_name, bin_name, class_ptr);
                 byte[] bytes = generateByteCode(bin_name, class_ptr);
+
+                // have to check if the class was loaded in the meantime
+                rv = findLoadedClass(bin_name);
+                if (rv != null) {
+                    //System.out.printf("loadClassWithPtr() %s returning loaded after bytecode generation\n", bin_name);
+                    return rv;
+                }
+
                 rv = defineClassIntern(bin_name, bytes, 0, bytes.length);
                 //System.out.printf("loadClassWithPtr() this: %x pgm: %x dyn %s returning generated %s\n", hashCode(),
                 //    pgm_ptr, bin_name, rv);

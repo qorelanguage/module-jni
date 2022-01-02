@@ -450,6 +450,8 @@ class MyTest {
       module command; ex: @code{.qore} %module-cmd(jni) mark-module-injected InjectedModule @endcode would mark all
       symbols from %Qore module \c InjectedModule as non-module symbols
 
+    @see @ref jni_qore_object_lifecycle_default
+
     @par Importing Functions Into Java
 
     %Qore and Python functions can be imported using the special <tt><b>$Functions</b></tt> class name; functions in a
@@ -700,6 +702,12 @@ Object obj = newClassData.cls.getDeclaredConstructor().newInstance();
     The thread-local hash key name used to save the list of objects created is determined by the value of the
     \c "_jni_save" thread-local key, if set.  If no such key is set, then \c "_jni_save" is used instead as the
     literal key for saving the list of objects.
+
+    @note To register a Java thread in %Qore and therefore to ensure that %Qore object data is persistent in a native
+    Java thread, call @ref org.qore.jni.QoreJavaApi.registerJavaThread() and then
+    @ref org.qore.jni.QoreJavaApi.deregisterJavaThread() before the Java thread terminates, when you are done working
+    with %Qore data, otherwise %Qore objects will be immediately deleted when the implicit %Qore thread registration
+    expires after each %Qore API call.
 
     @subsection jni_qore_object_lifecycle_explicit Explicit Qore Object Lifecycle Management
 

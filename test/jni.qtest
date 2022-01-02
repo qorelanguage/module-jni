@@ -1353,7 +1353,7 @@ lorem ipsum\r
             assertTrue(False);
         } catch (hash<ExceptionInfo> ex) {
             assertEq("QoreJavaApiTest.java", ex.file);
-            assertEq(85, ex.line);
+            assertEq(93, ex.line);
         }
 
         try {

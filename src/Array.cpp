@@ -107,6 +107,7 @@ void Array::getList(ReferenceHolder<>& return_value, Env& env, jarray array, jcl
     if (e > 0 && varargs) {
         fix_varargs = true;
     }
+
     for (jsize i = 0; i < e; ++i) {
         QoreValue v = get(env, array, elementType, elementClass, i, pgm, compat_types);
         if (fix_varargs && i == (e - 1) && v.getType() == NT_LIST) {

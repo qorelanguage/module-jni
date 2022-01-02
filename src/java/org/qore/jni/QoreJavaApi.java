@@ -232,17 +232,45 @@ public class QoreJavaApi {
         return newObjectSave0(QoreURLClassLoader.getProgramPtr(), class_name, args);
     }
 
+    //! Registers the current Java thread as a Qore thread
+    /**
+     *
+     * @return true if the thread was registered, false if not (i.e. the current thread is already a valid Qore
+     * thread)
+     *
+     * @since jni module v2.0.6
+     */
+    public static boolean registerJavaThread() {
+        return registerJavaThread0();
+    }
+
+    //! Deregisters the current thread as a Qore thread
+    /**
+     *
+     * @throws Throwable if there is an internal Qore library error deregistering the thread; if the current thread
+     * is not a valid Qore thread, no error is raised
+     *
+     * @note only call this in the same thread as a successful call to registerJavaThread()
+     *
+     * @since jni module v2.0.6
+     */
+    public static void deregisterJavaThread() {
+        deregisterJavaThread0();
+    }
+
     //! Returns the current stack trace, not including the call to this method
     public static StackTraceElement[] getStackTrace() {
         StackTraceElement[] stack = new Exception().getStackTrace();
         return stack.length > 0 ? Arrays.copyOfRange(stack, 1, stack.length) : null;
     }
 
-    private native static long initQore0();
-    private native static void initQoreBootstrap0();
-    private native static Object callFunction0(long pgm_ptr, String name, Object... args);
-    private native static Object callFunctionSave0(long pgm_ptr, String name, Object... args);
-    private native static Object callStaticMethod0(long pgm_ptr, String class_name, String method_name, Object... args);
-    private native static Object callStaticMethodSave0(long pgm_ptr, String class_name, String method_name, Object... args);
-    private native static QoreObject newObjectSave0(long pgm_ptr, String class_name, Object...args);
+    private native static long initQore0() throws Throwable;
+    private native static void initQoreBootstrap0() throws Throwable;
+    private native static Object callFunction0(long pgm_ptr, String name, Object... args) throws Throwable;
+    private native static Object callFunctionSave0(long pgm_ptr, String name, Object... args) throws Throwable;
+    private native static Object callStaticMethod0(long pgm_ptr, String class_name, String method_name, Object... args) throws Throwable;
+    private native static Object callStaticMethodSave0(long pgm_ptr, String class_name, String method_name, Object... args) throws Throwable;
+    private native static QoreObject newObjectSave0(long pgm_ptr, String class_name, Object...args) throws Throwable;
+    private native static boolean registerJavaThread0();
+    private native static void deregisterJavaThread0();
 }

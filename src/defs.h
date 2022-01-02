@@ -91,7 +91,7 @@ public:
      * \param err the error code
      */
     DLLLOCAL UnableToAttachException(jint err) : err(err) {
-        printd(LogLevel, "JNI - error attaching thread %d, err: %d\n", q_gettid(), err);
+        printd(LogLevel, "JNI: error attaching thread %d, err: %d\n", q_gettid(), err);
     }
 
     DLLLOCAL void convert(ExceptionSink *xsink) override {
@@ -111,7 +111,7 @@ public:
      * \brief Constructor.
      */
     DLLLOCAL UnableToRegisterException() {
-        printd(LogLevel, "JNI - error registering thread %ld with Qore\n", pthread_self());
+        printd(LogLevel, "JNI: error registering thread %ld with Qore\n", pthread_self());
     }
 
     DLLLOCAL void convert(ExceptionSink *xsink) override {
