@@ -1471,7 +1471,7 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
         if (ns) {
             QoreString java_pfx;
 
-            if (!mod_str) {
+            if (!mod_str && !ns->isRoot()) {
                 const char* mod = ns->getModuleName();
                 if (mod && !jpc->isInjectedModule(mod)) {
                     // do not allow Qore symbols provided by modules to be accessed from the "qore" package
