@@ -1163,9 +1163,11 @@ static jbyteArray JNICALL qore_url_classloader_generate_byte_code(JNIEnv* jenv, 
             return nullptr;
         }
 
+        QoreString modstr;
         if (module) {
             Env::GetStringUtfChars mod_str(env, module);
             printd(5, "qore_url_classloader_generate_byte_code() mod: '%s' python: %d\n", mod_str.c_str(), python);
+            modstr = mod_str.c_str();
             if (!python) {
                 if (load_module(env, mod_str, pgm)) {
                     return nullptr;
@@ -1176,10 +1178,11 @@ static jbyteArray JNICALL qore_url_classloader_generate_byte_code(JNIEnv* jenv, 
                 qpath.insert("::Python::", 0);
             }
         }
-        printd(5, "qore_url_classloader_generate_byte_code() p: %p path: '%s' (mod: %p) class_loader: %x\n", pgm, qpath.c_str(),
-            module, env.callIntMethod(class_loader, jni::Globals::methodObjectHashCode, nullptr));
+        printd(5, "qore_url_classloader_generate_byte_code() p: %p path: '%s' (mod: %p) class_loader: %x\n", pgm,
+            qpath.c_str(), modstr.c_str(),
+            env.callIntMethod(class_loader, jni::Globals::methodObjectHashCode, nullptr));
 
-        return jpc->generateByteCode(env, class_loader, qpath, jname,
+        return jpc->generateByteCode(env, class_loader, qpath, jname, modstr.empty() ? nullptr : modstr.c_str(),
             reinterpret_cast<const QoreClass*>(class_ptr)).release();
     } catch (jni::JavaException& e) {
         e.convert(&xsink);
@@ -1324,7 +1327,8 @@ const QoreNamespace* get_module_root_ns(const char* name, QoreProgram* mod_pgm) 
     return rv;
 }
 
-static void get_java_pfx(QoreString& java_pfx, jboolean python, const char* mod_str, QoreString& py_path, const char* qname) {
+static void get_java_pfx(QoreString& java_pfx, jboolean python, const char* mod_str, QoreString& py_path,
+        const char* qname) {
     assert(java_pfx.empty());
     if (*mod_str) {
         if (python) {
@@ -1348,22 +1352,57 @@ static void get_java_pfx(QoreString& java_pfx, jboolean python, const char* mod_
             java_pfx += ".";
         } else {
             java_pfx = "qore.";
-            if (*qname) {
-                if (!strncmp(qname, "::", 2)) {
-                    if (*(qname + 2)) {
-                        java_pfx.concat(qname + 2);
-                        java_pfx.replaceAll("::", ".");
-                        java_pfx.concat('.');
-                    }
-                } else {
-                    java_pfx.concat(qname);
-                    java_pfx.concat('.');
-                }
+        }
+    }
+
+    if (!python && *qname) {
+        if (!strncmp(qname, "::", 2)) {
+            if (*(qname + 2)) {
+                java_pfx.concat(qname + 2);
+                java_pfx.replaceAll("::", ".");
+                java_pfx.concat('.');
             }
+        } else {
+            java_pfx.concat(qname);
+            java_pfx.replaceAll("::", ".");
+            java_pfx.concat('.');
         }
     }
     assert(java_pfx.find("::") == -1);
-    //printd(5, "get_java_pfx() '%s'\n", java_pfx.c_str());
+    printd(5, "get_java_pfx() '%s' mod_str: '%s'\n", java_pfx.c_str(), mod_str ? mod_str : "n/a");
+}
+
+typedef std::vector<std::string> strlist_t;
+static void get_string_list(strlist_t& l, std::string str, std::string separator = "::") {
+    size_t start = 0;
+    size_t len = separator.size();
+    while (true) {
+        size_t sep = str.find(separator, start);
+        if (sep == std::string::npos) {
+            break;
+        }
+        std::string element(str, start, sep - start);
+        l.push_back(element);
+        start = sep + len;
+    }
+
+    std::string element(str, start);
+    l.push_back(element);
+}
+
+const QoreNamespace* find_ns_path(const QoreNamespace* ns, const char* ns_path) {
+    strlist_t nslist;
+    get_string_list(nslist, ns_path);
+    for (std::string& i : nslist) {
+        const QoreNamespace* nns = ns->findLocalNamespace(i.c_str());
+        if (!nns) {
+            printd(5, "find_ns_path() could not find ns '%s' in '%s'\n", i.c_str(), ns->getPath(true).c_str());
+            return nullptr;
+        }
+        ns = nns;
+    }
+    printd(5, "find_ns_path() resolved '%s' -> %p (%s)\n", ns_path, ns->getPath(true).c_str());
+    return ns;
 }
 
 static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jenv, jclass jcls, jlong ptr,
@@ -1474,15 +1513,20 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
         } else {
             assert(module);
             ns = get_module_root_ns(mod_str.c_str(), pgm);
-            printd(5, "qore_url_classloader_get_classes_in_namespace() loaded module mod_str: '%s' ns: %p\n",
-                mod_str.c_str(), ns);
+            printd(5, "qore_url_classloader_get_classes_in_namespace() loaded module mod_str: '%s' ns: %p (%s)\n",
+                mod_str.c_str(), ns, ns ? ns->getPath(true).c_str() : "n/a");
+            if (nsname) {
+                ns = find_ns_path(ns, nsname.c_str());
+            }
         }
 
 #ifdef DEBUG
         {
             QoreStringNodeHolder name(pgm->getScriptPath());
-            printd(5, "qore_url_classloader_get_classes_in_namespace() pgm: %p (%s) '%s': ns: %p ('%s')\n", pgm,
-                name ? name->c_str() : "n/a", nsname.c_str(), ns, ns ? ns->getPath(true).c_str() : "n/a");
+            printd(5, "qore_url_classloader_get_classes_in_namespace() pgm: %p (%s) naname: '%s' " \
+                "mod_str: '%s': ns: %p ('%s')\n", pgm,
+                name ? name->c_str() : "n/a", nsname.c_str(), mod_str.c_str(), ns,
+                ns ? ns->getPath(true).c_str() : "n/a");
         }
 #endif
         if (ns) {
@@ -1510,10 +1554,12 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
                 pname += qc.getName();
                 printd(5, "pname: '%s'\n", pname.c_str());
 
+#ifdef DEBUG
                 std::string cnsn = qc.getNamespacePath();
-                printd(5, "CLASS %s (%p) nsp: '%s'\n", qc.getName(), &qc, cnsn.c_str());
+                printd(5, "CLASS %s (%p) nsp: '%s' (%s)\n", qc.getName(), &qc, cnsn.c_str(), pname.c_str());
+#endif
                 printd(5, "qore_url_classloader_get_classes_in_namespace() pgm: %p '%s': qc: %p (%s -> %s)\n",
-                  pgm, nsname.c_str(), &qc, qc.getName(), pname.c_str());
+                    pgm, nsname.c_str(), &qc, qc.getName(), pname.c_str());
                 assert(pname.find("::") == std::string::npos);
 
                 // add to the ArrayList<String> var
@@ -1549,6 +1595,9 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
                 }
                 std::string pname = java_pfx.c_str();
                 pname += JniImportedConstantClassName;
+
+                printd(5, "qore_url_classloader_get_classes_in_namespace() pgm: %p '%s' (%s)\n",
+                    pgm, nsname.c_str(), pname.c_str());
 
                 LocalReference<jstring> bin_name = env.newString(pname.c_str());
 

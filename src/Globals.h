@@ -387,6 +387,9 @@ private:
 // find the root namespace for the given module in the given QoreProgram
 DLLLOCAL const QoreNamespace* get_module_root_ns(const char* name, QoreProgram* mod_pgm);
 
+// find a subnamespace with "::" delimited paths; returns nullptr if not found
+DLLLOCAL const QoreNamespace* find_ns_path(const QoreNamespace* ns, const char* ns_path);
+
 } // namespace jni
 
 // callled from the QoireURLClassLoader's constructor when used as the system classloader

@@ -1734,7 +1734,7 @@ int JniExternalProgramData::addMethods(Env& env, jobject class_loader, const Qor
 }
 
 LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jobject class_loader,
-        const QoreString& qpath, jstring jname, const QoreClass* qcls) {
+        const QoreString& qpath, jstring jname, const char* module, const QoreClass* qcls) {
     printd(5, "JniExternalProgramData::generateByteCode() '%s' pgm: %p qc: %p\n", qpath.c_str(), pgm, qcls);
     ExceptionSink xsink;
     if (!qcls) {
@@ -1768,11 +1768,11 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jo
                 QoreString ns_path(qpath.c_str(), i);
 
                 // create function class
-                return generateFunctionClassIntern(env, class_loader, pgm, jname, ns_path.c_str());
+                return generateFunctionClassIntern(env, class_loader, pgm, jname, module, ns_path.c_str());
             }
 
             // create function class
-            return generateFunctionClassIntern(env, class_loader, pgm, jname);
+            return generateFunctionClassIntern(env, class_loader, pgm, jname, module);
         }
         if (cname == JniImportedConstantClassName) {
             // ensure exclusive access while creating java classes
@@ -1782,11 +1782,11 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jo
                 QoreString ns_path(qpath.c_str(), i);
 
                 // create constant class
-                return generateConstantClassIntern(env, class_loader, pgm, jname, ns_path.c_str());
+                return generateConstantClassIntern(env, class_loader, pgm, jname, module, ns_path.c_str());
             }
 
             // create constant class
-            return generateConstantClassIntern(env, class_loader, pgm, jname);
+            return generateConstantClassIntern(env, class_loader, pgm, jname, module);
         }
 
         if (!qcls) {
@@ -1839,6 +1839,7 @@ LocalReference<jstring> JniExternalProgramData::getJavaNameForClass(Env& env, co
         convert_qore_ns_to_java_pkg(pname);
     } else {
         const char* mod = qc.getModuleName();
+
         if (mod) {
             bool done = false;
 #if QORE_VERSION_CODE >= 10013
@@ -1968,11 +1969,20 @@ int JniExternalProgramData::addFunctions(Env& env, jobject class_loader, const Q
 }
 
 LocalReference<jbyteArray> JniExternalProgramData::generateFunctionClassIntern(Env& env, jobject class_loader,
-        QoreProgram* pgm, jstring jname, const char* ns_path) {
+        QoreProgram* pgm, jstring jname, const char* module, const char* ns_path) {
     // first get Qore namespace
-    const QoreNamespace* ns = ns_path
-        ? pgm->findNamespace(ns_path)
-        : pgm->getRootNS();
+    const QoreNamespace* ns = nullptr;
+    if (module) {
+        ns = get_module_root_ns(module, pgm);
+        if (ns && ns_path && ns_path[0]) {
+            ns = find_ns_path(ns, ns_path);
+        }
+    }
+    if (!ns) {
+        ns = ns_path
+            ? pgm->findNamespace(ns_path)
+            : pgm->getRootNS();
+    }
 
     if (!ns) {
         assert(ns_path);
@@ -2020,8 +2030,10 @@ int JniExternalProgramData::addConstants(Env& env, jobject class_loader, jstring
     // create ArrayList for static class initializer
     LocalReference<jobject> ilist = env.newObject(Globals::classArrayList, Globals::ctorArrayList, nullptr);
 
+#ifdef DEBUG
     JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
     assert(jpc == this);
+#endif
 
     QoreNamespaceConstantIterator i(ns);
     while (i.next()) {
@@ -2038,7 +2050,7 @@ int JniExternalProgramData::addConstants(Env& env, jobject class_loader, jstring
         printd(5, "JniExternalProgramData::addConstants() '%s' type: %s cl: %x pgm: %p jpc cl: %x\n",
             c.getName(), qore_type_get_name(typeInfo),
             env.callIntMethod(class_loader, jni::Globals::methodObjectHashCode, nullptr), pgm,
-            env.callIntMethod(jpc->getClassLoader(), jni::Globals::methodObjectHashCode, nullptr));
+            env.callIntMethod(getClassLoader(), jni::Globals::methodObjectHashCode, nullptr));
         jvalue jargs[6];
         jargs[0].l = bb;
         jargs[1].l = jcname;
@@ -2065,11 +2077,20 @@ int JniExternalProgramData::addConstants(Env& env, jobject class_loader, jstring
 }
 
 LocalReference<jbyteArray> JniExternalProgramData::generateConstantClassIntern(Env& env, jobject class_loader,
-        QoreProgram* pgm, jstring jname, const char* ns_path) {
+        QoreProgram* pgm, jstring jname, const char* module, const char* ns_path) {
     // first get Qore namespace
-    const QoreNamespace* ns = ns_path
-        ? pgm->findNamespace(ns_path)
-        : pgm->getRootNS();
+    const QoreNamespace* ns = nullptr;
+    if (module) {
+        ns = get_module_root_ns(module, pgm);
+        if (ns && ns_path && ns_path[0]) {
+            ns = find_ns_path(ns, ns_path);
+        }
+    }
+    if (!ns) {
+        ns = ns_path
+            ? pgm->findNamespace(ns_path)
+            : pgm->getRootNS();
+    }
 
     if (!ns) {
         assert(ns_path);
@@ -2078,7 +2099,6 @@ LocalReference<jbyteArray> JniExternalProgramData::generateConstantClassIntern(E
         env.throwNew(env.findClass("java/lang/ClassNotFoundException"), desc.c_str());
         return nullptr;
     }
-
     assert(jname);
 
     // NOTE: arg array reused below; 2 args needed below
