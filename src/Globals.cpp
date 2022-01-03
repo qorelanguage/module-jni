@@ -1245,9 +1245,27 @@ static bool is_module(const QoreNamespace* parent, const char* name, const QoreH
     return false;
 }
 
-static const QoreNamespace* get_module_root_ns_intern(const char* name, const QoreNamespace& root_ns,
+static const QoreNamespace* get_module_root_ns_intern(const char* name, QoreProgram* mod_pgm,
         const QoreHashNode* all_mod_info, mod_dep_map_t& mod_dep_map, bool check_mod) {
-    QoreNamespaceConstIterator i(root_ns);
+    // try to find the namespace immediately
+    {
+        QoreString n(name);
+        if (islower(*name)) {
+            char* p = (char*)n.c_str();
+            // convert first letter to upper case
+            *p = *p - 32;
+        }
+        const QoreNamespace* ns = mod_pgm->findNamespace(n);
+        if (ns) {
+            const char* mod = ns->getModuleName();
+            if (mod && ~strcmp(mod, name)) {
+                return ns;
+            }
+        }
+    }
+
+    const QoreNamespace* root_ns = mod_pgm->getRootNS();
+    QoreNamespaceConstIterator i(*root_ns);
     while (i.next()) {
         const QoreNamespace* ns = &i.get();
         if (!check_mod) {
@@ -1296,10 +1314,9 @@ const QoreNamespace* get_module_root_ns(const char* name, QoreProgram* mod_pgm) 
     mod_dep_map_t mod_dep_map;
 
     // look for a public namespace and then find the earliest ancestor provided by the module
-    const QoreNamespace* root_ns = mod_pgm->getRootNS();
-    const QoreNamespace* rv = get_module_root_ns_intern(name, *root_ns, *all_mod_info, mod_dep_map, true);
+    const QoreNamespace* rv = get_module_root_ns_intern(name, mod_pgm, *all_mod_info, mod_dep_map, true);
     if (!rv) {
-        rv = get_module_root_ns_intern(name, *root_ns, *all_mod_info, mod_dep_map, false);
+        rv = get_module_root_ns_intern(name, mod_pgm, *all_mod_info, mod_dep_map, false);
     }
     if (rv) {
         pi->second.insert(i, qmnc_t::value_type(name, rv));

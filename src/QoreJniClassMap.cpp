@@ -1868,19 +1868,23 @@ LocalReference<jstring> JniExternalProgramData::getJavaNameForClass(Env& env, co
                         assert(pgm);
                     }
                     const QoreNamespace* ns = get_module_root_ns(mod, pgm);
-                    assert(ns);
-                    std::string nspath = ns->getPath(true);
-                    if (pname.rfind(nspath, 0) == 0) {
-                        printd(5, "pname before '%s' (nspath: '%s')\n", pname.c_str(), nspath.c_str());
-                        // create namespace path from the module's main namespace
-                        pname.erase(0, nspath.size());
-                        printd(5, "pname after '%s' (pgm: %p jpc: %p mod: %s)\n", pname.c_str(), pgm, this, mod);
-                    }
-                    convert_qore_ns_to_java_pkg(pname);
+                    if (!ns) {
+                        convert_qore_ns_to_java_pkg(pname);
+                        pname.insert(0, "qore");
+                    } else {
+                        std::string nspath = ns->getPath(true);
+                        if (pname.rfind(nspath, 0) == 0) {
+                            printd(5, "pname before '%s' (nspath: '%s')\n", pname.c_str(), nspath.c_str());
+                            // create namespace path from the module's main namespace
+                            pname.erase(0, nspath.size());
+                            printd(5, "pname after '%s' (pgm: %p jpc: %p mod: %s)\n", pname.c_str(), pgm, this, mod);
+                        }
+                        convert_qore_ns_to_java_pkg(pname);
 
-                    pname.insert(0, mod);
-                    if (strcmp(mod, "python")) {
-                        pname.insert(0, "qoremod.");
+                        pname.insert(0, mod);
+                        if (strcmp(mod, "python")) {
+                            pname.insert(0, "qoremod.");
+                        }
                     }
                 }
             }
