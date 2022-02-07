@@ -18,6 +18,9 @@ BuildRequires:  devtoolset-7-gcc-c++
 %endif
 BuildRequires:  cmake >= 3.12.4
 BuildRequires:  qore-devel >= 1.0
+BuildRequires:  qore >= 1.0
+BuildRequires:  qore-stdlib >= 1.0
+BuildRequires:  java-11-openjdk-devel
 Requires:       %{_bindir}/env
 Requires:       qore >= 1.0
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
