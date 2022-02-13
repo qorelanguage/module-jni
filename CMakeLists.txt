@@ -426,7 +426,7 @@ string(REPLACE ";" " " MODULE_DOX_INPUT "${MODULE_DOX_INPUT}")
 #message(STATUS mdi: ${MODULE_DOX_INPUT})
 
 set(MODULE_DOX_INPUT ${CMAKE_BINARY_DIR} ${JAVA_JAR_SRC} ${JAVA_JAR_COMPILER_SRC})
-qore_binary_module(${module_name} ${PROJECT_VERSION})
+qore_external_binary_module(${module_name} ${PROJECT_VERSION})
 
 qore_dist(${PROJECT_VERSION})
 
