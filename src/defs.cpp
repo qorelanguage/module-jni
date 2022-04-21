@@ -265,8 +265,14 @@ void JavaException::convert(ExceptionSink* xsink) {
     LocalReference<jclass> tcls(env->GetObjectClass(throwable));
     {
         Env jenv(env);
-        xsink->raiseExceptionArg(loc.get(), "JNI-ERROR", new QoreObject(qjcm.findCreateQoreClass(jenv, tcls, pgm), pgm,
-            new QoreJniPrivateData(throwable.as<jobject>())), desc.release(), stack);
+        QoreClass* qc;
+        try {
+            qc = qjcm.findCreateQoreClass(jenv, tcls, pgm);
+            xsink->raiseExceptionArg(loc.get(), "JNI-ERROR", new QoreObject(qc, pgm,
+                new QoreJniPrivateData(throwable.as<jobject>())), desc.release(), stack);
+        } catch (jni::Exception& e) {
+            xsink->raiseExceptionArg(loc.get(), "JNI-ERROR", QoreValue(), desc.release());
+        }
     }
 }
 
