@@ -5,7 +5,7 @@
 %global user_module_dir %{mydatarootdir}/qore-modules/
 
 Name:           qore-jni-module
-Version:        2.0.6
+Version:        2.0.7
 Release:        1
 Summary:        Qorus Integration Engine - Qore jni module
 License:        MIT
@@ -58,6 +58,9 @@ make DESTDIR=%{buildroot} install %{?_smp_mflags}
 
 
 %changelog
+* Thu Apr 21 2022 David Nichols <david@qore.org>
+- pudated to version 2.0.7
+
 * Thu Jan 27 2022 David Nichols <david@qore.org>
 - initial spec file for 2.0.6 release
 

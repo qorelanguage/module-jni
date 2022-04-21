@@ -728,6 +728,10 @@ set_save_object_callback(callback);
 
     @section jnireleasenotes jni Module Release Notes
 
+    @subsection jni_2_0_7 jni Module Version 2.0.7
+    - fixed a bug where missing c++ exception handling could cause a crash
+      (<a href="https://github.com/qorelanguage/qore/issues/4500">issue 4500</a>)
+
     @subsection jni_2_0_6 jni Module Version 2.0.6
     - fixed a bug where \c qjavac wrote output files in the current working directory instead of in the directory of
       the input file
