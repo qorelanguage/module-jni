@@ -14,6 +14,7 @@ import java.time.ZonedDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.time.temporal.ChronoUnit;
 
 @SuppressWarnings("deprecation")
 public class QoreJavaLangApiTest {
@@ -68,7 +69,7 @@ public class QoreJavaLangApiTest {
         try {
             // dates retrieved from the DB will have their region info stripped
             ZoneId zone = ZoneId.of(ZonedDateTime.now().getOffset().toString());
-            final ZonedDateTime now = ZonedDateTime.now(zone);
+            final ZonedDateTime now = ZonedDateTime.now(zone).truncatedTo(ChronoUnit.MICROS);
             AbstractSQLStatement stmt = ds.getSQLStatement();
             stmt.prepare("insert into test_table_1 (id, string, modified) values(%v, %v, %v)");
             stmt.bind(1, "hello", now);
@@ -98,7 +99,7 @@ public class QoreJavaLangApiTest {
                 throw new Throwable("string");
             }
             if (!row.get("modified").equals(now)) {
-                throw new Throwable("modified");
+                throw new Throwable(String.format("modified: %s now: %s", row.get("modified"), now));
             }
 
             return true;

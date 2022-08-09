@@ -1512,7 +1512,8 @@ int JniExternalProgramData::addNormalMethodVariant(Env& env, jobject class_loade
                 qore_type_get_name(v.getReturnTypeInfo()), qcls.getName(), m.getName(), v.getSignatureText());
         }
 
-        if (!params || !len || !check_optional_last_param(env, v, params, len)) {
+        // issue #4570: only add one method per abstract variant
+        if (!params || !len || !check_optional_last_param(env, v, params, len) || v.isAbstract()) {
             break;
         }
     }
@@ -2344,8 +2345,9 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
 LocalReference<jobject> JniExternalProgramData::getJavaTypeDefinition(Env& env, jobject class_loader,
         const QoreTypeInfo* ti, bool no_void) {
     qore_type_t t = qore_type_get_base_type(ti);
-    printd(5, "JniExternalProgramData::getJavaTypeDefinition() looking up type '%s' (%d) cl: %x\n",
-        qore_type_get_name(ti), t, env.callIntMethod((jobject)class_loader, jni::Globals::methodObjectHashCode, nullptr));
+    printd(5, "JniExternalProgramData::getJavaTypeDefinition() looking up type '%s' (%d) cl: %x (no void: %d)\n",
+        qore_type_get_name(ti), t, env.callIntMethod((jobject)class_loader, jni::Globals::methodObjectHashCode,
+            nullptr), no_void);
     if (t != NT_OBJECT) {
         if (no_void && (t == NT_NOTHING || t == NT_NULL)) {
             return get_type_def_from_class(env, Globals::classObject);
