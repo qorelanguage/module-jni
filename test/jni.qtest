@@ -173,6 +173,10 @@ class AbstractTest inherits Mutex, BaseTest {
     abstract string test(string id, hash<auto> info);
 }
 
+class AbstractTest2 inherits BaseTest {
+    abstract int test(auto arg);
+}
+
 list<auto> sub gtcs(int count, list<auto> rv = get_thread_call_stack()) {
     return !--count ? rv : gtcs(count, rv);
 }
@@ -362,14 +366,46 @@ string sub test() {
 
                 QoreJavaCompiler compiler();
                 hash<auto> sources = {
-                    "org.qore.test.QoreDynamicTest": "
+                    "org.qore.test.QoreDynamicTest17": "
+package org.qore.test;
+
+import qore.AbstractTest2;
+import org.qore.jni.Hash;
+
+public class QoreDynamicTest17 extends AbstractTest2 {
+    public QoreDynamicTest17() throws Throwable {
+        super();
+    }
+
+    public long test(Object arg) throws Throwable {
+        return Long.parseLong(String.valueOf(arg));
+    }
+}",
+                };
+                hash<auto> cv = compiler.compile(sources);
+                #printf("%N\n", cv);
+                compiler::CompilerOutput newClassData = cv{"org.qore.test.QoreDynamicTest17"};
+                binary fdata = newClassData.file.openInputStream().readAllBytes();
+                assertEq(True, fdata.size() > 0);
+                object obj = define_class("org/qore/test/QoreDynamicTest17", fdata).newInstance();
+                assertEq(1, obj.test(1));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.setScriptPath(get_script_path());
+                p.importClass("AbstractTest");
+
+                QoreJavaCompiler compiler();
+                hash<auto> sources = {
+                    "org.qore.test.QoreDynamicTest18": "
 package org.qore.test;
 
 import qore.AbstractTest;
 import org.qore.jni.Hash;
 
-public class QoreDynamicTest extends AbstractTest {
-    public QoreDynamicTest() throws Throwable {
+public class QoreDynamicTest18 extends AbstractTest {
+    public QoreDynamicTest18() throws Throwable {
         super();
     }
 
@@ -384,10 +420,10 @@ public class QoreDynamicTest extends AbstractTest {
                 };
                 hash<auto> cv = compiler.compile(sources);
                 #printf("%N\n", cv);
-                compiler::CompilerOutput newClassData = cv{"org.qore.test.QoreDynamicTest"};
+                compiler::CompilerOutput newClassData = cv{"org.qore.test.QoreDynamicTest18"};
                 binary fdata = newClassData.file.openInputStream().readAllBytes();
                 assertEq(True, fdata.size() > 0);
-                object obj = define_class("org/qore/test/QoreDynamicTest", fdata).newInstance();
+                object obj = define_class("org/qore/test/QoreDynamicTest18", fdata).newInstance();
                 assertEq("id-{}", obj.test("id", {}));
                 assertEq("1-2-3", obj.vsprintf("%s-%s-%s", 1, 2, 3));
                 assertEq("1-2-3", obj.test2("%s-%s-%s", 1, 2, 3));
