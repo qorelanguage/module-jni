@@ -16,11 +16,23 @@ BuildRequires:  gcc-c++
 %if 0%{?el7}
 BuildRequires:  devtoolset-7-gcc-c++
 %endif
-BuildRequires:  cmake >= 3.12.4
+BuildRequires:  cmake >= 3.5
 BuildRequires:  qore-devel >= 1.0
 BuildRequires:  qore >= 1.0
 BuildRequires:  qore-stdlib >= 1.0
 BuildRequires:  java-11-openjdk-devel
+BuildRequires:  unzip
+
+%if 0%{?suse_version}
+%if 0%{?sles_version} && %{?sles_version} <= 10
+BuildRequires:  bzip2
+%else
+BuildRequires:  libbz2-devel
+%endif
+%else
+BuildRequires:  bzip2-devel
+%endif
+
 Requires:       %{_bindir}/env
 Requires:       qore >= 1.0
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -53,6 +65,7 @@ make DESTDIR=%{buildroot} install %{?_smp_mflags}
 %{module_dir}
 %{_bindir}/qjava2jar
 %{_bindir}/qjavac
+%dir /usr/share/qore/java
 /usr/share/qore/java/qore-jni-compiler.jar
 /usr/share/qore/java/qore-jni.jar
 
