@@ -38,6 +38,9 @@ endif()
 SET(_qore_jni_sentinel ${CMAKE_CURRENT_BINARY_DIR}/qore-jni.sentinel)
 SET(_qore_jni_compiler_sentinel ${CMAKE_CURRENT_BINARY_DIR}/qore-jni-compiler.sentinel)
 
+# generated targets
+add_custom_target(inc-outfiles)
+
 # adds a make rule for java -> class generation annd class -> inc generation
 MACRO(GENERATE_JAVA _input)
     GET_FILENAME_COMPONENT(_base ${_input} NAME_WE)
@@ -49,10 +52,14 @@ MACRO(GENERATE_JAVA _input)
     add_custom_command(
         OUTPUT ${_inc_outfile}
         COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_class_file} ${_inc_outfile}
-        DEPENDS ${_qore_jni_sentinel}
+        DEPENDS jni-sentinel
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
+    add_custom_target(inc-outfile-${_base}
+        DEPENDS jni-sentinel ${_inc_outfile}
+    )
+    add_dependencies(inc-outfiles inc-outfile-${_base})
 
     SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_class_file})
     SET(JAVA_JAR_SRC ${JAVA_JAR_SRC} ${CMAKE_SOURCE_DIR}/src/java/${_input})
@@ -80,10 +87,15 @@ MACRO(GENERATE_JAVA _input)
         add_custom_command(
             OUTPUT ${_inc_outfile}
             COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_inc_infile} ${_inc_outfile}
-            DEPENDS ${_qore_jni_sentinel}
+            DEPENDS jni-sentinel
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             VERBATIM
         )
+        add_custom_target(inc-outfile-${_base}-${it}
+            DEPENDS jni-sentinel ${_inc_outfile}
+        )
+        add_dependencies(inc-outfiles inc-outfile-${_base}-${it})
+
         SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_inc_relinfile})
         SET(QORE_INC_FILES ${QORE_INC_FILES} ${_inc_outfile})
     endforeach()
@@ -99,7 +111,7 @@ MACRO(GENERATE_JAR _input _output)
     add_custom_command(
         OUTPUT ${_inc_outfile}
         COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_input} ${_inc_outfile}
-        DEPENDS ${_qore_jni_sentinel} ${_qore_jni_compiler_sentinel}
+        DEPENDS jni-sentinel jni-compiler-sentinel
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
@@ -148,7 +160,7 @@ MACRO(ADD_JAVA_COMPILER_SOURCE _input)
     add_custom_command(
         OUTPUT ${_inc_outfile}
         COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_class_file} ${_inc_outfile}
-        DEPENDS ${_qore_jni_compiler_sentinel}
+        DEPENDS jni-compiler-sentinel
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
@@ -178,7 +190,7 @@ MACRO(ADD_JAVA_COMPILER_SOURCE _input)
         add_custom_command(
             OUTPUT ${_inc_outfile}
             COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_inc_infile} ${_inc_outfile}
-            DEPENDS ${_qore_jni_compiler_sentinel}
+            DEPENDS jni-compiler-sentinel
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             VERBATIM
         )
@@ -288,6 +300,9 @@ add_custom_command(
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
 )
+add_custom_target(jni-sentinel
+    DEPENDS ${JAVA_JAR_SRC} ${_qore_jni_sentinel}
+)
 
 add_custom_command(
     OUTPUT ${_qore_jni_compiler_sentinel}
@@ -297,6 +312,9 @@ add_custom_command(
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
 )
+add_custom_target(jni-compiler-sentinel
+    DEPENDS ${JAVA_JAR_COMPILER_SRC} qore-jni.jar ${_qore_jni_compiler_sentinel}
+)
 
 add_jar_targets(org/qore/lang org/qore/lang/sqlutil org/qore/lang/mapper org/qore/lang/tablemapper org/qore/jni/QoreJavaDynamicApi.java)
 
@@ -304,7 +322,7 @@ add_jar_targets(org/qore/lang org/qore/lang/sqlutil org/qore/lang/mapper org/qor
 add_custom_command(
     OUTPUT qore-jni-qore.jar
     COMMAND ${Java_JAR_EXECUTABLE} cf qore-jni-qore.jar ${JAVA_JAR_CLASSES}
-    DEPENDS ${_qore_jni_sentinel}
+    DEPENDS jni-sentinel
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
 )
@@ -411,9 +429,12 @@ add_library(${module_name} MODULE ${CPP_SRC} ${QPP_SOURCES})
 include_directories(${JNI_INCLUDE_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/src)
 target_include_directories(${module_name} PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
+add_dependencies(${module_name} inc-outfiles)
 
 # add include file dependencies to Globals.cpp
-set_source_files_properties(${CMAKE_SOURCE_DIR}/src/Globals.cpp PROPERTIES OBJECT_DEPENDS "${QORE_INC_FILES}")
+set_source_files_properties(${CMAKE_SOURCE_DIR}/src/Globals.cpp
+    PROPERTIES OBJECT_DEPENDS "${QORE_INC_FILES}"
+)
 
 add_custom_target(QORE_INC_FILES DEPENDS ${QORE_INC_SRC})
 add_dependencies(${module_name} QORE_INC_FILES)
