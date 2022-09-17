@@ -113,6 +113,7 @@ jmethodID Globals::methodFieldGetType;
 jmethodID Globals::methodFieldGetModifiers;
 jmethodID Globals::methodFieldGetName;
 jmethodID Globals::methodFieldGet;
+jmethodID Globals::methodFieldGetLong;
 jmethodID Globals::methodFieldSetAccessible;
 
 GlobalReference<jclass> Globals::classMethod;
@@ -300,6 +301,8 @@ GlobalReference<jclass> Globals::classCharSequence;
 
 GlobalReference<jclass> Globals::classBooleanWrapper;
 jmethodID Globals::methodBooleanWrapperSetTrue;
+
+GlobalReference<jstring> Globals::javaQoreClassField;
 
 std::string QoreJniStackLocationHelper::jni_no_call_name = "<jni_module_java_no_runtime_stack_info>";
 QoreExternalProgramLocationWrapper QoreJniStackLocationHelper::jni_loc_builtin("<jni_module_unknown>", -1, -1);
@@ -1717,37 +1720,11 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreC
         // see if "this" (in Java) is being instantiated for the Qore class directly or a child class; if it's a child
         // class, then create a new Qore class for the Java class
         LocalReference<jclass> jcls = env.callObjectMethod(java_this, Globals::methodObjectGetClass, nullptr).as<jclass>();
-        LocalReference<jstring> clsName = env.callObjectMethod(jcls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
-        Env::GetStringUtfChars cname(env, clsName);
-
-        // convert to Qore namespace name
-        QoreString jcname(cname.c_str());
-        if (!strncmp(jcname.c_str(), "qore.", 5)) {
-            jcname.replace(0, 4, "");
-        } else if (!strncmp(jcname.c_str(), "qoremod.", 8)) {
-            jcname.replace(0, 7, "");
-        } else if (!strncmp(jcname.c_str(), "python.", 7)) {
-            jcname.replace(0, 6, "");
-        } else if (!strncmp(jcname.c_str(), "pythonmod.", 10)) {
-            jcname.replace(0, 9, "");
-        } else {
-            jcname.prepend("::");
-        }
-        jcname.replaceAll(".", "::");
-
-        std::string qpath = qc->getNamespacePath(true);
-
-        const QoreClass* jqc;
-        // if the classes are not equal, create Qore class for Java class
-        if (strcmp(qpath.c_str(), jcname.c_str())) {
-            //printd(5, "qore_object_create() '%s' != '%s'; creating Qore class for '%s'\n", qpath.c_str(),
-            //    jcname.c_str(), jcname.c_str());
+        // only look for a Qore class in the immediate local class
+        const QoreClass* jqc = JniExternalProgramData::tryGetQoreClass(env, jcls, false);
+        if (!jqc) {
             jqc = qjcm.findCreateQoreClass(env, jcls, pgm);
-        } else {
-            jqc = qc;
         }
-        printd(5, "qore_object_create() executing constructor for Qore class '%s' (%s) Java class '%s' (%s)\n",
-            qpath.c_str(), qc->getName(), jcname.c_str(), jqc->getName());
 
         // ensure class can be instantiated
         if (jqc->runtimeCheckInstantiateClass(&xsink)) {
@@ -1776,7 +1753,9 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreC
         assert(obj);
         save_object(env, *obj, pgm, xsink);
 
-        printd(5, "qore_object_create() created %s: %p\n", jqc->getName(), obj->get<const QoreObject>());
+        printd(5, "qore_object_create() created %s: %p (%s)\n", jqc->getName(), obj->get<const QoreObject>(),
+            obj->getFullTypeName());
+
         assert(obj);
         // increment weak ref count for assignment to QoreObjectBase
         QoreObject* qobj = obj->get<QoreObject>();
@@ -2524,6 +2503,7 @@ bool Globals::init() {
     methodFieldGetModifiers = env.getMethod(classField, "getModifiers", "()I");
     methodFieldGetName = env.getMethod(classField, "getName", "()Ljava/lang/String;");
     methodFieldGet = env.getMethod(classField, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+    methodFieldGetLong = env.getMethod(classField, "getLong", "(Ljava/lang/Object;)J");
     methodFieldSetAccessible = env.getMethod(classField, "setAccessible", "(Z)V");
 
     classMethod = env.findClass("java/lang/reflect/Method").makeGlobal();
@@ -2675,6 +2655,8 @@ bool Globals::init() {
 
     assert(!classQoreURLClassLoader);
     defineQoreURLClassLoader(env);
+
+    javaQoreClassField = env.newString(JAVA_QORE_CLASS_FIELD).makeGlobal();
 
     if (bootstrap) {
         classJavaClassBuilder = env.findClass("org/qore/jni/JavaClassBuilder").makeGlobal();
@@ -2854,6 +2836,7 @@ void Globals::cleanup() {
     classCharacter = nullptr;
     classCharSequence = nullptr;
     classBooleanWrapper = nullptr;
+    javaQoreClassField = nullptr;
 }
 
 GlobalReference<jclass> Globals::getQoreJavaClassBase(Env& env, jobject classLoader) {

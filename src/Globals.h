@@ -40,6 +40,8 @@ DLLLOCAL QoreStringNode* jni_module_init_intern();
 
 namespace jni {
 
+constexpr const char* JAVA_QORE_CLASS_FIELD = "$qore_cls_ptr";
+
 enum class Type {
     Void, Boolean, Byte, Char, Short, Int, Long, Float, Double, Reference
 };
@@ -117,6 +119,7 @@ public:
     DLLLOCAL static jmethodID methodFieldGetModifiers;                            // int Field.getModifiers()
     DLLLOCAL static jmethodID methodFieldGetName;                                 // String Field.getName()
     DLLLOCAL static jmethodID methodFieldGet;                                     // Object Field.get(Object)
+    DLLLOCAL static jmethodID methodFieldGetLong;                                 // Object Field.getLong(Object)
     DLLLOCAL static jmethodID methodFieldSetAccessible;                           // void Field.setAccessible(boolean)
 
     DLLLOCAL static GlobalReference<jclass> classMethod;                          // java.lang.reflect.Method
@@ -306,6 +309,8 @@ public:
 
     DLLLOCAL static GlobalReference<jclass> classBooleanWrapper;                  // org.qore.jni.BooleanWrapper
     DLLLOCAL static jmethodID methodBooleanWrapperSetTrue;                        // setTrue()
+
+    DLLLOCAL static GlobalReference<jstring> javaQoreClassField;
 
     DLLLOCAL static GlobalReference<jclass> getQoreJavaClassBase(Env& env, jobject classLoader);
 
