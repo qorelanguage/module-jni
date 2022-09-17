@@ -449,6 +449,8 @@ class MyTest {
     - Symbols imported from %Qore modules can be treated as non-module symbols by using the \c mark-module-injected
       module command; ex: @code{.qore} %module-cmd(jni) mark-module-injected InjectedModule @endcode would mark all
       symbols from %Qore module \c InjectedModule as non-module symbols
+    - %Qore and %Python definitions imported into Java from the \c qoremod and \c pythonmod packages will be anchored
+      under this package name even if definitions from other namespaces (from %Qore imports) are imported
 
     @see @ref jni_qore_object_lifecycle_default
 
@@ -727,6 +729,10 @@ set_save_object_callback(callback);
     @endcode
 
     @section jnireleasenotes jni Module Release Notes
+
+    @subsection jni_2_0_9 jni Module Version 2.0.9
+    - fixed a bug handling %Qore constructor calls from dynamically generated Java classes
+      (<a href="https://github.com/qorelanguage/qore/issues/4581">issue 4581</a>)
 
     @subsection jni_2_0_8 jni Module Version 2.0.8
     - fixed a bug importing %Qore abstract methods with default or optional arguments

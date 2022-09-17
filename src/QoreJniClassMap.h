@@ -397,6 +397,9 @@ public:
     // get / create JNI program data in the given Qore program
     DLLLOCAL static JniExternalProgramData* getCreateJniProgramData(QoreProgram* pgm);
 
+    // try to get the QoreClass for a dynamically-created JavaClass
+    DLLLOCAL static QoreClass* tryGetQoreClass(Env& env, jclass obj, bool inherited);
+
 protected:
     // owning QoreProgram object
     QoreProgram* pgm;

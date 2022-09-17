@@ -855,12 +855,8 @@ void QoreJniClassMap::addSuperClass(Env& env, JniQoreClass& qc, jni::Class* pare
         if (env.callBooleanMethod(Globals::classQoreJavaClassBase, Globals::methodClassIsAssignableFrom, &jarg)) {
             // get class field
             bool throw_exception = false;
-            QoreClass* qore_parent;
-            try {
-                jfieldID class_field = env.getStaticField(parent->getJavaObject(), "$qore_cls_ptr", "J");
-                qore_parent = reinterpret_cast<QoreClass*>(
-                    env.getStaticLongField(parent->getJavaObject(), class_field)
-                );
+            QoreClass* qore_parent = JniExternalProgramData::tryGetQoreClass(env, parent->getJavaObject(), true);
+            if (qore_parent) {
                 printd(5, "QoreJniClassMap::addSuperClass() Java class '%s' (%d) has Qore parent '%s' (%d)\n",
                     qc.getName(), qc.getID(), qore_parent->getName(), qore_parent->getID());
 
@@ -871,9 +867,6 @@ void QoreJniClassMap::addSuperClass(Env& env, JniQoreClass& qc, jni::Class* pare
                     qc.addBuiltinVirtualBaseClass(QC_OBJECT);
                     return;
                 }
-            } catch (jni::Exception& e) {
-                // ignore exceptions when the field is not found
-                e.ignore();
             }
             if (throw_exception) {
                 throw QoreJniException("FINAL-ERROR", "Java class '%s' cannot inherit final Qore class '%s'",
@@ -1027,7 +1020,7 @@ const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls, const QoreTypeInfo*
         jvalue jarg;
         jarg.l = cls;
         if (env.callBooleanMethod(Globals::classQoreJavaClassBase, Globals::methodClassIsAssignableFrom, &jarg)) {
-            jfieldID class_field = env.getStaticField(cls, "$qore_cls_ptr", "J");
+            jfieldID class_field = env.getStaticField(cls, JAVA_QORE_CLASS_FIELD, "J");
             const QoreClass* qc = reinterpret_cast<const QoreClass*>(
                 env.getStaticLongField(cls, class_field)
             );
@@ -1215,6 +1208,28 @@ static LocalReference<jobject> get_type_def_from_class(Env& env, jclass jcls) {
     arg.l = jcls;
     return env.callStaticObjectMethod(Globals::classJavaClassBuilder,
         Globals::methodJavaClassBuilderGetTypeDescriptionCls, &arg);
+}
+
+QoreClass* JniExternalProgramData::tryGetQoreClass(Env& env, jclass jcls, bool inherited) {
+    try {
+        if (inherited) {
+            jfieldID class_field = env.getStaticField(jcls, JAVA_QORE_CLASS_FIELD, "J");
+            return reinterpret_cast<QoreClass*>(
+                env.getStaticLongField(jcls, class_field)
+            );
+        }
+
+        // check if the "$qore_cls_ptr" static field is declared in this class
+        jvalue jarg;
+        jarg.l = Globals::javaQoreClassField;
+        LocalReference<jobject> field = env.callObjectMethod(jcls, Globals::methodClassGetDeclaredField, &jarg);
+        jarg.l = nullptr;
+        return reinterpret_cast<QoreClass*>(env.callLongMethod(field, Globals::methodFieldGetLong, &jarg));
+    } catch (jni::Exception& e) {
+        // ignore exceptions when the field is not found
+        e.ignore();
+    }
+    return nullptr;
 }
 
 void JniExternalProgramData::saveClass(const QoreClass& qc, LocalReference<jclass> jcls) {
