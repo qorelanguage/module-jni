@@ -253,6 +253,30 @@ public class Main inherits QUnit::Test {
 
         try {
             {
+                Program p(PO_NEW_STYLE);
+                p.setScriptPath(get_script_path());
+                p.importClass("AbstractBase2");
+
+                QoreJavaCompiler compiler();
+                compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.Issue4593",
+                    "
+package org.qore.test;
+
+public class Issue4593 extends qore.AbstractBase2 {
+    public Issue4593() throws Throwable {
+    }
+
+    public long get(org.qore.jni.QoreClosure getter) throws Throwable {
+        return (Long)getter.call();
+    }
+}
+");
+                binary fdata = newClassData.file.openInputStream().readAllBytes();
+                assertEq(True, fdata.size() > 0);
+                object obj = define_class("org/qore/test/Issue4593", fdata).newInstance();
+                assertEq(2, obj.get(int sub () { return 2; }));
+            }
+            {
                 # compile and execute QoreDynamicTest13.java
                 QoreJavaCompiler compiler();
                 compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.QoreDynamicTest13",
@@ -2068,6 +2092,10 @@ class ConcreteBase inherits MiddleBase, Other {
     string test2() {
         return "y";
     }
+}
+
+class AbstractBase2 {
+    abstract int get(code getter);
 }
 
 class ArgTest {

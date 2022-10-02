@@ -628,12 +628,12 @@ Object obj = newClassData.cls.getDeclaredConstructor().newInstance();
     |\c double|@ref float_type "double"
     |\c java.lang.String|@ref string_type "string"
     |\c java.time.ZonedDateTime|@ref date_type "date" (@ref absolute_dates "absolute date")
-    |@ref org.qore.jni.QoreRelativeTime|@ref date_type "date" (@ref relative_dates "relative date")
+    |<tt>@ref org.qore.jni.QoreRelativeTime</tt>|@ref date_type "date" (@ref relative_dates "relative date")
     |\c java.math.BigDecimal|@ref number_type "number"
     |\c java.lang.AbstractArray and arrays|@ref list_type "list"
     |\c java.util.Map|@ref hash_type "hash" (see also @ref jni_compat)
-    |\c org.qore.jni.QoreClosure|@ref code_type "code"
-    |\c org.qore.jni.QoreClosureMarker|@ref code_type "code"
+    |<tt>@ref org.qore.jni.QoreClosure</tt>|@ref code_type "code"
+    |<tt>@ref org.qore.jni.QoreClosureMarker</tt>|@ref code_type "code"
     |all other objects|direct conversion
 
     @note see @ref jni_arrays for more information about conversions between %Qore lists and Java arrays
@@ -731,6 +731,8 @@ set_save_object_callback(callback);
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_2_0_9 jni Module Version 2.0.9
+    - fixed a bug importing %Qore APIs using the \c code type into Java as @ref org.qore.jni.QoreClosure types
+      (<a href="https://github.com/qorelanguage/qore/issues/4593">issue 4593</a>)
     - fixed a bug handling %Qore constructor calls from dynamically generated Java classes
       (<a href="https://github.com/qorelanguage/qore/issues/4581">issue 4581</a>)
 
