@@ -163,6 +163,7 @@ jmethodID Globals::methodQoreClosureGet;
 GlobalReference<jclass> Globals::classQoreObjectWrapper;
 
 GlobalReference<jclass> Globals::classQoreClosureMarker;
+GlobalReference<jclass> Globals::classQoreClosureMarkerImpl;
 
 GlobalReference<jclass> Globals::classQoreJavaObjectPtr;
 jmethodID Globals::ctorQoreJavaObjectPtr;
@@ -1848,6 +1849,7 @@ static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperNa
 #include "JavaClassQoreClosure.inc"
 #include "JavaClassQoreObjectWrapper.inc"
 #include "JavaClassQoreClosureMarker.inc"
+#include "JavaClassQoreClosureMarkerImpl.inc"
 #include "JavaClassBooleanWrapper.inc"
 #include "JavaClassClassModInfo.inc"
 #include "JavaClassQoreURLClassLoader.inc"
@@ -1918,6 +1920,7 @@ static ucmap_t ucmap = {
     {"org.qore.jni.StaticEntry", {java_org_qore_jni_StaticEntry_class_len, java_org_qore_jni_StaticEntry_class}},
     {"org.qore.jni.QoreClosure", {java_org_qore_jni_QoreClosure_class_len, java_org_qore_jni_QoreClosure_class}},
     {"org.qore.jni.QoreClosureMarker", {java_org_qore_jni_QoreClosureMarker_class_len, java_org_qore_jni_QoreClosureMarker_class}},
+    {"org.qore.jni.QoreClosureMarkerImpl", {java_org_qore_jni_QoreClosureMarkerImpl_class_len, java_org_qore_jni_QoreClosureMarkerImpl_class}},
     {"org.qore.jni.QoreException", {java_org_qore_jni_QoreException_class_len, java_org_qore_jni_QoreException_class}},
     {"org.qore.jni.QoreExceptionWrapper", {java_org_qore_jni_QoreExceptionWrapper_class_len, java_org_qore_jni_QoreExceptionWrapper_class}},
     {"org.qore.jni.QoreInvocationHandler", {java_org_qore_jni_QoreInvocationHandler_class_len, java_org_qore_jni_QoreInvocationHandler_class}},
@@ -2461,6 +2464,8 @@ bool Globals::init() {
 
     classQoreClosureMarker = findDefineClass(env, "org.qore.jni.QoreClosureMarker", nullptr,
         java_org_qore_jni_QoreClosureMarker_class, java_org_qore_jni_QoreClosureMarker_class_len).makeGlobal();
+    classQoreClosureMarkerImpl = findDefineClass(env, "org.qore.jni.QoreClosureMarkerImpl", nullptr,
+        java_org_qore_jni_QoreClosureMarkerImpl_class, java_org_qore_jni_QoreClosureMarkerImpl_class_len).makeGlobal();
 
     classQoreClosure = findDefineClass(env, "org.qore.jni.QoreClosure", nullptr, java_org_qore_jni_QoreClosure_class,
         java_org_qore_jni_QoreClosure_class_len).makeGlobal();
@@ -2807,6 +2812,7 @@ void Globals::cleanup() {
     classQoreClosure = nullptr;
     classQoreObjectWrapper = nullptr;
     classQoreClosureMarker = nullptr;
+    classQoreClosureMarkerImpl = nullptr;
     classQoreJavaApi = nullptr;
     classProxy = nullptr;
     classClassLoader = nullptr;

@@ -65,6 +65,8 @@ QoreValue QoreJniFunctionalInterface::execValue(const QoreListNode* args, Except
         if (*xsink) {
             return QoreValue();
         }
+        //printd(5, "QoreJniFunctionalInterface::execValue() args: %p (%lld) evaluated_args: %p (%lld)\n", args,
+        //    args ? args->size() : 0l, *evaluated_args, evaluated_args ? evaluated_args->size() : 0l);
 
         // set call context
         QoreExternalProgramCallContextHelper call_ctx(src_pgm);

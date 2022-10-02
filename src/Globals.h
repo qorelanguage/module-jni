@@ -172,6 +172,7 @@ public:
     DLLLOCAL static GlobalReference<jclass> classQoreObjectWrapper;               // org.qore.jni.QoreObjectWrapper
 
     DLLLOCAL static GlobalReference<jclass> classQoreClosureMarker;               // org.qore.jni.QoreClosureMarker
+    DLLLOCAL static GlobalReference<jclass> classQoreClosureMarkerImpl;           // org.qore.jni.QoreClosureMarkerImpl
 
     DLLLOCAL static GlobalReference<jclass> classProxy;                           // java.lang.reflect.Proxy
     DLLLOCAL static jmethodID methodProxyNewProxyInstance;                        // Object Proxy.newProxyInstance(ClassLoader, Class[], InvocationHandler)

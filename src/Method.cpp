@@ -133,14 +133,20 @@ std::vector<jvalue> BaseMethod::convertArgs(const QoreListNode* args, size_t arg
 
 LocalReference<jobjectArray> BaseMethod::convertArgsToArray(const QoreListNode* args, size_t arg_offset,
         size_t array_offset, JniExternalProgramData* jpc) const {
-    assert(arg_offset == 0 || (args != nullptr && args->size() >= arg_offset));
+    //printd(5, "BaseMethod::convertArgsToArray() args: %p (%ld)\n", args, args ? args->size() : 0l);
+    assert(arg_offset == 0 || (args && (args->size() >= arg_offset)));
 
     size_t paramCount = paramTypes.size();
     // missing arguments are treated as null
-    size_t argCount = args == nullptr ? 0 : (args->size() - arg_offset);
+    size_t argCount;
+    if (args && (args->size() >= arg_offset)) {
+        argCount = args->size() - arg_offset;
+    } else {
+        argCount = 0;
+    }
 
     //printd(5, "BaseMethod::convertArgsToArray() args: %p paramCount: %d argCount: %d va: %d\n", args, paramCount,
-    //  argCount, varargs);
+    //    argCount, varargs);
 
     Env env;
     if (paramCount < argCount && !varargs) {
@@ -162,7 +168,7 @@ LocalReference<jobjectArray> BaseMethod::convertArgsToArray(const QoreListNode* 
         env.newObjectArray(paramCount + array_offset, Globals::classObject).as<jobjectArray>();
     for (size_t index = 0; index < paramCount; ++index) {
         // process varargs with remaining arguments or with a single argument if appropriate
-        if (varargs && (index == (paramCount - 1))
+        if (varargs && args && (index == (paramCount - 1))
             && !(argCount == paramCount && args->retrieveEntry(index + arg_offset).getType() == NT_LIST)) {
             // get array component type
             Env env;

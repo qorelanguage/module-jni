@@ -602,7 +602,7 @@ Object obj = newClassData.cls.getDeclaredConstructor().newInstance();
     |@ref hash_type "hash"|@ref org.qore.jni.Hash (extends \c java.util.LinkedHashMap), however any type \
         implementing \c java.util.Map that has a constructor that takes no arguments and a compatibule \c put() \
         method will be constructed / converted automatically to the desired type
-    |@ref code_type "code" (closure or call reference)|@ref org.qore.jni.QoreClosureMarker
+    |@ref code_type "code" (closure or call reference)|@ref org.qore.jni.QoreClosure
     |@ref Jni::org::qore::jni::JavaArray "JavaArray"|\c java.lang.Array
     |@ref object_type "object"|to the Java class if the Qore object is an instantiation of \c java.lang.Object, \
         otherwise @ref org.qore.jni.QoreObject
@@ -731,7 +731,12 @@ set_save_object_callback(callback);
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_2_0_9 jni Module Version 2.0.9
-    - fixed a bug importing %Qore APIs using the \c code type into Java as @ref org.qore.jni.QoreClosureMarker types
+    - added the following new class to the Java API:
+      - @ref org.qore.jni.QoreClosureMarkerImpl
+    - fixed a bug where a crash could result when calling a Java varargs method from another language with no
+      arguments passed
+      (<a href="https://github.com/qorelanguage/qore/issues/4594">issue 4594</a>)
+    - fixed a bug importing %Qore APIs using the \c code type into Java as @ref org.qore.jni.QoreClosureMarkerImpl types
       (<a href="https://github.com/qorelanguage/qore/issues/4593">issue 4593</a>)
     - fixed a bug handling %Qore constructor calls from dynamically generated Java classes
       (<a href="https://github.com/qorelanguage/qore/issues/4581">issue 4581</a>)

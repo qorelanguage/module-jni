@@ -266,8 +266,8 @@ public class Issue4593 extends qore.AbstractBase2 {
     public Issue4593() throws Throwable {
     }
 
-    public long get(org.qore.jni.QoreClosureMarker getter) throws Throwable {
-        return (Long)((org.qore.jni.QoreClosure)getter).call();
+    public long get(org.qore.jni.QoreClosureMarkerImpl getter) throws Throwable {
+        return (Long)getter.call();
     }
 }
 ");

@@ -7,7 +7,7 @@ package org.qore.jni;
 /**
     @since jni 1.2
 */
-public class QoreClosure implements QoreClosureMarker {
+public class QoreClosure implements QoreClosureMarkerImpl {
     //! a pointer to the Qore object
     protected long obj;
 
