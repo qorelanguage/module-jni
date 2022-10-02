@@ -2459,6 +2459,9 @@ bool Globals::init() {
         java_org_qore_jni_QoreJavaClassBase_class, java_org_qore_jni_QoreJavaClassBase_class_len).makeGlobal();
     methodQoreObjectBaseGet = env.getMethod(classQoreObjectBase, "get", "()J");
 
+    classQoreClosureMarker = findDefineClass(env, "org.qore.jni.QoreClosureMarker", nullptr,
+        java_org_qore_jni_QoreClosureMarker_class, java_org_qore_jni_QoreClosureMarker_class_len).makeGlobal();
+
     classQoreClosure = findDefineClass(env, "org.qore.jni.QoreClosure", nullptr, java_org_qore_jni_QoreClosure_class,
         java_org_qore_jni_QoreClosure_class_len).makeGlobal();
     env.registerNatives(classQoreClosure, qoreClosureNativeMethods,
@@ -2468,9 +2471,6 @@ bool Globals::init() {
 
     classQoreObjectWrapper = findDefineClass(env, "org.qore.jni.QoreObjectWrapper", nullptr,
         java_org_qore_jni_QoreObjectWrapper_class, java_org_qore_jni_QoreObjectWrapper_class_len).makeGlobal();
-
-    classQoreClosureMarker = findDefineClass(env, "org.qore.jni.QoreClosureMarker", nullptr,
-        java_org_qore_jni_QoreClosureMarker_class, java_org_qore_jni_QoreClosureMarker_class_len).makeGlobal();
 
     classQoreJavaObjectPtr = findDefineClass(env, "org.qore.jni.QoreJavaObjectPtr", nullptr,
         java_org_qore_jni_QoreJavaObjectPtr_class, java_org_qore_jni_QoreJavaObjectPtr_class_len).makeGlobal();

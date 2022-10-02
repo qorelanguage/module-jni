@@ -362,7 +362,7 @@ void QoreJniClassMap::initBackground(QoreProgram* pgm) {
     qt2jmap[NT_NOTHING] = GlobalReference<jclass>((jclass)Globals::classPrimitiveVoid);
 
     // issu #4593: https://github.com/qorelanguage/qore/issues/4593
-    qt2jmap[NT_RUNTIME_CLOSURE] = GlobalReference<jclass>((jclass)Globals::classQoreClosure);
+    qt2jmap[NT_RUNTIME_CLOSURE] = GlobalReference<jclass>((jclass)Globals::classQoreClosureMarker);
 }
 
 void QoreJniClassMap::destroy(ExceptionSink& xsink) {
