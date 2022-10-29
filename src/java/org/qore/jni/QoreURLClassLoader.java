@@ -84,7 +84,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     //! cache of classes when running as the boot classloader
     private HashMap<String, Class<?>> classCache = new HashMap<String, Class<?>>();
 
-    // when used to bootstrap Java, cannot call getSystemClassLoader()
+    // when used to bootstrap Java
     static private boolean static_bootstrap = false;
 
     //! static initialization
@@ -138,7 +138,7 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     //! constructor for using this class as the boot classloader for the module
     public QoreURLClassLoader() {
-        super("QoreURLClassLoader", new URL[]{}, ClassLoader.getPlatformClassLoader());
+        super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
         setContext();
         enable_cache = true;
         setContextProgram(this);
@@ -147,7 +147,8 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     //! constructor for using this class as the boot classloader for the module
     public QoreURLClassLoader(long p_ptr) {
-        super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
+        //super("QoreURLClassLoader", new URL[]{}, ClassLoader.getSystemClassLoader());
+        super("QoreURLClassLoader", new URL[]{}, ClassLoader.getPlatformClassLoader());
         setContext();
         pgm_ptr = p_ptr;
         //System.out.printf("QoreURLClassLoader(long p_ptr: %x) this: %x\n", p_ptr, hashCode());
@@ -408,7 +409,7 @@ public class QoreURLClassLoader extends URLClassLoader {
                 // have to check if the class was loaded in the meantime
                 rv = checkLoadedClass(bin_name);
                 if (rv != null) {
-                    //System.out.printf("loadClassWithPtr() %s returning loaded after bytecode generation\n", bin_name);
+                    //System.out.printf("loadClass() %s returning loaded after bytecode generation\n", bin_name);
                     return rv;
                 }
 

@@ -101,7 +101,6 @@ class CustomJavaFileObject implements JavaFileObject {
         return binaryName;
     }
 
-
     @Override
     public String toString() {
         return "QoreJavaClassObject{" +

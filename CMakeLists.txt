@@ -4,7 +4,7 @@ project(qore-jni-module)
 
 set (VERSION_MAJOR 2)
 set (VERSION_MINOR 0)
-set (VERSION_PATCH 9)
+set (VERSION_PATCH 10)
 
 set (BYTE_BUDDY_JAR ${CMAKE_SOURCE_DIR}/byte-buddy/byte-buddy-1.10.20.jar)
 
@@ -52,12 +52,12 @@ MACRO(GENERATE_JAVA _input)
     add_custom_command(
         OUTPUT ${_inc_outfile}
         COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_class_file} ${_inc_outfile}
-        DEPENDS jni-sentinel
+        DEPENDS jni-sentinel ${_class_file}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
     add_custom_target(inc-outfile-${_base}
-        DEPENDS jni-sentinel ${_inc_outfile}
+        DEPENDS jni-sentinel ${_inc_outfile} ${CMAKE_SOURCE_DIR}/src/java/${_input}
     )
     add_dependencies(inc-outfiles inc-outfile-${_base})
 
@@ -87,12 +87,12 @@ MACRO(GENERATE_JAVA _input)
         add_custom_command(
             OUTPUT ${_inc_outfile}
             COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_inc_infile} ${_inc_outfile}
-            DEPENDS jni-sentinel
+            DEPENDS jni-sentinel ${inc_infile}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             VERBATIM
         )
         add_custom_target(inc-outfile-${_base}-${it}
-            DEPENDS jni-sentinel ${_inc_outfile}
+            DEPENDS jni-sentinel
         )
         add_dependencies(inc-outfiles inc-outfile-${_base}-${it})
 
@@ -160,7 +160,7 @@ MACRO(ADD_JAVA_COMPILER_SOURCE _input)
     add_custom_command(
         OUTPUT ${_inc_outfile}
         COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_class_file} ${_inc_outfile}
-        DEPENDS jni-compiler-sentinel
+        DEPENDS jni-compiler-sentinel ${_class_file}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
@@ -190,7 +190,7 @@ MACRO(ADD_JAVA_COMPILER_SOURCE _input)
         add_custom_command(
             OUTPUT ${_inc_outfile}
             COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_inc_infile} ${_inc_outfile}
-            DEPENDS jni-compiler-sentinel
+            DEPENDS jni-compiler-sentinel ${_inc_infile}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             VERBATIM
         )

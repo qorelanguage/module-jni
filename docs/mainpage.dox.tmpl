@@ -730,6 +730,11 @@ set_save_object_callback(callback);
 
     @section jnireleasenotes jni Module Release Notes
 
+    @subsection jni_2_0_10 jni Module Version 2.0.10
+    - fixed a bug where the dynamic compiler (@ref org.qore.jni.compiler.QoreJavaCompiler "QoreJavaCompiler") could
+      not load classes in internal Java modules
+      (<a href="https://github.com/qorelanguage/qore/issues/4619">issue 4619</a>)
+
     @subsection jni_2_0_9 jni Module Version 2.0.9
     - added the following new class to the Java API:
       - @ref org.qore.jni.QoreClosureMarkerImpl

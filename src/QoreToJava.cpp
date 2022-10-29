@@ -282,22 +282,25 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProg
     if (cls) {
         Env env;
         if (!env.isInstanceOf(javaObjectRef, cls)) {
-            LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
+            LocalReference<jstring> clsName =
+                env.callObjectMethod(cls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
             Env::GetStringUtfChars cname(env, clsName);
 
             LocalReference<jclass> ocls = env.getObjectClass(javaObjectRef);
 
-            LocalReference<jstring> oclsName = env.callObjectMethod(ocls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
+            LocalReference<jstring> oclsName =
+                env.callObjectMethod(ocls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
             Env::GetStringUtfChars ocname(env, oclsName);
 
             if (!strcmp(cname.c_str(), ocname.c_str())) {
-                QoreStringMaker str("ClassLoader error; expected a Java object of class '%s'; object has same class " \
-                    "name but a different classloader and is therefore incompatible",
+                QoreStringMaker str("ClassLoader error; expected a Java object of class '%s'; object has same "
+                    "class name but a different classloader and is therefore incompatible",
                     cname.c_str(), ocname.c_str());
                 throw BasicException(str.c_str());
             }
 
-            QoreStringMaker str("expected class '%s'; instead got an object of class '%s'", cname.c_str(), ocname.c_str());
+            QoreStringMaker str("expected class '%s'; instead got an object of class '%s'", cname.c_str(),
+                ocname.c_str());
             throw BasicException(str.c_str());
         }
     }

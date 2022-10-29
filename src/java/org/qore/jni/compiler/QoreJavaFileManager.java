@@ -57,9 +57,11 @@ public class QoreJavaFileManager implements JavaFileManager {
     @Override
     public boolean hasLocation(Location location) {
         // we don't care about source and other location types - not needed for compilation
-        if (location == StandardLocation.CLASS_PATH || location == StandardLocation.PLATFORM_CLASS_PATH) {
+        if (location == StandardLocation.CLASS_PATH || location == StandardLocation.PLATFORM_CLASS_PATH
+            || location.getName().startsWith("SYSTEM_MODULES")) {
             return true;
         }
+
         return false;
     }
 
@@ -121,15 +123,23 @@ public class QoreJavaFileManager implements JavaFileManager {
     @Override
     public Iterable<JavaFileObject> list(Location location, String packageName, Set<JavaFileObject.Kind> kinds,
             boolean recurse) throws IOException {
-        boolean baseModule = location.getName().equals("SYSTEM_MODULES[java.base]");
-        //System.out.printf("QJFM.list() loc: %s pn: %s kinds: %s recurse: %s\n", location, packageName, kinds, recurse);
-        if (baseModule || location == StandardLocation.PLATFORM_CLASS_PATH) {
+        boolean baseModule = location.getName().startsWith("SYSTEM_MODULES");
+
+        //System.out.printf("QJFM.list() loc: %s pn: %s kinds: %s recurse: %s (base: %s)\n", location.getName(),
+        //    packageName, kinds, recurse, baseModule ? "true" : "false");
+
+        if (baseModule || location == StandardLocation.PLATFORM_CLASS_PATH
+            || !kinds.contains(JavaFileObject.Kind.CLASS)) {
             return standardFileManager.list(location, packageName, kinds, recurse);
         } else if (location == StandardLocation.CLASS_PATH && kinds.contains(JavaFileObject.Kind.CLASS)) {
             List<JavaFileObject> list = finder.find(packageName);
             standardFileManager.list(location, packageName, kinds, recurse).forEach((e) -> {
                 list.add(e);
             });
+
+            //System.out.printf("QJFM.list() loc: %s pn: %s kinds: %s recurse: %s (base: %s) list: %s\n",
+            //    location.getName(), packageName, kinds, recurse, baseModule ? "true" : "false", list);
+
             return list;
         }
         return Collections.emptyList();
