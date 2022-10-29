@@ -32,7 +32,7 @@ public class QoreDynamicTest {
     public static StringOutputStream test3() throws Throwable {
         StringOutputStream stream = new StringOutputStream();
         StreamWriter wr = new StreamWriter(stream);
-        wr.printf("%s %s", "java", "test");
+        wr.printf("%s %s", "java", "test kůň");
         return stream;
     }
 

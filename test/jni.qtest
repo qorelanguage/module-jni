@@ -584,7 +584,7 @@ public class QoreDynamicTest18 extends AbstractTest {
 
                 m = newClassData.cls.getMethod("test3");
                 StringOutputStream stream = m.invoke();
-                assertEq("java test", stream.getData());
+                assertEq("java test kůň", stream.getData());
 
                 m = newClassData.cls.getMethod("test4");
                 assertEq(1, m.invoke());
