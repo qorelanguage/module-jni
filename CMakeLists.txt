@@ -294,7 +294,7 @@ add_java_compiler_source(org/qore/jni/compiler/CompilerOutput.java)
 set(CMAKE_JAVA_COMPILE_FLAGS -Xlint:unchecked -Xlint:deprecation -Xdiags:verbose)
 
 add_custom_command(
-    OUTPUT ${_qore_jni_sentinel}
+    OUTPUT ${_qore_jni_sentinel} ${JAVA_JAR_CLASSES}
     COMMAND ${Java_JAVAC_EXECUTABLE} ${CMAKE_JAVA_COMPILE_FLAGS} -d ${CMAKE_CURRENT_BINARY_DIR} ${JAVA_JAR_SRC} -cp ${BYTE_BUDDY_JAR}
     COMMAND ${CMAKE_COMMAND} -E touch ${_qore_jni_sentinel}
     DEPENDS ${JAVA_JAR_SRC}
@@ -306,7 +306,7 @@ add_custom_target(jni-sentinel
 )
 
 add_custom_command(
-    OUTPUT ${_qore_jni_compiler_sentinel}
+    OUTPUT ${_qore_jni_compiler_sentinel} ${JAVA_JAR_COMPILER_CLASSES}
     COMMAND ${Java_JAVAC_EXECUTABLE} ${CMAKE_JAVA_COMPILE_FLAGS} -d ${CMAKE_CURRENT_BINARY_DIR} ${JAVA_JAR_COMPILER_SRC} -cp qore-jni.jar
     COMMAND ${CMAKE_COMMAND} -E touch ${_qore_jni_compiler_sentinel}
     DEPENDS ${JAVA_JAR_COMPILER_SRC} qore-jni.jar
