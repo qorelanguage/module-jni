@@ -37,7 +37,7 @@ using namespace jni;
 
 /** @defgroup JNI functions.
  */
-//@{
+///@{
 namespace Jni::org::qore::jni;
 
 //! Returns the version of the JNI API.
@@ -359,4 +359,4 @@ binary get_byte_code(string class_name) {
         return QoreValue();
     }
 }
-//@}
+///@}

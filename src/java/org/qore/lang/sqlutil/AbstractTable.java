@@ -96,7 +96,7 @@ public class AbstractTable extends AbstractSqlUtilBase {
 
         to specify the upsert strategy when synchronizing table data
         */
-    //@{
+    ///@{
     //! Upsert option: insert first, if the insert fails, then update
     /** with this option an insert is attempted, and if it fails due to a duplicate row, then an update is made unconditionally; with
         this upsert strategy, the following row result codes are possible:
@@ -170,7 +170,7 @@ public class AbstractTable extends AbstractSqlUtilBase {
             put("UpsertUpdateOnly", UpsertUpdateOnly);
         }
     });
-    //@}
+    ///@}
 
     /** @defgroup java_sql_cop_trunc_date_enum cop_trunc_date() formats
     These are formatting constant which can be used as @ref cop_trunc_date() formatting arguments.
@@ -189,7 +189,7 @@ public class AbstractTable extends AbstractSqlUtilBase {
           is up to seconds out of the box. On the other side \c TINESTAMP is truncated up to seconds
           with this operator.
     */
-    //@{
+    ///@{
     //! Format unit: year
     public static final String DT_YEAR = "Y";
 
@@ -207,7 +207,7 @@ public class AbstractTable extends AbstractSqlUtilBase {
 
     //! Format unit: hour
     public static final String DT_SECOND = "S";
-    //@}
+    ///@}
 
     /** @defgroup sql_cop_funcs SQL Column Operator Functions
         These are static methods that can be used in the \c "columns" argument for select statements:
@@ -260,7 +260,7 @@ HashMap<String, Object> sh = new HashMap<String, Object>() {
 HashMap<String, Object> rows = t.selectRows(sh);
         @endcode
      */
-    //@{
+    ///@{
     //! returns a @ref ColumnOperatorInfo hash
     /** @param cop the column operator (one of @ref sql_cops)
         @param column the column name
@@ -1580,12 +1580,12 @@ select row_number() over (partition by row_type order by id) as "row_number" fro
     public static HashMap<String, Object> cop_row_number() throws Throwable {
         return (HashMap<String, Object>)QoreJavaApi.callFunction("cop_row_number");
     }
-    //@}
+    ///@}
 
     /** @defgroup upsert_results Upsert Result Codes
         @see @ref UpsertResultMap and @ref UpsertResultDescriptionMap
         */
-    //@{
+    ///@{
     //! row was inserted
     public static int UR_Inserted = 1;
 
@@ -1600,7 +1600,7 @@ select row_number() over (partition by row_type order by id) as "row_number" fro
 
     //! row was deleted (only possible with batch upsert methods such as @ref upsertFromIterator() where @ref UpsertOptions "upsert option" \c delete_others is true)
     public static int UR_Deleted = 5;
-    //@}
+    ///@}
 
     //! hash mapping upsert results to a description
     /** @see @ref UpsertResultDescriptionMap for a reverse mapping
