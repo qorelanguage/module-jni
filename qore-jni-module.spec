@@ -5,7 +5,7 @@
 %global user_module_dir %{mydatarootdir}/qore-modules/
 
 Name:           qore-jni-module
-Version:        2.0.10
+Version:        2.0.11
 Release:        1
 Summary:        Qorus Integration Engine - Qore jni module
 License:        MIT
@@ -17,11 +17,12 @@ BuildRequires:  gcc-c++
 BuildRequires:  devtoolset-7-gcc-c++
 %endif
 BuildRequires:  cmake >= 3.5
-BuildRequires:  qore-devel >= 1.0
-BuildRequires:  qore >= 1.0
-BuildRequires:  qore-stdlib >= 1.0
+BuildRequires:  qore-devel >= 1.12.4
+BuildRequires:  qore-stdlib >= 1.12.4
+BuildRequires:  qore >= 1.12.4
 BuildRequires:  java-11-openjdk-devel
 BuildRequires:  unzip
+BuildRequires:  doxygen
 
 %if 0%{?suse_version}
 %if 0%{?sles_version} && %{?sles_version} <= 10
@@ -57,6 +58,8 @@ This package contains the jni module for the Qore Programming Language.
 export CXXFLAGS="%{?optflags}"
 cmake -DCMAKE_INSTALL_PREFIX=%{_prefix} -DCMAKE_BUILD_TYPE=RELWITHDEBINFO -DCMAKE_SKIP_RPATH=1 -DCMAKE_SKIP_INSTALL_RPATH=1 -DCMAKE_SKIP_BUILD_RPATH=1 -DCMAKE_PREFIX_PATH=${_prefix}/lib64/cmake/Qore .
 make %{?_smp_mflags}
+make %{?_smp_mflags} docs
+sed -i 's/#!\/usr\/bin\/env qore/#!\/usr\/bin\/qore/' test/*.qtest
 
 %install
 make DESTDIR=%{buildroot} install %{?_smp_mflags}
@@ -69,7 +72,23 @@ make DESTDIR=%{buildroot} install %{?_smp_mflags}
 /usr/share/qore/java/qore-jni-compiler.jar
 /usr/share/qore/java/qore-jni.jar
 
+%package doc
+Summary: jni module for Qore
+Group: Development/Languages/Other
+
+%description doc
+jni module for the Qore Programming Language.
+
+This RPM provides API documentation, test and example programs
+
+%files doc
+%defattr(-,root,root,-)
+%doc docs/jni test/*.qtest test/*.jar test/*.java
+
 %changelog
+* Mon Dec 19 2022 David Nichols <david@qore.org>
+- updated to version 2.0.11
+
 * Sat Oct 29 2022 David Nichols <david@qore.org>
 - updated to version 2.0.10
 
