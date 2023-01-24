@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-    QoreJniClassMap.h
+    QoreJdbcDriver.h
 
     Qore Programming Language JNI Module
 
@@ -21,37 +21,14 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _QORE_JNI_QOREJNIPRIVATEDATA_H
+#ifndef _QORE_JNI_QOREJDBCDRIVER_H
 
-#define _QORE_JNI_QOREJNIPRIVATEDATA_H
+#define _QORE_JNI_QOREJDBCDRIVER_H
 
-#include "GlobalReference.h"
-#include "LocalReference.h"
+#include <qore/Qore.h>
 
 namespace jni {
-
-class QoreJniPrivateData : public AbstractPrivateData {
-public:
-   DLLLOCAL QoreJniPrivateData(jobject n_jobj) : jobj(GlobalReference<jobject>::fromLocal(n_jobj)) {
-   }
-
-   template <typename T>
-   DLLLOCAL T cast() const {
-      return jobj.cast<T>();
-   }
-
-   DLLLOCAL jobject getObject() const {
-      return jobj;
-   }
-
-   DLLLOCAL LocalReference<jobject> makeLocal() const {
-      return jobj.toLocal();
-   }
-
-protected:
-   GlobalReference<jobject> jobj;
-
-   DLLLOCAL QoreJniPrivateData() = default;
-};
+DLLLOCAL void setup_jdbc_driver();
 }
+
 #endif

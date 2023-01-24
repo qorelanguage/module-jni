@@ -3,7 +3,7 @@
 
     Qore Programming Language JNI Module
 
-    Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -378,6 +378,19 @@ public class QoreURLClassLoader extends URLClassLoader {
             return rv;
         }
 
+        rv = tryGetPendingClass(bin_name);
+        if (rv != null) {
+            //System.out.printf("loadClass() %s returning pending\n", bin_name);
+            return rv;
+        }
+        QoreJavaFileObject file = classes.get(bin_name);
+        if (file != null) {
+            byte[] bytes = file.getByteCode();
+            //System.out.printf("QoreURLClassLoader.loadClass() %x: %s returning defineClass()\n", hashCode(),
+            //    bin_name);
+            return defineClass(bin_name, bytes, 0, bytes.length);
+        }
+
         if (bin_name.startsWith("java.")
             || bin_name.startsWith("javax.")
             || bin_name.startsWith("sun.")
@@ -387,18 +400,6 @@ public class QoreURLClassLoader extends URLClassLoader {
             rv = super.loadClass(bin_name);
             //System.out.printf("loadClass() %s resolved %s with super: %s\n", bin_name, rv, rv.getClass().getClassLoader());
             return rv;
-        }
-
-        rv = tryGetPendingClass(bin_name);
-        if (rv != null) {
-            //System.out.printf("loadClass() %s returning pending\n", bin_name);
-            return rv;
-        }
-        QoreJavaFileObject file = classes.get(bin_name);
-        if (file != null) {
-            byte[] bytes = file.getByteCode();
-            //System.out.printf("loadClass() %s returning defineClass()\n", bin_name);
-            return defineClass(bin_name, bytes, 0, bytes.length);
         }
 
         if (isDynamic(bin_name)) {
@@ -459,7 +460,8 @@ public class QoreURLClassLoader extends URLClassLoader {
             }
         }
 
-        //System.out.printf("loadClass() %s call super...\n", bin_name);
+        //System.out.printf("QoreURLClassLoader.loadClass() %s call super... (classes: %s)\n", bin_name,
+        //    classes.keySet());
         return super.loadClass(bin_name);
     }
 
@@ -483,7 +485,10 @@ public class QoreURLClassLoader extends URLClassLoader {
             QoreJavaFileObject file = classes.get(bin_name);
             if (file != null) {
                 byte[] bytes = file.getByteCode();
-                //System.out.printf("loadClassWithPtr() %s returning defineClass()\n", bin_name);
+
+                //System.out.printf("QoreURLClassLoader.loadClassWithPtr() %x: %s returning defineClass()\n",
+                //    hashCode(), bin_name);
+
                 return defineClass(bin_name, bytes, 0, bytes.length);
             }
 

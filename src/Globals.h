@@ -311,6 +311,34 @@ public:
     DLLLOCAL static GlobalReference<jclass> classBooleanWrapper;                  // org.qore.jni.BooleanWrapper
     DLLLOCAL static jmethodID methodBooleanWrapperSetTrue;                        // setTrue()
 
+    DLLLOCAL static GlobalReference<jclass> classProperties;                      // java.util.Properties
+    DLLLOCAL static jmethodID ctorProperties;                                     // Properties()
+    DLLLOCAL static jmethodID methodPropertiesSetProperty;                        // Object setProperty(String, String)
+
+    DLLLOCAL static GlobalReference<jclass> classDriverManager;                   // java.sql.DriverManager
+    DLLLOCAL static jmethodID methodDriverManagerGetConnection;                   // Connection getConnection(String, Properties)
+
+    DLLLOCAL static GlobalReference<jclass> classConnection;                      // java.sql.Connection
+    DLLLOCAL static jmethodID methodConnectionClose;                              // void Connection.close()
+    DLLLOCAL static jmethodID methodConnectionCommit;                             // void Connection.commit()
+    DLLLOCAL static jmethodID methodConnectionRollback;                           // void Connection.rollback()
+    DLLLOCAL static jmethodID methodConnectionGetMetaData;                        // DatabaseMetaData getMetaData()
+    DLLLOCAL static jmethodID methodConnectionPrepareStatement;                   // PreparedStatement prepareStatement(String, String[])
+
+    DLLLOCAL static GlobalReference<jclass> classDatabaseMetaData;                // java.sql.DatabaseMetaData
+    DLLLOCAL static jmethodID methodDatabaseMetaDataGetDatabaseMajorVersion;      // int getDatabaseMajorVersion()
+    DLLLOCAL static jmethodID methodDatabaseMetaDataGetDatabaseMinorVersion;      // int getDatabaseMinorVersion()
+    DLLLOCAL static jmethodID methodDatabaseMetaDataGetDatabaseProductName;       // String getDatabaseProductName()
+    DLLLOCAL static jmethodID methodDatabaseMetaDataGetDatabaseProductVersion;    // String getDatabaseProductVersion()
+    DLLLOCAL static jmethodID methodDatabaseMetaDataGetDriverMajorVersion;        // int getDriverMajorVersion()
+    DLLLOCAL static jmethodID methodDatabaseMetaDataGetDriverMinorVersion;        // int getDriverMinorVersion()
+    DLLLOCAL static jmethodID methodDatabaseMetaDataGetDriverName;                // String getDriverName()
+    DLLLOCAL static jmethodID methodDatabaseMetaDataGetDriverVersion;             // String getDriverVersion()
+
+    DLLLOCAL static GlobalReference<jclass> classPreparedStatement;               // java.sql.PreparedStatement
+    DLLLOCAL static jmethodID methodPreparedStatementExecute;                     // boolean execute()
+    DLLLOCAL static jmethodID methodPreparedStatementGetUpdateCount;              // int getUpdateCount()
+
     DLLLOCAL static GlobalReference<jstring> javaQoreClassField;
 
     DLLLOCAL static GlobalReference<jclass> getQoreJavaClassBase(Env& env, jobject classLoader);

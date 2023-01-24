@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -302,6 +302,34 @@ GlobalReference<jclass> Globals::classCharSequence;
 
 GlobalReference<jclass> Globals::classBooleanWrapper;
 jmethodID Globals::methodBooleanWrapperSetTrue;
+
+GlobalReference<jclass> Globals::classProperties;
+jmethodID Globals::ctorProperties;
+jmethodID Globals::methodPropertiesSetProperty;
+
+GlobalReference<jclass> Globals::classDriverManager;
+jmethodID Globals::methodDriverManagerGetConnection;
+
+GlobalReference<jclass> Globals::classConnection;
+jmethodID Globals::methodConnectionClose;
+jmethodID Globals::methodConnectionCommit;
+jmethodID Globals::methodConnectionRollback;
+jmethodID Globals::methodConnectionGetMetaData;
+jmethodID Globals::methodConnectionPrepareStatement;
+
+GlobalReference<jclass> Globals::classDatabaseMetaData;
+jmethodID Globals::methodDatabaseMetaDataGetDatabaseMajorVersion;
+jmethodID Globals::methodDatabaseMetaDataGetDatabaseMinorVersion;
+jmethodID Globals::methodDatabaseMetaDataGetDatabaseProductName;
+jmethodID Globals::methodDatabaseMetaDataGetDatabaseProductVersion;
+jmethodID Globals::methodDatabaseMetaDataGetDriverMajorVersion;
+jmethodID Globals::methodDatabaseMetaDataGetDriverMinorVersion;
+jmethodID Globals::methodDatabaseMetaDataGetDriverName;
+jmethodID Globals::methodDatabaseMetaDataGetDriverVersion;
+
+GlobalReference<jclass> Globals::classPreparedStatement;
+jmethodID Globals::methodPreparedStatementExecute;
+jmethodID Globals::methodPreparedStatementGetUpdateCount;
 
 GlobalReference<jstring> Globals::javaQoreClassField;
 
@@ -2658,6 +2686,45 @@ bool Globals::init() {
 
     classCharSequence = env.findClass("java/lang/CharSequence").makeGlobal();
 
+    classProperties = env.findClass("java/util/Properties").makeGlobal();
+    ctorProperties = env.getMethod(classProperties, "<init>", "()V");
+    methodPropertiesSetProperty = env.getMethod(classProperties, "setProperty",
+        "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
+
+    classDriverManager = env.findClass("java/sql/DriverManager").makeGlobal();
+    methodDriverManagerGetConnection = env.getStaticMethod(classDriverManager, "getConnection",
+        "(Ljava/lang/String;Ljava/util/Properties;)Ljava/sql/Connection;");
+
+    classConnection = env.findClass("java/sql/Connection").makeGlobal();
+    methodConnectionClose = env.getMethod(classConnection, "close", "()V");
+    methodConnectionCommit = env.getMethod(classConnection, "commit", "()V");
+    methodConnectionRollback = env.getMethod(classConnection, "rollback", "()V");
+    methodConnectionGetMetaData = env.getMethod(classConnection, "getMetaData", "()Ljava/sql/DatabaseMetaData;");
+    methodConnectionPrepareStatement = env.getMethod(classConnection, "prepareStatement",
+        "(Ljava/lang/String;[Ljava/lang/String;)Ljava/sql/PreparedStatement;");
+
+    classDatabaseMetaData = env.findClass("java/sql/DatabaseMetaData").makeGlobal();
+    methodDatabaseMetaDataGetDatabaseMajorVersion = env.getMethod(classDatabaseMetaData, "getDatabaseMajorVersion",
+        "()I");
+    methodDatabaseMetaDataGetDatabaseMinorVersion = env.getMethod(classDatabaseMetaData, "getDatabaseMinorVersion",
+        "()I");
+    methodDatabaseMetaDataGetDatabaseProductName = env.getMethod(classDatabaseMetaData, "getDatabaseProductName",
+        "()Ljava/lang/String;");
+    methodDatabaseMetaDataGetDatabaseProductVersion = env.getMethod(classDatabaseMetaData,
+        "getDatabaseProductVersion", "()Ljava/lang/String;");
+    methodDatabaseMetaDataGetDriverMajorVersion = env.getMethod(classDatabaseMetaData, "getDriverMajorVersion",
+        "()I");
+    methodDatabaseMetaDataGetDriverMinorVersion = env.getMethod(classDatabaseMetaData, "getDriverMinorVersion",
+        "()I");
+    methodDatabaseMetaDataGetDriverName = env.getMethod(classDatabaseMetaData, "getDriverName",
+        "()Ljava/lang/String;");
+    methodDatabaseMetaDataGetDriverVersion = env.getMethod(classDatabaseMetaData, "getDriverVersion",
+        "()Ljava/lang/String;");
+
+    classPreparedStatement = env.findClass("java/sql/PreparedStatement").makeGlobal();
+    methodPreparedStatementExecute = env.getMethod(classPreparedStatement, "execute", "()Z");
+    methodPreparedStatementGetUpdateCount = env.getMethod(classPreparedStatement, "getUpdateCount", "()I");
+
     assert(!classQoreURLClassLoader);
     defineQoreURLClassLoader(env);
 
@@ -2842,6 +2909,11 @@ void Globals::cleanup() {
     classCharacter = nullptr;
     classCharSequence = nullptr;
     classBooleanWrapper = nullptr;
+    classProperties = nullptr;
+    classDriverManager = nullptr;
+    classConnection = nullptr;
+    classDatabaseMetaData = nullptr;
+    classPreparedStatement = nullptr;
     javaQoreClassField = nullptr;
 }
 

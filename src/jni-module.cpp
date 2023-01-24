@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -47,6 +47,7 @@
 #include "Method.h"
 #include "QoreToJava.h"
 #include "Globals.h"
+#include "QoreJdbcDriver.h"
 
 using namespace jni;
 
@@ -203,6 +204,8 @@ static QoreStringNode* jni_module_init() {
         jni_init_failed = true;
         return new QoreStringNode("JVM initialization failed due to an unknown error");
     }
+
+    jni::setup_jdbc_driver();
 
     printd(5, "jni_module_init() initialized JVM\n");
 

@@ -728,7 +728,22 @@ code callback = sub (object obj) {
 set_save_object_callback(callback);
     @endcode
 
+    @section jdbc_driver jdbc DBI Driver for Qore
+
+    This module implements the \c "jdbc" driver for %Qore to allow %Qore (as well as other languages such as %Python
+    that use %Qore as a "language bridge") to access data in databases with jdbc drivers.
+
+    To use the \c jdbc DBI driver, use the driver name \c "jdbc".
+
     @section jnireleasenotes jni Module Release Notes
+
+    @subsection jni_2_1_0 jni Module Version 2.1.0
+    - added support for the @ref jdbc_driver "jdbc DBI driver"
+      (<a href="https://github.com/qorelanguage/qore/issues/4684">issue 4684</a>)
+    - fixed a bug where \c qjavac did not detect the binary path of compiled objects correctly in all cases
+      (<a href="https://github.com/qorelanguage/qore/issues/4683">issue 4683</a>)
+    - fixed a bug in \c qjavac where error information was not output when compiler diagnostic information was missing
+      (<a href="https://github.com/qorelanguage/qore/issues/4682">issue 4682</a>)
 
     @subsection jni_2_0_11 jni Module Version 2.0.11
     - updated to work with the latest \c qpp from %Qore 1.12.4+

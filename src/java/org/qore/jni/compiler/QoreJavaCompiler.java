@@ -358,7 +358,11 @@ public class QoreJavaCompiler<T> {
                 ArrayList<JavaFileObject> outputObjects = javaFileManager.getOutputFiles();
                 Map<String, CompilerOutput<T>> compiled = new HashMap<String, CompilerOutput<T>>();
                 for (JavaFileObject f : outputObjects) {
-                    compiled.put(f.getName(), new CompilerOutput<T>(loadClass(f.getName()), f));
+                    compiled.put(f.getName(), new CompilerOutput<T>(
+                        //((JavaFileObjectImpl)f).getByteCode(),
+                        loadClass(f.getName()),
+                        f
+                    ));
                 }
                 return compiled;
             } catch (ClassNotFoundException e) {
@@ -388,8 +392,7 @@ public class QoreJavaCompiler<T> {
      * @throws ClassNotFoundException if no such class is found.
      */
     @SuppressWarnings("unchecked")
-    public Class<T> loadClass(final String qualifiedClassName)
-            throws ClassNotFoundException {
+    public Class<T> loadClass(final String qualifiedClassName) throws ClassNotFoundException {
         return (Class<T>) classLoader.loadClass(qualifiedClassName);
     }
 
