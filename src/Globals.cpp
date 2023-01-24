@@ -331,6 +331,7 @@ jmethodID Globals::methodDatabaseMetaDataGetDriverVersion;
 
 GlobalReference<jclass> Globals::classPreparedStatement;
 jmethodID Globals::methodPreparedStatementExecute;
+jmethodID Globals::methodPreparedStatementGetResultSet;
 jmethodID Globals::methodPreparedStatementGetUpdateCount;
 jmethodID Globals::methodPreparedStatementSetArray;
 jmethodID Globals::methodPreparedStatementSetBigDecimal;
@@ -345,6 +346,9 @@ jmethodID Globals::methodPreparedStatementSetTimestamp;
 GlobalReference<jclass> Globals::classTimestamp;
 jmethodID Globals::ctorTimestamp;
 jmethodID Globals::methodTimestampSetNanos;
+
+GlobalReference<jclass> Globals::classResultSet;
+jmethodID Globals::methodResultSetNext;
 
 int Globals::typeNull;
 
@@ -2755,6 +2759,7 @@ bool Globals::init() {
 
     classPreparedStatement = env.findClass("java/sql/PreparedStatement").makeGlobal();
     methodPreparedStatementExecute = env.getMethod(classPreparedStatement, "execute", "()Z");
+    methodPreparedStatementGetResultSet = env.getMethod(classPreparedStatement, "getResultSet", "()Ljava/sql/ResultSet;");
     methodPreparedStatementGetUpdateCount = env.getMethod(classPreparedStatement, "getUpdateCount", "()I");
     methodPreparedStatementSetArray = env.getMethod(classPreparedStatement, "setArray", "(ILjava/sql/Array;)V");
     methodPreparedStatementSetBigDecimal = env.getMethod(classPreparedStatement, "setBigDecimal",
@@ -2771,6 +2776,9 @@ bool Globals::init() {
     classTimestamp = env.findClass("java/sql/Timestamp").makeGlobal();
     ctorTimestamp = env.getMethod(classTimestamp, "<init>", "(J)V");
     methodTimestampSetNanos = env.getMethod(classTimestamp, "setNanos", "(I)V");
+
+    classResultSet = env.findClass("java/sql/ResultSet").makeGlobal();
+    methodResultSetNext = env.getMethod(classResultSet, "next", "()Z");
 
     {
         LocalReference<jclass> classTypes = env.findClass("java/sql/Types");
@@ -2968,6 +2976,7 @@ void Globals::cleanup() {
     classDatabaseMetaData = nullptr;
     classPreparedStatement = nullptr;
     classTimestamp = nullptr;
+    classResultSet = nullptr;
     javaQoreClassField = nullptr;
 }
 

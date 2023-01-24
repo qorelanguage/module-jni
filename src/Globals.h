@@ -339,6 +339,7 @@ public:
 
     DLLLOCAL static GlobalReference<jclass> classPreparedStatement;               // java.sql.PreparedStatement
     DLLLOCAL static jmethodID methodPreparedStatementExecute;                     // boolean execute()
+    DLLLOCAL static jmethodID methodPreparedStatementGetResultSet;                // ResultSet getResultSet()
     DLLLOCAL static jmethodID methodPreparedStatementGetUpdateCount;              // int getUpdateCount()
     DLLLOCAL static jmethodID methodPreparedStatementSetArray;                    // void setArray(int, Array)
     DLLLOCAL static jmethodID methodPreparedStatementSetBigDecimal;               // void setBigDecimal(int, BigDecimal)
@@ -353,6 +354,9 @@ public:
     DLLLOCAL static GlobalReference<jclass> classTimestamp;                       // java.sql.Timestamp
     DLLLOCAL static jmethodID ctorTimestamp;                                      // Timestamp(long)
     DLLLOCAL static jmethodID methodTimestampSetNanos;                            // void setNanos(int)
+
+    DLLLOCAL static GlobalReference<jclass> classResultSet;                       // java.sql.ResultSet
+    DLLLOCAL static jmethodID methodResultSetNext;                                // boolean next()
 
     DLLLOCAL static int typeNull; // java.sql.Type.NULL value
 
