@@ -29,6 +29,8 @@
 
 #include "GlobalReference.h"
 
+#include <string>
+
 namespace jni {
 
 class QoreJdbcConnection {
@@ -39,6 +41,22 @@ public:
     DLLLOCAL jobject getConnectionObject() const {
         return connection;
     }
+
+    //! Set an option for the connection.
+    /** @param opt option name
+        @param val option value to use
+        @param xsink exception sink
+
+        @return 0 for OK, -1 for error
+    */
+    DLLLOCAL int setOption(const char* opt, const QoreValue val, ExceptionSink* xsink);
+
+    //! Get the current value of an option of the connection.
+    /** @param opt option name
+
+        @return option's value
+    */
+    DLLLOCAL QoreValue getOption(const char* opt);
 
     DLLLOCAL int close(ExceptionSink* xsink);
 
@@ -56,6 +74,16 @@ private:
 
     //! Connection object
     GlobalReference<jobject> connection;
+
+    //! Classpath value
+    std::string classpath;
+
+    //! Parse options passed through the Datasource
+    /** @param xsink exception sink
+
+        @return 0 for OK, -1 for error
+     */
+    DLLLOCAL int parseOptions(ExceptionSink* xsink);
 
     QoreJdbcConnection(const QoreJdbcConnection&) = delete;
     QoreJdbcConnection& operator=(const QoreJdbcConnection&) = delete;

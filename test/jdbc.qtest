@@ -1,0 +1,67 @@
+#!/usr/bin/env qore
+
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+
+%requires jni
+%requires QUnit
+
+%exec-class Main
+
+public class Main inherits QUnit::Test {
+    private {
+        Datasource ds;
+
+        const MyOpts = Opts + {
+            "connstr": "c,conn=s",
+        };
+
+        const OptionColumn = 22;
+    }
+
+    constructor() : Test("jdbc test", "1.0", \ARGV, MyOpts) {
+        addTestCase("test", \test());
+
+        setupConnection();
+
+        # execute tests and set program return value
+        set_return_value(main());
+    }
+
+    private test() {
+        if (!ds) {
+            testSkip("no jdbc connection available");
+        }
+
+        auto v = ds.getServerVersion();
+        assertTrue(exists v);
+        v = ds.getClientVersion();
+        assertTrue(exists v);
+
+        hash<auto> q = ds.select("select * from test where b = %v", True);
+        printf("q: %y\n", q);
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"jdbc:user/pass@driver?...\")", OptionColumn);
+    }
+
+    private setupConnection() {
+        try {
+            if (!m_options.connstr) {
+                m_options.connstr = ENV.QORE_DB_CONNSTR_JDBC;
+            }
+            ds = new Datasource(m_options.connstr);
+            if (ds.getDriverName() != "jdbc")
+                throw "JDBC-TEST-ERROR", sprintf("cannot execute the jdbc tests on a connection using driver %y",
+                    ds.getDriverName());
+            ds.open();
+        } catch (hash<ExceptionInfo> ex) {
+            printf("ERROR: %s: %s\n", ex.err, ex.desc);
+            delete ds;
+        }
+    }
+}

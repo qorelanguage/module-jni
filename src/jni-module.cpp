@@ -439,7 +439,7 @@ static void qore_jni_mc_define_pending_class(const QoreString& arg, QoreProgram*
 
     // add the byte code as a pending class
     LocalReference<jstring> jname = env.newString(java_name.c_str());
-    LocalReference<jbyteArray> jbyte_code = QoreToJava::makeByteArray(**byte_code);
+    LocalReference<jbyteArray> jbyte_code = QoreToJava::makeByteArray(env, **byte_code);
 
     std::vector<jvalue> jargs(2);
     jargs[0].l = jname;

@@ -27,6 +27,8 @@
 
 #include <qore/Qore.h>
 
+constexpr const char* JDBC_OPT_CLASSPATH = "classpath";
+
 namespace jni {
 DLLLOCAL void setup_jdbc_driver();
 }

@@ -23,6 +23,8 @@
 
 #include "QoreJdbcConnection.h"
 #include "QoreJdbcStatement.h"
+#include "QoreJdbcDriver.h"
+#include "QoreJniClassMap.h"
 #include "LocalReference.h"
 #include "Globals.h"
 #include "Env.h"
@@ -42,6 +44,11 @@ static void set_prop(Env& env, LocalReference<jobject>& props, const char* prop,
 }
 
 QoreJdbcConnection::QoreJdbcConnection(Datasource* ds, ExceptionSink* xsink) : ds(ds) {
+    // Parse options passed through the datasource.
+    if (parseOptions(xsink)) {
+        return;
+    }
+
     // get URL
     const std::string& str = ds->getDBNameStr();
     if (str.empty()) {
@@ -73,6 +80,10 @@ QoreJdbcConnection::QoreJdbcConnection(Datasource* ds, ExceptionSink* xsink) : d
 
         connection = env.callStaticObjectMethod(Globals::classDriverManager,
             Globals::methodDriverManagerGetConnection, &jargs[0]).makeGlobal();
+
+        // turn off autocommit
+        jargs[0].z = false;
+        env.callVoidMethod(connection, Globals::methodConnectionSetAutoCommit, &jargs[0]);
     } catch (jni::Exception& e) {
         e.convert(xsink);
     }
@@ -80,6 +91,18 @@ QoreJdbcConnection::QoreJdbcConnection(Datasource* ds, ExceptionSink* xsink) : d
 
 QoreJdbcConnection::~QoreJdbcConnection() {
     assert(!connection);
+}
+
+int QoreJdbcConnection::parseOptions(ExceptionSink* xsink) {
+    ConstHashIterator hi(ds->getConnectOptions());
+    while (hi.next()) {
+        //printd(5, "QoreJdbcConnection::parseOptions() this: %p '%s' = %s\n", this, hi.getKey(),
+        //    hi.get().getFullTypeName());
+        if (setOption(hi.getKey(), hi.get(), xsink)) {
+            return -1;
+        }
+    }
+    return 0;
 }
 
 int QoreJdbcConnection::close(ExceptionSink* xsink) {
@@ -94,6 +117,46 @@ int QoreJdbcConnection::close(ExceptionSink* xsink) {
         e.convert(xsink);
     }
     return *xsink ? -1 : 0;
+}
+
+int QoreJdbcConnection::setOption(const char* opt, const QoreValue val, ExceptionSink* xsink) {
+    if (!strcasecmp(opt, JDBC_OPT_CLASSPATH)) {
+        if (val.getType() != NT_STRING) {
+            xsink->raiseException("JDBC-OPTION-ERROR", "'%s' expects a 'string' value; got type '%s' instead",
+                JDBC_OPT_CLASSPATH, val.getFullTypeName());
+            return -1;
+        }
+        const char* cp = val.get<const QoreStringNode>()->c_str();
+
+        QoreProgram* pgm = qore_get_call_program_context();
+        assert(pgm);
+        JniExternalProgramData* jpc = JniExternalProgramData::getCreateJniProgramData(pgm);
+
+        QoreString arg(cp);
+        q_env_subst(arg);
+        //printd(5, "QoreJdbcConnection::setOption() %p '%s' jpc: %p arg: '%s'\n", this, opt, jpc, arg.c_str());
+
+        try {
+            jpc->addClasspath(arg.c_str());
+            classpath = arg.c_str();
+        } catch (jni::Exception& e) {
+            e.convert(xsink);
+            return -1;
+        }
+    } else {
+        xsink->raiseException("JDBC-OPTION-ERROR", "invalid option '%s'", opt);
+        return -1;
+    }
+    return 0;
+}
+
+QoreValue QoreJdbcConnection::getOption(const char* opt) {
+    if (!strcasecmp(opt, JDBC_OPT_CLASSPATH)) {
+        return classpath.empty() ? QoreValue() : new QoreStringNode(classpath);
+    } else {
+        assert(false);
+    }
+    return QoreValue();
 }
 
 int QoreJdbcConnection::commit(ExceptionSink* xsink) {

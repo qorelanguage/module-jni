@@ -205,7 +205,8 @@ void Array::set(jarray array, Type elementType, jclass elementClass, int64 index
         case Type::Reference:
         default:
             assert(elementType == Type::Reference);
-            env.setObjectArrayElement((jobjectArray)array, index, QoreToJava::toObject(value, elementClass, jpc));
+            env.setObjectArrayElement((jobjectArray)array, index, QoreToJava::toObject(env, value, elementClass,
+                jpc));
     }
 }
 

@@ -111,6 +111,20 @@ static QoreValue jdbc_select(Datasource* ds, const QoreString* qstr, const QoreL
     return conn->select(qstr, args, xsink);
 }
 
+static int jdbc_opt_set(Datasource* ds, const char* opt, const QoreValue val, ExceptionSink* xsink) {
+    QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
+    if (!conn) {
+        xsink->raiseException("JDBC-CONNECTION-ERROR", "there is no open connection");
+        return QoreValue();
+    }
+    return conn->setOption(opt, val, xsink);
+}
+
+static QoreValue jdbc_opt_get(const Datasource* ds, const char* opt) {
+    QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
+    return conn ? conn->getOption(opt) : QoreValue();
+}
+
 void setup_jdbc_driver() {
     qore_dbi_method_list methods;
     methods.add(QDBI_METHOD_OPEN, jdbc_open);
@@ -121,6 +135,9 @@ void setup_jdbc_driver() {
     methods.add(QDBI_METHOD_GET_CLIENT_VERSION, jdbc_get_client_version);
     methods.add(QDBI_METHOD_BEGIN_TRANSACTION, jdbc_begin_transaction);
     methods.add(QDBI_METHOD_SELECT, jdbc_select);
+
+    methods.add(QDBI_METHOD_OPT_SET, jdbc_opt_set);
+    methods.add(QDBI_METHOD_OPT_GET, jdbc_opt_get);
     /*
     methods.add(QDBI_METHOD_SELECT_ROWS, jdbc_select_rows);
     methods.add(QDBI_METHOD_SELECT_ROW, jdbc_select_row);
@@ -144,9 +161,6 @@ void setup_jdbc_driver() {
     methods.add(QDBI_METHOD_STMT_GET_OUTPUT, jdbc_stmt_get_output);
     methods.add(QDBI_METHOD_STMT_GET_OUTPUT_ROWS, jdbc_stmt_get_output_rows);
 
-    methods.add(QDBI_METHOD_OPT_SET, jdbc_opt_set);
-    methods.add(QDBI_METHOD_OPT_GET, jdbc_opt_get);
-
     methods.registerOption(DBI_OPT_NUMBER_OPT, "when set, numeric/decimal values are returned as integers if "
         "possible, otherwise as arbitrary-precision number values; the argument is ignored; setting this option "
         "turns it on and turns off 'string-numbers' and 'numeric-numbers'");
@@ -156,11 +170,9 @@ void setup_jdbc_driver() {
     methods.registerOption(DBI_OPT_NUMBER_NUMERIC, "when set, numeric/decimal values are returned as "
         "arbitrary-precision number values; the argument is ignored; setting this option turns it on and turns off "
         "'string-numbers' and 'optimal-numbers'");
-    methods.registerOption(DBI_OPT_TIMEZONE, "set the server-side timezone, value must be a string in the format "
-        "accepted by Timezone::constructor() on the client (ie either a region name or a UTC offset like "
-        "\"+01:00\"), if not set the server's time zone will be assumed to be the same as the client's",
-        stringTypeInfo);
     */
+
+    methods.registerOption(JDBC_OPT_CLASSPATH, "set the classpath before loading the driver", stringTypeInfo);
 
     DBID_JDBC = DBI.registerDriver("jdbc", methods, jdbc_caps);
 }

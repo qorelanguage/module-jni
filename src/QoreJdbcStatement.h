@@ -80,8 +80,54 @@ protected:
         @param xsink exception sink
 
         @return 0 for OK, -1 for error
-     */
+    */
     DLLLOCAL int parse(QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
+
+    //! Return size of arrays in the passed arguments
+    /** @param args SQL parameters
+
+        @return parameter array size
+    */
+    DLLLOCAL size_t findArraySizeOfArgs(const QoreListNode* args) const;
+
+    //! Return whether the passed arguments have arrays
+    DLLLOCAL bool hasArrays(const QoreListNode* args) const {
+        return findArraySizeOfArgs(args) > 0;
+    }
+
+    //! Bind a single value argument
+    /** @param column JDBC column number, starting from 1
+        @param arg single value parameter
+        @param xsink exception sink
+
+        @return 0 for OK, -1 for error
+    */
+    DLLLOCAL int bindParamSingleValue(Env& env, int column, QoreValue arg, ExceptionSink* xsink);
+
+    //! Bind a single value argument as an array
+    /** @param column JDBC column number, starting from 1
+        @param arg single value parameter
+        @param xsink exception sink
+
+        @return 0 for OK, -1 for error
+    */
+    DLLLOCAL int bindParamArraySingleValue(Env& env, int column, QoreValue arg, ExceptionSink* xsink);
+
+    //! Bind a simple list of SQL parameters
+    /** @param args SQL parameters
+        @param xsink exception sink
+
+        @return 0 for OK, -1 for error
+    */
+    DLLLOCAL int bindIntern(Env& env, const QoreListNode* args, ExceptionSink* xsink);
+
+    //! Bind a list of arrays of SQL parameters
+    /** @param args SQL parameters
+        @param xsink exception sink
+
+        @return 0 for OK, -1 for error
+    */
+    DLLLOCAL int bindInternArray(Env& env, const QoreListNode* args, ExceptionSink* xsink);
 };
 
 }

@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -91,8 +91,8 @@ class Array : public QoreJniPrivateData {
 
     DLLLOCAL static LocalReference<jarray> toJava(const QoreListNode* l, size_t start = 0,
             JniExternalProgramData* jpc = nullptr);
-    DLLLOCAL static LocalReference<jarray> toObjectArray(const QoreListNode* l, jclass elementClass, size_t start = 0,
-            JniExternalProgramData* jpc = nullptr);
+    DLLLOCAL static LocalReference<jarray> toObjectArray(const QoreListNode* l, jclass elementClass,
+            size_t start = 0, JniExternalProgramData* jpc = nullptr);
 
     DLLLOCAL static LocalReference<jclass> getClassForValue(QoreValue v, JniExternalProgramData* jpc = nullptr);
 

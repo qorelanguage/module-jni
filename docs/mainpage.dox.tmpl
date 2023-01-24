@@ -735,6 +735,13 @@ set_save_object_callback(callback);
 
     To use the \c jdbc DBI driver, use the driver name \c "jdbc".
 
+    @subsection jdbc_driver_options jdbc DBI Driver Options
+
+    @subsubsection jdbc_option_classpath jdbc classpath Option
+
+    The \c classpath option allows for the classpath to be set before the JVM loads the jdbc driver.  The value of
+    this option must be a string and is subject to environment variable substitution before being used.
+
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_2_1_0 jni Module Version 2.1.0

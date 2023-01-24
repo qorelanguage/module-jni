@@ -323,7 +323,9 @@ public:
     DLLLOCAL static jmethodID methodConnectionCommit;                             // void Connection.commit()
     DLLLOCAL static jmethodID methodConnectionRollback;                           // void Connection.rollback()
     DLLLOCAL static jmethodID methodConnectionGetMetaData;                        // DatabaseMetaData getMetaData()
-    DLLLOCAL static jmethodID methodConnectionPrepareStatement;                   // PreparedStatement prepareStatement(String, String[])
+    DLLLOCAL static jmethodID methodConnectionPrepareStatement;                   // PreparedStatement prepareStatement(String)
+    DLLLOCAL static jmethodID methodConnectionPrepareStatementArray;              // PreparedStatement prepareStatement(String, String[])
+    DLLLOCAL static jmethodID methodConnectionSetAutoCommit;                      // void setAutoCommit(boolean)
 
     DLLLOCAL static GlobalReference<jclass> classDatabaseMetaData;                // java.sql.DatabaseMetaData
     DLLLOCAL static jmethodID methodDatabaseMetaDataGetDatabaseMajorVersion;      // int getDatabaseMajorVersion()
@@ -338,6 +340,21 @@ public:
     DLLLOCAL static GlobalReference<jclass> classPreparedStatement;               // java.sql.PreparedStatement
     DLLLOCAL static jmethodID methodPreparedStatementExecute;                     // boolean execute()
     DLLLOCAL static jmethodID methodPreparedStatementGetUpdateCount;              // int getUpdateCount()
+    DLLLOCAL static jmethodID methodPreparedStatementSetArray;                    // void setArray(int, Array)
+    DLLLOCAL static jmethodID methodPreparedStatementSetBigDecimal;               // void setBigDecimal(int, BigDecimal)
+    DLLLOCAL static jmethodID methodPreparedStatementSetBoolean;                  // void setBoolean(int, boolean)
+    DLLLOCAL static jmethodID methodPreparedStatementSetBytes;                    // void setBytes(int, byte[])
+    DLLLOCAL static jmethodID methodPreparedStatementSetDouble;                   // void setBoolean(int, double)
+    DLLLOCAL static jmethodID methodPreparedStatementSetLong;                     // void setLong(int, long)
+    DLLLOCAL static jmethodID methodPreparedStatementSetNull;                     // void setNull(int, int)
+    DLLLOCAL static jmethodID methodPreparedStatementSetString;                   // void setString(int, String)
+    DLLLOCAL static jmethodID methodPreparedStatementSetTimestamp;                // void setTimestamp(int, Timestamp)
+
+    DLLLOCAL static GlobalReference<jclass> classTimestamp;                       // java.sql.Timestamp
+    DLLLOCAL static jmethodID ctorTimestamp;                                      // Timestamp(long)
+    DLLLOCAL static jmethodID methodTimestampSetNanos;                            // void setNanos(int)
+
+    DLLLOCAL static int typeNull; // java.sql.Type.NULL value
 
     DLLLOCAL static GlobalReference<jstring> javaQoreClassField;
 
