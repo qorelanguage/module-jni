@@ -28,6 +28,7 @@
 #include <qore/Qore.h>
 
 #include "GlobalReference.h"
+#include "QoreJniClassMap.h"
 
 #include <string>
 
@@ -68,7 +69,34 @@ public:
 
     DLLLOCAL QoreValue select(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink);
 
+    //! Select multiple rows from the database.
+    /** @param qstr Qore-style SQL statement
+        @param args SQL parameters
+        @param xsink exception sink
+
+        @return a list of row hashes
+    */
+    DLLLOCAL QoreListNode* selectRows(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink);
+
+    //! Select one row from the database.
+    /** @param qstr Qore-style SQL statement
+        @param args SQL parameters
+        @param xsink exception sink
+
+        @return one row hash
+    */
+    DLLLOCAL QoreHashNode* selectRow(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink);
+
+    DLLLOCAL QoreProgram* getProgram() const {
+        return pgm;
+    }
+
 private:
+    //! Qore Program context
+    QoreProgram* pgm = qore_get_call_program_context();
+    //! JNI program context
+    JniExternalProgramData* jpc = nullptr;
+
     //! Qore datasource.
     Datasource* ds = nullptr;
 

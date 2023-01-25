@@ -24,7 +24,6 @@
 #include "QoreJdbcConnection.h"
 #include "QoreJdbcStatement.h"
 #include "QoreJdbcDriver.h"
-#include "QoreJniClassMap.h"
 #include "LocalReference.h"
 #include "Globals.h"
 #include "Env.h"
@@ -44,6 +43,10 @@ static void set_prop(Env& env, LocalReference<jobject>& props, const char* prop,
 }
 
 QoreJdbcConnection::QoreJdbcConnection(Datasource* ds, ExceptionSink* xsink) : ds(ds) {
+    assert(pgm);
+    jpc = JniExternalProgramData::getCreateJniProgramData(pgm);
+    assert(jpc);
+
     // Parse options passed through the datasource.
     if (parseOptions(xsink)) {
         return;
@@ -127,10 +130,6 @@ int QoreJdbcConnection::setOption(const char* opt, const QoreValue val, Exceptio
             return -1;
         }
         const char* cp = val.get<const QoreStringNode>()->c_str();
-
-        QoreProgram* pgm = qore_get_call_program_context();
-        assert(pgm);
-        JniExternalProgramData* jpc = JniExternalProgramData::getCreateJniProgramData(pgm);
 
         QoreString arg(cp);
         q_env_subst(arg);
@@ -259,24 +258,74 @@ QoreValue QoreJdbcConnection::getClientVersion(ExceptionSink* xsink) {
 
 QoreValue QoreJdbcConnection::select(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink) {
     assert(connection);
-    ValueHolder rv(xsink);
     Env env;
     try {
-        QoreJdbcStatement res(xsink, this);
+        QoreJdbcStatement stmt(xsink, this);
 
-        bool result_set = res.exec(env, qstr, args, xsink);
+        bool result_set = stmt.exec(env, qstr, args, xsink);
         if (*xsink) {
             return QoreValue();
         }
 
         if (result_set) {
-            return res.getOutputHash(env, xsink, false);
+            return stmt.getOutputHash(env, xsink, false);
         }
 
-        return res.rowsAffected(env);
+        return stmt.rowsAffected(env);
     } catch (jni::Exception& e) {
         e.convert(xsink);
     }
-    return *xsink ? QoreValue() : rv.release();
+    assert(*xsink);
+    return QoreValue();
+}
+
+QoreListNode* QoreJdbcConnection::selectRows(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink) {
+    assert(connection);
+    ValueHolder rv(xsink);
+    Env env;
+    try {
+        QoreJdbcStatement stmt(xsink, this);
+
+        bool result_set = stmt.exec(env, qstr, args, xsink);
+        if (*xsink) {
+            return nullptr;
+        }
+
+        if (!result_set) {
+            xsink->raiseException("JDBC-SELECT-ROWS-ERROR", "SQL passed to selectRows() did not return a result set");
+            return nullptr;
+        }
+
+        return stmt.getOutputList(env, xsink);
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+    }
+    assert(*xsink);
+    return nullptr;
+}
+
+QoreHashNode* QoreJdbcConnection::selectRow(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink) {
+    assert(connection);
+    ValueHolder rv(xsink);
+    Env env;
+    try {
+        QoreJdbcStatement stmt(xsink, this);
+
+        bool result_set = stmt.exec(env, qstr, args, xsink);
+        if (*xsink) {
+            return nullptr;
+        }
+
+        if (!result_set) {
+            xsink->raiseException("JDBC-SELECT-ROW-ERROR", "SQL passed to selectRow() did not return a result set");
+            return nullptr;
+        }
+
+        return stmt.getSingleRow(env, xsink);
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+    }
+    assert(*xsink);
+    return nullptr;
 }
 }

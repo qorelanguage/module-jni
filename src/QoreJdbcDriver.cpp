@@ -111,6 +111,24 @@ static QoreValue jdbc_select(Datasource* ds, const QoreString* qstr, const QoreL
     return conn->select(qstr, args, xsink);
 }
 
+static QoreHashNode* jdbc_select_row(Datasource* ds, const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink) {
+    QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
+    if (!conn) {
+        xsink->raiseException("JDBC-CONNECTION-ERROR", "there is no open connection");
+        return nullptr;
+    }
+    return conn->selectRow(qstr, args, xsink);
+}
+
+static QoreValue jdbc_select_rows(Datasource* ds, const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink) {
+    QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
+    if (!conn) {
+        xsink->raiseException("JDBC-CONNECTION-ERROR", "there is no open connection");
+        return QoreValue();
+    }
+    return conn->selectRows(qstr, args, xsink);
+}
+
 static int jdbc_opt_set(Datasource* ds, const char* opt, const QoreValue val, ExceptionSink* xsink) {
     QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
     if (!conn) {
@@ -135,12 +153,12 @@ void setup_jdbc_driver() {
     methods.add(QDBI_METHOD_GET_CLIENT_VERSION, jdbc_get_client_version);
     methods.add(QDBI_METHOD_BEGIN_TRANSACTION, jdbc_begin_transaction);
     methods.add(QDBI_METHOD_SELECT, jdbc_select);
+    methods.add(QDBI_METHOD_SELECT_ROWS, jdbc_select_rows);
+    methods.add(QDBI_METHOD_SELECT_ROW, jdbc_select_row);
 
     methods.add(QDBI_METHOD_OPT_SET, jdbc_opt_set);
     methods.add(QDBI_METHOD_OPT_GET, jdbc_opt_get);
     /*
-    methods.add(QDBI_METHOD_SELECT_ROWS, jdbc_select_rows);
-    methods.add(QDBI_METHOD_SELECT_ROW, jdbc_select_row);
     methods.add(QDBI_METHOD_EXEC, jdbc_exec);
     methods.add(QDBI_METHOD_EXECRAW, jdbc_execRaw);
 

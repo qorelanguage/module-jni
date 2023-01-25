@@ -354,11 +354,25 @@ public:
     DLLLOCAL static GlobalReference<jclass> classTimestamp;                       // java.sql.Timestamp
     DLLLOCAL static jmethodID ctorTimestamp;                                      // Timestamp(long)
     DLLLOCAL static jmethodID methodTimestampSetNanos;                            // void setNanos(int)
+    DLLLOCAL static jmethodID methodTimestampToString;                            // String toString()
 
     DLLLOCAL static GlobalReference<jclass> classResultSet;                       // java.sql.ResultSet
+    DLLLOCAL static jmethodID methodResultSetGetArray;                            // Array getArray(int)
+    DLLLOCAL static jmethodID methodResultSetGetObject;                           // Object getObject(int)
     DLLLOCAL static jmethodID methodResultSetNext;                                // boolean next()
+    DLLLOCAL static jmethodID methodResultSetGetMetaData;                         // ResultSetMetaData getMetaData()
+
+    DLLLOCAL static GlobalReference<jclass> classResultSetMetaData;               // java.sql.ResultSetMetadata
+    DLLLOCAL static jmethodID methodResultSetMetaDataGetColumnClassName;          // String getColumnClassName()
+    DLLLOCAL static jmethodID methodResultSetMetaDataGetColumnCount;              // int getColumnCount()
+    DLLLOCAL static jmethodID methodResultSetMetaDataGetColumnName;               // String getColumnName(int)
+    DLLLOCAL static jmethodID methodResultSetMetaDataGetColumnType;               // int getColumnType(int)
+
+    DLLLOCAL static GlobalReference<jclass> classArray;                           // java.sql.Array
+    DLLLOCAL static jmethodID methodArrayGetArray;                                // Object getArray()
 
     DLLLOCAL static int typeNull; // java.sql.Type.NULL value
+    DLLLOCAL static int typeChar; // java.sql.Type.CHAR value
 
     DLLLOCAL static GlobalReference<jstring> javaQoreClassField;
 

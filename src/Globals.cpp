@@ -346,11 +346,25 @@ jmethodID Globals::methodPreparedStatementSetTimestamp;
 GlobalReference<jclass> Globals::classTimestamp;
 jmethodID Globals::ctorTimestamp;
 jmethodID Globals::methodTimestampSetNanos;
+jmethodID Globals::methodTimestampToString;
 
 GlobalReference<jclass> Globals::classResultSet;
 jmethodID Globals::methodResultSetNext;
+jmethodID Globals::methodResultSetGetMetaData;
+jmethodID Globals::methodResultSetGetArray;
+jmethodID Globals::methodResultSetGetObject;
+
+GlobalReference<jclass> Globals::classResultSetMetaData;
+jmethodID Globals::methodResultSetMetaDataGetColumnClassName;
+jmethodID Globals::methodResultSetMetaDataGetColumnCount;
+jmethodID Globals::methodResultSetMetaDataGetColumnName;
+jmethodID Globals::methodResultSetMetaDataGetColumnType;
+
+GlobalReference<jclass> Globals::classArray;
+jmethodID Globals::methodArrayGetArray;
 
 int Globals::typeNull;
+int Globals::typeChar;
 
 GlobalReference<jstring> Globals::javaQoreClassField;
 
@@ -2776,14 +2790,32 @@ bool Globals::init() {
     classTimestamp = env.findClass("java/sql/Timestamp").makeGlobal();
     ctorTimestamp = env.getMethod(classTimestamp, "<init>", "(J)V");
     methodTimestampSetNanos = env.getMethod(classTimestamp, "setNanos", "(I)V");
+    methodTimestampToString = env.getMethod(classTimestamp, "toString", "()Ljava/lang/String;");
 
     classResultSet = env.findClass("java/sql/ResultSet").makeGlobal();
     methodResultSetNext = env.getMethod(classResultSet, "next", "()Z");
+    methodResultSetGetMetaData = env.getMethod(classResultSet, "getMetaData", "()Ljava/sql/ResultSetMetaData;");
+    methodResultSetGetArray = env.getMethod(classResultSet, "getArray", "(I)Ljava/sql/Array;");
+    methodResultSetGetObject = env.getMethod(classResultSet, "getObject", "(I)Ljava/lang/Object;");
+
+    classResultSetMetaData = env.findClass("java/sql/ResultSetMetaData").makeGlobal();
+    methodResultSetMetaDataGetColumnClassName = env.getMethod(classResultSetMetaData, "getColumnClassName",
+        "(I)Ljava/lang/String;");
+    methodResultSetMetaDataGetColumnCount = env.getMethod(classResultSetMetaData, "getColumnCount", "()I");
+    methodResultSetMetaDataGetColumnName = env.getMethod(classResultSetMetaData, "getColumnName",
+        "(I)Ljava/lang/String;");
+    methodResultSetMetaDataGetColumnType = env.getMethod(classResultSetMetaData, "getColumnType",
+        "(I)I");
+
+    classArray = env.findClass("java/sql/Array").makeGlobal();
+    methodArrayGetArray = env.getMethod(classArray, "getArray", "()Ljava/lang/Object;");
 
     {
         LocalReference<jclass> classTypes = env.findClass("java/sql/Types");
-        jfieldID fieldTypesNull = env.getStaticField(classTypes, "NULL", "I");
-        typeNull = env.getStaticIntField(classTypes, fieldTypesNull);
+        jfieldID field = env.getStaticField(classTypes, "NULL", "I");
+        typeNull = env.getStaticIntField(classTypes, field);
+        field = env.getStaticField(classTypes, "CHAR", "I");
+        typeChar = env.getStaticIntField(classTypes, field);
     }
 
     assert(!classQoreURLClassLoader);
@@ -2977,6 +3009,8 @@ void Globals::cleanup() {
     classPreparedStatement = nullptr;
     classTimestamp = nullptr;
     classResultSet = nullptr;
+    classResultSetMetaData = nullptr;
+    classArray = nullptr;
     javaQoreClassField = nullptr;
 }
 
