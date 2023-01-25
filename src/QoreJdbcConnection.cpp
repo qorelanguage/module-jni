@@ -53,7 +53,7 @@ QoreJdbcConnection::QoreJdbcConnection(Datasource* ds, ExceptionSink* xsink) : d
     }
 
     // get URL
-    const std::string& str = ds->getDBNameStr();
+    const std::string& str = db.empty() ? ds->getDBNameStr() : db;
     if (str.empty()) {
         xsink->raiseException("JDBC-CONNECTION-ERROR", "cannot build JDBC URL without a db name");
         return;
@@ -142,6 +142,13 @@ int QoreJdbcConnection::setOption(const char* opt, const QoreValue val, Exceptio
             e.convert(xsink);
             return -1;
         }
+    } else if (!strcasecmp(opt, JDBC_OPT_DB)) {
+        if (val.getType() != NT_STRING) {
+            xsink->raiseException("JDBC-OPTION-ERROR", "'%s' expects a 'string' value; got type '%s' instead",
+                JDBC_OPT_DB, val.getFullTypeName());
+            return -1;
+        }
+        db = val.get<const QoreStringNode>()->c_str();
     } else {
         xsink->raiseException("JDBC-OPTION-ERROR", "invalid option '%s'", opt);
         return -1;
@@ -152,6 +159,8 @@ int QoreJdbcConnection::setOption(const char* opt, const QoreValue val, Exceptio
 QoreValue QoreJdbcConnection::getOption(const char* opt) {
     if (!strcasecmp(opt, JDBC_OPT_CLASSPATH)) {
         return classpath.empty() ? QoreValue() : new QoreStringNode(classpath);
+    } else if (!strcasecmp(opt, JDBC_OPT_DB)) {
+        return db.empty() ? QoreValue() : new QoreStringNode(db);
     } else {
         assert(false);
     }
@@ -327,5 +336,13 @@ QoreHashNode* QoreJdbcConnection::selectRow(const QoreString* qstr, const QoreLi
     }
     assert(*xsink);
     return nullptr;
+}
+
+QoreValue QoreJdbcConnection::exec(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink) {
+    return QoreValue();
+}
+
+QoreValue QoreJdbcConnection::execRaw(const QoreString* qstr, ExceptionSink* xsink) {
+    return QoreValue();
 }
 }

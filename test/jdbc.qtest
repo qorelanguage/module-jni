@@ -40,14 +40,18 @@ public class Main inherits QUnit::Test {
         v = ds.getClientVersion();
         assertTrue(exists v);
 
-        hash<auto> q = ds.select("select * from test");
+        string sql = "select * from table_1 where input_1 = 1";
+        #string sql = "select * from test";
+        #string sql = "select * from orders";
+
+        hash<auto> q = ds.select(sql);
         #hash<auto> q = ds.select("select * from orders where order_id = %v", "PO-2020.00001");
         printf("q: %y\n", q);
 
-        q = ds.selectRow("select * from test");
+        q = ds.selectRow(sql);
         printf("q: %y\n", q);
 
-        printf("%N\n", ds.selectRows("select * from test"));
+        printf("%N\n", ds.selectRows(sql));
     }
 
     private usageIntern() {

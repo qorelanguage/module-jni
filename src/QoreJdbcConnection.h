@@ -87,6 +87,23 @@ public:
     */
     DLLLOCAL QoreHashNode* selectRow(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink);
 
+    //! Execute a Qore-style SQL statement with arguments.
+    /** @param qstr Qore-style SQL statement
+        @param args SQL parameters
+        @param xsink exception sink
+
+        @return 0 for OK, -1 for error
+    */
+    DLLLOCAL QoreValue exec(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink);
+
+    //! Execute a raw SQL statement.
+    /** @param qstr SQL statement
+        @param xsink exception sink
+
+        @return 0 for OK, -1 for error
+    */
+    DLLLOCAL QoreValue execRaw(const QoreString* qstr, ExceptionSink* xsink);
+
     DLLLOCAL QoreProgram* getProgram() const {
         return pgm;
     }
@@ -105,6 +122,9 @@ private:
 
     //! Classpath value
     std::string classpath;
+
+    //! Overridden db value
+    std::string db;
 
     //! Parse options passed through the Datasource
     /** @param xsink exception sink

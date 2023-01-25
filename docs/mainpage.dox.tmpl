@@ -743,6 +743,16 @@ set_save_object_callback(callback);
     The \c classpath option allows for the classpath to be set before the JVM loads the jdbc driver.  The value of
     this option must be a string and is subject to environment variable substitution before being used.
 
+    @subsubsection jdbc_option_db jdbc db Option
+
+    The \c db option allows for jdbc URLs to be used that contain special characters like \c @ and \c : that would
+    cause the datasource to fail to parse when used as a database name.
+
+    @par db Option Example
+    @verbatim
+    Datasource ds("jdbc:user/pass@ignored{db=oracle:thin:@hostname:1521:dbserver,classpath=/usr/lib/oracle/21/client64/lib/ojdbc8.jar}");
+    @endverbatim
+
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_2_1_0 jni Module Version 2.1.0

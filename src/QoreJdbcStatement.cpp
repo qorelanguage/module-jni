@@ -217,7 +217,15 @@ QoreHashNode* QoreJdbcStatement::getSingleRow(Env& env, ExceptionSink* xsink) {
         return nullptr;
     }
 
-    return getSingleRowIntern(env, rs, xsink);
+    ReferenceHolder<QoreHashNode> rv(getSingleRowIntern(env, rs, xsink), xsink);
+
+    // make sure there's not another row
+    if (env.callBooleanMethod(rs, Globals::methodResultSetNext, nullptr)) {
+        xsink->raiseException("JDBC-SELECT-ROW-ERROR", "SQL passed to selectRow() returned more than 1 row");
+        return nullptr;
+    }
+
+    return rv.release();
 }
 
 QoreHashNode* QoreJdbcStatement::getSingleRowIntern(Env& env, LocalReference<jobject>& rs, ExceptionSink* xsink) {

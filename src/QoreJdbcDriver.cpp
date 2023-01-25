@@ -64,36 +64,28 @@ static int jdbc_close(Datasource* ds) {
 
 static int jdbc_commit(Datasource* ds, ExceptionSink* xsink) {
     QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
-    if (!conn) {
-        xsink->raiseException("JDBC-CONNECTION-ERROR", "there is no open connection");
-        return -1;
-    }
+    assert(conn);
     return conn->commit(xsink);
 }
 
 static int jdbc_rollback(Datasource* ds, ExceptionSink* xsink) {
     QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
-    if (!conn) {
-        xsink->raiseException("JDBC-CONNECTION-ERROR", "there is no open connection");
-        return -1;
-    }
+    assert(conn);
     return conn->rollback(xsink);
 }
 
 static QoreValue jdbc_get_server_version(Datasource* ds, ExceptionSink* xsink) {
     QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
-    if (!conn) {
-        xsink->raiseException("JDBC-CONNECTION-ERROR", "there is no open connection");
-        return -1;
-    }
+    assert(conn);
     return conn->getServerVersion(xsink);
 }
 
-static QoreValue jdbc_get_client_version(Datasource* ds, ExceptionSink* xsink) {
+static QoreValue jdbc_get_client_version(const Datasource* ds, ExceptionSink* xsink) {
     QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
     if (!conn) {
-        xsink->raiseException("JDBC-CONNECTION-ERROR", "there is no open connection");
-        return -1;
+        xsink->raiseException("JDBC-CONNECTION-ERROR", "there is no open connection; client info is provided by the "
+            "Java jdbc driver used for the DB connection by this Qore driver");
+        return QoreValue();
     }
     return conn->getClientVersion(xsink);
 }
@@ -104,37 +96,39 @@ static int jdbc_begin_transaction(Datasource* ds, ExceptionSink* xsink) {
 
 static QoreValue jdbc_select(Datasource* ds, const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink) {
     QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
-    if (!conn) {
-        xsink->raiseException("JDBC-CONNECTION-ERROR", "there is no open connection");
-        return QoreValue();
-    }
+    assert(conn);
     return conn->select(qstr, args, xsink);
 }
 
-static QoreHashNode* jdbc_select_row(Datasource* ds, const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink) {
+static QoreHashNode* jdbc_select_row(Datasource* ds, const QoreString* qstr, const QoreListNode* args,
+        ExceptionSink* xsink) {
     QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
-    if (!conn) {
-        xsink->raiseException("JDBC-CONNECTION-ERROR", "there is no open connection");
-        return nullptr;
-    }
+    assert(conn);
     return conn->selectRow(qstr, args, xsink);
 }
 
-static QoreValue jdbc_select_rows(Datasource* ds, const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink) {
+static QoreValue jdbc_select_rows(Datasource* ds, const QoreString* qstr, const QoreListNode* args,
+        ExceptionSink* xsink) {
     QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
-    if (!conn) {
-        xsink->raiseException("JDBC-CONNECTION-ERROR", "there is no open connection");
-        return QoreValue();
-    }
+    assert(conn);
     return conn->selectRows(qstr, args, xsink);
+}
+
+static QoreValue jdbc_exec(Datasource* ds, const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink) {
+    QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
+    assert(conn);
+    return conn->exec(qstr, args, xsink);
+}
+
+static QoreValue jdbc_exec_raw(Datasource* ds, const QoreString* qstr, ExceptionSink* xsink) {
+    QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
+    assert(conn);
+    return conn->execRaw(qstr, xsink);
 }
 
 static int jdbc_opt_set(Datasource* ds, const char* opt, const QoreValue val, ExceptionSink* xsink) {
     QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
-    if (!conn) {
-        xsink->raiseException("JDBC-CONNECTION-ERROR", "there is no open connection");
-        return QoreValue();
-    }
+    assert(conn);
     return conn->setOption(opt, val, xsink);
 }
 
@@ -155,12 +149,12 @@ void setup_jdbc_driver() {
     methods.add(QDBI_METHOD_SELECT, jdbc_select);
     methods.add(QDBI_METHOD_SELECT_ROWS, jdbc_select_rows);
     methods.add(QDBI_METHOD_SELECT_ROW, jdbc_select_row);
+    methods.add(QDBI_METHOD_EXEC, jdbc_exec);
+    methods.add(QDBI_METHOD_EXECRAW, jdbc_exec_raw);
 
     methods.add(QDBI_METHOD_OPT_SET, jdbc_opt_set);
     methods.add(QDBI_METHOD_OPT_GET, jdbc_opt_get);
     /*
-    methods.add(QDBI_METHOD_EXEC, jdbc_exec);
-    methods.add(QDBI_METHOD_EXECRAW, jdbc_execRaw);
 
     methods.add(QDBI_METHOD_STMT_PREPARE, jdbc_stmt_prepare);
     methods.add(QDBI_METHOD_STMT_PREPARE_RAW, jdbc_stmt_prepare_raw);
@@ -191,6 +185,7 @@ void setup_jdbc_driver() {
     */
 
     methods.registerOption(JDBC_OPT_CLASSPATH, "set the classpath before loading the driver", stringTypeInfo);
+    methods.registerOption(JDBC_OPT_DB, "override the database string (without jdbc:)", stringTypeInfo);
 
     DBID_JDBC = DBI.registerDriver("jdbc", methods, jdbc_caps);
 }
