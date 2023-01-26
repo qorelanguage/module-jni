@@ -55,7 +55,12 @@ static int jdbc_open(Datasource* ds, ExceptionSink* xsink) {
 static int jdbc_close(Datasource* ds) {
     std::unique_ptr<QoreJdbcConnection> conn(ds->getPrivateData<QoreJdbcConnection>());
     ExceptionSink xsink;
-    conn->close(&xsink);
+    try {
+        Env env;
+        conn->close(env);
+    } catch (JavaException& e) {
+        e.convert(&xsink);
+    }
     int rc = xsink ? -1 : 0;
     xsink.clear();
     ds->setPrivateData(nullptr);
@@ -185,7 +190,7 @@ void setup_jdbc_driver() {
     */
 
     methods.registerOption(JDBC_OPT_CLASSPATH, "set the classpath before loading the driver", stringTypeInfo);
-    methods.registerOption(JDBC_OPT_DB, "override the database string (without jdbc:)", stringTypeInfo);
+    methods.registerOption(JDBC_OPT_URL, "override the database string with the jdbc driver URL", stringTypeInfo);
 
     DBID_JDBC = DBI.registerDriver("jdbc", methods, jdbc_caps);
 }

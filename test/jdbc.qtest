@@ -40,8 +40,11 @@ public class Main inherits QUnit::Test {
         v = ds.getClientVersion();
         assertTrue(exists v);
 
-        string sql = "select * from table_1 where input_1 = 1";
-        #string sql = "select * from test";
+        #string sql = "select * from test where str = %v";
+        #ds.select(sql);
+
+        #string sql = "select * from table_1 where input_1 = 1";
+        string sql = "select * from test";
         #string sql = "select * from orders";
 
         hash<auto> q = ds.select(sql);

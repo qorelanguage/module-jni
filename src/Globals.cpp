@@ -318,6 +318,7 @@ jmethodID Globals::methodConnectionGetMetaData;
 jmethodID Globals::methodConnectionPrepareStatement;
 jmethodID Globals::methodConnectionPrepareStatementArray;
 jmethodID Globals::methodConnectionSetAutoCommit;
+jmethodID Globals::methodConnectionIsValid;
 
 GlobalReference<jclass> Globals::classDatabaseMetaData;
 jmethodID Globals::methodDatabaseMetaDataGetDatabaseMajorVersion;
@@ -330,6 +331,7 @@ jmethodID Globals::methodDatabaseMetaDataGetDriverName;
 jmethodID Globals::methodDatabaseMetaDataGetDriverVersion;
 
 GlobalReference<jclass> Globals::classPreparedStatement;
+jmethodID Globals::methodPreparedStatementClose;
 jmethodID Globals::methodPreparedStatementExecute;
 jmethodID Globals::methodPreparedStatementGetResultSet;
 jmethodID Globals::methodPreparedStatementGetUpdateCount;
@@ -348,7 +350,11 @@ jmethodID Globals::ctorTimestamp;
 jmethodID Globals::methodTimestampSetNanos;
 jmethodID Globals::methodTimestampToString;
 
+GlobalReference<jclass> Globals::classDate;
+jmethodID Globals::methodDateToString;
+
 GlobalReference<jclass> Globals::classResultSet;
+jmethodID Globals::methodResultSetClose;
 jmethodID Globals::methodResultSetNext;
 jmethodID Globals::methodResultSetGetMetaData;
 jmethodID Globals::methodResultSetGetArray;
@@ -362,6 +368,8 @@ jmethodID Globals::methodResultSetMetaDataGetColumnType;
 
 GlobalReference<jclass> Globals::classArray;
 jmethodID Globals::methodArrayGetArray;
+
+GlobalReference<jclass> Globals::classSQLException;
 
 int Globals::typeNull;
 int Globals::typeChar;
@@ -2752,6 +2760,7 @@ bool Globals::init() {
     methodConnectionPrepareStatementArray = env.getMethod(classConnection, "prepareStatement",
         "(Ljava/lang/String;[Ljava/lang/String;)Ljava/sql/PreparedStatement;");
     methodConnectionSetAutoCommit = env.getMethod(classConnection, "setAutoCommit", "(Z)V");
+    methodConnectionIsValid = env.getMethod(classConnection, "isValid", "(I)Z");
 
     classDatabaseMetaData = env.findClass("java/sql/DatabaseMetaData").makeGlobal();
     methodDatabaseMetaDataGetDatabaseMajorVersion = env.getMethod(classDatabaseMetaData, "getDatabaseMajorVersion",
@@ -2772,6 +2781,7 @@ bool Globals::init() {
         "()Ljava/lang/String;");
 
     classPreparedStatement = env.findClass("java/sql/PreparedStatement").makeGlobal();
+    methodPreparedStatementClose = env.getMethod(classPreparedStatement, "close", "()V");
     methodPreparedStatementExecute = env.getMethod(classPreparedStatement, "execute", "()Z");
     methodPreparedStatementGetResultSet = env.getMethod(classPreparedStatement, "getResultSet", "()Ljava/sql/ResultSet;");
     methodPreparedStatementGetUpdateCount = env.getMethod(classPreparedStatement, "getUpdateCount", "()I");
@@ -2792,7 +2802,11 @@ bool Globals::init() {
     methodTimestampSetNanos = env.getMethod(classTimestamp, "setNanos", "(I)V");
     methodTimestampToString = env.getMethod(classTimestamp, "toString", "()Ljava/lang/String;");
 
+    classDate = env.findClass("java/sql/Date").makeGlobal();
+    methodDateToString = env.getMethod(classDate, "toString", "()Ljava/lang/String;");
+
     classResultSet = env.findClass("java/sql/ResultSet").makeGlobal();
+    methodResultSetClose = env.getMethod(classResultSet, "close", "()V");
     methodResultSetNext = env.getMethod(classResultSet, "next", "()Z");
     methodResultSetGetMetaData = env.getMethod(classResultSet, "getMetaData", "()Ljava/sql/ResultSetMetaData;");
     methodResultSetGetArray = env.getMethod(classResultSet, "getArray", "(I)Ljava/sql/Array;");
@@ -2809,6 +2823,8 @@ bool Globals::init() {
 
     classArray = env.findClass("java/sql/Array").makeGlobal();
     methodArrayGetArray = env.getMethod(classArray, "getArray", "()Ljava/lang/Object;");
+
+    classSQLException = env.findClass("java/sql/SQLException").makeGlobal();
 
     {
         LocalReference<jclass> classTypes = env.findClass("java/sql/Types");
@@ -3008,9 +3024,11 @@ void Globals::cleanup() {
     classDatabaseMetaData = nullptr;
     classPreparedStatement = nullptr;
     classTimestamp = nullptr;
+    classDate = nullptr;
     classResultSet = nullptr;
     classResultSetMetaData = nullptr;
     classArray = nullptr;
+    classSQLException = nullptr;
     javaQoreClassField = nullptr;
 }
 

@@ -609,8 +609,8 @@ Object obj = newClassData.cls.getDeclaredConstructor().newInstance();
     |all \c jni objects|direct conversion
 
     @note
-    - %Qore 64-bit integers are automatically converted to 32-bit Java integers; to get a Java \c long value; use:
-      @code{.py} new Long(val) @endcode
+    - %Qore 64-bit integers are automatically converted to 64-bit Java long values; to get a Java \c int value; use:
+      @code{.py} new Integer(val) @endcode
     - see @ref jni_arrays for more information about conversions between %Qore lists and Java arrays
 
     @subsection jni_java_to_qore Java to Qore Type Conversions
@@ -627,6 +627,7 @@ Object obj = newClassData.cls.getDeclaredConstructor().newInstance();
     |\c float|@ref float_type "float"
     |\c double|@ref float_type "double"
     |\c java.lang.String|@ref string_type "string"
+    |\c java.sql.Date|@ref date_type "date" (@ref absolute_dates "absolute date")
     |\c java.sql.Timestamp|@ref date_type "date" (@ref absolute_dates "absolute date")
     |\c java.time.ZonedDateTime|@ref date_type "date" (@ref absolute_dates "absolute date")
     |<tt>@ref org.qore.jni.QoreRelativeTime</tt>|@ref date_type "date" (@ref relative_dates "relative date")
@@ -736,22 +737,45 @@ set_save_object_callback(callback);
 
     To use the \c jdbc DBI driver, use the driver name \c "jdbc".
 
+    %Qore datasource strings do not follow the same format as standard Java JDBC URL strings, so some care must be
+    taken when creating the %Qore datasource strings for the jdbc driver.
+
+    The format for %Qore datasource strings with the jdbc driver is as follows:
+    <tt><b>jdbc:</b>[</tt><em>user</em><tt>]/[</tt><em>pass</em><tt>]\@</tt><em>db</em><tt>[{</tt><em>option</em><tt>=</tt><em>val</em><tt>[,...]}]</tt> \n
+    where all elements except <tt>\@</tt><em>db</em> are optional.
+
+    The \a host, \a port, and \a charset values in %Qore datasource strings are ignored; the host and port must be
+    given in the \a db option, and, if the jdbc driver's URL format requires the use of \c @ or \c : characters, then
+    a dummy value must be provided for the \a db value, and the @ref jdbc_option_url "url option" must be used
+    instead.
+
+    Some example %Qore datasource strings for the \c jdbc driver:
+    - <tt>jdbc:user/[ass@postgresql:dbname{classpath=/usr/share/java/postgresql.jar}</tt>
+    - <tt>jdbc:user/pass@firebird:?serverName=hq&databaseName=/var/lib/firebird/data/mydb.fdb&encoding=WIN1252{classpath=/usr/share/java/jna-5.12.1.jar:/usr/share/java/jaybird-5.0.0.java11.jar}</tt>
+    - <tt>jdbc:user/pass@ignored{url=oracle:thin:@hostname:1521:dbserver,classpath=/usr/lib/oracle/21/client64/lib/ojdbc8.jar}</tt>
+
+    @note the initial \c jdbc: in the \c db value is optional; if missing, it is added automatically by the %Qore
+    \c jdbc driver when the internal URL string is passed to the internal Java JDBC call.
+
     @subsection jdbc_driver_options jdbc DBI Driver Options
 
     @subsubsection jdbc_option_classpath jdbc classpath Option
 
-    The \c classpath option allows for the classpath to be set before the JVM loads the jdbc driver.  The value of
-    this option must be a string and is subject to environment variable substitution before being used.
+    The \c classpath option allows for the classpath to be set before the JVM loads the Java \c jdbc driver.  The
+    value of this option must be a string and is subject to environment variable substitution before being used.
 
-    @subsubsection jdbc_option_db jdbc db Option
+    @subsubsection jdbc_option_url jdbc url Option
 
-    The \c db option allows for jdbc URLs to be used that contain special characters like \c @ and \c : that would
+    The \c db option allows for \c jdbc URLs to be used that contain special characters like \c @ and \c : that would
     cause the datasource to fail to parse when used as a database name.
 
     @par db Option Example
     @verbatim
     Datasource ds("jdbc:user/pass@ignored{db=oracle:thin:@hostname:1521:dbserver,classpath=/usr/lib/oracle/21/client64/lib/ojdbc8.jar}");
     @endverbatim
+
+    @note the initial \c jdbc: in the url option is optional; if missing, then it is added automatically by the %Qore
+    jdbc driver when the internal URL string is passed to the internal Java JDBC call.
 
     @section jnireleasenotes jni Module Release Notes
 

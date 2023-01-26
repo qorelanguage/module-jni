@@ -39,7 +39,10 @@ public:
     DLLLOCAL QoreJdbcConnection(Datasource* d, ExceptionSink* xsink);
     DLLLOCAL ~QoreJdbcConnection();
 
+    DLLLOCAL int reconnect(Env& env, ExceptionSink* xsink);
+
     DLLLOCAL jobject getConnectionObject() const {
+        assert(connection);
         return connection;
     }
 
@@ -59,7 +62,7 @@ public:
     */
     DLLLOCAL QoreValue getOption(const char* opt);
 
-    DLLLOCAL int close(ExceptionSink* xsink);
+    DLLLOCAL int close(Env& env);
 
     DLLLOCAL int commit(ExceptionSink* xsink);
     DLLLOCAL int rollback(ExceptionSink* xsink);
@@ -108,6 +111,14 @@ public:
         return pgm;
     }
 
+    DLLLOCAL Datasource* getDatasource() {
+        return ds;
+    }
+
+    DLLLOCAL const Datasource* getDatasource() const {
+        return ds;
+    }
+
 private:
     //! Qore Program context
     QoreProgram* pgm = qore_get_call_program_context();
@@ -125,6 +136,8 @@ private:
 
     //! Overridden db value
     std::string db;
+
+    DLLLOCAL int connect(Env& env, ExceptionSink* xsink);
 
     //! Parse options passed through the Datasource
     /** @param xsink exception sink

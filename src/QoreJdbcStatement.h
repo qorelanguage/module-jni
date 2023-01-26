@@ -30,6 +30,7 @@
 #include "QoreJdbcConnection.h"
 #include "Env.h"
 #include "GlobalReference.h"
+#include "LocalReference.h"
 
 #include <vector>
 #include <string>
@@ -49,12 +50,47 @@ struct QoreJdbcColumn {
     DLLLOCAL QoreJdbcColumn(std::string&& name, std::string&& qname, jint ctype);
 };
 
+class ResultSet {
+public:
+    DLLLOCAL ResultSet(LocalReference<jobject> rs) : rs(rs.release()) {
+    }
+
+    DLLLOCAL ~ResultSet() {
+        if (rs) {
+            Env env;
+            closeIntern(env);
+        }
+    }
+
+    DLLLOCAL void close(Env& env) {
+        if (rs) {
+            closeIntern(env);
+            rs = nullptr;
+        }
+    }
+
+    DLLLOCAL LocalReference<jobject>& operator*() {
+        return rs;
+    }
+
+    DLLLOCAL operator bool() {
+        return rs != nullptr;
+    }
+
+private:
+    LocalReference<jobject> rs;
+
+    DLLLOCAL void closeIntern(Env& env);
+};
+
 class QoreJdbcStatement {
 public:
     DLLLOCAL QoreJdbcStatement(ExceptionSink* xsink, QoreJdbcConnection* conn) : conn(conn), params(xsink) {
     }
 
-    DLLLOCAL bool exec(Env& env, const QoreString& qstr, const QoreListNode* args, ExceptionSink* xsink);
+    DLLLOCAL virtual ~QoreJdbcStatement();
+
+    DLLLOCAL bool exec(Env& env, ExceptionSink* xsink, const QoreString& qstr, const QoreListNode* args);
 
     //! Return how many rows were affected by the executed statement.
     /** @return count of affected rows; -1 in case the number is not available
@@ -87,6 +123,11 @@ public:
         @return one result-set row
     */
     DLLLOCAL QoreHashNode* getSingleRow(Env& env, ExceptionSink* xsink);
+
+    //! Closes the statement
+    /**
+    */
+    DLLLOCAL void close(Env& env);
 
 protected:
     //! Possible comment types; used in the parse() method
@@ -122,6 +163,19 @@ protected:
     typedef std::vector<QoreJdbcColumn> cvec_t;
     cvec_t cvec;
 
+    DLLLOCAL void prepareAndBindStatement(Env& env, ExceptionSink* xsink, const QoreString& str);
+
+    //! Clear statement
+    /**
+        This function is called when the DB connection is lost while executing SQL so that
+        the current state can be freed while the driver-specific context data is still present
+
+        This call resets the query but does not clear the SQL string or saved args
+     */
+    DLLLOCAL void clear(ExceptionSink* xsink);
+
+    DLLLOCAL void reset(Env& env, ExceptionSink* xsink);
+
     //! Parse a Qore-style SQL statement
     /** @param str Qore-style SQL statement
         @param args SQL parameters
@@ -131,6 +185,12 @@ protected:
     */
     DLLLOCAL int parse(QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
 
+    DLLLOCAL int reconnectLostConnection(Env& env, ExceptionSink* xsink);
+
+    DLLLOCAL int bindQueryArguments(Env& env, ExceptionSink* xsink);
+
+    DLLLOCAL bool execIntern(Env& env, const QoreString& sql, ExceptionSink* xsink);
+
     //! Return size of arrays in the passed arguments
     /** @param args SQL parameters
 
@@ -139,8 +199,8 @@ protected:
     DLLLOCAL size_t findArraySizeOfArgs(const QoreListNode* args) const;
 
     //! Return whether the passed arguments have arrays
-    DLLLOCAL bool hasArrays(const QoreListNode* args) const {
-        return findArraySizeOfArgs(args) > 0;
+    DLLLOCAL bool hasBindArrays() const {
+        return findArraySizeOfArgs(*params) > 0;
     }
 
     //! Bind a single value argument
@@ -203,6 +263,27 @@ protected:
         @return one result-set row
     */
     DLLLOCAL QoreHashNode* getSingleRowIntern(Env& env, LocalReference<jobject>& rs, ExceptionSink* xsink);
+};
+
+class JavaExceptionRethrowHelper {
+public:
+    DLLLOCAL JavaExceptionRethrowHelper() {
+        if (ex = env->ExceptionOccurred()) {
+            env->ExceptionClear();
+        }
+    }
+
+    DLLLOCAL ~JavaExceptionRethrowHelper() {
+        if (ex) {
+            env->Throw(ex.release());
+        }
+    }
+
+private:
+    // not using the Env wrapper because we don't want any C++ exceptions here
+    JNIEnv* env = Jvm::getEnv();
+
+    LocalReference<jthrowable> ex;
 };
 
 }

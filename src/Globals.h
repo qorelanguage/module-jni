@@ -326,6 +326,7 @@ public:
     DLLLOCAL static jmethodID methodConnectionPrepareStatement;                   // PreparedStatement prepareStatement(String)
     DLLLOCAL static jmethodID methodConnectionPrepareStatementArray;              // PreparedStatement prepareStatement(String, String[])
     DLLLOCAL static jmethodID methodConnectionSetAutoCommit;                      // void setAutoCommit(boolean)
+    DLLLOCAL static jmethodID methodConnectionIsValid;                            // boolean isValid(int)
 
     DLLLOCAL static GlobalReference<jclass> classDatabaseMetaData;                // java.sql.DatabaseMetaData
     DLLLOCAL static jmethodID methodDatabaseMetaDataGetDatabaseMajorVersion;      // int getDatabaseMajorVersion()
@@ -338,6 +339,7 @@ public:
     DLLLOCAL static jmethodID methodDatabaseMetaDataGetDriverVersion;             // String getDriverVersion()
 
     DLLLOCAL static GlobalReference<jclass> classPreparedStatement;               // java.sql.PreparedStatement
+    DLLLOCAL static jmethodID methodPreparedStatementClose;                       // void close()
     DLLLOCAL static jmethodID methodPreparedStatementExecute;                     // boolean execute()
     DLLLOCAL static jmethodID methodPreparedStatementGetResultSet;                // ResultSet getResultSet()
     DLLLOCAL static jmethodID methodPreparedStatementGetUpdateCount;              // int getUpdateCount()
@@ -356,7 +358,11 @@ public:
     DLLLOCAL static jmethodID methodTimestampSetNanos;                            // void setNanos(int)
     DLLLOCAL static jmethodID methodTimestampToString;                            // String toString()
 
+    DLLLOCAL static GlobalReference<jclass> classDate;                            // java.sql.Date
+    DLLLOCAL static jmethodID methodDateToString;                                 // String toString()
+
     DLLLOCAL static GlobalReference<jclass> classResultSet;                       // java.sql.ResultSet
+    DLLLOCAL static jmethodID methodResultSetClose;                               // void close()
     DLLLOCAL static jmethodID methodResultSetGetArray;                            // Array getArray(int)
     DLLLOCAL static jmethodID methodResultSetGetObject;                           // Object getObject(int)
     DLLLOCAL static jmethodID methodResultSetNext;                                // boolean next()
@@ -370,6 +376,8 @@ public:
 
     DLLLOCAL static GlobalReference<jclass> classArray;                           // java.sql.Array
     DLLLOCAL static jmethodID methodArrayGetArray;                                // Object getArray()
+
+    DLLLOCAL static GlobalReference<jclass> classSQLException;                    // java.sql.SQLException
 
     DLLLOCAL static int typeNull; // java.sql.Type.NULL value
     DLLLOCAL static int typeChar; // java.sql.Type.CHAR value

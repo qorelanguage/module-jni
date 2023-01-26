@@ -52,15 +52,29 @@ QoreJdbcConnection::QoreJdbcConnection(Datasource* ds, ExceptionSink* xsink) : d
         return;
     }
 
+    Env env;
+    connect(env, xsink);
+}
+
+QoreJdbcConnection::~QoreJdbcConnection() {
+    assert(!connection);
+}
+
+int QoreJdbcConnection::reconnect(Env& env, ExceptionSink* xsink) {
+    close(env);
+    return connect(env, xsink);
+}
+
+int QoreJdbcConnection::connect(Env& env, ExceptionSink* xsink) {
+    assert(!connection);
     // get URL
     const std::string& str = db.empty() ? ds->getDBNameStr() : db;
     if (str.empty()) {
         xsink->raiseException("JDBC-CONNECTION-ERROR", "cannot build JDBC URL without a db name");
-        return;
+        return -1;
     }
-    QoreStringMaker url("jdbc:%s", str.c_str());
+    QoreStringMaker url("%s%s", !str.rfind("jdbc:", 0) ? "" : "jdbc:", str.c_str());
 
-    Env env;
     try {
         LocalReference<jobject> props = env.newObject(Globals::classProperties, Globals::ctorProperties, nullptr);
         {
@@ -89,11 +103,10 @@ QoreJdbcConnection::QoreJdbcConnection(Datasource* ds, ExceptionSink* xsink) : d
         env.callVoidMethod(connection, Globals::methodConnectionSetAutoCommit, &jargs[0]);
     } catch (jni::Exception& e) {
         e.convert(xsink);
+        return -1;
     }
-}
-
-QoreJdbcConnection::~QoreJdbcConnection() {
-    assert(!connection);
+    assert(!*xsink);
+    return 0;
 }
 
 int QoreJdbcConnection::parseOptions(ExceptionSink* xsink) {
@@ -108,18 +121,13 @@ int QoreJdbcConnection::parseOptions(ExceptionSink* xsink) {
     return 0;
 }
 
-int QoreJdbcConnection::close(ExceptionSink* xsink) {
+int QoreJdbcConnection::close(Env& env) {
     if (!connection) {
         return 0;
     }
-    Env env;
-    try {
-        env.callObjectMethod(connection, Globals::methodConnectionClose, nullptr);
-        connection = nullptr;
-    } catch (jni::Exception& e) {
-        e.convert(xsink);
-    }
-    return *xsink ? -1 : 0;
+    env.callObjectMethod(connection, Globals::methodConnectionClose, nullptr);
+    connection = nullptr;
+    return 0;
 }
 
 int QoreJdbcConnection::setOption(const char* opt, const QoreValue val, ExceptionSink* xsink) {
@@ -142,10 +150,10 @@ int QoreJdbcConnection::setOption(const char* opt, const QoreValue val, Exceptio
             e.convert(xsink);
             return -1;
         }
-    } else if (!strcasecmp(opt, JDBC_OPT_DB)) {
+    } else if (!strcasecmp(opt, JDBC_OPT_URL)) {
         if (val.getType() != NT_STRING) {
             xsink->raiseException("JDBC-OPTION-ERROR", "'%s' expects a 'string' value; got type '%s' instead",
-                JDBC_OPT_DB, val.getFullTypeName());
+                JDBC_OPT_URL, val.getFullTypeName());
             return -1;
         }
         db = val.get<const QoreStringNode>()->c_str();
@@ -159,7 +167,7 @@ int QoreJdbcConnection::setOption(const char* opt, const QoreValue val, Exceptio
 QoreValue QoreJdbcConnection::getOption(const char* opt) {
     if (!strcasecmp(opt, JDBC_OPT_CLASSPATH)) {
         return classpath.empty() ? QoreValue() : new QoreStringNode(classpath);
-    } else if (!strcasecmp(opt, JDBC_OPT_DB)) {
+    } else if (!strcasecmp(opt, JDBC_OPT_URL)) {
         return db.empty() ? QoreValue() : new QoreStringNode(db);
     } else {
         assert(false);
@@ -271,7 +279,7 @@ QoreValue QoreJdbcConnection::select(const QoreString* qstr, const QoreListNode*
     try {
         QoreJdbcStatement stmt(xsink, this);
 
-        bool result_set = stmt.exec(env, qstr, args, xsink);
+        bool result_set = stmt.exec(env, xsink, qstr, args);
         if (*xsink) {
             return QoreValue();
         }
@@ -295,7 +303,7 @@ QoreListNode* QoreJdbcConnection::selectRows(const QoreString* qstr, const QoreL
     try {
         QoreJdbcStatement stmt(xsink, this);
 
-        bool result_set = stmt.exec(env, qstr, args, xsink);
+        bool result_set = stmt.exec(env, xsink, qstr, args);
         if (*xsink) {
             return nullptr;
         }
@@ -320,7 +328,7 @@ QoreHashNode* QoreJdbcConnection::selectRow(const QoreString* qstr, const QoreLi
     try {
         QoreJdbcStatement stmt(xsink, this);
 
-        bool result_set = stmt.exec(env, qstr, args, xsink);
+        bool result_set = stmt.exec(env, xsink, qstr, args);
         if (*xsink) {
             return nullptr;
         }
@@ -339,10 +347,48 @@ QoreHashNode* QoreJdbcConnection::selectRow(const QoreString* qstr, const QoreLi
 }
 
 QoreValue QoreJdbcConnection::exec(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink) {
+    assert(connection);
+    Env env;
+    try {
+        QoreJdbcStatement stmt(xsink, this);
+
+        bool result_set = stmt.exec(env, xsink, qstr, args);
+        if (*xsink) {
+            return QoreValue();
+        }
+
+        if (result_set) {
+            return stmt.getOutputHash(env, xsink, false);
+        }
+
+        return stmt.rowsAffected(env);
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+    }
+    assert(*xsink);
     return QoreValue();
 }
 
 QoreValue QoreJdbcConnection::execRaw(const QoreString* qstr, ExceptionSink* xsink) {
+    assert(connection);
+    Env env;
+    try {
+        QoreJdbcStatement stmt(xsink, this);
+
+        bool result_set = stmt.exec(env, xsink, qstr, nullptr);
+        if (*xsink) {
+            return QoreValue();
+        }
+
+        if (result_set) {
+            return stmt.getOutputHash(env, xsink, false);
+        }
+
+        return stmt.rowsAffected(env);
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+    }
+    assert(*xsink);
     return QoreValue();
 }
 }

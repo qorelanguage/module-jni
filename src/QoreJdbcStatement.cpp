@@ -34,7 +34,19 @@ QoreJdbcColumn::QoreJdbcColumn(std::string&& name, std::string&& qname, jint cty
         strip(ctype == Globals::typeChar) {
 }
 
-bool QoreJdbcStatement::exec(Env& env, const QoreString& qstr, const QoreListNode* args, ExceptionSink* xsink) {
+void ResultSet::closeIntern(Env& env) {
+    assert(rs);
+    env.callVoidMethod(rs, Globals::methodResultSetClose, nullptr);
+}
+
+QoreJdbcStatement::~QoreJdbcStatement() {
+    if (stmt) {
+        Env env;
+        close(env);
+    }
+}
+
+bool QoreJdbcStatement::exec(Env& env, ExceptionSink* xsink, const QoreString& qstr, const QoreListNode* args) {
     assert(!stmt);
 
     // Convert string to required character encoding.
@@ -47,25 +59,116 @@ bool QoreJdbcStatement::exec(Env& env, const QoreString& qstr, const QoreListNod
         return false;
     }
 
+    prepareAndBindStatement(env, xsink, **str);
+
+    return execIntern(env, **str, xsink);
+}
+
+void QoreJdbcStatement::prepareAndBindStatement(Env& env, ExceptionSink* xsink, const QoreString& str) {
+    assert(!stmt);
     // no exception handling needed; calls must be wrapped in a try/catch block
     std::vector<jvalue> jargs(1);
-    LocalReference<jstring> jurl = env.newString(str->c_str());
+    LocalReference<jstring> jurl = env.newString(str.c_str());
     jargs[0].l = jurl;
 
     stmt = env.callObjectMethod(conn->getConnectionObject(), Globals::methodConnectionPrepareStatement, &jargs[0])
         .makeGlobal();
 
-    if (hasArrays(args)) {
+    bindQueryArguments(env, xsink);
+}
+
+int QoreJdbcStatement::bindQueryArguments(Env& env, ExceptionSink* xsink) {
+    if (hasBindArrays()) {
         if (bindInternArray(env, *params, xsink)) {
             return -1;
         }
-    } else {
-        if (bindIntern(env, *params, xsink)) {
-            return -1;
+    } else if (bindIntern(env, *params, xsink)) {
+        return -1;
+    }
+    return 0;
+}
+
+bool QoreJdbcStatement::execIntern(Env& env, const QoreString& qstr, ExceptionSink* xsink) {
+    do {
+        // check for a lost connection
+        try {
+            return env.callBooleanMethod(stmt, Globals::methodPreparedStatementExecute, nullptr);
+        } catch (JavaException& e) {
+            LocalReference<jthrowable> throwable = e.save();
+            assert(throwable);
+            if (env.isInstanceOf(throwable, Globals::classSQLException)) {
+                // check if connection is still valid; 1 second timeout
+                jvalue jarg;
+                jarg.i = 1;
+                bool connected = env.callBooleanMethod(conn->getConnectionObject(), Globals::methodConnectionIsValid,
+                    &jarg);
+                printd(0, "QoreJdbcStatement::execIntern() connected: %d\n", connected);
+                if (!connected && !reconnectLostConnection(env, xsink)) {
+                    assert(!*xsink);
+                    // repeat statement execution after reconnection when not in a transaction
+                    prepareAndBindStatement(env, xsink, qstr);
+                    continue;
+                }
+            }
+            e.restore(throwable.release());
+            throw;
         }
+    } while (false);
+    return false;
+}
+
+void QoreJdbcStatement::close(Env& env) {
+    if (stmt) {
+        JavaExceptionRethrowHelper erh;
+        env.callVoidMethod(stmt, Globals::methodPreparedStatementClose, nullptr);
+        stmt = nullptr;
+    }
+}
+
+void QoreJdbcStatement::reset(Env& env, ExceptionSink* xsink) {
+    close(env);
+
+    paramCountInSql = 0;
+    params = nullptr;
+    cvec.clear();
+}
+
+int QoreJdbcStatement::reconnectLostConnection(Env& env, ExceptionSink* xsink) {
+    if (conn->getDatasource()->activeTransaction()) {
+        printd(0, "QoreJdbcStatement::reconnectLostConnection() connection lost while in a transaction\n");
+        xsink->raiseException("ODBC-TRANSACTION-ERROR", "connection to database server lost while in a "
+            "transaction; transaction has been lost");
     }
 
-    return env.callBooleanMethod(stmt, Globals::methodPreparedStatementExecute, nullptr);
+    // Reset current statement state while the driver-specific context data is still present
+    close(env);
+
+    // Free and reset statement states for all active statements while the driver-specific context data is still
+    // present
+    conn->getDatasource()->connectionLost(xsink);
+
+    // Disconnect first
+    conn->close(env);
+
+    // try to reconnect
+    if (conn->reconnect(env, xsink)) {
+        // Free state completely.
+        reset(env, xsink);
+
+        // Reconnect failed; marking connection as closed
+        // The following call will close any open statements and then the datasource
+        conn->getDatasource()->connectionAborted();
+        return -1;
+    }
+
+    // Don't execute again if any exceptions have occured
+    if (*xsink) {
+        // Close all statements and remove private data but leave datasource open
+        conn->getDatasource()->connectionRecovered(xsink);
+        return -1;
+    }
+
+    return 0;
 }
 
 int QoreJdbcStatement::describeResultSet(Env& env, ExceptionSink* xsink, LocalReference<jobject>& rs) {
@@ -126,12 +229,12 @@ int QoreJdbcStatement::describeResultSet(Env& env, ExceptionSink* xsink, LocalRe
 }
 
 QoreHashNode* QoreJdbcStatement::getOutputHash(Env& env, ExceptionSink* xsink, bool emptyHashIfNothing, int maxRows) {
-    LocalReference<jobject> rs = env.callObjectMethod(stmt, Globals::methodPreparedStatementGetResultSet, nullptr);
+    ResultSet rs(env.callObjectMethod(stmt, Globals::methodPreparedStatementGetResultSet, nullptr));
     if (!rs) {
         return nullptr;
     }
 
-    if (describeResultSet(env, xsink, rs)) {
+    if (describeResultSet(env, xsink, *rs)) {
         return nullptr;
     }
 
@@ -144,7 +247,7 @@ QoreHashNode* QoreJdbcStatement::getOutputHash(Env& env, ExceptionSink* xsink, b
 
     while (true) {
         // get next row
-        if (!env.callBooleanMethod(rs, Globals::methodResultSetNext, nullptr)) {
+        if (!env.callBooleanMethod(*rs, Globals::methodResultSetNext, nullptr)) {
             break;
         }
 
@@ -153,7 +256,7 @@ QoreHashNode* QoreJdbcStatement::getOutputHash(Env& env, ExceptionSink* xsink, b
         HashIterator i(**rv);
         while (i.next()) {
             QoreJdbcColumn& col = cvec[c];
-            ValueHolder val(getColumnValue(env, rs, c + 1, col, xsink), xsink);
+            ValueHolder val(getColumnValue(env, *rs, c + 1, col, xsink), xsink);
             if (*xsink) {
                 return nullptr;
             }
@@ -168,12 +271,12 @@ QoreHashNode* QoreJdbcStatement::getOutputHash(Env& env, ExceptionSink* xsink, b
 }
 
 QoreListNode* QoreJdbcStatement::getOutputList(Env& env, ExceptionSink* xsink, int maxRows) {
-    LocalReference<jobject> rs = env.callObjectMethod(stmt, Globals::methodPreparedStatementGetResultSet, nullptr);
+    ResultSet rs(env.callObjectMethod(stmt, Globals::methodPreparedStatementGetResultSet, nullptr));
     if (!rs) {
         return nullptr;
     }
 
-    if (describeResultSet(env, xsink, rs)) {
+    if (describeResultSet(env, xsink, *rs)) {
         return nullptr;
     }
 
@@ -182,12 +285,12 @@ QoreListNode* QoreJdbcStatement::getOutputList(Env& env, ExceptionSink* xsink, i
     int rowCount = 0;
     while (true) {
         // make sure there is at least one row
-        if (!env.callBooleanMethod(rs, Globals::methodResultSetNext, nullptr)) {
+        if (!env.callBooleanMethod(*rs, Globals::methodResultSetNext, nullptr)) {
             // if not, return NOTHING
             break;
         }
 
-        ReferenceHolder<QoreHashNode> h(getSingleRowIntern(env, rs, xsink), xsink);
+        ReferenceHolder<QoreHashNode> h(getSingleRowIntern(env, *rs, xsink), xsink);
         if (!h) {
             break;
         }
@@ -202,25 +305,25 @@ QoreListNode* QoreJdbcStatement::getOutputList(Env& env, ExceptionSink* xsink, i
 }
 
 QoreHashNode* QoreJdbcStatement::getSingleRow(Env& env, ExceptionSink* xsink) {
-    LocalReference<jobject> rs = env.callObjectMethod(stmt, Globals::methodPreparedStatementGetResultSet, nullptr);
+    ResultSet rs(env.callObjectMethod(stmt, Globals::methodPreparedStatementGetResultSet, nullptr));
     if (!rs) {
         return nullptr;
     }
 
     // make sure there is at least one row
-    if (!env.callBooleanMethod(rs, Globals::methodResultSetNext, nullptr)) {
+    if (!env.callBooleanMethod(*rs, Globals::methodResultSetNext, nullptr)) {
         // if not, return NOTHING
         return nullptr;
     }
 
-    if (describeResultSet(env, xsink, rs)) {
+    if (describeResultSet(env, xsink, *rs)) {
         return nullptr;
     }
 
-    ReferenceHolder<QoreHashNode> rv(getSingleRowIntern(env, rs, xsink), xsink);
+    ReferenceHolder<QoreHashNode> rv(getSingleRowIntern(env, *rs, xsink), xsink);
 
     // make sure there's not another row
-    if (env.callBooleanMethod(rs, Globals::methodResultSetNext, nullptr)) {
+    if (env.callBooleanMethod(*rs, Globals::methodResultSetNext, nullptr)) {
         xsink->raiseException("JDBC-SELECT-ROW-ERROR", "SQL passed to selectRow() returned more than 1 row");
         return nullptr;
     }
@@ -457,7 +560,7 @@ int QoreJdbcStatement::bindParamSingleValue(Env& env, int column, QoreValue arg,
             // set nanoseconds
             jint ns = epoch_us - (ms * 1000);
             jarg.i = ns;
-            env.callVoidMethod(Globals::classTimestamp, Globals::methodTimestampSetNanos, &jarg);
+            env.callVoidMethod(ts, Globals::methodTimestampSetNanos, &jarg);
             // bind timestamp value
             jargs[1].l = ts;
             env.callVoidMethod(stmt, Globals::methodPreparedStatementSetTimestamp, &jargs[0]);

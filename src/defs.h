@@ -32,7 +32,8 @@
 #define QORE_JNI_DEFS_H_
 
 #include <qore/Qore.h>
-#include <jni.h>
+
+#include "jni.h"
 
 #include <stdarg.h>
 #include <memory>
@@ -77,8 +78,8 @@ private:
  * \brief An exception that can be safely ignored with no action
  */
 class IgnorableException : public Exception {
-   DLLLOCAL void ignore() override {
-   }
+    DLLLOCAL void ignore() override {
+    }
 };
 
 /**
@@ -145,7 +146,7 @@ public:
 
     DLLLOCAL void restore(jthrowable je);
 
-    DLLLOCAL QoreStringNode* toString() const;
+    DLLLOCAL QoreStringNode* toString(bool clear = true) const;
 };
 
 /**
