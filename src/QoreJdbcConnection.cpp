@@ -26,6 +26,7 @@
 #include "QoreJdbcDriver.h"
 #include "LocalReference.h"
 #include "Globals.h"
+#include "QoreToJava.h"
 #include "Env.h"
 
 #include <vector>
@@ -53,7 +54,34 @@ QoreJdbcConnection::QoreJdbcConnection(Datasource* ds, ExceptionSink* xsink) : d
     }
 
     Env env;
-    connect(env, xsink);
+    if (connect(env, xsink)) {
+        assert(*xsink);
+        return;
+    }
+
+    // determine DB type
+    LocalReference<jobject> md = env.callObjectMethod(connection, Globals::methodConnectionGetMetaData, nullptr);
+    if (!md) {
+        return;
+    }
+
+#if 0
+    LocalReference<jstring> str = env.callObjectMethod(md,
+        Globals::methodDatabaseMetaDataGetDatabaseProductName, nullptr).as<jstring>();
+    if (str) {
+        Env::GetStringUtfChars jname(env, str);
+        QoreString product_name(jname.c_str());
+        product_name.tolwr();
+        if (product_name.startsWith("oracle")) {
+            dbtype = DBT_ORACLE;
+            array_support = DAS_SUPPORTED;
+            LocalReference<jclass> cls = env.callObjectMethod(connection, Globals::methodObjectGetClass, nullptr)
+                .as<jclass>();
+            methodOracleConnectionCreateOracleArray = env.getMethod(cls, "createOracleArray",
+                "(Ljava/lang/String;Ljava/lang/Object;)Ljava/sql/Array;");
+        }
+    }
+#endif
 }
 
 QoreJdbcConnection::~QoreJdbcConnection() {
@@ -70,10 +98,13 @@ int QoreJdbcConnection::connect(Env& env, ExceptionSink* xsink) {
     // get URL
     const std::string& str = db.empty() ? ds->getDBNameStr() : db;
     if (str.empty()) {
-        xsink->raiseException("JDBC-CONNECTION-ERROR", "cannot build JDBC URL without a db name");
+        xsink->raiseException("JDBC-CONNECTION-ERROR", "cannot build JDBC URL without a db name or 'url' connection "
+            "option");
         return -1;
     }
     QoreStringMaker url("%s%s", !str.rfind("jdbc:", 0) ? "" : "jdbc:", str.c_str());
+
+    //printd(5, "QoreJdbcConnection::connect() using URL '%s'\n", url.c_str());
 
     try {
         LocalReference<jobject> props = env.newObject(Globals::classProperties, Globals::ctorProperties, nullptr);
@@ -103,6 +134,7 @@ int QoreJdbcConnection::connect(Env& env, ExceptionSink* xsink) {
         env.callVoidMethod(connection, Globals::methodConnectionSetAutoCommit, &jargs[0]);
     } catch (jni::Exception& e) {
         e.convert(xsink);
+        xsink->appendLastDescription(" (using JDBC URL: '%s')", url.c_str());
         return -1;
     }
     assert(!*xsink);
@@ -125,8 +157,10 @@ int QoreJdbcConnection::close(Env& env) {
     if (!connection) {
         return 0;
     }
-    env.callObjectMethod(connection, Globals::methodConnectionClose, nullptr);
+    JavaExceptionRethrowHelper erh;
+    env.callVoidMethod(connection, Globals::methodConnectionClose, nullptr);
     connection = nullptr;
+
     return 0;
 }
 
@@ -138,6 +172,9 @@ int QoreJdbcConnection::setOption(const char* opt, const QoreValue val, Exceptio
             return -1;
         }
         const char* cp = val.get<const QoreStringNode>()->c_str();
+        if (!strcmp(classpath.c_str(), cp)) {
+            return 0;
+        }
 
         QoreString arg(cp);
         q_env_subst(arg);
@@ -145,7 +182,22 @@ int QoreJdbcConnection::setOption(const char* opt, const QoreValue val, Exceptio
 
         try {
             jpc->addClasspath(arg.c_str());
+            printd(0, "QoreJdbcConnection::setOption() %p '%s' jpc: %p add classpath: '%s' (driver: %p)\n", this, opt,
+                jpc, arg.c_str(), *Globals::classDriver);
             classpath = arg.c_str();
+
+            // try to load new drivers
+            Env env;
+            LocalReference<jobject> sm = jpc->loadServiceLoader(env, Globals::classDriver);
+            LocalReference<jobject> iterator = env.callObjectMethod(sm, Globals::methodServiceLoaderIterator,
+                nullptr);
+            while (true) {
+                jboolean b = env.callBooleanMethod(iterator, Globals::methodIteratorHasNext, nullptr);
+                if (!b) {
+                    break;
+                }
+                LocalReference<jobject> o = env.callObjectMethod(iterator, Globals::methodIteratorNext, nullptr);
+            }
         } catch (jni::Exception& e) {
             e.convert(xsink);
             return -1;
@@ -174,6 +226,49 @@ QoreValue QoreJdbcConnection::getOption(const char* opt) {
     }
     return QoreValue();
 }
+
+#if 0
+bool QoreJdbcConnection::areArraysSupported(Env& env) {
+    if (array_support == DAS_SUPPORTED) {
+        return true;
+    }
+    if (array_support == DAS_NOT_SUPPORTED) {
+        return false;
+    }
+    // lock and check again
+    AutoLocker al(m);
+    if (array_support == DAS_SUPPORTED) {
+        return true;
+    }
+    if (array_support == DAS_NOT_SUPPORTED) {
+        return false;
+    }
+
+    // try to create an array of strings
+    ExceptionSink xsink;
+    ReferenceHolder<QoreListNode> l(new QoreListNode(autoTypeInfo), &xsink);
+    l->push(new QoreStringNode("x"), &xsink);
+    LocalReference<jobject> array_arg = QoreToJava::toAnyObject(env, *l, jpc);
+
+    std::vector<jvalue> jargs(2);
+    LocalReference<jstring> jurl = env.newString("VARCHAR");
+    jargs[0].l = jurl;
+    jargs[1].l = array_arg;
+    try {
+        LocalReference<jobject> array = env.callObjectMethod(connection, Globals::methodConnectionCreateArrayOf,
+            &jargs[0]);
+        printd(0, "QoreJdbcConnection::areArraysSupported() OK\n");
+        array_support = DAS_SUPPORTED;
+        return true;
+    } catch (JavaException& e) {
+        SimpleRefHolder<QoreStringNode> errtxt(e.toString(false));
+        printd(0, "QoreJdbcConnection::areArraysSupported() %s\n", errtxt->c_str());
+        e.ignore();
+    }
+    array_support = DAS_NOT_SUPPORTED;
+    return false;
+}
+#endif
 
 int QoreJdbcConnection::commit(ExceptionSink* xsink) {
     assert(connection);

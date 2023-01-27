@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -85,7 +85,7 @@ public:
       return QoreValue(v);
    }
 
-   static QoreValue convertToQore(LocalReference<jobject> v, QoreProgram* pgm, bool compat_types);
+   static QoreValue convertToQore(LocalReference<jobject> v, QoreProgram* pgm, bool compat_types = false);
 
 private:
    JavaToQore() = delete;

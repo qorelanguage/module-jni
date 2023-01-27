@@ -137,24 +137,17 @@ protected:
         ESCT_BLOCK,
     };
 
-    //! Array support types
-    enum DriverArraySupport {
-        DAS_UNKNOWN = 0,
-        DAS_SUPPORTED,
-        DAS_NOT_SUPPORTED,
-    };
-
     //! Connection
     QoreJdbcConnection* conn;
 
     //! PreparedStatement object
     GlobalReference<jobject> stmt;
 
-    //! Count of required parameters for the SQL command
-    size_t paramCountInSql = 0;
+    //! Count of bind parameters for the SQL command
+    size_t bind_size = 0;
 
-    //! JDBC driver array support
-    DriverArraySupport array_support = DAS_UNKNOWN;
+    //! The size of any array bind
+    size_t array_bind_size = 0;
 
     //! Parameters which will be used in the statement
     ReferenceHolder<QoreListNode> params;
@@ -162,6 +155,9 @@ protected:
     //! Column metadata from result sets
     typedef std::vector<QoreJdbcColumn> cvec_t;
     cvec_t cvec;
+
+    //! Batch execute flag
+    bool do_batch_execute = false;
 
     DLLLOCAL void prepareAndBindStatement(Env& env, ExceptionSink* xsink, const QoreString& str);
 
@@ -191,6 +187,11 @@ protected:
 
     DLLLOCAL bool execIntern(Env& env, const QoreString& sql, ExceptionSink* xsink);
 
+#if 0
+    DLLLOCAL const char* getArrayBindType(const QoreListNode* l) const;
+    int bindInternArrayNative(Env& env, const QoreListNode* args, ExceptionSink* xsink);
+#endif
+
     //! Return size of arrays in the passed arguments
     /** @param args SQL parameters
 
@@ -199,8 +200,9 @@ protected:
     DLLLOCAL size_t findArraySizeOfArgs(const QoreListNode* args) const;
 
     //! Return whether the passed arguments have arrays
-    DLLLOCAL bool hasBindArrays() const {
-        return findArraySizeOfArgs(*params) > 0;
+    DLLLOCAL bool hasArrayBind() {
+        array_bind_size = findArraySizeOfArgs(*params);
+        return array_bind_size > 0;
     }
 
     //! Bind a single value argument
@@ -240,6 +242,8 @@ protected:
         @return 0 for OK, -1 for error
     */
     DLLLOCAL int bindInternArray(Env& env, const QoreListNode* args, ExceptionSink* xsink);
+
+    int bindInternArrayBatch(Env& env, const QoreListNode* args, ExceptionSink* xsink);
 
     //! Describe result set
     DLLLOCAL int describeResultSet(Env& env, ExceptionSink* xsink, LocalReference<jobject>& rs);

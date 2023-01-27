@@ -138,7 +138,7 @@ QoreStringNode* JavaException::toString(bool clear) const {
     while (true) {
         LocalReference<jstring> excName = static_cast<jstring>(env->CallObjectMethod(env->GetObjectClass(throwable),
             Globals::methodClassGetName));
-        if (env->ExceptionCheck()) {
+        if (clear && env->ExceptionCheck()) {
             env->ExceptionClear();
             return new QoreStringNode("Unable to get exception class name: another exception thrown");
         }
@@ -157,7 +157,7 @@ QoreStringNode* JavaException::toString(bool clear) const {
 
         LocalReference<jstring> msg = static_cast<jstring>(env->CallObjectMethod(throwable, Globals::methodThrowableGetMessage));
         //printd(5, "msg: %p\n", (jstring)msg);
-        if (env->ExceptionCheck()) {
+        if (clear && env->ExceptionCheck()) {
             env->ExceptionClear();
         } else if (msg != nullptr) {
             desc->concat(": ");

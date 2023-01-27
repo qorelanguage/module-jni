@@ -26,6 +26,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.ServiceLoader;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -67,7 +68,8 @@ public class QoreJavaDynamicApi {
         Class<?> c = m.getDeclaringClass();
         m.trySetAccessible();
         // works for all cases but generates a warning on the console if used with system classes
-        return MethodHandles.privateLookupIn(c, MethodHandles.lookup()).unreflectSpecial(m, c).bindTo(obj).invokeWithArguments(args);
+        return MethodHandles.privateLookupIn(c, MethodHandles.lookup()).unreflectSpecial(m,
+            c).bindTo(obj).invokeWithArguments(args);
     }
 
     //! invokes the given method on the given object and returns the return value
@@ -79,5 +81,10 @@ public class QoreJavaDynamicApi {
     //! returns a lookup object for the program's context
     public static MethodHandles.Lookup lookup() {
         return MethodHandles.lookup();
+    }
+
+    //! sets the Java caller context and runs ServiceLoader.load()
+    public static <S> ServiceLoader<S> loadServiceLoader(Class<S> c, ClassLoader cl) {
+        return ServiceLoader.load(c, cl);
     }
 }

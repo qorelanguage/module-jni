@@ -34,6 +34,12 @@
 
 namespace jni {
 
+//! Known DB types
+enum DbType {
+    DBT_UNKNOWN = 0,
+    DBT_ORACLE,
+};
+
 class QoreJdbcConnection {
 public:
     DLLLOCAL QoreJdbcConnection(Datasource* d, ExceptionSink* xsink);
@@ -119,6 +125,24 @@ public:
         return ds;
     }
 
+    DLLLOCAL JniExternalProgramData* getQoreJniContext() const {
+        return jpc;
+    }
+
+    DLLLOCAL DbType getDbType() const {
+        return dbtype;
+    }
+
+#if 0
+    DLLLOCAL bool areArraysSupported(Env& env);
+
+    DLLLOCAL jmethodID getOracleCreateArrayOfMethod() const {
+        assert(dbtype == DBT_ORACLE);
+        assert(methodOracleConnectionCreateOracleArray);
+        return methodOracleConnectionCreateOracleArray;
+    }
+#endif
+
 private:
     //! Qore Program context
     QoreProgram* pgm = qore_get_call_program_context();
@@ -134,8 +158,29 @@ private:
     //! Classpath value
     std::string classpath;
 
-    //! Overridden db value
+    //! Overridden db URL value
     std::string db;
+
+    //! DB type
+    DbType dbtype = DBT_UNKNOWN;
+
+#if 0
+    //! Array support types
+    enum DriverArraySupport {
+        DAS_UNKNOWN = 0,
+        DAS_SUPPORTED,
+        DAS_NOT_SUPPORTED,
+    };
+
+    //! JDBC driver array support
+    DriverArraySupport array_support = DAS_UNKNOWN;
+
+    //! Array OracleConnection.createOracleArray(String, Object[]) method ID
+    jmethodID methodOracleConnectionCreateOracleArray = 0;
+
+    //! Mutex for atomic operations
+    QoreThreadLock m;
+#endif
 
     DLLLOCAL int connect(Env& env, ExceptionSink* xsink);
 

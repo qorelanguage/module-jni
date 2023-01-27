@@ -78,7 +78,7 @@ void QoreJdbcStatement::prepareAndBindStatement(Env& env, ExceptionSink* xsink, 
 }
 
 int QoreJdbcStatement::bindQueryArguments(Env& env, ExceptionSink* xsink) {
-    if (hasBindArrays()) {
+    if (hasArrayBind()) {
         if (bindInternArray(env, *params, xsink)) {
             return -1;
         }
@@ -92,6 +92,11 @@ bool QoreJdbcStatement::execIntern(Env& env, const QoreString& qstr, ExceptionSi
     do {
         // check for a lost connection
         try {
+            if (do_batch_execute) {
+                // ignore return value
+                env.callObjectMethod(stmt, Globals::methodPreparedStatementExecuteBatch, nullptr);
+                return false;
+            }
             return env.callBooleanMethod(stmt, Globals::methodPreparedStatementExecute, nullptr);
         } catch (JavaException& e) {
             LocalReference<jthrowable> throwable = e.save();
@@ -128,7 +133,9 @@ void QoreJdbcStatement::close(Env& env) {
 void QoreJdbcStatement::reset(Env& env, ExceptionSink* xsink) {
     close(env);
 
-    paramCountInSql = 0;
+    bind_size = 0;
+    array_bind_size = 0;
+    do_batch_execute = false;
     params = nullptr;
     cvec.clear();
 }
@@ -379,7 +386,7 @@ int QoreJdbcStatement::parse(QoreString* str, const QoreListNode* args, Exceptio
     int index = 0;
     SQLCommentType comment = ESCT_NONE;
     params = new QoreListNode;
-    paramCountInSql = 0;
+    bind_size = 0;
 
     while (*p) {
         if (!quote) {
@@ -450,7 +457,7 @@ int QoreJdbcStatement::parse(QoreString* str, const QoreListNode* args, Exceptio
 
                 str->replace(offset, 2, "?");
                 p = str->c_str() + offset + 1;
-                ++paramCountInSql;
+                ++bind_size;
                 if (v) {
                     params->push(v.refSelf(), xsink);
                 }
@@ -583,38 +590,66 @@ int QoreJdbcStatement::bindParamSingleValue(Env& env, int column, QoreValue arg,
     return 0;
 }
 
-/*
-int QoreJdbcStatement::bindParamArraySingleValue(Env& env, int column, QoreValue arg, ExceptionSink* xsink) {
-    if (arg.isNullOrNothing()) {
-        char* array = arrayHolder.getNullArray(xsink);
-        if (!array)
-            return -1;
-        indArray = arrayHolder.getNullIndArray(xsink);
-        if (!indArray)
-            return -1;
-
-        ret = SQLBindParameter(stmt, column, SQL_PARAM_INPUT, SQL_C_BINARY, SQL_BINARY, 0, 0, array, 0, indArray);
-        if (!SQL_SUCCEEDED(ret)) { // error
-            std::string s("failed binding NULL single value parameter for column #%d");
-            ODBCErrorHelper::extractDiag(SQL_HANDLE_STMT, stmt, s);
-            xsink->raiseException("JDBC-BIND-ERROR", s.c_str(), column);
-            return -1;
-        }
-        return 0;
-    }
-}
-*/
-
 int QoreJdbcStatement::bindInternArray(Env& env, const QoreListNode* args, ExceptionSink* xsink) {
     // Check that enough parameters were passed for binding.
     size_t count = args ? args->size() : 0;
-    if (paramCountInSql != count) {
+    if (bind_size != count) {
         xsink->raiseException("JDBC-BIND-ERROR",
             "mismatch between the parameter list size and number of parameters in the SQL command; %lu "
-            "required, %lu passed", paramCountInSql, args->size());
+            "required, %lu passed", bind_size, args->size());
         return -1;
     }
 
+    return bindInternArrayBatch(env, args, xsink);
+#if 0
+    if (conn->areArraysSupported(env)) {
+        return bindInternArrayNative(env, args, xsink);
+    } else {
+        return bindInternArrayBatch(env, args, xsink);
+    }
+#endif
+}
+
+#if 0
+const char* QoreJdbcStatement::getArrayBindType(const QoreListNode* l) const {
+    ConstListIterator i(l);
+    while (i.next()) {
+        switch (i.getValue().getType()) {
+            case NT_NOTHING:
+            case NT_NULL:
+                break;
+
+            case NT_INT:
+                return "int";
+
+            case NT_FLOAT:
+                return "double";
+
+            case NT_NUMBER:
+                return "numeric";
+
+            case NT_STRING:
+                return "varchar";
+
+            case NT_BOOLEAN:
+                return "boolean";
+
+            case NT_DATE:
+                return "timestamp";
+
+            case NT_BINARY:
+                return "blob";
+
+            default:
+                return i.getValue().getTypeName();
+        }
+    }
+
+    return "null";
+}
+
+int QoreJdbcStatement::bindInternArrayNative(Env& env, const QoreListNode* args, ExceptionSink* xsink) {
+    size_t count = args ? args->size() : 0;
     for (unsigned int i = 0; i < count; ++i) {
         QoreValue arg = args->retrieveEntry(i);
 
@@ -625,9 +660,50 @@ int QoreJdbcStatement::bindInternArray(Env& env, const QoreListNode* args, Excep
             continue;
         }
 
-        assert(false);
+        const char* bind_type = getArrayBindType(arg.get<const QoreListNode>());
+        printd(0, "QoreJdbcStatement::bindInternArray() binding array of SQL type '%s'\n", bind_type);
+
+        std::vector<jvalue> jargs(2);
+        LocalReference<jstring> jurl = env.newString(bind_type);
+        jargs[0].l = jurl;
+        LocalReference<jobject> array_arg = QoreToJava::toAnyObject(env, arg, conn->getQoreJniContext());
+        jargs[1].l = array_arg;
+        LocalReference<jobject> array = env.callObjectMethod(conn->getConnectionObject(),
+            Globals::methodConnectionCreateArrayOf, &jargs[0]);
+        jargs[0].l = array;
+        env.callVoidMethod(stmt, Globals::methodPreparedStatementSetArray, &jargs[0]);
     }
 
+    return 0;
+}
+#endif
+
+int QoreJdbcStatement::bindInternArrayBatch(Env& env, const QoreListNode* args, ExceptionSink* xsink) {
+    do_batch_execute = true;
+    size_t list_size = findArraySizeOfArgs(args);
+    size_t arg_count = args ? args->size() : 0;
+
+    for (size_t i = 0; i < list_size; ++i) {
+        for (unsigned int j = 0; j < arg_count; ++j) {
+            QoreValue arg = args->retrieveEntry(j);
+            // get value to bind from the list if necessary
+            if (arg.getType() == NT_LIST) {
+                const QoreListNode* l = arg.get<const QoreListNode>();
+                if (l->size() != list_size) {
+                    xsink->raiseException("JDBC-BIND-ERROR", "the array size for bind argument %d (starting from 1) "
+                        "is %zu which is inconsistent with the detected array size %zu.  This is an error, because "
+                        "all array bind arguments must have the same array / list size.", (int)j, l->size(),
+                        list_size);
+                    return -1;
+                }
+                arg = l->retrieveEntry(i);
+            }
+            if (bindParamSingleValue(env, j + 1, arg, xsink)) {
+                return -1;
+            }
+        }
+        env.callVoidMethod(stmt, Globals::methodPreparedStatementAddBatch, nullptr);
+    }
     return 0;
 }
 

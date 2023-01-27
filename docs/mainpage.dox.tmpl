@@ -745,7 +745,7 @@ set_save_object_callback(callback);
     where all elements except <tt>\@</tt><em>db</em> are optional.
 
     The \a host, \a port, and \a charset values in %Qore datasource strings are ignored; the host and port must be
-    given in the \a db option, and, if the jdbc driver's URL format requires the use of \c @ or \c : characters, then
+    given in the \a db value, and, if the jdbc driver's URL format requires the use of \c @ or \c : characters, then
     a dummy value must be provided for the \a db value, and the @ref jdbc_option_url "url option" must be used
     instead.
 
@@ -764,9 +764,14 @@ set_save_object_callback(callback);
     The \c classpath option allows for the classpath to be set before the JVM loads the Java \c jdbc driver.  The
     value of this option must be a string and is subject to environment variable substitution before being used.
 
+    If this option is used, then the \c java.util.ServiceLoader for \c "java.sql.Driver" objects is run and iterated
+    after updating the classpath, to ensure that any new drivers in new classes added to the classpath are loaded and
+    available to drivers loaded after the initial driver is loaded, otherwise the \c java.sql.DriverManager will not
+    see the new drivers as they were not present in the classpath during on-demand static initialization).
+
     @subsubsection jdbc_option_url jdbc url Option
 
-    The \c db option allows for \c jdbc URLs to be used that contain special characters like \c @ and \c : that would
+    The \c url option allows for \c jdbc URLs to be used that contain special characters like \c @ and \c : that would
     cause the datasource to fail to parse when used as a database name.
 
     @par db Option Example

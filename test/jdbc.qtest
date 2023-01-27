@@ -12,8 +12,6 @@
 
 public class Main inherits QUnit::Test {
     private {
-        Datasource ds;
-
         const MyOpts = Opts + {
             "connstr": "c,conn=s",
         };
@@ -22,15 +20,16 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("jdbc test", "1.0", \ARGV, MyOpts) {
-        addTestCase("test", \test());
-
-        setupConnection();
+        addTestCase("pgsqlTest", \pgsqlTest());
+        addTestCase("oracleTest", \oracleTest());
+        addTestCase("firebirdTest", \firebirdTest());
 
         # execute tests and set program return value
         set_return_value(main());
     }
 
-    private test() {
+    private oracleTest() {
+        *Datasource ds = getConnection("QORE_DB_CONNSTR_JDBC_ORACLE");
         if (!ds) {
             testSkip("no jdbc connection available");
         }
@@ -40,15 +39,79 @@ public class Main inherits QUnit::Test {
         v = ds.getClientVersion();
         assertTrue(exists v);
 
-        #string sql = "select * from test where str = %v";
-        #ds.select(sql);
-
-        #string sql = "select * from table_1 where input_1 = 1";
-        string sql = "select * from test";
-        #string sql = "select * from orders";
+        string sql = "select * from table_1 where input_1 = 1";
 
         hash<auto> q = ds.select(sql);
-        #hash<auto> q = ds.select("select * from orders where order_id = %v", "PO-2020.00001");
+        printf("q: %y\n", q);
+
+        q = ds.selectRow(sql);
+        printf("q: %y\n", q);
+
+        printf("%N\n", ds.selectRows(sql));
+
+        ds.exec("insert into table_1 (input_1, input_2) values (%v, %v)", 3, "value 3");
+        on_error ds.rollback();
+        on_success ds.commit();
+        on_exit ds.exec("delete from table_1 where input_1 = %v", 3);
+
+        q = ds.selectRow("select * from table_1 where input_1 = 2");
+        printf("q: %y\n", q);
+
+        int rows = ds.exec("insert into table_1 (input_1, input_2) values (%v, %v)", (4, 5), ("value 4", "value 5"));
+        printf("rows: %d\n", rows);
+
+        on_exit ds.exec("delete from table_1 where input_1 in (%v, %v)", 4, 5);
+    }
+
+    private pgsqlTest() {
+        *Datasource ds = getConnection("QORE_DB_CONNSTR_JDBC_PGSQL");
+        if (!ds) {
+            testSkip("no jdbc connection available");
+        }
+
+        auto v = ds.getServerVersion();
+        assertTrue(exists v);
+        v = ds.getClientVersion();
+        assertTrue(exists v);
+
+        string sql = "select * from table_1 where input_1 = 1";
+
+        hash<auto> q = ds.select(sql);
+        printf("q: %y\n", q);
+
+        q = ds.selectRow(sql);
+        printf("q: %y\n", q);
+
+        printf("%N\n", ds.selectRows(sql));
+
+        ds.exec("insert into table_1 (input_1, input_2) values (%v, %v)", 3, "value 3");
+        on_error ds.rollback();
+        on_success ds.commit();
+        on_exit ds.exec("delete from table_1 where input_1 = %v", 3);
+
+        q = ds.selectRow("select * from table_1 where input_1 = 2");
+        printf("q: %y\n", q);
+
+        int rows = ds.exec("insert into table_1 (input_1, input_2) values (%v, %v)", (4, 5), ("value 4", "value 5"));
+        printf("rows: %d\n", rows);
+
+        on_exit ds.exec("delete from table_1 where input_1 in (%v, %v)", 4, 5);
+    }
+
+    private firebirdTest() {
+        *Datasource ds = getConnection("QORE_DB_CONNSTR_JDBC_FIREBIRD");
+        if (!ds) {
+            testSkip("no jdbc connection available");
+        }
+
+        auto v = ds.getServerVersion();
+        assertTrue(exists v);
+        v = ds.getClientVersion();
+        assertTrue(exists v);
+
+        string sql = "select * from test";
+
+        hash<auto> q = ds.select(sql);
         printf("q: %y\n", q);
 
         q = ds.selectRow(sql);
@@ -62,19 +125,20 @@ public class Main inherits QUnit::Test {
         printOption("-c,--conn=ARG", "set DB connection argument (ex: \"jdbc:user/pass@driver?...\")", OptionColumn);
     }
 
-    private setupConnection() {
+    private *Datasource getConnection(string var) {
         try {
-            if (!m_options.connstr) {
-                m_options.connstr = ENV.QORE_DB_CONNSTR_JDBC;
+            if (!ENV{var}.val()) {
+                throw "ENV-VAR-ERROR", sprintf("envionment var %y for connection is not set", var);
             }
-            ds = new Datasource(m_options.connstr);
-            if (ds.getDriverName() != "jdbc")
-                throw "JDBC-TEST-ERROR", sprintf("cannot execute the jdbc tests on a connection using driver %y",
-                    ds.getDriverName());
+            Datasource ds(ENV{var});
+            if (ds.getDriverName() != "jdbc") {
+                stderr.printf("cannot execute jdbc tests on a connection using driver %y (var: %y = %y)\n",
+                    ds.getDriverName(), var, ENV{var});
+            }
             ds.open();
+            return ds;
         } catch (hash<ExceptionInfo> ex) {
             printf("ERROR: %s: %s\n", ex.err, ex.desc);
-            delete ds;
         }
     }
 }

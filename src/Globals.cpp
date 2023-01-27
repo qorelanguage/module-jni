@@ -314,6 +314,7 @@ GlobalReference<jclass> Globals::classConnection;
 jmethodID Globals::methodConnectionClose;
 jmethodID Globals::methodConnectionCommit;
 jmethodID Globals::methodConnectionRollback;
+jmethodID Globals::methodConnectionCreateArrayOf;
 jmethodID Globals::methodConnectionGetMetaData;
 jmethodID Globals::methodConnectionPrepareStatement;
 jmethodID Globals::methodConnectionPrepareStatementArray;
@@ -331,9 +332,12 @@ jmethodID Globals::methodDatabaseMetaDataGetDriverName;
 jmethodID Globals::methodDatabaseMetaDataGetDriverVersion;
 
 GlobalReference<jclass> Globals::classPreparedStatement;
+jmethodID Globals::methodPreparedStatementAddBatch;
 jmethodID Globals::methodPreparedStatementClose;
 jmethodID Globals::methodPreparedStatementExecute;
+jmethodID Globals::methodPreparedStatementExecuteBatch;
 jmethodID Globals::methodPreparedStatementGetResultSet;
+jmethodID Globals::methodPreparedStatementGetMoreResults;
 jmethodID Globals::methodPreparedStatementGetUpdateCount;
 jmethodID Globals::methodPreparedStatementSetArray;
 jmethodID Globals::methodPreparedStatementSetBigDecimal;
@@ -370,6 +374,11 @@ GlobalReference<jclass> Globals::classArray;
 jmethodID Globals::methodArrayGetArray;
 
 GlobalReference<jclass> Globals::classSQLException;
+
+GlobalReference<jclass> Globals::classServiceLoader;
+jmethodID Globals::methodServiceLoaderIterator;
+
+GlobalReference<jclass> Globals::classDriver;
 
 int Globals::typeNull;
 int Globals::typeChar;
@@ -2754,6 +2763,8 @@ bool Globals::init() {
     methodConnectionClose = env.getMethod(classConnection, "close", "()V");
     methodConnectionCommit = env.getMethod(classConnection, "commit", "()V");
     methodConnectionRollback = env.getMethod(classConnection, "rollback", "()V");
+    methodConnectionCreateArrayOf = env.getMethod(classConnection, "createArrayOf",
+        "(Ljava/lang/String;[Ljava/lang/Object;)Ljava/sql/Array;");
     methodConnectionGetMetaData = env.getMethod(classConnection, "getMetaData", "()Ljava/sql/DatabaseMetaData;");
     methodConnectionPrepareStatement = env.getMethod(classConnection, "prepareStatement",
         "(Ljava/lang/String;)Ljava/sql/PreparedStatement;");
@@ -2781,9 +2792,13 @@ bool Globals::init() {
         "()Ljava/lang/String;");
 
     classPreparedStatement = env.findClass("java/sql/PreparedStatement").makeGlobal();
+    methodPreparedStatementAddBatch = env.getMethod(classPreparedStatement, "addBatch", "()V");
     methodPreparedStatementClose = env.getMethod(classPreparedStatement, "close", "()V");
     methodPreparedStatementExecute = env.getMethod(classPreparedStatement, "execute", "()Z");
-    methodPreparedStatementGetResultSet = env.getMethod(classPreparedStatement, "getResultSet", "()Ljava/sql/ResultSet;");
+    methodPreparedStatementExecuteBatch = env.getMethod(classPreparedStatement, "executeBatch", "()[I");
+    methodPreparedStatementGetResultSet = env.getMethod(classPreparedStatement, "getResultSet",
+        "()Ljava/sql/ResultSet;");
+    methodPreparedStatementGetMoreResults = env.getMethod(classPreparedStatement, "getMoreResults", "()Z");
     methodPreparedStatementGetUpdateCount = env.getMethod(classPreparedStatement, "getUpdateCount", "()I");
     methodPreparedStatementSetArray = env.getMethod(classPreparedStatement, "setArray", "(ILjava/sql/Array;)V");
     methodPreparedStatementSetBigDecimal = env.getMethod(classPreparedStatement, "setBigDecimal",
@@ -2825,6 +2840,12 @@ bool Globals::init() {
     methodArrayGetArray = env.getMethod(classArray, "getArray", "()Ljava/lang/Object;");
 
     classSQLException = env.findClass("java/sql/SQLException").makeGlobal();
+
+    classServiceLoader = env.findClass("java/util/ServiceLoader").makeGlobal();
+    methodServiceLoaderIterator = env.getMethod(classServiceLoader, "iterator",
+        "()Ljava/util/Iterator;");
+
+    classDriver = env.findClass("java/sql/Driver").makeGlobal();
 
     {
         LocalReference<jclass> classTypes = env.findClass("java/sql/Types");
@@ -3029,6 +3050,8 @@ void Globals::cleanup() {
     classResultSetMetaData = nullptr;
     classArray = nullptr;
     classSQLException = nullptr;
+    classServiceLoader = nullptr;
+    classDriver = nullptr;
     javaQoreClassField = nullptr;
 }
 

@@ -1841,6 +1841,14 @@ static void convert_qore_ns_to_java_pkg(std::string& str) {
     }
 }
 
+LocalReference<jobject> JniExternalProgramData::loadServiceLoader(Env& env, jclass jcls) {
+    std::vector<jvalue> jargs(2);
+    jargs[0].l = jcls;
+    jargs[1].l = classLoader;
+    return env.callStaticObjectMethod(dynamicApi, methodQoreJavaDynamicApiLoadServiceLoader, &jargs[0])
+        .release();
+}
+
 LocalReference<jstring> JniExternalProgramData::getJavaNameForClass(Env& env, const QoreClass& qc) {
     ValueHolder v(qc.getReferencedKeyValue(JNI_CK_JAVA_BIN_NAME), nullptr);
     if (v) {
@@ -2696,6 +2704,8 @@ void JniExternalProgramData::initDynamicApi(Env& env) {
         "(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
     methodQoreJavaDynamicApiGetField = env.getStaticMethod(dynamicApi, "getField",
         "(Ljava/lang/reflect/Field;Ljava/lang/Object;)Ljava/lang/Object;");
+    methodQoreJavaDynamicApiLoadServiceLoader = env.getStaticMethod(dynamicApi, "loadServiceLoader",
+        "(Ljava/lang/Class;Ljava/lang/ClassLoader;)Ljava/util/ServiceLoader;");
 
     printd(LogLevel, "JniExternalProgramData::JniExternalProgramData(): this: %p: dynamic API created: %p " \
         "classloader: %p QoreJavaClassBase: %p\n", this, getDynamicApi(), getClassLoader(),

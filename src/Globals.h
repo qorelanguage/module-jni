@@ -249,8 +249,8 @@ public:
     DLLLOCAL static jmethodID methodEntryGetValue;                                // Map.Entry.getValue()
 
     DLLLOCAL static GlobalReference<jclass> classIterator;                        // java.util.Iterator
-    DLLLOCAL static jmethodID methodIteratorHasNext;                              // Iterator.hasNext()
-    DLLLOCAL static jmethodID methodIteratorNext;                                 // Iterator.next()
+    DLLLOCAL static jmethodID methodIteratorHasNext;                              // boolean hasNext()
+    DLLLOCAL static jmethodID methodIteratorNext;                                 // Object next()
 
     DLLLOCAL static GlobalReference<jclass> classZonedDateTime;                   // java.time.ZonedDateTime
     DLLLOCAL static jmethodID methodZonedDateTimeParse;                           // ZonedDateTime.parse()
@@ -322,6 +322,7 @@ public:
     DLLLOCAL static jmethodID methodConnectionClose;                              // void Connection.close()
     DLLLOCAL static jmethodID methodConnectionCommit;                             // void Connection.commit()
     DLLLOCAL static jmethodID methodConnectionRollback;                           // void Connection.rollback()
+    DLLLOCAL static jmethodID methodConnectionCreateArrayOf;                      // Array createArrayOf(String, Object[])
     DLLLOCAL static jmethodID methodConnectionGetMetaData;                        // DatabaseMetaData getMetaData()
     DLLLOCAL static jmethodID methodConnectionPrepareStatement;                   // PreparedStatement prepareStatement(String)
     DLLLOCAL static jmethodID methodConnectionPrepareStatementArray;              // PreparedStatement prepareStatement(String, String[])
@@ -339,9 +340,12 @@ public:
     DLLLOCAL static jmethodID methodDatabaseMetaDataGetDriverVersion;             // String getDriverVersion()
 
     DLLLOCAL static GlobalReference<jclass> classPreparedStatement;               // java.sql.PreparedStatement
+    DLLLOCAL static jmethodID methodPreparedStatementAddBatch;                    // void addBatch()
     DLLLOCAL static jmethodID methodPreparedStatementClose;                       // void close()
     DLLLOCAL static jmethodID methodPreparedStatementExecute;                     // boolean execute()
+    DLLLOCAL static jmethodID methodPreparedStatementExecuteBatch;                // int[] executeBatch()
     DLLLOCAL static jmethodID methodPreparedStatementGetResultSet;                // ResultSet getResultSet()
+    DLLLOCAL static jmethodID methodPreparedStatementGetMoreResults;              // boolean getMoreResults()
     DLLLOCAL static jmethodID methodPreparedStatementGetUpdateCount;              // int getUpdateCount()
     DLLLOCAL static jmethodID methodPreparedStatementSetArray;                    // void setArray(int, Array)
     DLLLOCAL static jmethodID methodPreparedStatementSetBigDecimal;               // void setBigDecimal(int, BigDecimal)
@@ -378,6 +382,11 @@ public:
     DLLLOCAL static jmethodID methodArrayGetArray;                                // Object getArray()
 
     DLLLOCAL static GlobalReference<jclass> classSQLException;                    // java.sql.SQLException
+
+    DLLLOCAL static GlobalReference<jclass> classServiceLoader;                   // java.util.ServiceLoader
+    DLLLOCAL static jmethodID methodServiceLoaderIterator;                        // Iterator iterator()
+
+    DLLLOCAL static GlobalReference<jclass> classDriver;                          // java.sql.Driver
 
     DLLLOCAL static int typeNull; // java.sql.Type.NULL value
     DLLLOCAL static int typeChar; // java.sql.Type.CHAR value
