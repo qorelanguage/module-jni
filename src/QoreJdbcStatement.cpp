@@ -34,11 +34,6 @@ QoreJdbcColumn::QoreJdbcColumn(std::string&& name, std::string&& qname, jint cty
         strip(ctype == Globals::typeChar) {
 }
 
-void ResultSet::closeIntern(Env& env) {
-    assert(rs);
-    env.callVoidMethod(rs, Globals::methodResultSetClose, nullptr);
-}
-
 QoreJdbcStatement::~QoreJdbcStatement() {
     if (stmt) {
         Env env;
@@ -65,16 +60,19 @@ bool QoreJdbcStatement::exec(Env& env, ExceptionSink* xsink, const QoreString& q
 }
 
 void QoreJdbcStatement::prepareAndBindStatement(Env& env, ExceptionSink* xsink, const QoreString& str) {
+    prepareStatement(env, str);
+    bindQueryArguments(env, xsink);
+}
+
+void QoreJdbcStatement::prepareStatement(Env& env, const QoreString& str) {
     assert(!stmt);
     // no exception handling needed; calls must be wrapped in a try/catch block
     std::vector<jvalue> jargs(1);
-    LocalReference<jstring> jurl = env.newString(str.c_str());
-    jargs[0].l = jurl;
+    LocalReference<jstring> jstr = env.newString(str.c_str());
+    jargs[0].l = jstr;
 
     stmt = env.callObjectMethod(conn->getConnectionObject(), Globals::methodConnectionPrepareStatement, &jargs[0])
         .makeGlobal();
-
-    bindQueryArguments(env, xsink);
 }
 
 int QoreJdbcStatement::bindQueryArguments(Env& env, ExceptionSink* xsink) {
@@ -123,6 +121,10 @@ bool QoreJdbcStatement::execIntern(Env& env, const QoreString& qstr, ExceptionSi
 }
 
 void QoreJdbcStatement::close(Env& env) {
+    if (rs) {
+        env.callVoidMethod(rs, Globals::methodResultSetClose, nullptr);
+        rs = nullptr;
+    }
     if (stmt) {
         JavaExceptionRethrowHelper erh;
         env.callVoidMethod(stmt, Globals::methodPreparedStatementClose, nullptr);
@@ -130,7 +132,7 @@ void QoreJdbcStatement::close(Env& env) {
     }
 }
 
-void QoreJdbcStatement::reset(Env& env, ExceptionSink* xsink) {
+void QoreJdbcStatement::reset(Env& env) {
     close(env);
 
     bind_size = 0;
@@ -160,7 +162,7 @@ int QoreJdbcStatement::reconnectLostConnection(Env& env, ExceptionSink* xsink) {
     // try to reconnect
     if (conn->reconnect(env, xsink)) {
         // Free state completely.
-        reset(env, xsink);
+        reset(env);
 
         // Reconnect failed; marking connection as closed
         // The following call will close any open statements and then the datasource
@@ -178,7 +180,8 @@ int QoreJdbcStatement::reconnectLostConnection(Env& env, ExceptionSink* xsink) {
     return 0;
 }
 
-int QoreJdbcStatement::describeResultSet(Env& env, ExceptionSink* xsink, LocalReference<jobject>& rs) {
+int QoreJdbcStatement::describeResultSet(Env& env, ExceptionSink* xsink) {
+    assert(rs);
     LocalReference<jobject> info = env.callObjectMethod(rs, Globals::methodResultSetGetMetaData,
         nullptr);
     assert(info);
@@ -235,27 +238,52 @@ int QoreJdbcStatement::describeResultSet(Env& env, ExceptionSink* xsink, LocalRe
     return 0;
 }
 
-QoreHashNode* QoreJdbcStatement::getOutputHash(Env& env, ExceptionSink* xsink, bool emptyHashIfNothing, int maxRows) {
-    ResultSet rs(env.callObjectMethod(stmt, Globals::methodPreparedStatementGetResultSet, nullptr));
-    if (!rs) {
-        return nullptr;
-    }
+bool QoreJdbcStatement::next(Env& env) {
+    assert(rs);
+    return env.callBooleanMethod(rs, Globals::methodResultSetNext, nullptr);
+}
 
-    if (describeResultSet(env, xsink, *rs)) {
-        return nullptr;
-    }
-
-    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+void QoreJdbcStatement::populateOutputHash(QoreHashNode& h, ExceptionSink* xsink) {
     for (auto& i : cvec) {
-        HashAssignmentHelper hah(**rv, i.qname.c_str());
+        HashAssignmentHelper hah(h, i.qname.c_str());
         hah.assign(new QoreListNode(autoTypeInfo), xsink);
         assert(!*xsink);
     }
+}
 
+int QoreJdbcStatement::acquireResultSet(Env& env, ExceptionSink* xsink) {
+    assert(!rs);
+    rs = env.callObjectMethod(stmt, Globals::methodPreparedStatementGetResultSet, nullptr);
+    if (!rs) {
+        xsink->raiseException("JDBC-RESULTSET-ERROR", "no result set available from query");
+        return -1;
+    }
+
+    return describeResultSet(env, xsink);
+}
+
+QoreHashNode* QoreJdbcStatement::getOutputHash(Env& env, ExceptionSink* xsink, bool empty_hash_if_nothing,
+        int max_rows) {
+    if (acquireResultSet(env, xsink)) {
+        return nullptr;
+    }
+
+    return getOutputHashIntern(env, xsink, empty_hash_if_nothing, max_rows);
+}
+
+QoreHashNode* QoreJdbcStatement::getOutputHashIntern(Env& env, ExceptionSink* xsink, bool empty_hash_if_nothing,
+        int max_rows) {
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+
+    size_t row_count = 0;
     while (true) {
         // get next row
-        if (!env.callBooleanMethod(*rs, Globals::methodResultSetNext, nullptr)) {
+        if (!next(env)) {
             break;
+        }
+
+        if (!row_count) {
+            populateOutputHash(**rv, xsink);
         }
 
         //! get column data
@@ -263,7 +291,7 @@ QoreHashNode* QoreJdbcStatement::getOutputHash(Env& env, ExceptionSink* xsink, b
         HashIterator i(**rv);
         while (i.next()) {
             QoreJdbcColumn& col = cvec[c];
-            ValueHolder val(getColumnValue(env, *rs, c + 1, col, xsink), xsink);
+            ValueHolder val(getColumnValue(env, c + 1, col, xsink), xsink);
             if (*xsink) {
                 return nullptr;
             }
@@ -272,38 +300,41 @@ QoreHashNode* QoreJdbcStatement::getOutputHash(Env& env, ExceptionSink* xsink, b
             assert(!*xsink);
             ++c;
         }
+        ++row_count;
     }
 
+    if (!row_count && !empty_hash_if_nothing) {
+        populateOutputHash(**rv, xsink);
+    }
     return rv.release();
 }
 
-QoreListNode* QoreJdbcStatement::getOutputList(Env& env, ExceptionSink* xsink, int maxRows) {
-    ResultSet rs(env.callObjectMethod(stmt, Globals::methodPreparedStatementGetResultSet, nullptr));
-    if (!rs) {
+QoreListNode* QoreJdbcStatement::getOutputList(Env& env, ExceptionSink* xsink, int max_rows) {
+    if (acquireResultSet(env, xsink)) {
         return nullptr;
     }
 
-    if (describeResultSet(env, xsink, *rs)) {
-        return nullptr;
-    }
+    return getOutputListIntern(env, xsink, max_rows);
+}
 
+QoreListNode* QoreJdbcStatement::getOutputListIntern(Env& env, ExceptionSink* xsink, int max_rows) {
     ReferenceHolder<QoreListNode> l(new QoreListNode(autoTypeInfo), xsink);
 
     int rowCount = 0;
     while (true) {
         // make sure there is at least one row
-        if (!env.callBooleanMethod(*rs, Globals::methodResultSetNext, nullptr)) {
+        if (!next(env)) {
             // if not, return NOTHING
             break;
         }
 
-        ReferenceHolder<QoreHashNode> h(getSingleRowIntern(env, *rs, xsink), xsink);
+        ReferenceHolder<QoreHashNode> h(getSingleRowIntern(env, xsink), xsink);
         if (!h) {
             break;
         }
         l->push(h.release(), xsink);
         ++rowCount;
-        if (maxRows > 0 && rowCount == maxRows) {
+        if (max_rows > 0 && rowCount == max_rows) {
             break;
         }
     }
@@ -312,25 +343,26 @@ QoreListNode* QoreJdbcStatement::getOutputList(Env& env, ExceptionSink* xsink, i
 }
 
 QoreHashNode* QoreJdbcStatement::getSingleRow(Env& env, ExceptionSink* xsink) {
-    ResultSet rs(env.callObjectMethod(stmt, Globals::methodPreparedStatementGetResultSet, nullptr));
+    assert(!rs);
+    rs = env.callObjectMethod(stmt, Globals::methodPreparedStatementGetResultSet, nullptr);
     if (!rs) {
         return nullptr;
     }
 
     // make sure there is at least one row
-    if (!env.callBooleanMethod(*rs, Globals::methodResultSetNext, nullptr)) {
+    if (!next(env)) {
         // if not, return NOTHING
         return nullptr;
     }
 
-    if (describeResultSet(env, xsink, *rs)) {
+    if (describeResultSet(env, xsink)) {
         return nullptr;
     }
 
-    ReferenceHolder<QoreHashNode> rv(getSingleRowIntern(env, *rs, xsink), xsink);
+    ReferenceHolder<QoreHashNode> rv(getSingleRowIntern(env, xsink), xsink);
 
     // make sure there's not another row
-    if (env.callBooleanMethod(*rs, Globals::methodResultSetNext, nullptr)) {
+    if (next(env)) {
         xsink->raiseException("JDBC-SELECT-ROW-ERROR", "SQL passed to selectRow() returned more than 1 row");
         return nullptr;
     }
@@ -338,12 +370,13 @@ QoreHashNode* QoreJdbcStatement::getSingleRow(Env& env, ExceptionSink* xsink) {
     return rv.release();
 }
 
-QoreHashNode* QoreJdbcStatement::getSingleRowIntern(Env& env, LocalReference<jobject>& rs, ExceptionSink* xsink) {
+QoreHashNode* QoreJdbcStatement::getSingleRowIntern(Env& env, ExceptionSink* xsink) {
+    assert(rs);
     // get the row to return
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
     jint c = 0;
     for (auto& col : cvec) {
-        ValueHolder val(getColumnValue(env, rs, c + 1, col, xsink), xsink);
+        ValueHolder val(getColumnValue(env, c + 1, col, xsink), xsink);
         if (*xsink) {
             return nullptr;
         }
@@ -357,8 +390,7 @@ QoreHashNode* QoreJdbcStatement::getSingleRowIntern(Env& env, LocalReference<job
     return rv.release();
 }
 
-QoreValue QoreJdbcStatement::getColumnValue(Env& env, LocalReference<jobject>& rs, int column, QoreJdbcColumn& col,
-        ExceptionSink* xsink) {
+QoreValue QoreJdbcStatement::getColumnValue(Env& env, int column, QoreJdbcColumn& col, ExceptionSink* xsink) {
     // get column value for this row
     jvalue jarg;
     jarg.i = column;

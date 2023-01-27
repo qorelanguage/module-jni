@@ -765,9 +765,9 @@ set_save_object_callback(callback);
     value of this option must be a string and is subject to environment variable substitution before being used.
 
     If this option is used, then the \c java.util.ServiceLoader for \c "java.sql.Driver" objects is run and iterated
-    after updating the classpath, to ensure that any new drivers in new classes added to the classpath are loaded and
-    available to drivers loaded after the initial driver is loaded, otherwise the \c java.sql.DriverManager will not
-    see the new drivers as they were not present in the classpath during on-demand static initialization).
+    after updating the classpath, to ensure that any new drivers are loaded and available to drivers loaded after the
+    initial driver is loaded, otherwise the \c java.sql.DriverManager will not see the new drivers as they were not
+    present in the classpath during on-demand static initialization).
 
     @subsubsection jdbc_option_url jdbc url Option
 

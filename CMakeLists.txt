@@ -401,6 +401,7 @@ set(CPP_SRC
     src/QoreJdbcDriver.cpp
     src/QoreJdbcConnection.cpp
     src/QoreJdbcStatement.cpp
+    src/QoreJdbcPreparedStatement.cpp
 )
 
 qore_wrap_qpp_value(QPP_SOURCES ${QPP_SRC})

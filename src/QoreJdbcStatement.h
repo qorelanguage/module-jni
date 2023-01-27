@@ -50,39 +50,6 @@ struct QoreJdbcColumn {
     DLLLOCAL QoreJdbcColumn(std::string&& name, std::string&& qname, jint ctype);
 };
 
-class ResultSet {
-public:
-    DLLLOCAL ResultSet(LocalReference<jobject> rs) : rs(rs.release()) {
-    }
-
-    DLLLOCAL ~ResultSet() {
-        if (rs) {
-            Env env;
-            closeIntern(env);
-        }
-    }
-
-    DLLLOCAL void close(Env& env) {
-        if (rs) {
-            closeIntern(env);
-            rs = nullptr;
-        }
-    }
-
-    DLLLOCAL LocalReference<jobject>& operator*() {
-        return rs;
-    }
-
-    DLLLOCAL operator bool() {
-        return rs != nullptr;
-    }
-
-private:
-    LocalReference<jobject> rs;
-
-    DLLLOCAL void closeIntern(Env& env);
-};
-
 class QoreJdbcStatement {
 public:
     DLLLOCAL QoreJdbcStatement(ExceptionSink* xsink, QoreJdbcConnection* conn) : conn(conn), params(xsink) {
@@ -97,24 +64,31 @@ public:
     */
     DLLLOCAL int rowsAffected(Env& env);
 
+    DLLLOCAL bool next(Env& env);
+
+    //! Acquires the result set
+    DLLLOCAL int acquireResultSet(Env& env, ExceptionSink* xsink);
+
     //! Get result hash
     /** @param enc the JNI environment variable
         @param xsink exception sink
-        @param emptyHashIfNothing whether to return empty hash or empty hash with column names when no rows available
-        @param maxRows maximum count of rows to return; if <= 0 the count of returned rows is not limited
+        @param empty_hash_if_nothing whether to return empty hash or empty hash with column names when no rows
+        available
+        @param max_rows maximum count of rows to return; if <= 0 the count of returned rows is not limited
 
         @return hash of result column lists
     */
-    DLLLOCAL QoreHashNode* getOutputHash(Env& env, ExceptionSink* xsink, bool emptyHashIfNothing, int maxRows = -1);
+    DLLLOCAL QoreHashNode* getOutputHash(Env& env, ExceptionSink* xsink, bool empty_hash_if_nothing,
+            int max_rows = -1);
 
     //! Get a reuslt list as a list of hashes
     /** @param enc the JNI environment variable
         @param xsink exception sink
-        @param maxRows maximum count of rows to return; if <= 0 the count of returned rows is not limited
+        @param max_rows maximum count of rows to return; if <= 0 the count of returned rows is not limited
 
         @return list of row hashes
     */
-    DLLLOCAL QoreListNode* getOutputList(Env& env, ExceptionSink* xsink, int maxRows = -1);
+    DLLLOCAL QoreListNode* getOutputList(Env& env, ExceptionSink* xsink, int max_rows = -1);
 
     //! Get one result row as a hash
     /** @param enc the JNI environment variable
@@ -149,28 +123,31 @@ protected:
     //! The size of any array bind
     size_t array_bind_size = 0;
 
-    //! Parameters which will be used in the statement
+    //! Parameters tp be used in the statement
     ReferenceHolder<QoreListNode> params;
 
     //! Column metadata from result sets
     typedef std::vector<QoreJdbcColumn> cvec_t;
     cvec_t cvec;
 
+    //! Any active result set
+    LocalReference<jobject> rs;
+
     //! Batch execute flag
     bool do_batch_execute = false;
 
     DLLLOCAL void prepareAndBindStatement(Env& env, ExceptionSink* xsink, const QoreString& str);
 
-    //! Clear statement
+    DLLLOCAL void prepareStatement(Env& env, const QoreString& str);
+
+    //! Reset statement
     /**
         This function is called when the DB connection is lost while executing SQL so that
         the current state can be freed while the driver-specific context data is still present
 
-        This call resets the query but does not clear the SQL string or saved args
-     */
-    DLLLOCAL void clear(ExceptionSink* xsink);
-
-    DLLLOCAL void reset(Env& env, ExceptionSink* xsink);
+        This call resets the query
+    */
+    DLLLOCAL void reset(Env& env);
 
     //! Parse a Qore-style SQL statement
     /** @param str Qore-style SQL statement
@@ -246,7 +223,14 @@ protected:
     int bindInternArrayBatch(Env& env, const QoreListNode* args, ExceptionSink* xsink);
 
     //! Describe result set
-    DLLLOCAL int describeResultSet(Env& env, ExceptionSink* xsink, LocalReference<jobject>& rs);
+    DLLLOCAL int describeResultSet(Env& env, ExceptionSink* xsink);
+
+    DLLLOCAL void populateOutputHash(QoreHashNode& h, ExceptionSink* xsink);
+
+    DLLLOCAL QoreHashNode* getOutputHashIntern(Env& env, ExceptionSink* xsink, bool empty_hash_if_nothing,
+            int max_rows = -1);
+
+    DLLLOCAL QoreListNode* getOutputListIntern(Env& env, ExceptionSink* xsink, int max_rows = -1);
 
     //! Get a column's value and return a Qore value for it
     /** @param enc the JNI environment variable
@@ -257,8 +241,7 @@ protected:
 
         @return result value
     */
-    DLLLOCAL QoreValue getColumnValue(Env& env, LocalReference<jobject>& rs, int column, QoreJdbcColumn& col,
-            ExceptionSink* xsink);
+    DLLLOCAL QoreValue getColumnValue(Env& env, int column, QoreJdbcColumn& col, ExceptionSink* xsink);
 
     //! Get one result row as a hash
     /** @param enc the JNI environment variable
@@ -266,7 +249,7 @@ protected:
 
         @return one result-set row
     */
-    DLLLOCAL QoreHashNode* getSingleRowIntern(Env& env, LocalReference<jobject>& rs, ExceptionSink* xsink);
+    DLLLOCAL QoreHashNode* getSingleRowIntern(Env& env, ExceptionSink* xsink);
 };
 
 class JavaExceptionRethrowHelper {

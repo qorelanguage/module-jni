@@ -274,8 +274,7 @@ int QoreJdbcConnection::commit(ExceptionSink* xsink) {
     assert(connection);
     Env env;
     try {
-        env.callObjectMethod(connection, Globals::methodConnectionCommit, nullptr);
-        connection = nullptr;
+        env.callVoidMethod(connection, Globals::methodConnectionCommit, nullptr);
     } catch (jni::Exception& e) {
         e.convert(xsink);
     }
@@ -286,8 +285,7 @@ int QoreJdbcConnection::rollback(ExceptionSink* xsink) {
     assert(connection);
     Env env;
     try {
-        env.callObjectMethod(connection, Globals::methodConnectionRollback, nullptr);
-        connection = nullptr;
+        env.callVoidMethod(connection, Globals::methodConnectionRollback, nullptr);
     } catch (jni::Exception& e) {
         e.convert(xsink);
     }

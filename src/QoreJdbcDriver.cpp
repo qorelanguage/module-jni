@@ -23,6 +23,7 @@
 
 #include "QoreJdbcDriver.h"
 #include "QoreJdbcConnection.h"
+#include "QoreJdbcPreparedStatement.h"
 
 #include <memory>
 
@@ -131,6 +132,153 @@ static QoreValue jdbc_exec_raw(Datasource* ds, const QoreString* qstr, Exception
     return conn->execRaw(qstr, xsink);
 }
 
+static int jdbc_stmt_prepare(SQLStatement* stmt, const QoreString& str, const QoreListNode* args,
+        ExceptionSink* xsink) {
+    assert(!stmt->getPrivateData());
+
+    QoreJdbcPreparedStatement* ps = new QoreJdbcPreparedStatement(xsink,
+        stmt->getDatasource()->getPrivateData<QoreJdbcConnection>());
+    if (*xsink) {
+        delete ps;
+        return -1;
+    }
+    stmt->setPrivateData(ps);
+
+    return ps->prepare(str, args, xsink);
+}
+
+static int jdbc_stmt_prepare_raw(SQLStatement* stmt, const QoreString& str, ExceptionSink* xsink) {
+    assert(!stmt->getPrivateData());
+
+    QoreJdbcPreparedStatement* ps = new QoreJdbcPreparedStatement(xsink,
+        stmt->getDatasource()->getPrivateData<QoreJdbcConnection>());
+    if (*xsink) {
+        delete ps;
+        return -1;
+    }
+    stmt->setPrivateData(ps);
+
+    return ps->prepare(str, nullptr, xsink);
+}
+
+static int jdbc_stmt_bind(SQLStatement* stmt, const QoreListNode& args, ExceptionSink* xsink) {
+    QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
+    assert(ps);
+
+    return ps->bind(args, xsink);
+}
+
+static int jdbc_stmt_bind_placeholders(SQLStatement* stmt, const QoreListNode& args, ExceptionSink* xsink) {
+    xsink->raiseException("JDBC-BIND-PLACEHHODERS-ERROR", "binding placeholders is not necessary or supported with "
+        "the jdbc driver");
+    return -1;
+}
+
+static int jdbc_stmt_bind_values(SQLStatement* stmt, const QoreListNode& args, ExceptionSink* xsink) {
+    QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
+    assert(ps);
+
+    return ps->bind(args, xsink);
+}
+
+static int jdbc_stmt_exec(SQLStatement* stmt, ExceptionSink* xsink) {
+    QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
+    assert(ps);
+
+    return ps->exec(xsink);
+}
+
+static int jdbc_stmt_define(SQLStatement* stmt, ExceptionSink* xsink) {
+    // define is a noop in the jdbc driver
+    return 0;
+}
+
+static int jdbc_stmt_affected_rows(SQLStatement* stmt, ExceptionSink* xsink) {
+    QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
+    assert(ps);
+
+    try {
+        Env env;
+        return ps->rowsAffected(env);
+    } catch (JavaException& e) {
+        e.convert(xsink);
+    }
+    return -1;
+}
+
+static QoreHashNode* jdbc_stmt_get_output(SQLStatement* stmt, ExceptionSink* xsink) {
+    QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
+    assert(ps);
+
+    return ps->getOutputHash(xsink, false);
+}
+
+static QoreHashNode* jdbc_stmt_get_output_rows(SQLStatement* stmt, ExceptionSink* xsink) {
+    QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
+    assert(ps);
+
+    return ps->getOutputHash(xsink, false);
+}
+
+static QoreHashNode* jdbc_stmt_fetch_row(SQLStatement* stmt, ExceptionSink* xsink) {
+    QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
+    assert(ps);
+
+    return ps->fetchRow(xsink);
+}
+
+static QoreListNode* jdbc_stmt_fetch_rows(SQLStatement* stmt, int maxRows, ExceptionSink* xsink) {
+    QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
+    assert(ps);
+
+    return ps->fetchRows(maxRows, xsink);
+}
+
+static QoreHashNode* jdbc_stmt_fetch_columns(SQLStatement* stmt, int maxRows, ExceptionSink* xsink) {
+    QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
+    assert(ps);
+
+    return ps->fetchColumns(maxRows, xsink);
+}
+
+static QoreHashNode* jdbc_stmt_describe(SQLStatement* stmt, ExceptionSink* xsink) {
+    QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
+    assert(ps);
+
+    //return ps->describe(xsink);
+    return nullptr;
+}
+
+static bool jdbc_stmt_next(SQLStatement* stmt, ExceptionSink* xsink) {
+    QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
+    assert(ps);
+
+    return ps->next(xsink);
+}
+
+static int jdbc_stmt_free(SQLStatement* stmt, ExceptionSink* xsink) {
+    QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
+    assert(ps);
+
+    // Free all handles without closing the statement or freeing private data
+    return ps->clear(xsink);
+}
+
+static int jdbc_stmt_close(SQLStatement* stmt, ExceptionSink* xsink) {
+    QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
+    assert(ps);
+
+    try {
+        Env env;
+        ps->close(env);
+    } catch (JavaException& e) {
+        e.convert(xsink);
+    }
+    delete ps;
+    stmt->setPrivateData(nullptr);
+    return *xsink ? -1 : 0;
+}
+
 static int jdbc_opt_set(Datasource* ds, const char* opt, const QoreValue val, ExceptionSink* xsink) {
     QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
     assert(conn);
@@ -157,10 +305,6 @@ void setup_jdbc_driver() {
     methods.add(QDBI_METHOD_EXEC, jdbc_exec);
     methods.add(QDBI_METHOD_EXECRAW, jdbc_exec_raw);
 
-    methods.add(QDBI_METHOD_OPT_SET, jdbc_opt_set);
-    methods.add(QDBI_METHOD_OPT_GET, jdbc_opt_get);
-    /*
-
     methods.add(QDBI_METHOD_STMT_PREPARE, jdbc_stmt_prepare);
     methods.add(QDBI_METHOD_STMT_PREPARE_RAW, jdbc_stmt_prepare_raw);
     methods.add(QDBI_METHOD_STMT_BIND, jdbc_stmt_bind);
@@ -173,11 +317,15 @@ void setup_jdbc_driver() {
     methods.add(QDBI_METHOD_STMT_FETCH_COLUMNS, jdbc_stmt_fetch_columns);
     methods.add(QDBI_METHOD_STMT_DESCRIBE, jdbc_stmt_describe);
     methods.add(QDBI_METHOD_STMT_NEXT, jdbc_stmt_next);
+    methods.add(QDBI_METHOD_STMT_FREE, jdbc_stmt_free);
     methods.add(QDBI_METHOD_STMT_CLOSE, jdbc_stmt_close);
     methods.add(QDBI_METHOD_STMT_AFFECTED_ROWS, jdbc_stmt_affected_rows);
     methods.add(QDBI_METHOD_STMT_GET_OUTPUT, jdbc_stmt_get_output);
     methods.add(QDBI_METHOD_STMT_GET_OUTPUT_ROWS, jdbc_stmt_get_output_rows);
 
+    methods.add(QDBI_METHOD_OPT_SET, jdbc_opt_set);
+    methods.add(QDBI_METHOD_OPT_GET, jdbc_opt_get);
+    /*
     methods.registerOption(DBI_OPT_NUMBER_OPT, "when set, numeric/decimal values are returned as integers if "
         "possible, otherwise as arbitrary-precision number values; the argument is ignored; setting this option "
         "turns it on and turns off 'string-numbers' and 'numeric-numbers'");
