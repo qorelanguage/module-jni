@@ -352,6 +352,7 @@ public:
     DLLLOCAL static jmethodID methodPreparedStatementSetBoolean;                  // void setBoolean(int, boolean)
     DLLLOCAL static jmethodID methodPreparedStatementSetBytes;                    // void setBytes(int, byte[])
     DLLLOCAL static jmethodID methodPreparedStatementSetDouble;                   // void setBoolean(int, double)
+    DLLLOCAL static jmethodID methodPreparedStatementSetInt;                      // void setInt(int, int)
     DLLLOCAL static jmethodID methodPreparedStatementSetLong;                     // void setLong(int, long)
     DLLLOCAL static jmethodID methodPreparedStatementSetNull;                     // void setNull(int, int)
     DLLLOCAL static jmethodID methodPreparedStatementSetString;                   // void setString(int, String)
@@ -365,6 +366,9 @@ public:
     DLLLOCAL static GlobalReference<jclass> classDate;                            // java.sql.Date
     DLLLOCAL static jmethodID methodDateToString;                                 // String toString()
 
+    DLLLOCAL static GlobalReference<jclass> classTime;                            // java.sql.Time
+    DLLLOCAL static jmethodID methodTimeToString;                                 // String toString()
+
     DLLLOCAL static GlobalReference<jclass> classResultSet;                       // java.sql.ResultSet
     DLLLOCAL static jmethodID methodResultSetClose;                               // void close()
     DLLLOCAL static jmethodID methodResultSetGetArray;                            // Array getArray(int)
@@ -375,7 +379,7 @@ public:
     DLLLOCAL static GlobalReference<jclass> classResultSetMetaData;               // java.sql.ResultSetMetadata
     DLLLOCAL static jmethodID methodResultSetMetaDataGetColumnClassName;          // String getColumnClassName()
     DLLLOCAL static jmethodID methodResultSetMetaDataGetColumnCount;              // int getColumnCount()
-    DLLLOCAL static jmethodID methodResultSetMetaDataGetColumnName;               // String getColumnName(int)
+    DLLLOCAL static jmethodID methodResultSetMetaDataGetColumnLabel;              // String getColumnLabel(int)
     DLLLOCAL static jmethodID methodResultSetMetaDataGetColumnType;               // int getColumnType(int)
 
     DLLLOCAL static GlobalReference<jclass> classArray;                           // java.sql.Array

@@ -26,7 +26,7 @@
 namespace jni {
 
 QoreJdbcPreparedStatement::QoreJdbcPreparedStatement(ExceptionSink* xsink, QoreJdbcConnection* c) :
-        QoreJdbcStatement(xsink, c), bind_args(nullptr) {
+        QoreJdbcStatement(xsink, c) {
 }
 
 QoreJdbcPreparedStatement::~QoreJdbcPreparedStatement() {
@@ -46,8 +46,10 @@ int QoreJdbcPreparedStatement::prepare(const QoreString& qstr, const QoreListNod
     sql = *str;
 
     try {
+        //printd(5, "QoreJdbcPreparedStatement::prepare() this: %p '%s' args: %zd cvec: %zd\n", this, str->c_str(),
+        //    args ? args->size() : 0, cvec.size());
         Env env;
-        prepareStatement(env, qstr);
+        prepareStatement(env, *str);
 
         // Save bind arguments
         assignBindArgs(xsink, args ? args->listRefSelf() : nullptr);
@@ -140,6 +142,7 @@ bool QoreJdbcPreparedStatement::next(ExceptionSink* xsink) {
 
 int QoreJdbcPreparedStatement::clear(ExceptionSink* xsink) {
     try {
+        //printd(5, "QoreJdbcPreparedStatement::clear() %p\n", this);
         Env env;
         reset(env);
         sql.clear();

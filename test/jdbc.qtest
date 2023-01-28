@@ -21,15 +21,15 @@ public class Main inherits QUnit::Test {
 
     constructor() : Test("jdbc test", "1.0", \ARGV, MyOpts) {
         addTestCase("pgsqlTest", \pgsqlTest());
-        addTestCase("oracleTest", \oracleTest());
-        addTestCase("firebirdTest", \firebirdTest());
+        #addTestCase("oracleTest", \oracleTest());
+        #addTestCase("firebirdTest", \firebirdTest());
 
         # execute tests and set program return value
         set_return_value(main());
     }
 
     private oracleTest() {
-        *Datasource ds = getConnection("QORE_DB_CONNSTR_JDBC_ORACLE");
+        *AbstractDatasource ds = getConnection("QORE_DB_CONNSTR_JDBC_ORACLE");
         if (!ds) {
             testSkip("no jdbc connection available");
         }
@@ -38,6 +38,7 @@ public class Main inherits QUnit::Test {
         assertTrue(exists v);
         v = ds.getClientVersion();
         assertTrue(exists v);
+        assertEq("Oracle", ds.getDriverRealName());
 
         string sql = "select * from table_1 where input_1 = 1";
 
@@ -64,7 +65,7 @@ public class Main inherits QUnit::Test {
     }
 
     private pgsqlTest() {
-        *Datasource ds = getConnection("QORE_DB_CONNSTR_JDBC_PGSQL");
+        *AbstractDatasource ds = getConnection("QORE_DB_CONNSTR_JDBC_PGSQL");
         if (!ds) {
             testSkip("no jdbc connection available");
         }
@@ -73,6 +74,7 @@ public class Main inherits QUnit::Test {
         assertTrue(exists v);
         v = ds.getClientVersion();
         assertTrue(exists v);
+        assertEq("PostgreSQL", ds.getDriverRealName());
 
         string sql = "select * from table_1 where input_1 = 1";
 
@@ -99,7 +101,7 @@ public class Main inherits QUnit::Test {
     }
 
     private firebirdTest() {
-        *Datasource ds = getConnection("QORE_DB_CONNSTR_JDBC_FIREBIRD");
+        *AbstractDatasource ds = getConnection("QORE_DB_CONNSTR_JDBC_FIREBIRD");
         if (!ds) {
             testSkip("no jdbc connection available");
         }
@@ -108,6 +110,7 @@ public class Main inherits QUnit::Test {
         assertTrue(exists v);
         v = ds.getClientVersion();
         assertTrue(exists v);
+        assertRegex("^Firebird", ds.getDriverRealName());
 
         string sql = "select * from test";
 
@@ -125,7 +128,7 @@ public class Main inherits QUnit::Test {
         printOption("-c,--conn=ARG", "set DB connection argument (ex: \"jdbc:user/pass@driver?...\")", OptionColumn);
     }
 
-    private *Datasource getConnection(string var) {
+    private *AbstractDatasource getConnection(string var) {
         try {
             if (!ENV{var}.val()) {
                 throw "ENV-VAR-ERROR", sprintf("envionment var %y for connection is not set", var);

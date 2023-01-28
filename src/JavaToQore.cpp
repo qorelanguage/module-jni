@@ -33,7 +33,8 @@
 
 namespace jni {
 
-QoreValue JavaToQore::convertToQore(LocalReference<jobject> v, QoreProgram* pgm, bool compat_types) {
+QoreValue JavaToQore::convertToQore(LocalReference<jobject> v, QoreProgram* pgm, bool compat_types,
+        NumericOption numeric) {
     if (!v) {
         return QoreValue();
     }
@@ -67,11 +68,42 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v, QoreProgram* pgm,
         return QoreValue(new DateTimeNode(chars.c_str()));
     }
 
+    if (env.isInstanceOf(v, Globals::classTime)) {
+        LocalReference<jstring> time_str = env.callObjectMethod(v,
+            Globals::methodTimeToString, nullptr).as<jstring>();
+        Env::GetStringUtfChars chars(env, time_str);
+        QoreStringMaker date("1970-01-01T%s", chars.c_str());
+        return QoreValue(new DateTimeNode(date.c_str()));
+    }
+
     if (env.isInstanceOf(v, Globals::classBigDecimal)) {
         LocalReference<jstring> num_str = env.callObjectMethod(v,
             Globals::methodBigDecimalToString, nullptr).as<jstring>();
         Env::GetStringUtfChars chars(env, num_str);
-        return QoreValue(new QoreNumberNode(chars.c_str()));
+        switch (numeric) {
+            case ENO_NUMERIC:
+                return new QoreNumberNode(chars.c_str());
+            case ENO_STRING:
+                return new QoreStringNode(chars.c_str());
+            case ENO_OPTIMAL: {
+                const char* dot = strchr(chars.c_str(), '.');
+                if (!dot) {
+                    errno = 0;
+                    int64 num = strtoll(chars.c_str(), 0, 10);
+                    if (errno == ERANGE) {
+                        return new QoreNumberNode(chars.c_str());
+                    }
+                    return num;
+                }
+                SimpleRefHolder<QoreNumberNode> afterDot(new QoreNumberNode(dot + 1));
+                if (afterDot->equals(0LL)) {
+                    return strtoll(chars.c_str(), 0, 10);
+                }
+                return new QoreNumberNode(chars.c_str());
+            }
+            default:
+                assert(false);
+        }
     }
 
     if (env.isInstanceOf(v, Globals::classQoreObjectBase)) {

@@ -80,22 +80,6 @@ static int jdbc_rollback(Datasource* ds, ExceptionSink* xsink) {
     return conn->rollback(xsink);
 }
 
-static QoreValue jdbc_get_server_version(Datasource* ds, ExceptionSink* xsink) {
-    QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
-    assert(conn);
-    return conn->getServerVersion(xsink);
-}
-
-static QoreValue jdbc_get_client_version(const Datasource* ds, ExceptionSink* xsink) {
-    QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
-    if (!conn) {
-        xsink->raiseException("JDBC-CONNECTION-ERROR", "there is no open connection; client info is provided by the "
-            "Java jdbc driver used for the DB connection by this Qore driver");
-        return QoreValue();
-    }
-    return conn->getClientVersion(xsink);
-}
-
 static int jdbc_begin_transaction(Datasource* ds, ExceptionSink* xsink) {
     return 0;
 }
@@ -130,6 +114,29 @@ static QoreValue jdbc_exec_raw(Datasource* ds, const QoreString* qstr, Exception
     QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
     assert(conn);
     return conn->execRaw(qstr, xsink);
+}
+
+static QoreValue jdbc_get_server_version(Datasource* ds, ExceptionSink* xsink) {
+    QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
+    assert(conn);
+    return conn->getServerVersion(xsink);
+}
+
+static QoreValue jdbc_get_client_version(const Datasource* ds, ExceptionSink* xsink) {
+    QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
+    if (!conn) {
+        xsink->raiseException("JDBC-CONNECTION-ERROR", "there is no open connection; client info is provided by the "
+            "Java jdbc driver used for the DB connection by this Qore driver; please open a connection to the server "
+            "before calling this method");
+        return QoreValue();
+    }
+    return conn->getClientVersion(xsink);
+}
+
+static QoreStringNode* jdbc_get_driver_real_name(Datasource* ds, ExceptionSink* xsink) {
+    QoreJdbcConnection* conn = ds->getPrivateData<QoreJdbcConnection>();
+    assert(conn);
+    return conn->getDriverRealName(xsink);
 }
 
 static int jdbc_stmt_prepare(SQLStatement* stmt, const QoreString& str, const QoreListNode* args,
@@ -185,7 +192,7 @@ static int jdbc_stmt_exec(SQLStatement* stmt, ExceptionSink* xsink) {
     QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
     assert(ps);
 
-    return ps->exec(xsink);
+    return ps->QoreJdbcPreparedStatement::exec(xsink);
 }
 
 static int jdbc_stmt_define(SQLStatement* stmt, ExceptionSink* xsink) {
@@ -296,14 +303,15 @@ void setup_jdbc_driver() {
     methods.add(QDBI_METHOD_CLOSE, jdbc_close);
     methods.add(QDBI_METHOD_COMMIT, jdbc_commit);
     methods.add(QDBI_METHOD_ROLLBACK, jdbc_rollback);
-    methods.add(QDBI_METHOD_GET_SERVER_VERSION, jdbc_get_server_version);
-    methods.add(QDBI_METHOD_GET_CLIENT_VERSION, jdbc_get_client_version);
     methods.add(QDBI_METHOD_BEGIN_TRANSACTION, jdbc_begin_transaction);
     methods.add(QDBI_METHOD_SELECT, jdbc_select);
     methods.add(QDBI_METHOD_SELECT_ROWS, jdbc_select_rows);
     methods.add(QDBI_METHOD_SELECT_ROW, jdbc_select_row);
     methods.add(QDBI_METHOD_EXEC, jdbc_exec);
     methods.add(QDBI_METHOD_EXECRAW, jdbc_exec_raw);
+    methods.add(QDBI_METHOD_GET_SERVER_VERSION, jdbc_get_server_version);
+    methods.add(QDBI_METHOD_GET_CLIENT_VERSION, jdbc_get_client_version);
+    methods.add(QDBI_METHOD_GET_DRIVER_REAL_NAME, jdbc_get_driver_real_name);
 
     methods.add(QDBI_METHOD_STMT_PREPARE, jdbc_stmt_prepare);
     methods.add(QDBI_METHOD_STMT_PREPARE_RAW, jdbc_stmt_prepare_raw);
@@ -325,7 +333,7 @@ void setup_jdbc_driver() {
 
     methods.add(QDBI_METHOD_OPT_SET, jdbc_opt_set);
     methods.add(QDBI_METHOD_OPT_GET, jdbc_opt_get);
-    /*
+
     methods.registerOption(DBI_OPT_NUMBER_OPT, "when set, numeric/decimal values are returned as integers if "
         "possible, otherwise as arbitrary-precision number values; the argument is ignored; setting this option "
         "turns it on and turns off 'string-numbers' and 'numeric-numbers'");
@@ -335,8 +343,6 @@ void setup_jdbc_driver() {
     methods.registerOption(DBI_OPT_NUMBER_NUMERIC, "when set, numeric/decimal values are returned as "
         "arbitrary-precision number values; the argument is ignored; setting this option turns it on and turns off "
         "'string-numbers' and 'optimal-numbers'");
-    */
-
     methods.registerOption(JDBC_OPT_CLASSPATH, "set the classpath before loading the driver", stringTypeInfo);
     methods.registerOption(JDBC_OPT_URL, "override the database string with the jdbc driver URL", stringTypeInfo);
 

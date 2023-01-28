@@ -182,8 +182,8 @@ int QoreJdbcConnection::setOption(const char* opt, const QoreValue val, Exceptio
 
         try {
             jpc->addClasspath(arg.c_str());
-            printd(0, "QoreJdbcConnection::setOption() %p '%s' jpc: %p add classpath: '%s' (driver: %p)\n", this, opt,
-                jpc, arg.c_str(), *Globals::classDriver);
+            //printd(5, "QoreJdbcConnection::setOption() %p '%s' jpc: %p add classpath: '%s' (driver: %p)\n", this, opt,
+            //    jpc, arg.c_str(), *Globals::classDriver);
             classpath = arg.c_str();
 
             // try to load new drivers
@@ -209,6 +209,12 @@ int QoreJdbcConnection::setOption(const char* opt, const QoreValue val, Exceptio
             return -1;
         }
         db = val.get<const QoreStringNode>()->c_str();
+    } else if (!strcasecmp(opt, DBI_OPT_NUMBER_OPT)) {
+        numeric = ENO_OPTIMAL;
+    } else if (!strcasecmp(opt, DBI_OPT_NUMBER_STRING)) {
+        numeric = ENO_STRING;
+    } else if (!strcasecmp(opt, DBI_OPT_NUMBER_NUMERIC)) {
+        numeric = ENO_NUMERIC;
     } else {
         xsink->raiseException("JDBC-OPTION-ERROR", "invalid option '%s'", opt);
         return -1;
@@ -221,6 +227,12 @@ QoreValue QoreJdbcConnection::getOption(const char* opt) {
         return classpath.empty() ? QoreValue() : new QoreStringNode(classpath);
     } else if (!strcasecmp(opt, JDBC_OPT_URL)) {
         return db.empty() ? QoreValue() : new QoreStringNode(db);
+    } else if (!strcasecmp(opt, DBI_OPT_NUMBER_OPT)) {
+        return numeric == ENO_OPTIMAL;
+    } else if (!strcasecmp(opt, DBI_OPT_NUMBER_STRING)) {
+        return numeric == ENO_STRING;
+    } else if (!strcasecmp(opt, DBI_OPT_NUMBER_NUMERIC)) {
+        return numeric == ENO_NUMERIC;
     } else {
         assert(false);
     }
@@ -364,6 +376,31 @@ QoreValue QoreJdbcConnection::getClientVersion(ExceptionSink* xsink) {
         e.convert(xsink);
     }
     return *xsink ? -1 : 0;
+}
+
+QoreStringNode* QoreJdbcConnection::getDriverRealName(ExceptionSink* xsink) {
+    assert(connection);
+    Env env;
+    try {
+        LocalReference<jobject> md = env.callObjectMethod(connection, Globals::methodConnectionGetMetaData, nullptr);
+        if (!md) {
+            xsink->raiseException("JDBC-METADATA-ERROR", "the connection returned no metadata");
+            return nullptr;
+        }
+        LocalReference<jstring> str = env.callObjectMethod(md,
+            Globals::methodDatabaseMetaDataGetDatabaseProductName, nullptr).as<jstring>();
+        if (!str) {
+            xsink->raiseException("JDBC-METADATA-ERROR", "Connection.getMetaData() returned no server product name");
+            return nullptr;
+        }
+        Env::GetStringUtfChars desc(env, str);
+        SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(desc.c_str()));
+        return rv.release();
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+    }
+    assert(*xsink);
+    return nullptr;
 }
 
 QoreValue QoreJdbcConnection::select(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink) {

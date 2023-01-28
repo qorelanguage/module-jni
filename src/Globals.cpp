@@ -344,6 +344,7 @@ jmethodID Globals::methodPreparedStatementSetBigDecimal;
 jmethodID Globals::methodPreparedStatementSetBoolean;
 jmethodID Globals::methodPreparedStatementSetBytes;
 jmethodID Globals::methodPreparedStatementSetDouble;
+jmethodID Globals::methodPreparedStatementSetInt;
 jmethodID Globals::methodPreparedStatementSetLong;
 jmethodID Globals::methodPreparedStatementSetNull;
 jmethodID Globals::methodPreparedStatementSetString;
@@ -357,6 +358,9 @@ jmethodID Globals::methodTimestampToString;
 GlobalReference<jclass> Globals::classDate;
 jmethodID Globals::methodDateToString;
 
+GlobalReference<jclass> Globals::classTime;
+jmethodID Globals::methodTimeToString;
+
 GlobalReference<jclass> Globals::classResultSet;
 jmethodID Globals::methodResultSetClose;
 jmethodID Globals::methodResultSetNext;
@@ -367,7 +371,7 @@ jmethodID Globals::methodResultSetGetObject;
 GlobalReference<jclass> Globals::classResultSetMetaData;
 jmethodID Globals::methodResultSetMetaDataGetColumnClassName;
 jmethodID Globals::methodResultSetMetaDataGetColumnCount;
-jmethodID Globals::methodResultSetMetaDataGetColumnName;
+jmethodID Globals::methodResultSetMetaDataGetColumnLabel;
 jmethodID Globals::methodResultSetMetaDataGetColumnType;
 
 GlobalReference<jclass> Globals::classArray;
@@ -2806,6 +2810,7 @@ bool Globals::init() {
     methodPreparedStatementSetBoolean = env.getMethod(classPreparedStatement, "setBoolean", "(IZ)V");
     methodPreparedStatementSetBytes = env.getMethod(classPreparedStatement, "setBytes", "(I[B)V");
     methodPreparedStatementSetDouble = env.getMethod(classPreparedStatement, "setDouble", "(ID)V");
+    methodPreparedStatementSetInt = env.getMethod(classPreparedStatement, "setInt", "(II)V");
     methodPreparedStatementSetLong = env.getMethod(classPreparedStatement, "setLong", "(IJ)V");
     methodPreparedStatementSetNull = env.getMethod(classPreparedStatement, "setNull", "(II)V");
     methodPreparedStatementSetString = env.getMethod(classPreparedStatement, "setString", "(ILjava/lang/String;)V");
@@ -2820,6 +2825,9 @@ bool Globals::init() {
     classDate = env.findClass("java/sql/Date").makeGlobal();
     methodDateToString = env.getMethod(classDate, "toString", "()Ljava/lang/String;");
 
+    classTime = env.findClass("java/sql/Time").makeGlobal();
+    methodTimeToString = env.getMethod(classTime, "toString", "()Ljava/lang/String;");
+
     classResultSet = env.findClass("java/sql/ResultSet").makeGlobal();
     methodResultSetClose = env.getMethod(classResultSet, "close", "()V");
     methodResultSetNext = env.getMethod(classResultSet, "next", "()Z");
@@ -2831,7 +2839,7 @@ bool Globals::init() {
     methodResultSetMetaDataGetColumnClassName = env.getMethod(classResultSetMetaData, "getColumnClassName",
         "(I)Ljava/lang/String;");
     methodResultSetMetaDataGetColumnCount = env.getMethod(classResultSetMetaData, "getColumnCount", "()I");
-    methodResultSetMetaDataGetColumnName = env.getMethod(classResultSetMetaData, "getColumnName",
+    methodResultSetMetaDataGetColumnLabel = env.getMethod(classResultSetMetaData, "getColumnLabel",
         "(I)Ljava/lang/String;");
     methodResultSetMetaDataGetColumnType = env.getMethod(classResultSetMetaData, "getColumnType",
         "(I)I");
@@ -3046,6 +3054,7 @@ void Globals::cleanup() {
     classPreparedStatement = nullptr;
     classTimestamp = nullptr;
     classDate = nullptr;
+    classTime = nullptr;
     classResultSet = nullptr;
     classResultSetMetaData = nullptr;
     classArray = nullptr;

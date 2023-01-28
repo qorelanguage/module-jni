@@ -17,7 +17,7 @@ if (POLICY CMP0042)
     cmake_policy(SET CMP0042 NEW)
 endif()
 
-find_package(Qore 1.0 REQUIRED)
+find_package(Qore 1.14 REQUIRED)
 find_package(JNI REQUIRED)
 find_package(Java REQUIRED)
 if (${Java_VERSION_MAJOR} LESS 11)

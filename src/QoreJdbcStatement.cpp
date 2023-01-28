@@ -105,7 +105,7 @@ bool QoreJdbcStatement::execIntern(Env& env, const QoreString& qstr, ExceptionSi
                 jarg.i = 1;
                 bool connected = env.callBooleanMethod(conn->getConnectionObject(), Globals::methodConnectionIsValid,
                     &jarg);
-                printd(0, "QoreJdbcStatement::execIntern() connected: %d\n", connected);
+                //printd(5, "QoreJdbcStatement::execIntern() connected: %d\n", connected);
                 if (!connected && !reconnectLostConnection(env, xsink)) {
                     assert(!*xsink);
                     // repeat statement execution after reconnection when not in a transaction
@@ -186,7 +186,7 @@ int QoreJdbcStatement::describeResultSet(Env& env, ExceptionSink* xsink) {
         nullptr);
     assert(info);
     jint count = env.callIntMethod(info, Globals::methodResultSetMetaDataGetColumnCount, nullptr);
-    printd(0, "QoreJdbcStatement::describeResultSet() column count: %d\n", count);
+    //printd(5, "QoreJdbcStatement::describeResultSet() column count: %d\n", count);
     if (!count) {
         return -1;
     }
@@ -202,7 +202,8 @@ int QoreJdbcStatement::describeResultSet(Env& env, ExceptionSink* xsink) {
     for (jint i = 0; i < count; ++i) {
         jvalue jarg;
         jarg.i = i + 1;
-        LocalReference<jstring> cname = env.callObjectMethod(info, Globals::methodResultSetMetaDataGetColumnName,
+        // NOTE: if we use ResultSetMetaData.getColumnName() it will ignore column aliases
+        LocalReference<jstring> cname = env.callObjectMethod(info, Globals::methodResultSetMetaDataGetColumnLabel,
             &jarg).as<jstring>();
         Env::GetStringUtfChars name(env, cname);
 
@@ -243,14 +244,6 @@ bool QoreJdbcStatement::next(Env& env) {
     return env.callBooleanMethod(rs, Globals::methodResultSetNext, nullptr);
 }
 
-void QoreJdbcStatement::populateOutputHash(QoreHashNode& h, ExceptionSink* xsink) {
-    for (auto& i : cvec) {
-        HashAssignmentHelper hah(h, i.qname.c_str());
-        hah.assign(new QoreListNode(autoTypeInfo), xsink);
-        assert(!*xsink);
-    }
-}
-
 int QoreJdbcStatement::acquireResultSet(Env& env, ExceptionSink* xsink) {
     assert(!rs);
     rs = env.callObjectMethod(stmt, Globals::methodPreparedStatementGetResultSet, nullptr);
@@ -259,21 +252,71 @@ int QoreJdbcStatement::acquireResultSet(Env& env, ExceptionSink* xsink) {
         return -1;
     }
 
-    return describeResultSet(env, xsink);
+    return 0;
 }
 
 QoreHashNode* QoreJdbcStatement::getOutputHash(Env& env, ExceptionSink* xsink, bool empty_hash_if_nothing,
         int max_rows) {
-    if (acquireResultSet(env, xsink)) {
+    if (acquireResultSet(env, xsink) || describeResultSet(env, xsink)) {
         return nullptr;
     }
 
     return getOutputHashIntern(env, xsink, empty_hash_if_nothing, max_rows);
 }
 
+void QoreJdbcStatement::populateOutputHash(QoreHashNode& h, ExceptionSink* xsink) {
+    for (auto& i : cvec) {
+        h.setKeyValue(i.qname.c_str(), new QoreListNode(autoTypeInfo), xsink);
+        assert(!*xsink);
+    }
+}
+
+typedef std::vector<QoreListNode*> lvec_t;
+
+class QoreListArray {
+public:
+    DLLLOCAL QoreListArray(ExceptionSink* xsink, cvec_t& cvec) : xsink(xsink), cvec(cvec) {
+    }
+
+    DLLLOCAL ~QoreListArray() {
+        for (auto& i : l) {
+            i->deref(xsink);
+        }
+        l.clear();
+    }
+
+    DLLLOCAL void populate() {
+        assert(l.empty());
+        for (size_t i = 0, e = cvec.size(); i < e; ++i) {
+            l.push_back(new QoreListNode(autoTypeInfo));
+        }
+    }
+
+    DLLLOCAL lvec_t& get() {
+        return l;
+    }
+
+    DLLLOCAL QoreHashNode* getHash() {
+        ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+        if (!l.empty()) {
+            for (size_t i = 0, e = cvec.size(); i < e; ++i) {
+                rv->setKeyValue(cvec[i].qname.c_str(), l[i], xsink);
+            }
+            l.clear();
+        }
+        return rv.release();
+    }
+
+protected:
+    lvec_t l;
+    ExceptionSink* xsink;
+    cvec_t& cvec;
+};
+
 QoreHashNode* QoreJdbcStatement::getOutputHashIntern(Env& env, ExceptionSink* xsink, bool empty_hash_if_nothing,
         int max_rows) {
-    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+    // we have to populate the lists and then assign the hash in case we have Java objects returned for DB values
+    QoreListArray l(xsink, cvec);
 
     size_t row_count = 0;
     while (true) {
@@ -283,34 +326,31 @@ QoreHashNode* QoreJdbcStatement::getOutputHashIntern(Env& env, ExceptionSink* xs
         }
 
         if (!row_count) {
-            populateOutputHash(**rv, xsink);
+            l.populate();
         }
 
         //! get column data
-        jint c = 0;
-        HashIterator i(**rv);
-        while (i.next()) {
+        for (jint c = 0, e = (jint)cvec.size(); c < e; ++c) {
             QoreJdbcColumn& col = cvec[c];
             ValueHolder val(getColumnValue(env, c + 1, col, xsink), xsink);
             if (*xsink) {
                 return nullptr;
             }
 
-            i.get().get<QoreListNode>()->push(val.release(), xsink);
+            l.get()[c]->push(val.release(), xsink);
             assert(!*xsink);
-            ++c;
         }
         ++row_count;
     }
 
     if (!row_count && !empty_hash_if_nothing) {
-        populateOutputHash(**rv, xsink);
+        l.populate();
     }
-    return rv.release();
+    return l.getHash();
 }
 
 QoreListNode* QoreJdbcStatement::getOutputList(Env& env, ExceptionSink* xsink, int max_rows) {
-    if (acquireResultSet(env, xsink)) {
+    if (acquireResultSet(env, xsink) || describeResultSet(env, xsink)) {
         return nullptr;
     }
 
@@ -399,7 +439,8 @@ QoreValue QoreJdbcStatement::getColumnValue(Env& env, int column, QoreJdbcColumn
         return &Null;
     }
     // return Qore value
-    ValueHolder rv(JavaToQore::convertToQore(val.release(), conn->getProgram(), false), xsink);
+    ValueHolder rv(JavaToQore::convertToQore(val.release(), conn->getProgram(), false, conn->getNumericOption()),
+        xsink);
     // strip trailing spaces in CHAR columns if necessary
     if (col.strip && rv->getType() == NT_STRING) {
         rv->get<QoreStringNode>()->trim_trailing(' ');
@@ -557,8 +598,14 @@ int QoreJdbcStatement::bindParamSingleValue(Env& env, int column, QoreValue arg,
         }
 
         case NT_INT: {
-            jargs[1].j = arg.getAsBigInt();
-            env.callVoidMethod(stmt, Globals::methodPreparedStatementSetLong, &jargs[0]);
+            int64 i = arg.getAsBigInt();
+            if (i <= 2147483647 && i >= -2147483647) {
+                jargs[1].i = (int32_t)i;
+                env.callVoidMethod(stmt, Globals::methodPreparedStatementSetInt, &jargs[0]);
+            } else {
+                jargs[1].j = i;
+                env.callVoidMethod(stmt, Globals::methodPreparedStatementSetLong, &jargs[0]);
+            }
             break;
         }
 

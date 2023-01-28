@@ -29,16 +29,19 @@
 
 #include "GlobalReference.h"
 #include "QoreJniClassMap.h"
+#include "JavaToQore.h"
 
 #include <string>
 
 namespace jni {
 
+#if 0
 //! Known DB types
 enum DbType {
     DBT_UNKNOWN = 0,
     DBT_ORACLE,
 };
+#endif
 
 class QoreJdbcConnection {
 public:
@@ -75,6 +78,7 @@ public:
 
     DLLLOCAL QoreValue getServerVersion(ExceptionSink* xsink);
     DLLLOCAL QoreValue getClientVersion(ExceptionSink* xsink);
+    DLLLOCAL QoreStringNode* getDriverRealName(ExceptionSink* xsink);
 
     DLLLOCAL QoreValue select(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink);
 
@@ -129,11 +133,15 @@ public:
         return jpc;
     }
 
+    DLLLOCAL NumericOption getNumericOption() const {
+        return numeric;
+    }
+
+#if 0
     DLLLOCAL DbType getDbType() const {
         return dbtype;
     }
 
-#if 0
     DLLLOCAL bool areArraysSupported(Env& env);
 
     DLLLOCAL jmethodID getOracleCreateArrayOfMethod() const {
@@ -161,10 +169,13 @@ private:
     //! Overridden db URL value
     std::string db;
 
+    //! Option for numeric values
+    NumericOption numeric = ENO_OPTIMAL;
+
+#if 0
     //! DB type
     DbType dbtype = DBT_UNKNOWN;
 
-#if 0
     //! Array support types
     enum DriverArraySupport {
         DAS_UNKNOWN = 0,

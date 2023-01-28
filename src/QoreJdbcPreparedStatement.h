@@ -105,12 +105,9 @@ private:
     //! Prepared / parsed SQL string
     QoreString sql;
 
-    //! Arguments for the statement
-    ReferenceHolder<QoreListNode> bind_args;
-
     //! Assign bind args
     DLLLOCAL void assignBindArgs(ExceptionSink* xsink, QoreListNode* args) {
-        ReferenceHolder<QoreListNode> tmp(bind_args.swap(args), xsink);
+        ReferenceHolder<QoreListNode> tmp(params.swap(args), xsink);
     }
 
     //! Disabled copy constructor.

@@ -50,6 +50,9 @@ struct QoreJdbcColumn {
     DLLLOCAL QoreJdbcColumn(std::string&& name, std::string&& qname, jint ctype);
 };
 
+// column vector
+typedef std::vector<QoreJdbcColumn> cvec_t;
+
 class QoreJdbcStatement {
 public:
     DLLLOCAL QoreJdbcStatement(ExceptionSink* xsink, QoreJdbcConnection* conn) : conn(conn), params(xsink) {
@@ -127,7 +130,6 @@ protected:
     ReferenceHolder<QoreListNode> params;
 
     //! Column metadata from result sets
-    typedef std::vector<QoreJdbcColumn> cvec_t;
     cvec_t cvec;
 
     //! Any active result set
