@@ -260,7 +260,7 @@ static bool jdbc_stmt_next(SQLStatement* stmt, ExceptionSink* xsink) {
     QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
     assert(ps);
 
-    return ps->next(xsink);
+    return ps->QoreJdbcPreparedStatement::next(xsink);
 }
 
 static int jdbc_stmt_free(SQLStatement* stmt, ExceptionSink* xsink) {

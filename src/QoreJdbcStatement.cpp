@@ -120,15 +120,21 @@ bool QoreJdbcStatement::execIntern(Env& env, const QoreString& qstr, ExceptionSi
     return false;
 }
 
-void QoreJdbcStatement::close(Env& env) {
+void QoreJdbcStatement::close(Env& env_obj) {
+    // not using the Env wrapper because we don't want any C++ exceptions here
+    JNIEnv* env = *env_obj;
+    bool active_java_exception = env->ExceptionCheck();
+
     if (rs) {
-        env.callVoidMethod(rs, Globals::methodResultSetClose, nullptr);
+        env->CallVoidMethodA(rs, Globals::methodResultSetClose, nullptr);
         rs = nullptr;
     }
     if (stmt) {
-        JavaExceptionRethrowHelper erh;
-        env.callVoidMethod(stmt, Globals::methodPreparedStatementClose, nullptr);
+        env->CallVoidMethodA(stmt, Globals::methodPreparedStatementClose, nullptr);
         stmt = nullptr;
+    }
+    if (!active_java_exception && env->ExceptionCheck()) {
+        throw new JavaException;
     }
 }
 
@@ -219,7 +225,7 @@ int QoreJdbcStatement::describeResultSet(Env& env, ExceptionSink* xsink) {
             // Find a unique column name.
             unsigned num = 1;
             while (true) {
-                QoreStringMaker tmp("%s_%d", name, num);
+                QoreStringMaker tmp("%s_%d", name.c_str(), num);
                 it = strset.find(tmp.c_str());
                 if (it == strset.end()) {
                     unique_qname = tmp.c_str();
@@ -638,13 +644,13 @@ int QoreJdbcStatement::bindParamSingleValue(Env& env, int column, QoreValue arg,
         case NT_DATE: {
             const DateTimeNode* dt = arg.get<const DateTimeNode>();
             jvalue jarg;
-            int64 epoch_us = dt->getEpochMicrosecondsUTC();
-            jlong ms = epoch_us / 1000;
-            // set milliseconds
-            jarg.j = ms;
+            int64 epoch_s = dt->getEpochSecondsUTC();
+            int us = dt->getMicrosecond();
+            // set milliseconds from seconds value
+            jarg.j = epoch_s * 1000;
             LocalReference<jobject> ts = env.newObject(Globals::classTimestamp, Globals::ctorTimestamp, &jarg);
             // set nanoseconds
-            jint ns = epoch_us - (ms * 1000);
+            jint ns = us * 1000;
             jarg.i = ns;
             env.callVoidMethod(ts, Globals::methodTimestampSetNanos, &jarg);
             // bind timestamp value

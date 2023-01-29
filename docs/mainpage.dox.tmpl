@@ -751,7 +751,7 @@ set_save_object_callback(callback);
     instead.
 
     Some example %Qore datasource strings for the \c jdbc driver:
-    - <tt>jdbc:user/[ass@postgresql:dbname{classpath=/usr/share/java/postgresql.jar}</tt>
+    - <tt>jdbc:user/pass@postgresql:dbname{classpath=/usr/share/java/postgresql.jar}</tt>
     - <tt>jdbc:user/pass@firebird:?serverName=hq&databaseName=/var/lib/firebird/data/mydb.fdb&encoding=WIN1252{classpath=/usr/share/java/jna-5.12.1.jar:/usr/share/java/jaybird-5.0.0.java11.jar}</tt>
     - <tt>jdbc:user/pass@ignored{url=oracle:thin:@hostname:1521:dbserver,classpath=/usr/lib/oracle/21/client64/lib/ojdbc8.jar}</tt>
 
@@ -759,6 +759,20 @@ set_save_object_callback(callback);
     \c jdbc driver when the internal URL string is passed to the internal Java JDBC call.
 
     @subsection jdbc_driver_options jdbc DBI Driver Options
+
+    The jdbc driver supports the following DBI options:
+    - \c "classpath": @ref jdbc_option_classpath "sets the classpath" with jar or class files providing the \c jdbc
+      driver
+    - \c "numeric-numbers": return received \c SQL_NUMERIC and \c SQL_DECIMAL values as arbitrary-precision numbers
+      (Qore number values)
+    - \c "optimal-numbers": return received \c SQL_NUMERIC and \c SQL_DECIMAL values as integers if possible, if not
+      return them as an arbitrary-precision numbers; this is the default
+    - \c "string-numbers": return received \c SQL_NUMERIC and \c SQL_DECIMAL values as strings (for backwards-
+      compatibility)
+    - \c "url": @ref jdbc_option_url "sets the URL" for the \c jdbc driver in case the database value in the %Qore
+      datasource connection string cannot accommodate the \c jdbc URL because of special characters
+
+    @note By default \c optimal-numbers is set on the driver for maximum compatibility with other %Qore DBI drivers
 
     @subsubsection jdbc_option_classpath jdbc classpath Option
 
