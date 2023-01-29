@@ -1,0 +1,54 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%requires qore >= 1.13
+
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+%exec-class MakeBootstrapQjavac
+
+class MakeBootstrapQjavac {
+    private {
+        hash<auto> opts;
+
+        const Opts = {
+            "verbose": "v,verbose:i+",
+            "help": "h,help",
+        };
+    }
+
+    constructor() {
+        GetOpt g(Opts);
+        opts = g.parse3(\ARGV);
+        *string input_file = shift ARGV;
+        *string output_file = shift ARGV;
+        if (opts.help || !exists input_file || !exists output_file) {
+            usage();
+        }
+
+        string src = File::readTextFile(input_file);
+
+        src =~ s/\.\.\/share\/qore\/java\/qore-jni.jar/.\/qore-jni-bootstrap.jar/;
+        src =~ s/\.\.\/share\/qore\/java\/qore-jni-compiler.jar/.\/qore-jni-bootstrap-compiler.jar/;
+
+        File f();
+        f.open2(output_file, O_CREAT | O_TRUNC | O_WRONLY);
+        f.write(src);
+
+        if (opts.verbose) {
+            printf("wrote %y: %d bytes\n", output_file, src.size());
+        }
+    }
+
+    usage() {
+        printf("usage: %s [options] input_file output_file
+ -h,--help           this help text
+ -v,--verbose[=ARG]  verbosity level
+",
+               get_script_name());
+        exit(1);
+    }
+}

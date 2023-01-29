@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -47,6 +47,7 @@
 #include "Method.h"
 #include "QoreToJava.h"
 #include "Globals.h"
+#include "QoreJdbcDriver.h"
 
 using namespace jni;
 
@@ -203,6 +204,8 @@ static QoreStringNode* jni_module_init() {
         jni_init_failed = true;
         return new QoreStringNode("JVM initialization failed due to an unknown error");
     }
+
+    jni::setup_jdbc_driver();
 
     printd(5, "jni_module_init() initialized JVM\n");
 
@@ -436,7 +439,7 @@ static void qore_jni_mc_define_pending_class(const QoreString& arg, QoreProgram*
 
     // add the byte code as a pending class
     LocalReference<jstring> jname = env.newString(java_name.c_str());
-    LocalReference<jbyteArray> jbyte_code = QoreToJava::makeByteArray(**byte_code);
+    LocalReference<jbyteArray> jbyte_code = QoreToJava::makeByteArray(env, **byte_code);
 
     std::vector<jvalue> jargs(2);
     jargs[0].l = jname;

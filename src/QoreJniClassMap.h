@@ -400,6 +400,9 @@ public:
     // try to get the QoreClass for a dynamically-created JavaClass
     DLLLOCAL static QoreClass* tryGetQoreClass(Env& env, jclass obj, bool inherited);
 
+    // load service loader
+    DLLLOCAL LocalReference<jobject> loadServiceLoader(Env& env, jclass jcls);
+
 protected:
     // owning QoreProgram object
     QoreProgram* pgm;
@@ -420,6 +423,8 @@ protected:
     jmethodID methodQoreJavaDynamicApiInvokeMethodNonvirtual = 0;
     // QoreJavaDynamicApi.getField()
     jmethodID methodQoreJavaDynamicApiGetField = 0;
+    // QoreJavaDynamicApi.loadServiceLoader()
+    jmethodID methodQoreJavaDynamicApiLoadServiceLoader = 0;
 
     // code generation mutex
     QoreRecursiveThreadLock codeGenLock;

@@ -101,11 +101,13 @@ void JavaException::restore(jthrowable je) {
     env->Throw(je);
 }
 
-QoreStringNode* JavaException::toString() const {
+QoreStringNode* JavaException::toString(bool clear) const {
     JNIEnv* env = Jvm::getEnv();         //not using the Env wrapper because we don't want any C++ exceptions here
     LocalReference<jthrowable> throwable = env->ExceptionOccurred();
     assert(throwable != nullptr);
-    env->ExceptionClear();
+    if (clear) {
+        env->ExceptionClear();
+    }
 
     if (env->IsInstanceOf(throwable, Globals::classQoreExceptionWrapper)) {
         jlong l = env->CallLongMethod(throwable, Globals::methodQoreExceptionWrapperGet);
@@ -136,7 +138,7 @@ QoreStringNode* JavaException::toString() const {
     while (true) {
         LocalReference<jstring> excName = static_cast<jstring>(env->CallObjectMethod(env->GetObjectClass(throwable),
             Globals::methodClassGetName));
-        if (env->ExceptionCheck()) {
+        if (clear && env->ExceptionCheck()) {
             env->ExceptionClear();
             return new QoreStringNode("Unable to get exception class name: another exception thrown");
         }
@@ -155,7 +157,7 @@ QoreStringNode* JavaException::toString() const {
 
         LocalReference<jstring> msg = static_cast<jstring>(env->CallObjectMethod(throwable, Globals::methodThrowableGetMessage));
         //printd(5, "msg: %p\n", (jstring)msg);
-        if (env->ExceptionCheck()) {
+        if (clear && env->ExceptionCheck()) {
             env->ExceptionClear();
         } else if (msg != nullptr) {
             desc->concat(": ");
@@ -168,12 +170,13 @@ QoreStringNode* JavaException::toString() const {
             }
         }
 
-        ///*
+        /*
         jmethodID methodThrowablePrintStackTrace = env->GetMethodID(Globals::classThrowable, "printStackTrace", "()V");
         env->CallVoidMethod(throwable, methodThrowablePrintStackTrace);
-        //*/
+        */
 
-        LocalReference<jthrowable> cause = static_cast<jthrowable>(env->CallObjectMethod(throwable, Globals::methodThrowableGetCause));
+        LocalReference<jthrowable> cause = static_cast<jthrowable>(env->CallObjectMethod(throwable,
+            Globals::methodThrowableGetCause));
         //printd(5, "cause: %p\n", (jthrowable)cause);
         if (!cause) {
             break;

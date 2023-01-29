@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -303,6 +303,90 @@ GlobalReference<jclass> Globals::classCharSequence;
 GlobalReference<jclass> Globals::classBooleanWrapper;
 jmethodID Globals::methodBooleanWrapperSetTrue;
 
+GlobalReference<jclass> Globals::classProperties;
+jmethodID Globals::ctorProperties;
+jmethodID Globals::methodPropertiesSetProperty;
+
+GlobalReference<jclass> Globals::classDriverManager;
+jmethodID Globals::methodDriverManagerGetConnection;
+
+GlobalReference<jclass> Globals::classConnection;
+jmethodID Globals::methodConnectionClose;
+jmethodID Globals::methodConnectionCommit;
+jmethodID Globals::methodConnectionRollback;
+jmethodID Globals::methodConnectionCreateArrayOf;
+jmethodID Globals::methodConnectionGetMetaData;
+jmethodID Globals::methodConnectionPrepareStatement;
+jmethodID Globals::methodConnectionPrepareStatementArray;
+jmethodID Globals::methodConnectionSetAutoCommit;
+jmethodID Globals::methodConnectionIsValid;
+
+GlobalReference<jclass> Globals::classDatabaseMetaData;
+jmethodID Globals::methodDatabaseMetaDataGetDatabaseMajorVersion;
+jmethodID Globals::methodDatabaseMetaDataGetDatabaseMinorVersion;
+jmethodID Globals::methodDatabaseMetaDataGetDatabaseProductName;
+jmethodID Globals::methodDatabaseMetaDataGetDatabaseProductVersion;
+jmethodID Globals::methodDatabaseMetaDataGetDriverMajorVersion;
+jmethodID Globals::methodDatabaseMetaDataGetDriverMinorVersion;
+jmethodID Globals::methodDatabaseMetaDataGetDriverName;
+jmethodID Globals::methodDatabaseMetaDataGetDriverVersion;
+
+GlobalReference<jclass> Globals::classPreparedStatement;
+jmethodID Globals::methodPreparedStatementAddBatch;
+jmethodID Globals::methodPreparedStatementClose;
+jmethodID Globals::methodPreparedStatementExecute;
+jmethodID Globals::methodPreparedStatementExecuteBatch;
+jmethodID Globals::methodPreparedStatementGetResultSet;
+jmethodID Globals::methodPreparedStatementGetMoreResults;
+jmethodID Globals::methodPreparedStatementGetUpdateCount;
+jmethodID Globals::methodPreparedStatementSetArray;
+jmethodID Globals::methodPreparedStatementSetBigDecimal;
+jmethodID Globals::methodPreparedStatementSetBoolean;
+jmethodID Globals::methodPreparedStatementSetBytes;
+jmethodID Globals::methodPreparedStatementSetDouble;
+jmethodID Globals::methodPreparedStatementSetInt;
+jmethodID Globals::methodPreparedStatementSetLong;
+jmethodID Globals::methodPreparedStatementSetNull;
+jmethodID Globals::methodPreparedStatementSetString;
+jmethodID Globals::methodPreparedStatementSetTimestamp;
+
+GlobalReference<jclass> Globals::classTimestamp;
+jmethodID Globals::ctorTimestamp;
+jmethodID Globals::methodTimestampSetNanos;
+jmethodID Globals::methodTimestampToString;
+
+GlobalReference<jclass> Globals::classDate;
+jmethodID Globals::methodDateToString;
+
+GlobalReference<jclass> Globals::classTime;
+jmethodID Globals::methodTimeToString;
+
+GlobalReference<jclass> Globals::classResultSet;
+jmethodID Globals::methodResultSetClose;
+jmethodID Globals::methodResultSetNext;
+jmethodID Globals::methodResultSetGetMetaData;
+jmethodID Globals::methodResultSetGetArray;
+jmethodID Globals::methodResultSetGetObject;
+
+GlobalReference<jclass> Globals::classResultSetMetaData;
+jmethodID Globals::methodResultSetMetaDataGetColumnClassName;
+jmethodID Globals::methodResultSetMetaDataGetColumnCount;
+jmethodID Globals::methodResultSetMetaDataGetColumnLabel;
+jmethodID Globals::methodResultSetMetaDataGetColumnType;
+
+GlobalReference<jclass> Globals::classArray;
+jmethodID Globals::methodArrayGetArray;
+
+GlobalReference<jclass> Globals::classSQLException;
+
+GlobalReference<jclass> Globals::classServiceLoader;
+jmethodID Globals::methodServiceLoaderIterator;
+
+GlobalReference<jclass> Globals::classDriver;
+
+int Globals::typeNull;
+int Globals::typeChar;
+
 GlobalReference<jstring> Globals::javaQoreClassField;
 
 std::string QoreJniStackLocationHelper::jni_no_call_name = "<jni_module_java_no_runtime_stack_info>";
@@ -447,7 +531,7 @@ static jobject java_api_call_function_internal(JNIEnv* jenv, jobject obj, jlong 
     }
 
     try {
-        return QoreToJava::toAnyObject(*rv, jpc);
+        return QoreToJava::toAnyObject(env, *rv, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(env, xsink);
@@ -537,7 +621,7 @@ static jobject java_api_call_static_method_internal(JNIEnv* jenv, jobject obj, j
     }
 
     try {
-        return QoreToJava::toAnyObject(*rv, jpc);
+        return QoreToJava::toAnyObject(env, *rv, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(env, xsink);
@@ -635,7 +719,7 @@ static jobject JNICALL java_api_new_object_save(JNIEnv* jenv, jobject obj, jlong
     }
 
     try {
-        return QoreToJava::toAnyObject(*rv, jpc);
+        return QoreToJava::toAnyObject(env, *rv, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(env, xsink);
@@ -807,7 +891,7 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, QoreProgr
             return nullptr;
         }
 
-        return QoreToJava::toAnyObject(*val, jpc);
+        return QoreToJava::toAnyObject(env, *val, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(env, xsink);
@@ -892,7 +976,7 @@ static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jobject jobj, 
     }
 
     try {
-        return QoreToJava::toAnyObject(*rv, jpc);
+        return QoreToJava::toAnyObject(env, *rv, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(env, xsink);
@@ -1037,7 +1121,7 @@ static jobject JNICALL java_class_builder_do_function_call(JNIEnv* jenv, jclass 
     }
 
     try {
-        return QoreToJava::toAnyObject(*rv, jpc);
+        return QoreToJava::toAnyObject(env, *rv, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(env, xsink);
@@ -1075,7 +1159,7 @@ static jobject JNICALL java_class_builder_get_constant_value(JNIEnv* jenv, jclas
     ValueHolder val(constant_entry->getReferencedValue(), &xsink);
     printd(5, "java_class_builder_get_constant_value() '%s' = %s\n", constant_entry->getName(), val->getFullTypeName());
     try {
-        return QoreToJava::toAnyObject(*val, jpc);
+        return QoreToJava::toAnyObject(env, *val, jpc);
     } catch (jni::Exception& e) {
         e.convert(&xsink);
         QoreToJava::wrapException(env, xsink);
@@ -2405,10 +2489,12 @@ bool Globals::init() {
     methodThrowableGetCause = env.getMethod(classThrowable, "getCause", "()Ljava/lang/Throwable;");
 
     classStackTraceElement = env.findClass("java/lang/StackTraceElement").makeGlobal();
-    methodStackTraceElementGetClassName = env.getMethod(classStackTraceElement, "getClassName", "()Ljava/lang/String;");
+    methodStackTraceElementGetClassName = env.getMethod(classStackTraceElement, "getClassName",
+        "()Ljava/lang/String;");
     methodStackTraceElementGetFileName = env.getMethod(classStackTraceElement, "getFileName", "()Ljava/lang/String;");
     methodStackTraceElementGetLineNumber = env.getMethod(classStackTraceElement, "getLineNumber", "()I");
-    methodStackTraceElementGetMethodName = env.getMethod(classStackTraceElement, "getMethodName", "()Ljava/lang/String;");
+    methodStackTraceElementGetMethodName = env.getMethod(classStackTraceElement, "getMethodName",
+        "()Ljava/lang/String;");
     methodStackTraceElementIsNativeMethod = env.getMethod(classStackTraceElement, "isNativeMethod", "()Z");
 
     classQoreExceptionWrapper = findDefineClass(env, "org.qore.jni.QoreExceptionWrapper", nullptr,
@@ -2433,15 +2519,19 @@ bool Globals::init() {
     methodClassGetDeclaredFields = env.getMethod(classClass, "getDeclaredFields", "()[Ljava/lang/reflect/Field;");
     methodClassGetSuperClass = env.getMethod(classClass, "getSuperclass", "()Ljava/lang/Class;");
     methodClassGetInterfaces = env.getMethod(classClass, "getInterfaces", "()[Ljava/lang/Class;");
-    methodClassGetDeclaredConstructors = env.getMethod(classClass, "getDeclaredConstructors", "()[Ljava/lang/reflect/Constructor;");
-    methodClassGetDeclaredConstructor = env.getMethod(classClass, "getDeclaredConstructor", "([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;");
+    methodClassGetDeclaredConstructors = env.getMethod(classClass, "getDeclaredConstructors",
+        "()[Ljava/lang/reflect/Constructor;");
+    methodClassGetDeclaredConstructor = env.getMethod(classClass, "getDeclaredConstructor",
+        "([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;");
     methodClassGetModifiers = env.getMethod(classClass, "getModifiers", "()I");
     methodClassIsPrimitive = env.getMethod(classClass, "isPrimitive", "()Z");
     methodClassGetDeclaredMethods = env.getMethod(classClass, "getDeclaredMethods", "()[Ljava/lang/reflect/Method;");
     methodClassGetCanonicalName = env.getMethod(classClass, "getCanonicalName", "()Ljava/lang/String;");
-    methodClassGetDeclaredField = env.getMethod(classClass, "getDeclaredField", "(Ljava/lang/String;)Ljava/lang/reflect/Field;");
+    methodClassGetDeclaredField = env.getMethod(classClass, "getDeclaredField",
+        "(Ljava/lang/String;)Ljava/lang/reflect/Field;");
     methodClassIsAssignableFrom = env.getMethod(classClass, "isAssignableFrom", "(Ljava/lang/Class;)Z");
-    methodClassGetMethod = env.getMethod(classClass, "getMethod", "(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;");
+    methodClassGetMethod = env.getMethod(classClass, "getMethod",
+        "(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;");
 
     classClassLoader = env.findClass("java/lang/ClassLoader").makeGlobal();
     methodClassLoaderLoadClass = env.getMethod(classClassLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
@@ -2465,7 +2555,8 @@ bool Globals::init() {
     classQoreClosureMarker = findDefineClass(env, "org.qore.jni.QoreClosureMarker", nullptr,
         java_org_qore_jni_QoreClosureMarker_class, java_org_qore_jni_QoreClosureMarker_class_len).makeGlobal();
     classQoreClosureMarkerImpl = findDefineClass(env, "org.qore.jni.QoreClosureMarkerImpl", nullptr,
-        java_org_qore_jni_QoreClosureMarkerImpl_class, java_org_qore_jni_QoreClosureMarkerImpl_class_len).makeGlobal();
+        java_org_qore_jni_QoreClosureMarkerImpl_class,
+        java_org_qore_jni_QoreClosureMarkerImpl_class_len).makeGlobal();
 
     classQoreClosure = findDefineClass(env, "org.qore.jni.QoreClosure", nullptr, java_org_qore_jni_QoreClosure_class,
         java_org_qore_jni_QoreClosure_class_len).makeGlobal();
@@ -2525,7 +2616,8 @@ bool Globals::init() {
     methodConstructorToString = env.getMethod(classConstructor, "toString", "()Ljava/lang/String;");
     methodConstructorGetModifiers = env.getMethod(classConstructor, "getModifiers", "()I");
     methodConstructorIsVarArgs = env.getMethod(classConstructor, "isVarArgs", "()Z");
-    methodConstructorNewInstance = env.getMethod(classConstructor, "newInstance", "([Ljava/lang/Object;)Ljava/lang/Object;");
+    methodConstructorNewInstance = env.getMethod(classConstructor, "newInstance",
+        "([Ljava/lang/Object;)Ljava/lang/Object;");
 
     classQoreInvocationHandler = findDefineClass(env, "org.qore.jni.QoreInvocationHandler", nullptr,
         java_org_qore_jni_QoreInvocationHandler_class, java_org_qore_jni_QoreInvocationHandler_class_len).makeGlobal();
@@ -2537,7 +2629,8 @@ bool Globals::init() {
         java_org_qore_jni_QoreJavaApi_class_len).makeGlobal();
     env.registerNatives(classQoreJavaApi, qoreJavaApiNativeMethods,
         sizeof(qoreJavaApiNativeMethods) / sizeof(JNINativeMethod));
-    methodQoreJavaApiGetStackTrace = env.getStaticMethod(classQoreJavaApi, "getStackTrace", "()[Ljava/lang/StackTraceElement;");
+    methodQoreJavaApiGetStackTrace = env.getStaticMethod(classQoreJavaApi, "getStackTrace",
+        "()[Ljava/lang/StackTraceElement;");
 
     classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
     methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance",
@@ -2545,7 +2638,8 @@ bool Globals::init() {
 
     classThread = env.findClass("java/lang/Thread").makeGlobal();
     methodThreadCurrentThread = env.getStaticMethod(classThread, "currentThread", "()Ljava/lang/Thread;");
-    methodThreadGetContextClassLoader = env.getMethod(classThread, "getContextClassLoader", "()Ljava/lang/ClassLoader;");
+    methodThreadGetContextClassLoader = env.getMethod(classThread, "getContextClassLoader",
+        "()Ljava/lang/ClassLoader;");
 
     classHashMap = env.findClass("java/util/HashMap").makeGlobal();
 
@@ -2602,7 +2696,8 @@ bool Globals::init() {
     methodIteratorNext = env.getMethod(classIterator, "next", "()Ljava/lang/Object;");
 
     classZonedDateTime = env.findClass("java/time/ZonedDateTime").makeGlobal();
-    methodZonedDateTimeParse = env.getStaticMethod(classZonedDateTime, "parse", "(Ljava/lang/CharSequence;)Ljava/time/ZonedDateTime;");
+    methodZonedDateTimeParse = env.getStaticMethod(classZonedDateTime, "parse",
+        "(Ljava/lang/CharSequence;)Ljava/time/ZonedDateTime;");
     methodZonedDateTimeToString = env.getMethod(classZonedDateTime, "toString", "()Ljava/lang/String;");
 
     classQoreRelativeTime = findDefineClass(env, "org.qore.jni.QoreRelativeTime", nullptr,
@@ -2622,7 +2717,8 @@ bool Globals::init() {
 
     classArrays = env.findClass("java/util/Arrays").makeGlobal();
     methodArraysToString = env.getStaticMethod(classArrays, "toString", "([Ljava/lang/Object;)Ljava/lang/String;");
-    methodArraysDeepToString = env.getStaticMethod(classArrays, "deepToString", "([Ljava/lang/Object;)Ljava/lang/String;");
+    methodArraysDeepToString = env.getStaticMethod(classArrays, "deepToString",
+        "([Ljava/lang/Object;)Ljava/lang/String;");
 
     classBoolean = env.findClass("java/lang/Boolean").makeGlobal();
     ctorBoolean = env.getMethod(classBoolean, "<init>", "(Z)V");
@@ -2657,6 +2753,115 @@ bool Globals::init() {
     methodCharacterCharValue = env.getMethod(classCharacter, "charValue", "()C");
 
     classCharSequence = env.findClass("java/lang/CharSequence").makeGlobal();
+
+    classProperties = env.findClass("java/util/Properties").makeGlobal();
+    ctorProperties = env.getMethod(classProperties, "<init>", "()V");
+    methodPropertiesSetProperty = env.getMethod(classProperties, "setProperty",
+        "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
+
+    classDriverManager = env.findClass("java/sql/DriverManager").makeGlobal();
+    methodDriverManagerGetConnection = env.getStaticMethod(classDriverManager, "getConnection",
+        "(Ljava/lang/String;Ljava/util/Properties;)Ljava/sql/Connection;");
+
+    classConnection = env.findClass("java/sql/Connection").makeGlobal();
+    methodConnectionClose = env.getMethod(classConnection, "close", "()V");
+    methodConnectionCommit = env.getMethod(classConnection, "commit", "()V");
+    methodConnectionRollback = env.getMethod(classConnection, "rollback", "()V");
+    methodConnectionCreateArrayOf = env.getMethod(classConnection, "createArrayOf",
+        "(Ljava/lang/String;[Ljava/lang/Object;)Ljava/sql/Array;");
+    methodConnectionGetMetaData = env.getMethod(classConnection, "getMetaData", "()Ljava/sql/DatabaseMetaData;");
+    methodConnectionPrepareStatement = env.getMethod(classConnection, "prepareStatement",
+        "(Ljava/lang/String;)Ljava/sql/PreparedStatement;");
+    methodConnectionPrepareStatementArray = env.getMethod(classConnection, "prepareStatement",
+        "(Ljava/lang/String;[Ljava/lang/String;)Ljava/sql/PreparedStatement;");
+    methodConnectionSetAutoCommit = env.getMethod(classConnection, "setAutoCommit", "(Z)V");
+    methodConnectionIsValid = env.getMethod(classConnection, "isValid", "(I)Z");
+
+    classDatabaseMetaData = env.findClass("java/sql/DatabaseMetaData").makeGlobal();
+    methodDatabaseMetaDataGetDatabaseMajorVersion = env.getMethod(classDatabaseMetaData, "getDatabaseMajorVersion",
+        "()I");
+    methodDatabaseMetaDataGetDatabaseMinorVersion = env.getMethod(classDatabaseMetaData, "getDatabaseMinorVersion",
+        "()I");
+    methodDatabaseMetaDataGetDatabaseProductName = env.getMethod(classDatabaseMetaData, "getDatabaseProductName",
+        "()Ljava/lang/String;");
+    methodDatabaseMetaDataGetDatabaseProductVersion = env.getMethod(classDatabaseMetaData,
+        "getDatabaseProductVersion", "()Ljava/lang/String;");
+    methodDatabaseMetaDataGetDriverMajorVersion = env.getMethod(classDatabaseMetaData, "getDriverMajorVersion",
+        "()I");
+    methodDatabaseMetaDataGetDriverMinorVersion = env.getMethod(classDatabaseMetaData, "getDriverMinorVersion",
+        "()I");
+    methodDatabaseMetaDataGetDriverName = env.getMethod(classDatabaseMetaData, "getDriverName",
+        "()Ljava/lang/String;");
+    methodDatabaseMetaDataGetDriverVersion = env.getMethod(classDatabaseMetaData, "getDriverVersion",
+        "()Ljava/lang/String;");
+
+    classPreparedStatement = env.findClass("java/sql/PreparedStatement").makeGlobal();
+    methodPreparedStatementAddBatch = env.getMethod(classPreparedStatement, "addBatch", "()V");
+    methodPreparedStatementClose = env.getMethod(classPreparedStatement, "close", "()V");
+    methodPreparedStatementExecute = env.getMethod(classPreparedStatement, "execute", "()Z");
+    methodPreparedStatementExecuteBatch = env.getMethod(classPreparedStatement, "executeBatch", "()[I");
+    methodPreparedStatementGetResultSet = env.getMethod(classPreparedStatement, "getResultSet",
+        "()Ljava/sql/ResultSet;");
+    methodPreparedStatementGetMoreResults = env.getMethod(classPreparedStatement, "getMoreResults", "()Z");
+    methodPreparedStatementGetUpdateCount = env.getMethod(classPreparedStatement, "getUpdateCount", "()I");
+    methodPreparedStatementSetArray = env.getMethod(classPreparedStatement, "setArray", "(ILjava/sql/Array;)V");
+    methodPreparedStatementSetBigDecimal = env.getMethod(classPreparedStatement, "setBigDecimal",
+        "(ILjava/math/BigDecimal;)V");
+    methodPreparedStatementSetBoolean = env.getMethod(classPreparedStatement, "setBoolean", "(IZ)V");
+    methodPreparedStatementSetBytes = env.getMethod(classPreparedStatement, "setBytes", "(I[B)V");
+    methodPreparedStatementSetDouble = env.getMethod(classPreparedStatement, "setDouble", "(ID)V");
+    methodPreparedStatementSetInt = env.getMethod(classPreparedStatement, "setInt", "(II)V");
+    methodPreparedStatementSetLong = env.getMethod(classPreparedStatement, "setLong", "(IJ)V");
+    methodPreparedStatementSetNull = env.getMethod(classPreparedStatement, "setNull", "(II)V");
+    methodPreparedStatementSetString = env.getMethod(classPreparedStatement, "setString", "(ILjava/lang/String;)V");
+    methodPreparedStatementSetTimestamp = env.getMethod(classPreparedStatement, "setTimestamp",
+        "(ILjava/sql/Timestamp;)V");
+
+    classTimestamp = env.findClass("java/sql/Timestamp").makeGlobal();
+    ctorTimestamp = env.getMethod(classTimestamp, "<init>", "(J)V");
+    methodTimestampSetNanos = env.getMethod(classTimestamp, "setNanos", "(I)V");
+    methodTimestampToString = env.getMethod(classTimestamp, "toString", "()Ljava/lang/String;");
+
+    classDate = env.findClass("java/sql/Date").makeGlobal();
+    methodDateToString = env.getMethod(classDate, "toString", "()Ljava/lang/String;");
+
+    classTime = env.findClass("java/sql/Time").makeGlobal();
+    methodTimeToString = env.getMethod(classTime, "toString", "()Ljava/lang/String;");
+
+    classResultSet = env.findClass("java/sql/ResultSet").makeGlobal();
+    methodResultSetClose = env.getMethod(classResultSet, "close", "()V");
+    methodResultSetNext = env.getMethod(classResultSet, "next", "()Z");
+    methodResultSetGetMetaData = env.getMethod(classResultSet, "getMetaData", "()Ljava/sql/ResultSetMetaData;");
+    methodResultSetGetArray = env.getMethod(classResultSet, "getArray", "(I)Ljava/sql/Array;");
+    methodResultSetGetObject = env.getMethod(classResultSet, "getObject", "(I)Ljava/lang/Object;");
+
+    classResultSetMetaData = env.findClass("java/sql/ResultSetMetaData").makeGlobal();
+    methodResultSetMetaDataGetColumnClassName = env.getMethod(classResultSetMetaData, "getColumnClassName",
+        "(I)Ljava/lang/String;");
+    methodResultSetMetaDataGetColumnCount = env.getMethod(classResultSetMetaData, "getColumnCount", "()I");
+    methodResultSetMetaDataGetColumnLabel = env.getMethod(classResultSetMetaData, "getColumnLabel",
+        "(I)Ljava/lang/String;");
+    methodResultSetMetaDataGetColumnType = env.getMethod(classResultSetMetaData, "getColumnType",
+        "(I)I");
+
+    classArray = env.findClass("java/sql/Array").makeGlobal();
+    methodArrayGetArray = env.getMethod(classArray, "getArray", "()Ljava/lang/Object;");
+
+    classSQLException = env.findClass("java/sql/SQLException").makeGlobal();
+
+    classServiceLoader = env.findClass("java/util/ServiceLoader").makeGlobal();
+    methodServiceLoaderIterator = env.getMethod(classServiceLoader, "iterator",
+        "()Ljava/util/Iterator;");
+
+    classDriver = env.findClass("java/sql/Driver").makeGlobal();
+
+    {
+        LocalReference<jclass> classTypes = env.findClass("java/sql/Types");
+        jfieldID field = env.getStaticField(classTypes, "NULL", "I");
+        typeNull = env.getStaticIntField(classTypes, field);
+        field = env.getStaticField(classTypes, "CHAR", "I");
+        typeChar = env.getStaticIntField(classTypes, field);
+    }
 
     assert(!classQoreURLClassLoader);
     defineQoreURLClassLoader(env);
@@ -2842,6 +3047,20 @@ void Globals::cleanup() {
     classCharacter = nullptr;
     classCharSequence = nullptr;
     classBooleanWrapper = nullptr;
+    classProperties = nullptr;
+    classDriverManager = nullptr;
+    classConnection = nullptr;
+    classDatabaseMetaData = nullptr;
+    classPreparedStatement = nullptr;
+    classTimestamp = nullptr;
+    classDate = nullptr;
+    classTime = nullptr;
+    classResultSet = nullptr;
+    classResultSetMetaData = nullptr;
+    classArray = nullptr;
+    classSQLException = nullptr;
+    classServiceLoader = nullptr;
+    classDriver = nullptr;
     javaQoreClassField = nullptr;
 }
 

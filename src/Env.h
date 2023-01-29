@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -42,22 +42,25 @@ namespace jni {
  * Wraps JNI references to RAII objects and uses C++ exceptions for error reporting.
  */
 class Env {
-
 public:
-   /**
-    * \brief Default constructor. Attaches current thread to the JVM.
-    * \param set_context set the classloader context
-    * \throws UnableToAttachException if the thread cannot be attached to the JVM
-    */
-   DLLLOCAL Env(bool set_context = true);
+    /**
+     * \brief Default constructor. Attaches current thread to the JVM.
+     * \param set_context set the classloader context
+     * \throws UnableToAttachException if the thread cannot be attached to the JVM
+     */
+    DLLLOCAL Env(bool set_context = true);
 
-   /**
-    * \brief Constructor.
-    * \param env the Env object associated with this thread
-    */
-   DLLLOCAL Env(JNIEnv *env) : env(env) {
-      Jvm::setEnv(env);
-   }
+    /**
+     * \brief Constructor.
+     * \param env the Env object associated with this thread
+     */
+    DLLLOCAL Env(JNIEnv *env) : env(env) {
+        Jvm::setEnv(env);
+    }
+
+    DLLLOCAL JNIEnv* operator*() {
+        return env;
+    }
 
    /**
     * \brief Returns the major version number in the higher 16 bits and the minor version number in the lower 16 bits.
@@ -1325,20 +1328,21 @@ public:
     class GetStringUtfChars {
     public:
         DLLLOCAL GetStringUtfChars(Env &env, const LocalReference<jstring>& strref) :
-            env(env), str(&strref),
-            chars(strref ? env.env->GetStringUTFChars(strref, nullptr) : nullptr) {
+                env(env), str(&strref),
+                chars(strref ? env.env->GetStringUTFChars(strref, nullptr) : nullptr) {
             if (strref && chars == nullptr) {
-                throw new JavaException();
+                throw new JavaException;
             }
         }
 
         DLLLOCAL GetStringUtfChars(Env &env) :
-            env(env), str(nullptr), chars(nullptr) {
+                env(env), str(nullptr), chars(nullptr) {
         }
 
         DLLLOCAL ~GetStringUtfChars() {
-            if (str)
+            if (str) {
                 env.env->ReleaseStringUTFChars(*str, chars);
+            }
         }
 
         DLLLOCAL int set(const LocalReference<jstring>& strref) {

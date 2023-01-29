@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -44,6 +44,13 @@
 
 namespace jni {
 
+//! Option for numeric results
+enum NumericOption {
+    ENO_OPTIMAL = 0,
+    ENO_STRING,
+    ENO_NUMERIC, // Qore number
+};
+
 /**
  * \brief Provides functions for converting Java values to Qore.
  *
@@ -51,44 +58,44 @@ namespace jni {
  * is performed. This will allow to change the conversion (e.g. add range checking) in the future consistently.
  */
 class JavaToQore {
-
 public:
-   static QoreValue convert(jboolean v) {
-      return QoreValue(v == JNI_TRUE);
-   }
+    static QoreValue convert(jboolean v) {
+        return QoreValue(v == JNI_TRUE);
+    }
 
-   static QoreValue convert(jbyte v) {
-      return QoreValue(v);
-   }
+    static QoreValue convert(jbyte v) {
+        return QoreValue(v);
+    }
 
-   static QoreValue convert(jchar v) {
-      return QoreValue(v);
-   }
+    static QoreValue convert(jchar v) {
+        return QoreValue(v);
+    }
 
-   static QoreValue convert(jdouble v) {
-      return QoreValue(v);
-   }
+    static QoreValue convert(jdouble v) {
+        return QoreValue(v);
+    }
 
-   static QoreValue convert(jfloat v) {
-      return QoreValue(v);
-   }
+    static QoreValue convert(jfloat v) {
+        return QoreValue(v);
+    }
 
-   static QoreValue convert(jint v) {
-      return QoreValue(v);
-   }
+    static QoreValue convert(jint v) {
+        return QoreValue(v);
+    }
 
-   static QoreValue convert(jlong v) {
-      return QoreValue(v);
-   }
+    static QoreValue convert(jlong v) {
+        return QoreValue(v);
+    }
 
-   static QoreValue convert(jshort v) {
-      return QoreValue(v);
-   }
+    static QoreValue convert(jshort v) {
+        return QoreValue(v);
+    }
 
-   static QoreValue convertToQore(LocalReference<jobject> v, QoreProgram* pgm, bool compat_types);
+    static QoreValue convertToQore(LocalReference<jobject> v, QoreProgram* pgm, bool compat_types = false,
+        NumericOption numeric = ENO_NUMERIC);
 
 private:
-   JavaToQore() = delete;
+    JavaToQore() = delete;
 };
 
 } // namespace jni

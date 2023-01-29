@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -62,19 +62,7 @@ static jobject jni_date_to_jobject(const DateTimeNode& qdate) {
     return env.newObject(Globals::classQoreRelativeTime, Globals::ctorQoreRelativeTime, &jargs[0]).release();
 }
 
-static jobject jni_number_to_jobject(const QoreNumberNode& num) {
-    QoreString str;
-    num.toString(str);
-
-    Env env;
-    LocalReference<jstring> num_str = env.newString(str.c_str());
-    std::vector<jvalue> jargs(1);
-    jargs[0].l = num_str;
-    return env.newObject(Globals::classBigDecimal, Globals::ctorBigDecimal, &jargs[0]).release();
-}
-
-jobject QoreToJava::toAnyObject(const QoreValue& value, JniExternalProgramData* jpc) {
-    Env env;
+jobject QoreToJava::toAnyObject(Env& env, const QoreValue& value, JniExternalProgramData* jpc) {
     switch (value.getType()) {
         case NT_BOOLEAN: {
             jvalue arg;
@@ -99,7 +87,7 @@ jobject QoreToJava::toAnyObject(const QoreValue& value, JniExternalProgramData* 
             return jni_date_to_jobject(*value.get<const DateTimeNode>());
         }
         case NT_NUMBER: {
-            return jni_number_to_jobject(*value.get<const QoreNumberNode>());
+            return makeBigDecimal(env, *value.get<const QoreNumberNode>());
         }
         case NT_OBJECT: {
             QoreObject* o = const_cast<QoreObject*>(value.get<const QoreObject>());
@@ -122,7 +110,7 @@ jobject QoreToJava::toAnyObject(const QoreValue& value, JniExternalProgramData* 
             return makeMap(*value.get<QoreHashNode>(), Globals::classHash, jpc);
         }
         case NT_BINARY: {
-            return makeByteArray(*value.get<BinaryNode>());
+            return makeByteArray(env, *value.get<BinaryNode>());
         }
 
         case NT_NOTHING:
@@ -136,14 +124,13 @@ jobject QoreToJava::toAnyObject(const QoreValue& value, JniExternalProgramData* 
     throw BasicException(desc.c_str());
 }
 
-jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProgramData* jpc) {
+jobject QoreToJava::toObject(Env& env, const QoreValue& value, jclass cls, JniExternalProgramData* jpc) {
     if (value.isNullOrNothing())
         return nullptr;
 
     if (cls) {
-        Env env;
         if (env.isSameObject(cls, Globals::classObject)) {
-            return toAnyObject(value, jpc);
+            return toAnyObject(env, value, jpc);
         }
 
         switch (value.getType()) {
@@ -151,7 +138,7 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProg
             case NT_BOOLEAN: {
                 if (env.isSameObject(cls, Globals::classBoolean)
                     || env.isSameObject(cls, Globals::classPrimitiveBoolean)) {
-                    return toAnyObject(value, jpc);
+                    return toAnyObject(env, value, jpc);
                 }
                 break;
             }
@@ -193,7 +180,7 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProg
             case NT_FLOAT: {
                 if (env.isSameObject(cls, Globals::classDouble)
                     || env.isSameObject(cls, Globals::classPrimitiveDouble)) {
-                    return toAnyObject(value, jpc);
+                    return toAnyObject(env, value, jpc);
                 }
                 break;
             }
@@ -215,7 +202,7 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProg
             break;
         }
         case NT_NUMBER: {
-            javaObjectRef = jni_number_to_jobject(*value.get<const QoreNumberNode>());
+            javaObjectRef = makeBigDecimal(env, *value.get<const QoreNumberNode>());
             break;
         }
         case NT_HASH: {
@@ -237,7 +224,6 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProg
                         throw XsinkException(xsink);
 
                     if (cls) {
-                        Env env;
                         LocalReference<jstring> clsName = env.callObjectMethod(cls,
                             Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
                         Env::GetStringUtfChars cname(env, clsName);
@@ -261,11 +247,10 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProg
             break;
         }
         case NT_BINARY: {
-            return makeByteArray(*value.get<BinaryNode>());
+            return makeByteArray(env, *value.get<BinaryNode>());
         }
         default: {
             if (cls) {
-                Env env;
                 LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetCanonicalName,
                     nullptr).as<jstring>();
                 Env::GetStringUtfChars cname(env, clsName);
@@ -275,12 +260,11 @@ jobject QoreToJava::toObject(const QoreValue& value, jclass cls, JniExternalProg
             }
 
             // convert primitive types to java objects if possible
-            return toAnyObject(value, jpc);
+            return toAnyObject(env, value, jpc);
         }
     }
 
     if (cls) {
-        Env env;
         if (!env.isInstanceOf(javaObjectRef, cls)) {
             LocalReference<jstring> clsName =
                 env.callObjectMethod(cls, Globals::methodClassGetCanonicalName, nullptr).as<jstring>();
@@ -330,7 +314,7 @@ jobject QoreToJava::makeMap(const QoreHashNode& h, jclass cls, JniExternalProgra
     while (i.next()) {
         LocalReference<jstring> key = env.newString(i.getKey());
         QoreValue v(i.get());
-        LocalReference<jobject> value = toAnyObject(v, jpc);
+        LocalReference<jobject> value = toAnyObject(env, v, jpc);
 
         std::vector<jvalue> jargs(2);
         jargs[0].l = key;
@@ -342,13 +326,21 @@ jobject QoreToJava::makeMap(const QoreHashNode& h, jclass cls, JniExternalProgra
     return hm.release();
 }
 
-jbyteArray QoreToJava::makeByteArray(const BinaryNode& b) {
-    Env env;
+jbyteArray QoreToJava::makeByteArray(Env& env, const BinaryNode& b) {
     LocalReference<jbyteArray> array = env.newByteArray(b.size()).as<jbyteArray>();
     for (jsize i = 0; i < static_cast<jsize>(b.size()); ++i) {
         env.setByteArrayElement(array, i, ((const char*)b.getPtr())[i]);
     }
 
     return array.release();
+}
+
+jobject QoreToJava::makeBigDecimal(Env& env, const QoreNumberNode& num) {
+    QoreString str;
+    num.toString(str);
+    LocalReference<jstring> num_str = env.newString(str.c_str());
+    std::vector<jvalue> jargs(1);
+    jargs[0].l = num_str;
+    return env.newObject(Globals::classBigDecimal, Globals::ctorBigDecimal, &jargs[0]).release();
 }
 }

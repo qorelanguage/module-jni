@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -84,13 +84,15 @@ public:
         return static_cast<jshort>(value.getAsBigInt());
     }
 
-    static jobject toObject(const QoreValue& value, jclass cls, JniExternalProgramData* jpc = nullptr);
+    static jobject toObject(Env& env, const QoreValue& value, jclass cls, JniExternalProgramData* jpc = nullptr);
 
-    static jobject toAnyObject(const QoreValue& value, JniExternalProgramData* jpc = nullptr);
+    static jobject toAnyObject(Env& env, const QoreValue& value, JniExternalProgramData* jpc = nullptr);
 
     static jobject makeMap(const QoreHashNode& h, jclass cls, JniExternalProgramData* jpc = nullptr);
 
-    static jbyteArray makeByteArray(const BinaryNode& b);
+    static jbyteArray makeByteArray(Env& env, const BinaryNode& b);
+
+    static jobject makeBigDecimal(Env& env, const QoreNumberNode& n);
 
     static void wrapException(ExceptionSink& src) {
         Env env;

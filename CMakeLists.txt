@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 2.8.13)
 
+set(module_name "jni")
+
 project(qore-jni-module)
 
 set (VERSION_MAJOR 2)
-set (VERSION_MINOR 0)
-set (VERSION_PATCH 11)
+set (VERSION_MINOR 1)
+set (VERSION_PATCH 0)
 
 set (BYTE_BUDDY_JAR ${CMAKE_SOURCE_DIR}/byte-buddy/byte-buddy-1.10.20.jar)
 
@@ -15,7 +17,7 @@ if (POLICY CMP0042)
     cmake_policy(SET CMP0042 NEW)
 endif()
 
-find_package(Qore 1.0 REQUIRED)
+find_package(Qore 1.14 REQUIRED)
 find_package(JNI REQUIRED)
 find_package(Java REQUIRED)
 if (${Java_VERSION_MAJOR} LESS 11)
@@ -38,9 +40,6 @@ endif()
 SET(_qore_jni_sentinel ${CMAKE_CURRENT_BINARY_DIR}/qore-jni.sentinel)
 SET(_qore_jni_compiler_sentinel ${CMAKE_CURRENT_BINARY_DIR}/qore-jni-compiler.sentinel)
 
-# generated targets
-add_custom_target(inc-outfiles)
-
 # adds a make rule for java -> class generation annd class -> inc generation
 MACRO(GENERATE_JAVA _input)
     GET_FILENAME_COMPONENT(_base ${_input} NAME_WE)
@@ -51,15 +50,11 @@ MACRO(GENERATE_JAVA _input)
     SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${_base}.inc)
     add_custom_command(
         OUTPUT ${_inc_outfile}
-        COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_class_file} ${_inc_outfile}
-        DEPENDS jni-sentinel ${_class_file}
+        COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${CMAKE_CURRENT_BINARY_DIR}/${_class_file} ${_inc_outfile}
+        DEPENDS jni-sentinel ${CMAKE_CURRENT_BINARY_DIR}/${_class_file}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
-    add_custom_target(inc-outfile-${_base}
-        DEPENDS jni-sentinel ${_inc_outfile} ${CMAKE_SOURCE_DIR}/src/java/${_input}
-    )
-    add_dependencies(inc-outfiles inc-outfile-${_base})
 
     SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_class_file})
     SET(JAVA_JAR_SRC ${JAVA_JAR_SRC} ${CMAKE_SOURCE_DIR}/src/java/${_input})
@@ -72,16 +67,10 @@ MACRO(GENERATE_JAVA _input)
     foreach (it ${ARGN})
         #message(STATUS "IT: ${it}")
         if (${it} MATCHES "^[0-9]+$")
-            SET(_inc_infile ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${_base}$${it}.class)
-            SET(_inc_relinfile ${_pkgdir}/${_base}$${it}.class)
-            # we need cmake to replace the "$" signs in inner class filenames with "$$" so they will be valid Makefile targets
-            SET(_inc_infile_target ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${_base}$$${it}.class)
+            SET(_inc_infile ${_pkgdir}/${_base}$${it}.class)
             SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${_base}_${it}.inc)
         else()
-            SET(_inc_infile ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${it}.class)
-            SET(_inc_relinfile ${_pkgdir}/${it}.class)
-            # we need cmake to replace the "$" signs in inner class filenames with "$$" so they will be valid Makefile targets
-            SET(_inc_infile_target ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${it}.class)
+            SET(_inc_infile ${_pkgdir}/${it}.class)
             SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${it}.inc)
         endif()
         add_custom_command(
@@ -91,12 +80,8 @@ MACRO(GENERATE_JAVA _input)
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             VERBATIM
         )
-        add_custom_target(inc-outfile-${_base}-${it}
-            DEPENDS jni-sentinel
-        )
-        add_dependencies(inc-outfiles inc-outfile-${_base}-${it})
 
-        SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_inc_relinfile})
+        SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_inc_infile})
         SET(QORE_INC_FILES ${QORE_INC_FILES} ${_inc_outfile})
     endforeach()
 ENDMACRO(GENERATE_JAVA)
@@ -111,7 +96,7 @@ MACRO(GENERATE_JAR _input _output)
     add_custom_command(
         OUTPUT ${_inc_outfile}
         COMMAND ${CMAKE_SOURCE_DIR}/make-inc ${_input} ${_inc_outfile}
-        DEPENDS jni-sentinel jni-compiler-sentinel
+        DEPENDS jni-sentinel jni-compiler-sentinel ${_input}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
@@ -119,7 +104,7 @@ MACRO(GENERATE_JAR _input _output)
     SET(QORE_INC_FILES ${QORE_INC_FILES} ${_inc_outfile})
 ENDMACRO(GENERATE_JAR)
 
-# adds a make rule for java -> class generation and class -> inc generation
+# adds a make rule for java -> class generation
 MACRO(ADD_JAVA_SOURCE _input)
     GET_FILENAME_COMPONENT(_base ${_input} NAME_WE)
     GET_FILENAME_COMPONENT(_pkgdir ${_input} PATH)
@@ -132,8 +117,8 @@ MACRO(ADD_JAVA_SOURCE _input)
 
     # generate rules for inner classes (if any)
     foreach (it ${ARGN})
-        SET(_inc_relinfile ${_pkgdir}/${_base}$${it}.class)
-        SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_inc_relinfile})
+        SET(_inc_infile ${_pkgdir}/${_base}$${it}.class)
+        SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_inc_infile})
     endforeach()
 ENDMACRO(ADD_JAVA_SOURCE)
 
@@ -142,7 +127,6 @@ MACRO(ADD_JAR_TARGETS)
         file(GLOB _files "${CMAKE_CURRENT_BINARY_DIR}/${it}/*.class")
         foreach (_file ${_files})
             string(REPLACE "${CMAKE_CURRENT_BINARY_DIR}/" "" _class_file ${_file})
-            set(_file ${_file} )
             SET(JAVA_JAR_CLASSES ${JAVA_JAR_CLASSES} ${_class_file})
             #message(STATUS "ADDED ${_class_file}")
         endforeach()
@@ -175,15 +159,9 @@ MACRO(ADD_JAVA_COMPILER_SOURCE _input)
     foreach (it ${ARGN})
         if (${it} MATCHES "^[0-9]+$")
             SET(_inc_infile ${_pkgdir}/${_base}$${it}.class)
-            SET(_inc_relinfile ${_pkgdir}/${_base}$${it}.class)
-            # we need cmake to replace the "$" signs in inner class filenames with "$$" so they will be valid Makefile targets
-            SET(_inc_infile_target ${CMAKE_CURRENT_BINARY_DIR}/${_pkgdir}/${_base}$$${it}.class)
             SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${_base}_${it}.inc)
         else()
             SET(_inc_infile ${_pkgdir}/${it}.class)
-            SET(_inc_relinfile ${_pkgdir}/${it}.class)
-            # we need cmake to replace the "$" signs in inner class filenames with "$$" so they will be valid Makefile targets
-            SET(_inc_infile_target ${_pkgdir}/${it}.class)
             SET(_inc_outfile ${CMAKE_CURRENT_BINARY_DIR}/JavaClass${it}.inc)
         endif()
 
@@ -194,7 +172,7 @@ MACRO(ADD_JAVA_COMPILER_SOURCE _input)
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             VERBATIM
         )
-        SET(JAVA_JAR_COMPILER_CLASSES ${JAVA_JAR_COMPILER_CLASSES} ${_inc_relinfile})
+        SET(JAVA_JAR_COMPILER_CLASSES ${JAVA_JAR_COMPILER_CLASSES} ${_inc_infile})
         SET(QORE_INC_FILES ${QORE_INC_FILES} ${_inc_outfile})
     endforeach()
 ENDMACRO(ADD_JAVA_COMPILER_SOURCE)
@@ -293,37 +271,47 @@ add_java_compiler_source(org/qore/jni/compiler/CompilerOutput.java)
 
 set(CMAKE_JAVA_COMPILE_FLAGS -Xlint:unchecked -Xlint:deprecation -Xdiags:verbose)
 
-add_custom_command(
-    OUTPUT ${_qore_jni_sentinel} ${JAVA_JAR_CLASSES}
-    COMMAND ${Java_JAVAC_EXECUTABLE} ${CMAKE_JAVA_COMPILE_FLAGS} -d ${CMAKE_CURRENT_BINARY_DIR} ${JAVA_JAR_SRC} -cp ${BYTE_BUDDY_JAR}
-    COMMAND ${CMAKE_COMMAND} -E touch ${_qore_jni_sentinel}
-    DEPENDS ${JAVA_JAR_SRC}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    VERBATIM
-)
 add_custom_target(jni-sentinel
     DEPENDS ${JAVA_JAR_SRC} ${_qore_jni_sentinel}
 )
 
 add_custom_command(
+    OUTPUT ${JAVA_JAR_CLASSES} ${_qore_jni_sentinel}
+    COMMAND ${Java_JAVAC_EXECUTABLE} ${CMAKE_JAVA_COMPILE_FLAGS} -d ${CMAKE_CURRENT_BINARY_DIR} ${JAVA_JAR_SRC}
+        -cp ${BYTE_BUDDY_JAR}
+    COMMAND ${CMAKE_COMMAND} -E touch ${_qore_jni_sentinel}
+    DEPENDS ${JAVA_JAR_SRC}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+)
+
+add_custom_command(
     OUTPUT ${_qore_jni_compiler_sentinel} ${JAVA_JAR_COMPILER_CLASSES}
-    COMMAND ${Java_JAVAC_EXECUTABLE} ${CMAKE_JAVA_COMPILE_FLAGS} -d ${CMAKE_CURRENT_BINARY_DIR} ${JAVA_JAR_COMPILER_SRC} -cp qore-jni.jar
+    COMMAND ${Java_JAVAC_EXECUTABLE} ${CMAKE_JAVA_COMPILE_FLAGS} -d ${CMAKE_CURRENT_BINARY_DIR}
+        ${JAVA_JAR_COMPILER_SRC} -cp qore-jni.jar
     COMMAND ${CMAKE_COMMAND} -E touch ${_qore_jni_compiler_sentinel}
     DEPENDS ${JAVA_JAR_COMPILER_SRC} qore-jni.jar
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
 )
+
 add_custom_target(jni-compiler-sentinel
     DEPENDS ${JAVA_JAR_COMPILER_SRC} qore-jni.jar ${_qore_jni_compiler_sentinel}
 )
 
-add_jar_targets(org/qore/lang org/qore/lang/sqlutil org/qore/lang/mapper org/qore/lang/tablemapper org/qore/jni/QoreJavaDynamicApi.java)
+add_jar_targets(
+    org/qore/lang
+    org/qore/lang/sqlutil
+    org/qore/lang/mapper
+    org/qore/lang/tablemapper
+    org/qore/jni/QoreJavaDynamicApi.java
+)
 
 # generate jar manually
 add_custom_command(
     OUTPUT qore-jni-qore.jar
     COMMAND ${Java_JAR_EXECUTABLE} cf qore-jni-qore.jar ${JAVA_JAR_CLASSES}
-    DEPENDS jni-sentinel
+    DEPENDS ${JAVA_JAR_CLASSES} jni-sentinel
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
 )
@@ -331,8 +319,9 @@ add_custom_command(
 # combine jars into final jar
 add_custom_command(
     OUTPUT qore-jni.jar
-    COMMAND ${CMAKE_SOURCE_DIR}/make-jar -o qore-jni.jar ${BYTE_BUDDY_JAR} ${CMAKE_CURRENT_BINARY_DIR}/qore-jni-qore.jar
-    DEPENDS ${BYTE_BUDDY_JAR} qore-jni-qore.jar
+    COMMAND ${CMAKE_SOURCE_DIR}/make-jar -o qore-jni.jar ${BYTE_BUDDY_JAR}
+        ${CMAKE_CURRENT_BINARY_DIR}/qore-jni-qore.jar
+    DEPENDS ${BYTE_BUDDY_JAR} ${CMAKE_CURRENT_BINARY_DIR}/qore-jni-qore.jar
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
 )
@@ -385,8 +374,6 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/qore-jni-test.jar ${CMAKE_SOURCE_DIR}/test
 )
 
-#get_target_property(_classDir qore-jni CLASSDIR)
-
 set(QPP_SRC
     src/ql_jni.qpp
     src/QC_JavaArray.qpp
@@ -411,6 +398,10 @@ set(CPP_SRC
     src/QoreToJava.cpp
     src/QoreJniFunctionalInterface.cpp
     src/JniQoreClass.cpp
+    src/QoreJdbcDriver.cpp
+    src/QoreJdbcConnection.cpp
+    src/QoreJdbcStatement.cpp
+    src/QoreJdbcPreparedStatement.cpp
 )
 
 qore_wrap_qpp_value(QPP_SOURCES ${QPP_SRC})
@@ -420,8 +411,6 @@ foreach (it ${QPP_SOURCES})
     set(QPP_DOX ${QPP_DOX} ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.dox.h)
 endforeach()
 
-set(module_name "jni")
-
 set(QORE_DOX_TMPL_SRC
     docs/mainpage.dox.tmpl
 )
@@ -430,18 +419,17 @@ add_library(${module_name} MODULE ${CPP_SRC} ${QPP_SOURCES})
 include_directories(${JNI_INCLUDE_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/src)
 target_include_directories(${module_name} PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
-add_dependencies(${module_name} inc-outfiles)
 
 # add include file dependencies to Globals.cpp
 set_source_files_properties(${CMAKE_SOURCE_DIR}/src/Globals.cpp
     PROPERTIES OBJECT_DEPENDS "${QORE_INC_FILES}"
 )
-
-add_custom_target(QORE_INC_FILES DEPENDS ${QORE_INC_SRC})
-add_dependencies(${module_name} QORE_INC_FILES)
+# add include file dependency to QoreJniClassMap.cpp
+set_source_files_properties(${CMAKE_SOURCE_DIR}/src/QoreJniClassMap.cpp
+    PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/JavaClassQoreJavaDynamicApi.inc"
+)
 
 target_link_libraries(${module_name} ${JNI_LIBRARIES} ${BZIP2_LIBRARIES} ${QORE_LIBRARY})
-#target_link_libraries(${module_name} ${JNI_LIBRARIES})
 
 set(MODULE_DOX_INPUT ${CMAKE_CURRENT_BINARY_DIR}/mainpage.dox ${JAVA_JAR_SRC_STR} ${QPP_DOX})
 string(REPLACE ";" " " MODULE_DOX_INPUT "${MODULE_DOX_INPUT}")

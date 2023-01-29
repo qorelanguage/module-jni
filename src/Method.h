@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -206,7 +206,7 @@ protected:
         @param arg_offset the offset in args where to start converting arguments
         @param output_offset the offset in the return value where arguments start
      */
-    DLLLOCAL std::vector<jvalue> convertArgs(const QoreListNode* args, size_t arg_offset = 0,
+    DLLLOCAL std::vector<jvalue> convertArgs(Env& env, const QoreListNode* args, size_t arg_offset = 0,
             JniExternalProgramData* jpc = nullptr) const;
 
     //! converts Qore args to Java args for a method call
@@ -214,8 +214,8 @@ protected:
         @param arg_offset the offset in args where to start converting arguments
         @param array_offset the offset in the return value where arguments start
      */
-    DLLLOCAL LocalReference<jobjectArray> convertArgsToArray(const QoreListNode* args, size_t arg_offset = 0,
-            size_t array_offset = 0, JniExternalProgramData* jpc = nullptr) const;
+    DLLLOCAL LocalReference<jobjectArray> convertArgsToArray(Env& env, const QoreListNode* args,
+            size_t arg_offset = 0, size_t array_offset = 0, JniExternalProgramData* jpc = nullptr) const;
 
     DLLLOCAL void init(Env &env);
 

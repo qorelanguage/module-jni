@@ -4,7 +4,7 @@
 
     Qore Programming Language JNI Module
 
-    Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -98,9 +98,9 @@ QoreValue JniQoreClass::memberGate(const QoreMethod& meth, void* m, QoreObject* 
 
         // get thread-local compat types flag before setting program ctx from method
         bool compat_types;
+        QoreProgram* current_pgm = ::getProgram();
         {
-            QoreProgram* pgm = ::getProgram();
-            JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+            JniExternalProgramData* jpc = static_cast<JniExternalProgramData*>(current_pgm->getExternalData("jni"));
             if (jpc) {
                 compat_types = jpc->getCompatTypes();
             } else {
@@ -112,7 +112,9 @@ QoreValue JniQoreClass::memberGate(const QoreMethod& meth, void* m, QoreObject* 
         jargs[1].l = jobj;
 
         QoreProgram* pgm = meth.getClass()->getProgram();
-        assert(pgm);
+        if (!pgm) {
+            pgm = current_pgm;
+        }
         QoreExternalProgramContextHelper qepch(xsink, pgm);
         if (*xsink) {
             return QoreValue();
@@ -122,7 +124,6 @@ QoreValue JniQoreClass::memberGate(const QoreMethod& meth, void* m, QoreObject* 
 
         return JavaToQore::convertToQore(env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getFieldId(),
             &jargs[0]), pgm, compat_types);
-        //return JavaToQore::convertToQore(env.callObjectMethod(field, Globals::methodFieldGet, &jargs[0]));
     } catch (jni::JavaException& e) {
         e.convert(xsink);
         return QoreValue();

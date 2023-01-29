@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -102,7 +102,7 @@ void BaseField::set(jobject object, const QoreValue& value, JniExternalProgramDa
         case Type::Reference:
         default:
             assert(type == Type::Reference);
-            env.setObjectField(object, id, QoreToJava::toObject(value, typeClass, jpc));
+            env.setObjectField(object, id, QoreToJava::toObject(env, value, typeClass, jpc));
             break;
     }
 }
@@ -163,7 +163,7 @@ void BaseField::setStatic(const QoreValue &value, JniExternalProgramData* jpc) {
         case Type::Reference:
         default:
             assert(type == Type::Reference);
-            env.setStaticObjectField(cls->getJavaObject(), id, QoreToJava::toObject(value, typeClass, jpc));
+            env.setStaticObjectField(cls->getJavaObject(), id, QoreToJava::toObject(env, value, typeClass, jpc));
             break;
     }
 }
