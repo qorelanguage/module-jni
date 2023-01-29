@@ -41,7 +41,7 @@ public class Main inherits QUnit::Test {
         assertEq("Oracle", ds.getDriverRealName());
 
         # create table
-        ds.exec("create table jdbc_test (input_1 number(14), input_2 varchar2(20))");
+        ds.exec("create table jdbc_test (input_1 number(1), input_2 varchar2(20))");
         on_error ds.rollback();
         on_success ds.commit();
         on_exit ds.exec("drop table jdbc_test");
@@ -62,7 +62,7 @@ public class Main inherits QUnit::Test {
         assertEq("PostgreSQL", ds.getDriverRealName());
 
         # create table
-        ds.exec("create table jdbc_test (input_1 numeric(14), input_2 varchar(20))");
+        ds.exec("create table jdbc_test (input_1 numeric(1), input_2 varchar(20))");
         on_error ds.rollback();
         on_success ds.commit();
         on_exit ds.exec("drop table jdbc_test");
@@ -83,7 +83,7 @@ public class Main inherits QUnit::Test {
         assertRegex("^Firebird", ds.getDriverRealName());
 
         # create table
-        ds.exec("create table jdbc_test (input_1 numeric(14), input_2 varchar(20))");
+        ds.exec("create table jdbc_test (input_1 numeric(1), input_2 varchar(20))");
         ds.commit();
         on_error ds.rollback();
         on_success ds.commit();

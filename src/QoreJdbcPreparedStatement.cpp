@@ -53,6 +53,7 @@ int QoreJdbcPreparedStatement::prepare(const QoreString& qstr, const QoreListNod
 
         // Save bind arguments
         assignBindArgs(xsink, args ? args->listRefSelf() : nullptr);
+
         return 0;
     } catch (JavaException& e) {
         e.convert(xsink);
@@ -143,10 +144,10 @@ bool QoreJdbcPreparedStatement::next(ExceptionSink* xsink) {
 int QoreJdbcPreparedStatement::clear(ExceptionSink* xsink) {
     try {
         //printd(5, "QoreJdbcPreparedStatement::clear() %p\n", this);
+        assignBindArgs(xsink, nullptr);
+        sql.clear();
         Env env;
         reset(env);
-        sql.clear();
-        assignBindArgs(xsink, nullptr);
         return *xsink ? -1 : 0;
     } catch (JavaException& e) {
         e.convert(xsink);

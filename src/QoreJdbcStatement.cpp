@@ -464,7 +464,7 @@ int QoreJdbcStatement::parse(QoreString* str, const QoreListNode* args, Exceptio
     QoreString tmp;
     int index = 0;
     SQLCommentType comment = ESCT_NONE;
-    params = new QoreListNode;
+    params = nullptr;
     bind_size = 0;
 
     while (*p) {
@@ -537,9 +537,10 @@ int QoreJdbcStatement::parse(QoreString* str, const QoreListNode* args, Exceptio
                 str->replace(offset, 2, "?");
                 p = str->c_str() + offset + 1;
                 ++bind_size;
-                if (v) {
-                    params->push(v.refSelf(), xsink);
+                if (!params) {
+                    params = new QoreListNode(autoTypeInfo);
                 }
+                params->push(v.refSelf(), xsink);
                 continue;
             }
 
