@@ -21,8 +21,8 @@ public class Main inherits QUnit::Test {
 
     constructor() : Test("jdbc test", "1.0", \ARGV, MyOpts) {
         addTestCase("pgsqlTest", \pgsqlTest());
-        #addTestCase("oracleTest", \oracleTest());
-        #addTestCase("firebirdTest", \firebirdTest());
+        addTestCase("oracleTest", \oracleTest());
+        addTestCase("firebirdTest", \firebirdTest());
 
         # execute tests and set program return value
         set_return_value(main());
@@ -40,28 +40,13 @@ public class Main inherits QUnit::Test {
         assertTrue(exists v);
         assertEq("Oracle", ds.getDriverRealName());
 
-        string sql = "select * from table_1 where input_1 = 1";
-
-        hash<auto> q = ds.select(sql);
-        printf("q: %y\n", q);
-
-        q = ds.selectRow(sql);
-        printf("q: %y\n", q);
-
-        printf("%N\n", ds.selectRows(sql));
-
-        ds.exec("insert into table_1 (input_1, input_2) values (%v, %v)", 3, "value 3");
+        # create table
+        ds.exec("create table jdbc_test (input_1 number(14), input_2 varchar2(20))");
         on_error ds.rollback();
         on_success ds.commit();
-        on_exit ds.exec("delete from table_1 where input_1 = %v", 3);
+        on_exit ds.exec("drop table jdbc_test");
 
-        q = ds.selectRow("select * from table_1 where input_1 = 2");
-        printf("q: %y\n", q);
-
-        int rows = ds.exec("insert into table_1 (input_1, input_2) values (%v, %v)", (4, 5), ("value 4", "value 5"));
-        printf("rows: %d\n", rows);
-
-        on_exit ds.exec("delete from table_1 where input_1 in (%v, %v)", 4, 5);
+        doTestIntern(ds);
     }
 
     private pgsqlTest() {
@@ -76,28 +61,13 @@ public class Main inherits QUnit::Test {
         assertTrue(exists v);
         assertEq("PostgreSQL", ds.getDriverRealName());
 
-        string sql = "select * from table_1 where input_1 = 1";
-
-        hash<auto> q = ds.select(sql);
-        printf("q: %y\n", q);
-
-        q = ds.selectRow(sql);
-        printf("q: %y\n", q);
-
-        printf("%N\n", ds.selectRows(sql));
-
-        ds.exec("insert into table_1 (input_1, input_2) values (%v, %v)", 3, "value 3");
+        # create table
+        ds.exec("create table jdbc_test (input_1 numeric(14), input_2 varchar(20))");
         on_error ds.rollback();
         on_success ds.commit();
-        on_exit ds.exec("delete from table_1 where input_1 = %v", 3);
+        on_exit ds.exec("drop table jdbc_test");
 
-        q = ds.selectRow("select * from table_1 where input_1 = 2");
-        printf("q: %y\n", q);
-
-        int rows = ds.exec("insert into table_1 (input_1, input_2) values (%v, %v)", (4, 5), ("value 4", "value 5"));
-        printf("rows: %d\n", rows);
-
-        on_exit ds.exec("delete from table_1 where input_1 in (%v, %v)", 4, 5);
+        doTestIntern(ds);
     }
 
     private firebirdTest() {
@@ -112,15 +82,39 @@ public class Main inherits QUnit::Test {
         assertTrue(exists v);
         assertRegex("^Firebird", ds.getDriverRealName());
 
-        string sql = "select * from test";
+        # create table
+        ds.exec("create table jdbc_test (input_1 numeric(14), input_2 varchar(20))");
+        ds.commit();
+        on_error ds.rollback();
+        on_success ds.commit();
+        on_exit ds.exec("drop table jdbc_test");
 
-        hash<auto> q = ds.select(sql);
-        printf("q: %y\n", q);
+        doTestIntern(ds);
+    }
 
-        q = ds.selectRow(sql);
-        printf("q: %y\n", q);
+    private doTestIntern(AbstractDatasource ds) {
+        # insert a row with all null values
+        int rows_affected = ds.exec("insert into jdbc_test (input_1, input_2) values (%v, %v)");
+        assertEq(1, rows_affected);
 
-        printf("%N\n", ds.selectRows(sql));
+        hash<auto> q = ds.selectRow("select * from jdbc_test");
+        assertEq({"input_1": NULL, "input_2": NULL}, q);
+
+        rows_affected = ds.exec("delete from jdbc_test");
+        assertEq(1, rows_affected);
+
+        rows_affected = ds.exec("insert into jdbc_test (input_1, input_2) values (%v, %v)", 1, "test");
+        q = ds.selectRow("select * from jdbc_test");
+        assertEq({"input_1": 1, "input_2": "test"}, q);
+
+        q = ds.select("select * from jdbc_test");
+        assertEq({"input_1": (1,), "input_2": ("test",)}, q);
+
+        list<auto> rows = ds.selectRows("select * from jdbc_test");
+        assertEq(({"input_1": 1, "input_2": "test"},), rows);
+
+        rows_affected = ds.exec("delete from jdbc_test where input_1 = %v", 1);
+        assertEq(1, rows_affected);
     }
 
     private usageIntern() {

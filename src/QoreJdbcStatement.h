@@ -44,9 +44,10 @@ struct QoreJdbcColumn {
     //! Column name in the output query
     std::string qname;
 
-    //! Strip string values retrieved
+    //! Strip trailing spaces from string values retrieved (CHAR columns)
     bool strip = false;
 
+    //! Constructor
     DLLLOCAL QoreJdbcColumn(std::string&& name, std::string&& qname, jint ctype);
 };
 
@@ -126,7 +127,7 @@ protected:
     //! The size of any array bind
     size_t array_bind_size = 0;
 
-    //! Parameters tp be used in the statement
+    //! Parameters to be used in the statement
     ReferenceHolder<QoreListNode> params;
 
     //! Column metadata from result sets

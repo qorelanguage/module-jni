@@ -587,6 +587,12 @@ int QoreJdbcStatement::bindIntern(Env& env, const QoreListNode* args, ExceptionS
             return -1;
         }
     }
+    // bind excess positions with NULL
+    for (unsigned i = count; i < bind_size; ++i) {
+        if (bindParamSingleValue(env, i + 1, QoreValue(), xsink)) {
+            return -1;
+        }
+    }
 
     return 0;
 }
