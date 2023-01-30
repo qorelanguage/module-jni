@@ -624,7 +624,9 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClass(Env& env, const char* name, Q
         jpc = pgm
             ? static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"))
             : jni_get_context(pgm);
-        assert(jpc);
+        if (!jpc) {
+            return nullptr;
+        }
     }
 
     // first try to load the class if possible
