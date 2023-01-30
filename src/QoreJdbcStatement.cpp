@@ -582,6 +582,10 @@ size_t QoreJdbcStatement::findArraySizeOfArgs(const QoreListNode* args) const {
 
 int QoreJdbcStatement::bindIntern(Env& env, const QoreListNode* args, ExceptionSink* xsink) {
     size_t count = args ? args->size() : 0;
+    // ignore excess arguments
+    if (count > bind_size) {
+        count = bind_size;
+    }
     for (unsigned int i = 0; i < count; ++i) {
         QoreValue arg = args->retrieveEntry(i);
         if (bindParamSingleValue(env, i + 1, arg, xsink)) {
