@@ -581,12 +581,19 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name, co
     // find/create parent namespace in default / master Jni namespace first
     const char* sn;
     QoreNamespace* ns = jni_find_create_namespace(*jpc->getJniNamespace(), name.c_str(), sn);
-    if (ic_idx != -1) {
+    // we need to see if a builtin native Java class has already been imported without a lookup entry
+    // or there is not already a Qore class in the namespace with the same name
+    {
         // get last '.'
         int dot = name.rfind('.');
 
         // check for name conflict
-        while (ns->findLocalClass(sn)) {
+        while ((qc = static_cast<JniQoreClass*>(ns->findLocalClass(sn)))) {
+            // make sure the class is not already a representation of the new class
+            if (qc->getJavaName() == name.c_str()) {
+                return qc;
+            }
+
             // add an underscore
             name.insertch('_', ic_idx + 2, 1);
             sn = name.c_str() + (dot != -1 ? dot + 1 : 0);
