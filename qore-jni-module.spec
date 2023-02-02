@@ -20,7 +20,7 @@ BuildRequires:  cmake >= 3.5
 BuildRequires:  qore-devel >= 1.14
 BuildRequires:  qore-stdlib >= 1.14
 BuildRequires:  qore >= 1.14
-BuildRequires:  java-11-openjdk-devel
+BuildRequires:  java-17-openjdk-devel
 BuildRequires:  unzip
 BuildRequires:  doxygen
 
@@ -37,8 +37,8 @@ BuildRequires:  bzip2-devel
 Requires:       %{_bindir}/env
 Requires:       qore >= 1.0
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-Requires:       java-11-openjdk-devel
-Requires:       java-11-openjdk
+Requires:       java-17-openjdk-devel
+Requires:       java-17-openjdk
 %if 0%{?el8}
 # disable automatic library dependencies due to broken java 11 lib handling in centos 8
 AutoReqProv: no
@@ -106,4 +106,3 @@ This RPM provides API documentation, test and example programs
 
 * Thu Jan 27 2022 David Nichols <david@qore.org>
 - initial spec file for 2.0.6 release
-
