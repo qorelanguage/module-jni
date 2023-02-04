@@ -789,9 +789,9 @@ set_save_object_callback(callback);
     The \c url option allows for \c jdbc URLs to be used that contain special characters like \c @ and \c : that would
     cause the datasource to fail to parse when used as a database name.
 
-    @par db Option Example
+    @par url Option Example
     @verbatim
-    Datasource ds("jdbc:user/pass@ignored{db=oracle:thin:@hostname:1521:dbserver,classpath=/usr/lib/oracle/21/client64/lib/ojdbc8.jar}");
+    Datasource ds("jdbc:user/pass@ignored{url=oracle:thin:@hostname:1521:dbserver,classpath=/usr/lib/oracle/21/client64/lib/ojdbc8.jar}");
     @endverbatim
 
     @note the initial \c jdbc: in the url option is optional; if missing, then it is added automatically by the %Qore
