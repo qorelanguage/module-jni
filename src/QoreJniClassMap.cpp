@@ -2670,11 +2670,15 @@ JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& par
 }
 
 JniExternalProgramData::~JniExternalProgramData() {
+    // NOTE: any exception thrown here will be printed out to stderr
+    ExceptionSink xsink;
     try {
         Env env;
         env.callVoidMethod(classLoader, Globals::methodQoreURLClassLoaderClearProgramPtr, nullptr);
     } catch (UnableToAttachException& e) {
         // ignore error - raised when destructions is run after the JVM has shut down
+    } catch (jni::Exception& e) {
+        e.convert(&xsink);
     }
 
     // delete fake "$" classes
@@ -2867,5 +2871,23 @@ bool JniExternalProgramData::isInjectedModule(const char* mod) const {
     printd(5, "JniExternalProgramData::isInjectedModule() this: %p find '%s': %d (size: %d)\n", this, mod, rv,
         (int)injected_module_set.size());
     return rv;
+}
+
+#include <exception>
+#include <stdexcept>
+
+void JniExternalProgramData::doDeref() {
+    ExceptionSink xsink;
+    if (save_object_callback) {
+        save_object_callback->deref(&xsink);
+    }
+    try {
+        delete this;
+    } catch (jni::Exception& e) {
+        e.convert(&xsink);
+    }
+    if (xsink) {
+        throw new QoreXSinkException(xsink);
+    }
 }
 }

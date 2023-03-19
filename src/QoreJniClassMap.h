@@ -352,12 +352,7 @@ public:
         return new JniExternalProgramData(*this, env, pgm);
     }
 
-    DLLLOCAL virtual void doDeref() {
-        if (save_object_callback) {
-            save_object_callback->deref(nullptr);
-        }
-        delete this;
-    }
+    DLLLOCAL virtual void doDeref();
 
     DLLLOCAL void clearCompilationCache() {
         //printd(5, "JniExternalProgramData::clearCompilationCache() clearing %d entries\n", (int)q2jmap.size());
