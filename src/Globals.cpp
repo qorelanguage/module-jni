@@ -73,6 +73,7 @@ jmethodID Globals::methodObjectClone;
 jmethodID Globals::methodObjectGetClass;
 jmethodID Globals::methodObjectEquals;
 jmethodID Globals::methodObjectHashCode;
+jmethodID Globals::methodObjectToString;
 
 GlobalReference<jclass> Globals::classClass;
 jmethodID Globals::methodClassIsArray;
@@ -2592,6 +2593,7 @@ bool Globals::init() {
     methodObjectGetClass = env.getMethod(classObject, "getClass", "()Ljava/lang/Class;");
     methodObjectEquals = env.getMethod(classObject, "equals", "(Ljava/lang/Object;)Z");
     methodObjectHashCode = env.getMethod(classObject, "hashCode", "()I");
+    methodObjectToString = env.getMethod(classObject, "toString", "()Ljava/lang/String;");
 
     classString = env.findClass("java/lang/String").makeGlobal();
 

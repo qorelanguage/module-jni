@@ -456,6 +456,19 @@ QoreValue QoreJniClassMap::getValue(LocalReference<jobject>& obj, QoreProgram* p
     if (env.isSameObject(jc, Globals::classCharacter))
         return (int64)env.callCharMethod(obj, Globals::methodCharacterCharValue, nullptr);
 
+    // check for microsoft.sql.DateTimeOffset
+    {
+        LocalReference<jstring> clsName = env.callObjectMethod(jc, Globals::methodClassGetName,
+            nullptr).as<jstring>();
+        Env::GetStringUtfChars tname(env, clsName);
+        if (!strcmp(tname.c_str(), "microsoft.sql.DateTimeOffset")) {
+            LocalReference<jstring> date_str = env.callObjectMethod(obj,
+                Globals::methodObjectToString, nullptr).as<jstring>();
+            Env::GetStringUtfChars chars(env, date_str);
+            return QoreValue(new DateTimeNode(chars.c_str()));
+        }
+    }
+
     assert(pgm);
     return new QoreObject(qjcm.findCreateQoreClass(env, jc, pgm), pgm, new QoreJniPrivateData(obj));
 }

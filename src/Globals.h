@@ -79,6 +79,7 @@ public:
     DLLLOCAL static jmethodID methodObjectGetClass;                               // Class<?> Object.getClass()
     DLLLOCAL static jmethodID methodObjectEquals;                                 // boolean equals(Object)
     DLLLOCAL static jmethodID methodObjectHashCode;                               // int hashCode()
+    DLLLOCAL static jmethodID methodObjectToString;                               // String toString()
 
     DLLLOCAL static GlobalReference<jclass> classClass;                           // java.lang.Class
     DLLLOCAL static jmethodID methodClassIsArray;                                 // boolean Class.isArray()
