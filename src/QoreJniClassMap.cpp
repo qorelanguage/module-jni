@@ -2886,9 +2886,6 @@ bool JniExternalProgramData::isInjectedModule(const char* mod) const {
     return rv;
 }
 
-#include <exception>
-#include <stdexcept>
-
 void JniExternalProgramData::doDeref() {
     ExceptionSink xsink;
     if (save_object_callback) {
