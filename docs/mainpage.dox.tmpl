@@ -202,6 +202,16 @@ class QoreIteratorTest extends AbstractIterator {
     module to disable JIT, the following environment variable must be set to \c 1:
     - <tt>QORE_JNI_DISABLE_JIT=1</tt>
 
+    Heap sizes can be controlled by the following environment variables:
+    - \c QORE_JNI_MIN_HEAP_SIZE: will set the <tt><b>-Xms</b></tt> JVM initialization option for the minimum heap size
+    - \c QORE_JNI_MAX_HEAP_SIZE: will set the <tt><b>-Xmx</b></tt> JVM initialization option for the maximum heap size
+
+    For example:
+    @verbatim
+# to initialize the JVM with a minimum and maximum heap size of 20MB
+QORE_JNI_MIN_HEAP_SIZE=20m QORE_JNI_MAX_HEAP_SIZE=20m qore -l jni script.q
+    @endverbatim
+
     @section jni_use_java_in_qore Using Java APIs in Qore
 
     @subsection jniimport Importing Java APIs into Qore
@@ -457,8 +467,8 @@ class MyTest {
     @par Importing Functions Into Java
 
     %Qore and Python functions can be imported using the special <tt><b>$Functions</b></tt> class name; functions in a
-    %Qore namespace are imported automatically into a special class with this name in the corresponding dynamic Java
-    package.
+    %Qore namespace are imported automatically into a special class with this name as static methods in the
+    corresponding dynamic Java package.
 
     @par Importing Constants Into Java
 
@@ -798,6 +808,11 @@ set_save_object_callback(callback);
     jdbc driver when the internal URL string is passed to the internal Java JDBC call.
 
     @section jnireleasenotes jni Module Release Notes
+
+    @subsection jni_2_2_0 jni Module Version 2.2.0
+    - implemented support for specifying the minimum an maximum heap sizes for the JVM on initialization from
+      environment variables
+      (<a href="https://github.com/qorelanguage/qore/issues/4734">issue 4734</a>)
 
     @subsection jni_2_1_1 jni Module Version 2.1.1
     - fixed reading date/time values from MS SQL Server databases

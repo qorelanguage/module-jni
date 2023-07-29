@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@
 namespace jni {
 
 JavaVM* Jvm::vm = nullptr;
-thread_local JNIEnv *Jvm::env;
+thread_local JNIEnv* Jvm::env;
 
 QoreStringNode* Jvm::createVM() {
     assert(vm == nullptr);
@@ -46,6 +46,7 @@ QoreStringNode* Jvm::createVM() {
 
     size_t num_options = 1;
     bool disable_jit = false;
+    QoreString min_heap, max_heap;
     // check QORE_JNI_DISABLE_JIT environment variable
     {
         QoreString val;
@@ -55,6 +56,14 @@ QoreStringNode* Jvm::createVM() {
                 ++num_options;
                 //printd(5, "jni module: disabling JIT\n");
             }
+        }
+        if (!SystemEnvironment::get("QORE_JNI_MIN_HEAP_SIZE", min_heap)) {
+            ++num_options;
+            min_heap.prepend("-Xms");
+        }
+        if (!SystemEnvironment::get("QORE_JNI_MAX_HEAP_SIZE", max_heap)) {
+            ++num_options;
+            max_heap.prepend("-Xmx");
         }
     }
 #ifdef QORE_JNI_SUPPORT_CLASSPATH
@@ -70,6 +79,14 @@ QoreStringNode* Jvm::createVM() {
     if (disable_jit) {
         // disable JIT
         options[vm_args.nOptions++].optionString = (char*)"-Xint";
+    }
+    if (!min_heap.empty()) {
+        // set minimum heap size
+        options[vm_args.nOptions++].optionString = (char*)min_heap.c_str();
+    }
+    if (!max_heap.empty()) {
+        // set maximum heap size
+        options[vm_args.nOptions++].optionString = (char*)max_heap.c_str();
     }
 
 #ifdef QORE_JNI_SUPPORT_CLASSPATH
