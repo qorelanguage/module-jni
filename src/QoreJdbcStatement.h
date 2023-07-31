@@ -258,7 +258,7 @@ protected:
 class JavaExceptionRethrowHelper {
 public:
     DLLLOCAL JavaExceptionRethrowHelper() {
-        if (ex = env->ExceptionOccurred()) {
+        if ((ex = env->ExceptionOccurred())) {
             env->ExceptionClear();
         }
     }

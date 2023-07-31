@@ -1924,7 +1924,7 @@ static void JNICALL qore_object_finalize(JNIEnv*, jclass, jlong ptr) {
 static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperName) {
     LocalReference<jclass> wrapperClass = env.findClass(wrapperName);
     jfieldID typeFieldId = env.getStaticField(wrapperClass, "TYPE", "Ljava/lang/Class;");
-    return std::move(env.getStaticObjectField(wrapperClass, typeFieldId).as<jclass>().makeGlobal());
+    return env.getStaticObjectField(wrapperClass, typeFieldId).as<jclass>().makeGlobal();
 }
 
 #include "JavaClassQoreInvocationHandler.inc"
