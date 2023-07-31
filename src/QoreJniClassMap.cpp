@@ -1277,7 +1277,7 @@ jobject JniExternalProgramData::getJavaParamList(Env& env, jobject class_loader,
         unsigned& len, bool is_abstract) {
     const type_vec_t& params = v.getParamTypeList();
     len = params.size();
-    if (params.empty() && (is_abstract || !(v.getCodeFlags() & QCF_USES_EXTRA_ARGS))) {
+    if (params.empty() && (!(v.getCodeFlags() & QCF_USES_EXTRA_ARGS))) {
         return nullptr;
     }
 
@@ -1295,7 +1295,7 @@ jobject JniExternalProgramData::getJavaParamList(Env& env, jobject class_loader,
         jarg.l = ptype;
         env.callBooleanMethod(plist, Globals::methodArrayListAdd, &jarg);
     }
-    if (!is_abstract && v.getCodeFlags() & QCF_USES_EXTRA_ARGS) {
+    if (v.getCodeFlags() & QCF_USES_EXTRA_ARGS) {
         // add Object... as the final parameter
         jvalue jarg;
         LocalReference<jobject> jtype(get_type_def_from_class(env, (jclass)Globals::arrayClassObject));
@@ -1541,6 +1541,7 @@ int JniExternalProgramData::addNormalMethodVariant(Env& env, jobject class_loade
 
             printd(5, "JniExternalProgramData::addNormalMethodVariant() %s %s::%s(%s): adding (len: %d)\n",
                 qore_type_get_name(v.getReturnTypeInfo()), qcls.getName(), m.getName(), v.getSignatureText(), len);
+
             bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
                 Globals::methodJavaClassBuilderAddNormalMethod, &jargs[0]);
             printd(5, "JniExternalProgramData::addNormalMethodVariant() bb: %p\n", (jobject)bb);
