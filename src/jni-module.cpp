@@ -213,7 +213,7 @@ static QoreStringNode* jni_module_init() {
     {
         sig_vec_t new_sig_vec;
         for (int sig : sig_vec) {
-            QoreStringNode *err = qore_reassign_signal(sig, QORE_JNI_MODULE_NAME);
+            QoreStringNode* err = qore_reassign_signal(sig, QORE_JNI_MODULE_NAME);
             if (err) {
                 // ignore errors; already assigned to another module
                 err->deref();

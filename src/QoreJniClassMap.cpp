@@ -2632,8 +2632,16 @@ JniExternalProgramData::JniExternalProgramData(QoreNamespace* jni, QoreProgram* 
 
     assert(pgm);
 
-    // set up QoreURLClassLoader constructor args
-    {
+    printd(5, "JniExternalProgramData::JniExternalProgramData() new root Qore pgm, bootstrap: %d\n",
+        Globals::bootstrap);
+
+    static bool once = false;
+
+    if (!once && Globals::bootstrap) {
+        once = true;
+        classLoader = GlobalReference<jobject>((jobject)Globals::syscl);
+    } else {
+        // set up QoreURLClassLoader constructor args
         std::vector<jvalue> jargs(2);
         jargs[0].j = reinterpret_cast<long>(pgm);
         jargs[1].l = Globals::syscl;

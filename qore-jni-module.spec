@@ -5,7 +5,7 @@
 %global user_module_dir %{mydatarootdir}/qore-modules/
 
 Name:           qore-jni-module
-Version:        2.2.0
+Version:        2.2.1
 Release:        1
 Summary:        Qorus Integration Engine - Qore jni module
 License:        MIT
@@ -86,6 +86,9 @@ This RPM provides API documentation, test and example programs
 %doc docs/jni test/*.qtest test/*.jar test/*.java
 
 %changelog
+* Thu Aug 3 2023 David Nichols <david@qore.org>
+- updated to version 2.2.1
+
 * Tue Aug 1 2023 David Nichols <david@qore.org>
 - updated to version 2.2.0
 

@@ -56,6 +56,7 @@ class Env;
 class Globals {
 public:
     DLLLOCAL static GlobalReference<jobject> syscl;                               // base/system classloader
+    DLLLOCAL static bool bootstrap;                                               // bootstrap flag; our cl used as system cl
 
     DLLLOCAL static GlobalReference<jclass> classPrimitiveVoid;                   // class for the void return type
     DLLLOCAL static GlobalReference<jclass> classPrimitiveBoolean;                // class for the primitive type boolean
@@ -394,6 +395,9 @@ public:
     DLLLOCAL static jmethodID methodServiceLoaderIterator;                        // Iterator iterator()
 
     DLLLOCAL static GlobalReference<jclass> classDriver;                          // java.sql.Driver
+
+    // Method object for DriverManager.getConnection(String, Properties)
+    DLLLOCAL static GlobalReference<jobject> methDriverManagerGetConnection;      // DriverManager.getConnection()
 
     DLLLOCAL static int typeNull; // java.sql.Type.NULL value
     DLLLOCAL static int typeChar; // java.sql.Type.CHAR value
