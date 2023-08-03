@@ -809,6 +809,12 @@ set_save_object_callback(callback);
 
     @section jnireleasenotes jni Module Release Notes
 
+    @subsection jni_2_2_1 jni Module Version 2.2.1
+    - fixed a bug handling class loaders in JDBC connection acquisition when called from %Qore code imported in native
+      Java code; in this case dynamic dispatch is used in the internal call to \c DriverManager.getConnection() to
+      ensure that the call succeeds
+      (<a href="https://github.com/qorelanguage/qore/issues/4740">issue 4740</a>)
+
     @subsection jni_2_2_0 jni Module Version 2.2.0
     - implemented support for specifying the minimum an maximum heap sizes for the JVM on initialization from
       environment variables

@@ -85,7 +85,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     private HashMap<String, Class<?>> classCache = new HashMap<String, Class<?>>();
 
     // when used to bootstrap Java
-    static private boolean static_bootstrap = false;
+    private static boolean static_bootstrap = false;
 
     //! static initialization
     static {
@@ -120,6 +120,9 @@ public class QoreURLClassLoader extends URLClassLoader {
     }
 
     //! constructor for using this class as the boot classloader
+    /** For example, starting Java like: java -cp xxx -Djava.system.class.loader=org.qore.jni.QoreURLClassLoader ...
+        will result in this constructor being called
+     */
     public QoreURLClassLoader(ClassLoader parent) {
         super("QoreURLClassLoader", new URL[]{}, parent);
         enable_cache = true;
@@ -127,6 +130,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         //System.out.printf("QoreURLClassLoader(ClassLoader parent: %s) this: %x (pgm: %x)\n",
         //    (parent == null ? "null" : parent.getClass().getCanonicalName()), hashCode(), pgm_ptr);
 
+        // startup / system classloader
         startup = true;
 
         // set classpath from system classpath
@@ -280,8 +284,7 @@ public class QoreURLClassLoader extends URLClassLoader {
     //! Supports generating classes from byte code as well as returning classes built in to the jni module
     protected Class<?> findClass(String bin_name) throws ClassNotFoundException {
         //System.out.printf("findClass() this: %x %s\n", hashCode(), bin_name);
-        try {
-
+        //try {
         Class<?> rv;
 
         if (bin_name.startsWith("net.bytebuddy.")) {
@@ -305,10 +308,10 @@ public class QoreURLClassLoader extends URLClassLoader {
         rv = super.findClass(bin_name);
         //System.out.printf("findClass() %x %s: returning super: %s\n", hashCode(), bin_name, rv);
         return rv;
-        } catch (ClassNotFoundException e) {
+        //} catch (ClassNotFoundException e) {
             //e.printStackTrace();
-            throw e;
-        }
+            //throw e;
+        //}
     }
 
     public byte[] getInternalClass(String bin_name) throws ClassNotFoundException {
@@ -579,7 +582,8 @@ public class QoreURLClassLoader extends URLClassLoader {
 
     //! Adds a path to the classpath
     public void addPath(String classpath) {
-        //debugLog(String.format("%x: addPath: %s", hashCode(), classpath));
+        //debugLog(String.format("%x: addPath(): %s", hashCode(), classpath));
+
         String seps = File.pathSeparator; // separators
 
         // want to accept both system separator and ';'

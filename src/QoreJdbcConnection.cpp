@@ -104,7 +104,8 @@ int QoreJdbcConnection::connect(Env& env, ExceptionSink* xsink) {
     }
     QoreStringMaker url("%s%s", !str.rfind("jdbc:", 0) ? "" : "jdbc:", str.c_str());
 
-    //printd(5, "QoreJdbcConnection::connect() using URL '%s'\n", url.c_str());
+    printd(5, "QoreJdbcConnection::connect() using URL '%s' (jpc: %p: %x)\n", url.c_str(), jpc,
+        env.callIntMethod(jpc->getClassLoader(), jni::Globals::methodObjectHashCode, nullptr));
 
     try {
         LocalReference<jobject> props = env.newObject(Globals::classProperties, Globals::ctorProperties, nullptr);
@@ -121,13 +122,36 @@ int QoreJdbcConnection::connect(Env& env, ExceptionSink* xsink) {
             }
         }
 
-        std::vector<jvalue> jargs(2);
+        // use dynamic dispatch to ensure that the DriverManager.getConnection() call is made in the right context
+        // get DriverManager.getConnection() method
+        std::vector<jvalue> jargs(3);
+        // public static Object invokeMethod(Method m, Object obj, Object... args);
+        // method
+        jargs[0].l = Globals::methDriverManagerGetConnection;
+        // object (static method => nullptr)
+        jargs[1].l = nullptr;
+        // args: url, props
+        LocalReference<jobjectArray> args = env.newObjectArray(2, Globals::classObject).as<jobjectArray>();
+        env.setObjectArrayElement(args, 0, env.newString(url.c_str()));
+        env.setObjectArrayElement(args, 1, props);
+        jargs[2].l = args;
+
+        connection = env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getInvokeMethodId(), &jargs[0])
+            .makeGlobal();
+
+#if 0
+        // the standard direct call to DriverManager.getConnection() fails under native Java with the mssql driver
+        // (at least), therefore we have to use dynamic dispatch
         LocalReference<jstring> jurl = env.newString(url.c_str());
+        std::vector<jvalue> jargs(2);
         jargs[0].l = jurl;
         jargs[1].l = props;
 
         connection = env.callStaticObjectMethod(Globals::classDriverManager,
             Globals::methodDriverManagerGetConnection, &jargs[0]).makeGlobal();
+#endif
+
+        printd(5, "QoreJdbcConnection::connect() got connection: %p\n", (jobject)connection);
 
         // turn off autocommit
         jargs[0].z = false;
@@ -182,12 +206,15 @@ int QoreJdbcConnection::setOption(const char* opt, const QoreValue val, Exceptio
 
         try {
             jpc->addClasspath(arg.c_str());
-            //printd(5, "QoreJdbcConnection::setOption() %p '%s' jpc: %p add classpath: '%s' (driver: %p)\n", this, opt,
-            //    jpc, arg.c_str(), *Globals::classDriver);
             classpath = arg.c_str();
 
             // try to load new drivers
             Env env;
+
+            printd(5, "QoreJdbcConnection::setOption() %p '%s' jpc: %p (%x) add classpath: '%s' (driver: %p)\n", this,
+                opt, jpc, env.callIntMethod(jpc->getClassLoader(), jni::Globals::methodObjectHashCode, nullptr),
+                arg.c_str(), *Globals::classDriver);
+
             LocalReference<jobject> sm = jpc->loadServiceLoader(env, Globals::classDriver);
             LocalReference<jobject> iterator = env.callObjectMethod(sm, Globals::methodServiceLoaderIterator,
                 nullptr);
@@ -197,6 +224,16 @@ int QoreJdbcConnection::setOption(const char* opt, const QoreValue val, Exceptio
                     break;
                 }
                 LocalReference<jobject> o = env.callObjectMethod(iterator, Globals::methodIteratorNext, nullptr);
+
+                // XXX DEBUG
+                LocalReference<jstring> ostr = env.callObjectMethod(o, Globals::methodObjectToString, nullptr).as<jstring>();
+                Env::GetStringUtfChars oname(env, ostr);
+
+                LocalReference<jclass> jcls = env.callObjectMethod(o, Globals::methodObjectGetClass, nullptr).as<jclass>();
+                LocalReference<jstring> cstr = env.callObjectMethod(jcls, Globals::methodObjectToString, nullptr).as<jstring>();
+                Env::GetStringUtfChars cname(env, cstr);
+
+                printd(5, "loaded driver '%s' (%s)\n", oname.c_str(), cname.c_str());
             }
         } catch (jni::Exception& e) {
             e.convert(xsink);

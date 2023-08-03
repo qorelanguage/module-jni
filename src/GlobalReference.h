@@ -48,7 +48,6 @@ class LocalReference;
  */
 template<typename T>
 class GlobalReference {
-
 public:
     /**
      * \brief Creates an instance.
