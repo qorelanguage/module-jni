@@ -487,11 +487,15 @@ static int save_object(Env& env, const QoreValue& rv, QoreProgram* pgm, Exceptio
 
 static jlong JNICALL java_api_init_qore(JNIEnv* jenv, jobject obj) {
     QoreThreadAttachHelper attach_helper;
+    Env env(jenv);
     try {
         attach_helper.attach();
+        assert(Globals::syscl);
+        assert(Globals::bootstrap);
+        // set current classloader
+        env.callVoidMethod(Globals::syscl, Globals::methodQoreURLClassLoaderSetContext, nullptr);
         return reinterpret_cast<jlong>(Globals::getJavaContextProgram());
     } catch (Exception& e) {
-        Env env(jenv);
         env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
         return 0;
     }
