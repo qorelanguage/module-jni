@@ -122,34 +122,14 @@ int QoreJdbcConnection::connect(Env& env, ExceptionSink* xsink) {
             }
         }
 
-        // use dynamic dispatch to ensure that the DriverManager.getConnection() call is made in the right context
-        // get DriverManager.getConnection() method
-        std::vector<jvalue> jargs(3);
-        // public static Object invokeMethod(Method m, Object obj, Object... args);
-        // method
-        jargs[0].l = Globals::methDriverManagerGetConnection;
-        // object (static method => nullptr)
-        jargs[1].l = nullptr;
-        // args: url, props
-        LocalReference<jobjectArray> args = env.newObjectArray(2, Globals::classObject).as<jobjectArray>();
-        env.setObjectArrayElement(args, 0, env.newString(url.c_str()));
-        env.setObjectArrayElement(args, 1, props);
-        jargs[2].l = args;
-
-        connection = env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getInvokeMethodId(), &jargs[0])
-            .makeGlobal();
-
-#if 0
-        // the standard direct call to DriverManager.getConnection() fails under native Java with the mssql driver
-        // (at least), therefore we have to use dynamic dispatch
+        // use the dynamic API to ensure that the DriverManager.getConnection() call is made in the right context
         LocalReference<jstring> jurl = env.newString(url.c_str());
         std::vector<jvalue> jargs(2);
         jargs[0].l = jurl;
         jargs[1].l = props;
 
-        connection = env.callStaticObjectMethod(Globals::classDriverManager,
-            Globals::methodDriverManagerGetConnection, &jargs[0]).makeGlobal();
-#endif
+        connection = env.callStaticObjectMethod(jpc->getDynamicApi(), jpc->getGetConnectionMethodId(), &jargs[0])
+            .makeGlobal();
 
         printd(5, "QoreJdbcConnection::connect() got connection: %p\n", (jobject)connection);
 

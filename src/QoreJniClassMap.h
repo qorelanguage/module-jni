@@ -307,6 +307,11 @@ public:
         return methodQoreJavaDynamicApiInvokeMethodNonvirtual;
     }
 
+    DLLLOCAL jmethodID getGetConnectionMethodId() const {
+        assert(methodQoreJavaDynamicApiGetConnection);
+        return methodQoreJavaDynamicApiGetConnection;
+    }
+
     DLLLOCAL jmethodID getFieldId() const {
         assert(methodQoreJavaDynamicApiGetField);
         return methodQoreJavaDynamicApiGetField;
@@ -420,6 +425,8 @@ protected:
     jmethodID methodQoreJavaDynamicApiGetField = 0;
     // QoreJavaDynamicApi.loadServiceLoader()
     jmethodID methodQoreJavaDynamicApiLoadServiceLoader = 0;
+    // QoreJavaDynamicApi.getConnection()
+    jmethodID methodQoreJavaDynamicApiGetConnection = 0;
 
     // code generation mutex
     QoreRecursiveThreadLock codeGenLock;

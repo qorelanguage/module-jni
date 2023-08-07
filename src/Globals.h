@@ -396,9 +396,6 @@ public:
 
     DLLLOCAL static GlobalReference<jclass> classDriver;                          // java.sql.Driver
 
-    // Method object for DriverManager.getConnection(String, Properties)
-    DLLLOCAL static GlobalReference<jobject> methDriverManagerGetConnection;      // DriverManager.getConnection()
-
     DLLLOCAL static int typeNull; // java.sql.Type.NULL value
     DLLLOCAL static int typeChar; // java.sql.Type.CHAR value
 

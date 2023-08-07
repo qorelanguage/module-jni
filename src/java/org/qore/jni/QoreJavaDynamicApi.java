@@ -26,13 +26,22 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.ServiceLoader;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 
+// for DriverManager.getConnection() as called from Qore Datasource* classes through Qore DBI drivers
+import java.util.ServiceLoader;
+import java.util.Properties;
+import java.sql.DriverManager;
+import java.sql.Connection;
+import java.sql.SQLException;
+
 //! This class provides methods that allow Java to interface with Qore code
-/**
+/** These Java methods set the correct ClassLoader context in the JVM; it's not otherwise possible to set
+    programmatically.
+
+    Any method that requires the ClassLoader context to be set should appear here.
  */
 public class QoreJavaDynamicApi {
     //! creates an instance of the given class
@@ -86,5 +95,10 @@ public class QoreJavaDynamicApi {
     //! sets the Java caller context and runs ServiceLoader.load()
     public static <S> ServiceLoader<S> loadServiceLoader(Class<S> c, ClassLoader cl) {
         return ServiceLoader.load(c, cl);
+    }
+
+    //! sets the Java caller context and runs DriverManager.getConnection()
+    public static Connection getConnection(String url, Properties props) throws SQLException {
+        return DriverManager.getConnection(url, props);
     }
 }

@@ -388,9 +388,6 @@ jmethodID Globals::methodServiceLoaderIterator;
 
 GlobalReference<jclass> Globals::classDriver;
 
-// for jdbc connections: DriverManager.getConnection()
-GlobalReference<jobject> Globals::methDriverManagerGetConnection;
-
 int Globals::typeNull;
 int Globals::typeChar;
 
@@ -2871,19 +2868,6 @@ bool Globals::init() {
     classDriver = env.findClass("java/sql/Driver").makeGlobal();
 
     {
-        LocalReference<jstring> mname = env.newString("getConnection");
-        std::vector<jvalue> jargs(2);
-        jargs[0].l = mname;
-        LocalReference<jobjectArray> vargs = env.newObjectArray(2, Globals::classClass).as<jobjectArray>();
-        env.setObjectArrayElement(vargs, 0, Globals::classString);
-        env.setObjectArrayElement(vargs, 1, Globals::classProperties);
-        jargs[1].l = vargs;
-
-        methDriverManagerGetConnection = env.callObjectMethod(Globals::classDriverManager,
-            Globals::methodClassGetMethod, &jargs[0]).makeGlobal();
-    }
-
-    {
         LocalReference<jclass> classTypes = env.findClass("java/sql/Types");
         jfieldID field = env.getStaticField(classTypes, "NULL", "I");
         typeNull = env.getStaticIntField(classTypes, field);
@@ -3089,7 +3073,6 @@ void Globals::cleanup() {
     classSQLException = nullptr;
     classServiceLoader = nullptr;
     classDriver = nullptr;
-    methDriverManagerGetConnection = nullptr;
     javaQoreClassField = nullptr;
 }
 
