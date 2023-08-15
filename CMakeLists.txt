@@ -5,8 +5,8 @@ set(module_name "jni")
 project(qore-jni-module)
 
 set (VERSION_MAJOR 2)
-set (VERSION_MINOR 2)
-set (VERSION_PATCH 1)
+set (VERSION_MINOR 3)
+set (VERSION_PATCH 0)
 
 set (BYTE_BUDDY_JAR ${CMAKE_SOURCE_DIR}/byte-buddy/byte-buddy-1.10.20.jar)
 
@@ -404,6 +404,10 @@ set(CPP_SRC
     src/QoreJdbcPreparedStatement.cpp
 )
 
+set(QMOD
+    qlib/MqttDataProvider
+)
+
 qore_wrap_qpp_value(QPP_SOURCES ${QPP_SRC})
 
 foreach (it ${QPP_SOURCES})
@@ -441,6 +445,9 @@ endif()
 
 set(MODULE_DOX_INPUT ${CMAKE_BINARY_DIR} ${JAVA_JAR_SRC} ${JAVA_JAR_COMPILER_SRC})
 qore_external_binary_module(${module_name} ${PROJECT_VERSION})
+qore_user_modules("${QMOD}")
+
+qore_external_user_module("qlib/MqttDataProvider" "")
 
 qore_dist(${PROJECT_VERSION})
 

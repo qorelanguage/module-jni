@@ -18,6 +18,9 @@
     <a href="https://bytebuddy.net/">Byte Buddy</a>, an excellent and flexible open-source API for Java bytecode
     generation.
 
+    Also included with the \c jni module:
+    - <a href="../../MqttDataProvider/html/index.html">MqttDataProvider</a> a data provider API for MQTT messaging.
+
     This module is released under the MIT license (see \c COPYING.MIT in the source distribution for more
     information).  The module is tagged as such in the module's header (meaning it can be loaded unconditionally
     regardless of how the %Qore library was initialized).
@@ -808,6 +811,11 @@ set_save_object_callback(callback);
     jdbc driver when the internal URL string is passed to the internal Java JDBC call.
 
     @section jnireleasenotes jni Module Release Notes
+
+    @subsection jni_2_3_0 jni Module Version 2.3.0
+    - added the <a href="../../MqttDataProvider/html/index.html">MqttDataProvider</a> module to allow for publishing
+      and subscribing to MQTT messages
+      (<a href="https://github.com/qorelanguage/qore/issues/4756">issue 4756</a>)
 
     @subsection jni_2_2_1 jni Module Version 2.2.1
     - fixed a bug handling class loaders in JDBC connection acquisition when called from %Qore code imported in native
