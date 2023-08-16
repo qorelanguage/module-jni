@@ -43,9 +43,6 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
         const ProviderInfo = <DataProviderInfo>{
             "supports_messages": MSG_Async,
             "supports_observable": True,
-            "supports_children": True,
-            #"children_can_support_apis": True,
-            #"children_can_support_observers": True,
             "constructor_options": ConstructorOptions,
             "desc": "Parent data provider for MQTT messaging functionality",
         };
@@ -156,12 +153,6 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
 
         #! Subscription QoS
         int qos;
-
-        #! Child providers
-        const ChildProviderClasses = {
-            #"publish": Class::forName("MqttPublishDataProvider"),
-            #"wait-for-message": Class::forName("MqttWaitForMessageDataProvider"),
-        };
     }
 
     #! Creates the object from constructor options
@@ -227,27 +218,6 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
             "client": client,
             "opts": opts,
         };
-    }
-
-    #! Returns a list of child data provider names
-    /** @return a list of child data provider names
-    */
-    private *list<string> getChildProviderNamesImpl() {
-        return keys ChildProviderClasses;
-    }
-
-    #! Returns the given child provider or @ref nothing if the given child is unknown
-    /** @return the given child provider or @ref nothing if the given child is unknown
-
-        @throw CHILD-PROVIDER-ERROR error acquiring child provider
-
-        @see getChildProviderEx()
-    */
-    private *AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = ChildProviderClasses{name};
-        if (cls) {
-            return cls.newObject(client);
-        }
     }
 
     #! Connects and starts receiving messages
@@ -385,7 +355,7 @@ public class MqttEventDataType inherits HashDataType {
             },
             "retained": {
                 "type": BoolType,
-                "desc": "If this message should be/was retained by the server",
+                "desc": "If this message was retained by the server",
             },
         };
     }
