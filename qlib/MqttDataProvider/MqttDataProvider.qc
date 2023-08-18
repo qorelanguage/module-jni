@@ -344,6 +344,7 @@ public class MqttEventDataType inherits HashDataType {
             "qos": {
                 "type": IntType,
                 "desc": "The quality of service value for this message",
+                "allowed_values": (0, 1, 2),
             },
             "payload": {
                 "type": DataType,
@@ -362,8 +363,8 @@ public class MqttEventDataType inherits HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
+            $1.value.allowed_values)), Fields.pairIterator();
     }
 }
 
@@ -379,6 +380,7 @@ public class MqttMessageDataType inherits HashDataType {
                 "type": IntType,
                 "desc": "The quality of service value for this message",
                 "default_value": 2,
+                "allowed_values": (0, 1, 2),
             },
             "payload": {
                 "type": AutoType,
@@ -395,8 +397,8 @@ public class MqttMessageDataType inherits HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
+            $1.value.allowed_values)), Fields.pairIterator();
     }
 }
 }
