@@ -85,7 +85,7 @@ This RPM provides API documentation, test and example programs
 %defattr(-,root,root,-)
 %doc docs/jni test/*.qtest test/*.jar test/*.java
 
-%changelog*
+%changelog
 * Fri Aug 18 2023 David Nichols <david@qore.org>
 - updated to version 2.3.0
 
