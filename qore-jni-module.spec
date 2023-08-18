@@ -66,6 +66,7 @@ make DESTDIR=%{buildroot} install %{?_smp_mflags}
 
 %files
 %{module_dir}
+%{user_module_dir}
 %{_bindir}/qjava2jar
 %{_bindir}/qjavac
 %dir /usr/share/qore/java

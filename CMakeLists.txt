@@ -316,18 +316,26 @@ add_custom_command(
     VERBATIM
 )
 
+add_custom_target(qore-jni-qore-jar
+    DEPENDS qore-jni-qore.jar
+)
+
 # combine jars into final jar
 add_custom_command(
     OUTPUT qore-jni.jar
     COMMAND ${CMAKE_SOURCE_DIR}/make-jar -o qore-jni.jar ${BYTE_BUDDY_JAR}
         ${CMAKE_CURRENT_BINARY_DIR}/qore-jni-qore.jar
-    DEPENDS ${BYTE_BUDDY_JAR} ${CMAKE_CURRENT_BINARY_DIR}/qore-jni-qore.jar
+    DEPENDS ${BYTE_BUDDY_JAR} qore-jni-qore-jar
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM
 )
 
+add_custom_target(qore-jni-jar
+    DEPENDS qore-jni.jar
+)
+
 # build and install this jar file so that java code using native classes can be compiled
-add_custom_target(qore-jni ALL DEPENDS qore-jni.jar qore-jni-compiler.jar)
+add_custom_target(qore-jni ALL DEPENDS qore-jni-jar qore-jni-compiler.jar)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qore-jni.jar DESTINATION ${CMAKE_INSTALL_PREFIX}/share/qore/java)
 
 add_jar(qore-jni-compiler ${JAVA_JAR_COMPILER_SRC}
