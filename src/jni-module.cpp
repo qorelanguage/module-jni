@@ -270,7 +270,7 @@ static void jni_module_delete() {
 
 static QoreNamespace* qore_jni_wildcard_import(QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
     if (arg[-2] != '.' || arg.strlen() < 3) {
-        throw QoreJniException("JNI-IMPORT-ERROR", "invalid import argument: '%s'", arg.getBuffer());
+        throw QoreJniException("JNI-IMPORT-ERROR", "invalid import argument: '%s'", arg.c_str());
         return nullptr;
     }
 
@@ -321,23 +321,24 @@ extern "C" int jni_module_import(ExceptionSink* xsink, QoreProgram* pgm, const c
 static void jni_module_parse_cmd(const QoreString& cmd, ExceptionSink* xsink) {
     printd(LogLevel, "jni_module_parse_cmd() cmd: '%s'\n", cmd.c_str());
 
-    const char* p = strchr(cmd.getBuffer(), ' ');
+    const char* p = strchr(cmd.c_str(), ' ');
 
     if (!p) {
-        xsink->raiseException("JNI-PARSE-COMMAND-ERROR", "missing command name in parse command: '%s'", cmd.getBuffer());
+        xsink->raiseException("JNI-PARSE-COMMAND-ERROR", "missing command name in parse command: '%s'", cmd.c_str());
         return;
     }
 
-    QoreString str(&cmd, p - cmd.getBuffer());
+    QoreString str(&cmd, p - cmd.c_str());
 
     QoreString arg(cmd);
 
-    arg.replace(0, p - cmd.getBuffer() + 1, (const char*)0);
+    arg.replace(0, p - cmd.c_str() + 1, (const char*)0);
     arg.trim();
 
     mcmap_t::const_iterator i = mcmap.find(str.c_str());
     if (i == mcmap.end()) {
-        QoreStringNode* desc = new QoreStringNodeMaker("unrecognized command '%s' in '%s' (valid commands: ", str.c_str(), cmd.c_str());
+        QoreStringNode* desc = new QoreStringNodeMaker("unrecognized command '%s' in '%s' (valid commands: ",
+            str.c_str(), cmd.c_str());
         for (mcmap_t::const_iterator i = mcmap.begin(), e = mcmap.end(); i != e; ++i) {
             if (i != mcmap.begin())
                 desc->concat(", ");
@@ -364,7 +365,7 @@ static void qore_jni_mc_import(const QoreString& cmd_arg, QoreProgram* pgm, JniE
     assert(pgm->checkFeature(QORE_JNI_MODULE_NAME));
 
     // process import statement
-    printd(LogLevel, "qore_jni_mc_import() pgm: %p arg: %s c: %c\n", pgm, arg.getBuffer(), arg[-1]);
+    printd(LogLevel, "qore_jni_mc_import() pgm: %p arg: %s c: %c\n", pgm, arg.c_str(), arg[-1]);
 
     // see if there is a wildcard at the end
     if (arg[-1] == '*') {
@@ -419,7 +420,8 @@ static void qore_jni_mc_define_pending_class(const QoreString& arg, QoreProgram*
     // find end of name
     qore_offset_t end = arg.find(' ');
     if (end == -1) {
-        throw QoreJniException("JNI-DEFINE-CLASS-ERROR", "cannot find the end of the class name in the 'define-pending-class' directive");
+        throw QoreJniException("JNI-DEFINE-CLASS-ERROR", "cannot find the end of the class name in the "
+            "'define-pending-class' directive");
     }
     QoreString java_name(&arg, end);
     QoreString base64(arg.c_str() + end + 1);
@@ -456,7 +458,8 @@ static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, Jn
     // find end of name
     qore_offset_t end = arg.find(' ');
     if (end == -1) {
-        throw QoreJniException("JNI-DEFINE-CLASS-ERROR", "cannot find the end of the class name in the 'define-class' directive");
+        throw QoreJniException("JNI-DEFINE-CLASS-ERROR", "cannot find the end of the class name in the "
+            "'define-class' directive");
     }
     QoreString java_name(&arg, end);
     QoreString base64(arg.c_str() + end + 1);
@@ -468,11 +471,13 @@ static void qore_jni_mc_define_class(const QoreString& arg, QoreProgram* pgm, Jn
     jni::Env env;
 
     // XXX DEBUG
-    QoreProgram* ptr = (QoreProgram*)env.callLongMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderGetPtr, nullptr);
+    QoreProgram* ptr = (QoreProgram*)env.callLongMethod(jpc->getClassLoader(),
+        Globals::methodQoreURLClassLoaderGetPtr, nullptr);
     assert(ptr == pgm);
 
     env.callVoidMethod(jpc->getClassLoader(), Globals::methodQoreURLClassLoaderSetContext, nullptr);
-    //printd(5, "qore_jni_mc_define_class() jpc: %p name: '%s' class size: %d\n", jpc, java_name.c_str(), byte_code->size());
+    //printd(5, "qore_jni_mc_define_class() jpc: %p name: '%s' class size: %d\n", jpc, java_name.c_str(),
+    //    byte_code->size());
 
     // conver to binary name
     QoreString binary_name(java_name);

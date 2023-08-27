@@ -44,7 +44,7 @@ QoreStringNode* Jvm::createVM() {
     vm_args.ignoreUnrecognized = false;
     vm_args.nOptions = 0;
 
-    size_t num_options = 1;
+    size_t num_options = 2;
     bool disable_jit = false;
     QoreString min_heap, max_heap;
     // check QORE_JNI_DISABLE_JIT environment variable
@@ -57,14 +57,14 @@ QoreStringNode* Jvm::createVM() {
                 //printd(5, "jni module: disabling JIT\n");
             }
         }
-        if (!SystemEnvironment::get("QORE_JNI_MIN_HEAP_SIZE", min_heap)) {
-            ++num_options;
-            min_heap.prepend("-Xms");
-        }
-        if (!SystemEnvironment::get("QORE_JNI_MAX_HEAP_SIZE", max_heap)) {
-            ++num_options;
-            max_heap.prepend("-Xmx");
-        }
+    }
+    if (!SystemEnvironment::get("QORE_JNI_MIN_HEAP_SIZE", min_heap)) {
+        ++num_options;
+        min_heap.prepend("-Xms");
+    }
+    if (!SystemEnvironment::get("QORE_JNI_MAX_HEAP_SIZE", max_heap)) {
+        ++num_options;
+        max_heap.prepend("-Xmx");
     }
 #ifdef QORE_JNI_SUPPORT_CLASSPATH
     // this is disabled, because we use our own URLClassloader now to load all classes
@@ -76,6 +76,9 @@ QoreStringNode* Jvm::createVM() {
     JavaVMOption options[num_options];
     // "reduced signals"
     options[vm_args.nOptions++].optionString = (char*)"-Xrs";
+    // thread stack size
+    QoreStringMaker thread_stack_size("-Xss%ldk", q_thread_get_stack_size() / 1024);
+    options[vm_args.nOptions++].optionString = (char*)thread_stack_size.c_str();
     if (disable_jit) {
         // disable JIT
         options[vm_args.nOptions++].optionString = (char*)"-Xint";
@@ -103,6 +106,10 @@ QoreStringNode* Jvm::createVM() {
     if (rc != JNI_OK) {
         return new QoreStringNodeMaker("JNI_CreateJavaVM() failed with error code %d", rc);
     }
+    // now the JVM will also enforce the thread size on the primary thread
+#ifdef _QORE_HAS_ENFORCE_THREAD_SIZE_ON_PRIMARY_THREAD
+    q_enforce_thread_size_on_primary_thread();
+#endif
     return 0;
 }
 

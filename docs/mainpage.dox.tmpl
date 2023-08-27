@@ -744,6 +744,18 @@ code callback = sub (object obj) {
 set_save_object_callback(callback);
     @endcode
 
+    @section jni_thread_stacks Java Thread Stack size
+
+    The Java thread stack size is set when the JVM is initialized in the \c jni module's initialization code based on
+    the %Qore thread stack size.
+
+    Note that the JVM establishes its own stack guard implementation and enforces stack sizes, even for %Qore code and
+    native threads, as a result, the %Qore thread stack size limitation is also applied to the primary process thread,
+    which otherwise (at least on Linux, for example), normally has a larger limit (normally 8MB on Linux).
+
+    Therefore if the %Qore thread stack size is 512KB (the default), then the Java thread stack size limit as well as
+    the primary thread's stack size limit is set to 512KB when the \c jni module is initialized.
+
     @section jdbc_driver jdbc DBI Driver for Qore
 
     This module implements the \c "jdbc" driver for %Qore to allow %Qore (as well as other languages such as %Python
@@ -811,6 +823,10 @@ set_save_object_callback(callback);
     jdbc driver when the internal URL string is passed to the internal Java JDBC call.
 
     @section jnireleasenotes jni Module Release Notes
+
+    @subsection jni_2_3_1 jni Module Version 2.3.1
+    - fixed a bug where %Qore's thread stack size settings were not applied to Java threads
+      (<a href="https://github.com/qorelanguage/qore/issues/4769">issue 4769</a>)
 
     @subsection jni_2_3_0 jni Module Version 2.3.0
     - added the <a href="../../MqttDataProvider/html/index.html">MqttDataProvider</a> module to allow for publishing
