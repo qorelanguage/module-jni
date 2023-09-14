@@ -183,11 +183,9 @@ public:
     }
 
     int64 getFlags() const {
-        int64 flags = QCF_NO_FLAGS;
-        if (varargs) {
-            flags |= QCF_USES_EXTRA_ARGS;
-        }
-        return flags;
+        // NOTE: do not set or return QCF_USES_EXTRA_ARGS when varargs is set; this causes a trailing "softlist auto" 
+        // param to be created instead
+        return QCF_NO_FLAGS;
     }
 
     DLLLOCAL int getParamTypes(Env& env, type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo,
