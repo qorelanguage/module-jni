@@ -2440,7 +2440,6 @@ LocalReference<jobject> JniExternalProgramData::getJavaTypeDefinition(Env& env, 
     // get internal name for Qore class
     LocalReference<jstring> jname = getJavaNameForClass(env, *cls);
 
-    /*
     if (!isCreateInProgress(cls->getNamespacePath())) {
         printd(5, "JniExternalProgramData::getJavaTypeDefinition() type '%s' (%d) creating Java class for '%s' (%p)\n",
             qore_type_get_name(ti), t, cls->getPath(), cls);
@@ -2464,7 +2463,6 @@ LocalReference<jobject> JniExternalProgramData::getJavaTypeDefinition(Env& env, 
             e.ignore();
         }
     }
-    */
 
     /** FIXME: we try to create the Java class here and then create a forward reference if it fails
 

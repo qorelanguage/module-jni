@@ -468,13 +468,6 @@ protected:
     /** @param qpath the full Qore classpath to the Qore class
     */
     DLLLOCAL void setCreateInProgress(const std::string& qpath) {
-#ifdef DEBUG
-        strset_t::iterator i = in_progress_set.find(qpath);
-        if (in_progress_set.find(qpath) != in_progress_set.end()) {
-            printd(0, "ERROR '%s' already in progress\n", qpath.c_str());
-        }
-#endif
-        assert(in_progress_set.find(qpath) == in_progress_set.end());
         in_progress_set.insert(qpath);
     }
 
