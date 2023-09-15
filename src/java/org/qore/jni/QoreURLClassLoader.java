@@ -397,6 +397,7 @@ public class QoreURLClassLoader extends URLClassLoader {
         if (bin_name.startsWith("java.")
             || bin_name.startsWith("javax.")
             || bin_name.startsWith("sun.")
+            || bin_name.startsWith("jdk.")
             || bin_name.startsWith("org.qore.jni.")
             || bin_name.startsWith("org.qore.lang.")) {
             //return super.loadClass(bin_name);

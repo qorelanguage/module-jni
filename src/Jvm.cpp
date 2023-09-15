@@ -46,7 +46,8 @@ QoreStringNode* Jvm::createVM() {
 
     size_t num_options = 2;
     bool disable_jit = false;
-    QoreString min_heap, max_heap;
+    QoreString min_heap, max_heap, debug_cmd;
+    std::vector<std::string> strvec;
     // check QORE_JNI_DISABLE_JIT environment variable
     {
         QoreString val;
@@ -66,6 +67,36 @@ QoreStringNode* Jvm::createVM() {
         ++num_options;
         max_heap.prepend("-Xmx");
     }
+    {
+        QoreString val;
+        if (!SystemEnvironment::get("QORE_JNI_DEBUG", val)) {
+            int port = atoi(val.c_str());
+            if (port > 0) {
+                // enable Java debugger
+                ++num_options;
+                debug_cmd.sprintf("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=%d", port);
+            }
+        }
+    }
+    {
+        QoreString val;
+        if (!SystemEnvironment::get("QORE_JNI_JVM_ARGS", val)) {
+            ssize_t pos = 0;
+            while (true) {
+                ssize_t i = val.find(' ', pos);
+                if (i == -1) {
+                    std::string opt(val.c_str() + pos);
+                    strvec.push_back(opt);
+                    break;
+                }
+                // add option
+                std::string opt(val.c_str() + pos, i - pos);
+                strvec.push_back(opt);
+            }
+            // add final option
+            num_options += strvec.size();
+        }
+    }
 #ifdef QORE_JNI_SUPPORT_CLASSPATH
     // this is disabled, because we use our own URLClassloader now to load all classes
     QoreString classpath;
@@ -83,6 +114,10 @@ QoreStringNode* Jvm::createVM() {
         // disable JIT
         options[vm_args.nOptions++].optionString = (char*)"-Xint";
     }
+    if (!debug_cmd.empty()) {
+        // enable debugger
+        options[vm_args.nOptions++].optionString = (char*)debug_cmd.c_str();
+    }
     if (!min_heap.empty()) {
         // set minimum heap size
         options[vm_args.nOptions++].optionString = (char*)min_heap.c_str();
@@ -90,6 +125,12 @@ QoreStringNode* Jvm::createVM() {
     if (!max_heap.empty()) {
         // set maximum heap size
         options[vm_args.nOptions++].optionString = (char*)max_heap.c_str();
+    }
+    if (!strvec.empty()) {
+        for (auto& str: strvec) {
+            //printd(5, "adding JVM pption: '%s'\n", str.c_str());
+            options[vm_args.nOptions++].optionString = (char*)str.c_str();
+        }
     }
 
 #ifdef QORE_JNI_SUPPORT_CLASSPATH

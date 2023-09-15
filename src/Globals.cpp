@@ -44,6 +44,7 @@ namespace jni {
 
 // Qore initialization flag
 bool jni_qore_init = false;
+bool jni_qore_init_done = false;
 
 ExceptionSink Globals::global_xsink;
 std::unique_ptr<QoreProgramHelper> Globals::qph;

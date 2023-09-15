@@ -361,11 +361,7 @@ public class JavaClassBuilder {
 
     @SuppressWarnings("unchecked")
     public static byte[] getByteCodeFromBuilder(DynamicType.Builder<?> bb, QoreURLClassLoader classLoader) {
-        DynamicType.Unloaded<?> unloaded = bb.make();
-        byte[] byte_code = unloaded.getBytes();
-        //System.out.printf("JavaClassBuilder.getClassFromBuilder() %s: got %d bytes (cl: %s)\n",
-        //    unloaded.getTypeDescription().getCanonicalName(), byte_code.length, classLoader);
-        return byte_code;
+        return bb.make().getBytes();
     }
 
     /** makes a static method call

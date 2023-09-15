@@ -100,7 +100,9 @@ class QJava2Jar {
         chdir(start_dir);
         string args = opts.quiet ? "cf" : "cvf";
         string cmd = sprintf("jar " + args + " %y %s", jar_path, file_list);
-        printf("cmd: %y\n", cmd);
+        if (!opts.quiet) {
+            printf("cmd: %y\n", cmd);
+        }
         system(cmd);
         if (!opts.quiet) {
             printf("created %y: %d file%s\n", jar_path, cv.size(), cv.size() == 1 ? "" : "s");

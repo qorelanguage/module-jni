@@ -58,7 +58,7 @@ using namespace jni;
 
 sig_vec_t sig_vec = {
 #ifndef Q_WINDOWS
-    SIGTRAP, SIGUSR1, SIGSEGV, SIGBUS
+    SIGTRAP, SIGUSR1, SIGSEGV, SIGBUS, SIGCHLD
 #endif
 };
 
@@ -151,6 +151,8 @@ QoreStringNode* jni_module_init_finalize(bool system) {
         jni_compat_types = true;
     }
 
+    jni::jni_qore_init_done = true;
+
     printd(5, "jni_module_init_finalize() jni module init done\n");
     return nullptr;
 }
@@ -215,6 +217,7 @@ static QoreStringNode* jni_module_init() {
         for (int sig : sig_vec) {
             QoreStringNode* err = qore_reassign_signal(sig, QORE_JNI_MODULE_NAME);
             if (err) {
+                printd(5, "%s\n", err->c_str());
                 // ignore errors; already assigned to another module
                 err->deref();
             }
@@ -225,7 +228,7 @@ static QoreStringNode* jni_module_init() {
             // setup signal mask
             sigemptyset(&mask);
             for (auto& sig : new_sig_vec) {
-                //printd(LogLevel, "jni_module_init() unblocking signal %d\n", sig);
+                //printd(5, "jni_module_init() unblocking signal %d\n", sig);
                 sigaddset(&mask, sig);
             }
             // unblock threads
@@ -238,6 +241,8 @@ static QoreStringNode* jni_module_init() {
     if (!bootstrap) {
         return jni_module_init_finalize();
     }
+
+    jni::jni_qore_init_done = true;
 
     return nullptr;
 }

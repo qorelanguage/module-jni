@@ -167,7 +167,7 @@ class MakeInc {
         bname =~ s/\//./g;
 
         string vname = jname;
-        vname =~ s/[\/\$]/_/g;
+        vname =~ s/[-\/\$]/_/g;
         string class_data_var_name = sprintf("java_%s_class_data", vname);
 
         date start = now_us();

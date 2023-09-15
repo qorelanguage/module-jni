@@ -163,6 +163,30 @@ class DynamicTest {
     }
 }
 
+class Base0 {
+    int test() {
+        return 1;
+    }
+}
+
+class Base1 inherits Base0 {
+    static int test() {
+        return 2;
+    }
+}
+
+class Base2 {
+    static int test() {
+        return 1;
+    }
+}
+
+class Base3 inherits Base2 {
+    int test() {
+        return 2;
+    }
+}
+
 class BaseTest {
     string vsprintf(string fmt) {
         return Qore::vsprintf(fmt, argv);
@@ -251,12 +275,96 @@ public class Main inherits QUnit::Test {
         assertEq(Type::Binary, b1.type());
         assertEq(b0, b1);
 
+        Program p;
         try {
             {
-                Program p(PO_NEW_STYLE);
-                p.setScriptPath(get_script_path());
-                p.importClass("AbstractBase2");
+                # compile and execute QoreDynamicTest19.java
+                QoreJavaCompiler compiler();
+                DiagnosticCollector diags();
+                string source = "
+import qore.Base1;
 
+class QoreDynamicTest20 extends Base1 {
+    public long test() {
+        return 3;
+    }
+}";
+                assertThrows("JNI-ERROR", \compiler.compile(), ("org.qore.test.QoreDynamicTest20", source, diags));
+            }
+
+            {
+                # compile and execute QoreDynamicTest19.java
+                QoreJavaCompiler compiler();
+                DiagnosticCollector diags();
+                string source = "
+import qore.Base3;
+
+class QoreDynamicTest20 extends Base3 {
+    public long test() {
+        return 3;
+    }
+}";
+                assertThrows("JNI-ERROR", \compiler.compile(), ("org.qore.test.QoreDynamicTest21", source, diags));
+            }
+
+            {
+                # compile and execute QoreDynamicTest19.java
+                QoreJavaCompiler compiler();
+                DiagnosticCollector diags();
+                string source = "
+import qore.Base1;
+
+class QoreDynamicTest20 extends Base1 {
+    public static long test() {
+        return 3;
+    }
+}";
+                assertThrows("JNI-ERROR", \compiler.compile(), ("org.qore.test.QoreDynamicTest22", source, diags));
+            }
+
+            {
+                # compile and execute QoreDynamicTest19.java
+                QoreJavaCompiler compiler();
+                DiagnosticCollector diags();
+                string source = "
+import qore.Base3;
+
+class QoreDynamicTest20 extends Base3 {
+    public static long test() {
+        return 3;
+    }
+}";
+                assertThrows("JNI-ERROR", \compiler.compile(), ("org.qore.test.QoreDynamicTest23", source, diags));
+            }
+
+            {
+                # compile and execute QoreDynamicTest19.java
+                QoreJavaCompiler compiler();
+                hash<auto> sources = {
+                    "org.qore.test.QoreDynamicTest19": File::readTextFile(get_script_dir() +
+                        "/../test/QoreDynamicTest19.java"),
+                };
+                hash<auto> cv = compiler.compile(sources);
+                #printf("%N\n", cv);
+                compiler::CompilerOutput newClassData = cv{"org.qore.test.QoreDynamicTest19"};
+                binary fdata = newClassData.file.openInputStream().readAllBytes();
+                assertEq(True, fdata.size() > 0);
+
+                p = new Program(PO_NEW_STYLE);
+                p.setScriptPath(get_script_path());
+                p.issueModuleCmd("jni", "define-class org/qore/test/QoreDynamicTest19 " + fdata.toBase64());
+
+                p.parse("
+string sub test(Type t) {
+    QoreDynamicTest19 tc();
+    return tc.get(IntType);
+}", "test");
+
+                assertEq("int", p.callFunction("test", IntType));
+            }
+
+            {
+                # AbstractBase2 is available from this script's Program object directly
                 QoreJavaCompiler compiler();
                 compiler::CompilerOutput newClassData = compiler.compile("org.qore.test.Issue4593",
                     "
@@ -321,7 +429,7 @@ public class Issue4593 extends qore.AbstractBase2 {
                 binary fdata = newClassData.file.openInputStream().readAllBytes();
                 assertEq(True, fdata.size() > 0);
 
-                Program p(PO_NEW_STYLE);
+                p = new Program(PO_NEW_STYLE);
                 p.setScriptPath(get_script_path());
                 p.issueModuleCmd("jni", "define-class org/qore/test/QoreDynamicTest15 " + fdata.toBase64());
                 p.issueModuleCmd("jni", "define-class org/qore/test/TestClass "
@@ -356,7 +464,7 @@ int sub test() {
                 binary fdata = newClassData.file.openInputStream().readAllBytes();
                 assertEq(True, fdata.size() > 0);
 
-                Program p(PO_NEW_STYLE);
+                p = new Program(PO_NEW_STYLE);
                 p.setScriptPath(get_script_path());
                 p.issueModuleCmd("jni", "define-class org/qore/test/QoreDynamicTest16 " + fdata.toBase64());
                 p.issueModuleCmd("jni", "define-class org/qore/test/TestClass "
@@ -384,10 +492,6 @@ string sub test() {
             }
 
             {
-                Program p(PO_NEW_STYLE);
-                p.setScriptPath(get_script_path());
-                p.importClass("AbstractTest");
-
                 QoreJavaCompiler compiler();
                 hash<auto> sources = {
                     "org.qore.test.QoreDynamicTest17": "
@@ -416,10 +520,6 @@ public class QoreDynamicTest17 extends AbstractTest2 {
             }
 
             {
-                Program p(PO_NEW_STYLE);
-                p.setScriptPath(get_script_path());
-                p.importClass("AbstractTest");
-
                 QoreJavaCompiler compiler();
                 hash<auto> sources = {
                     "org.qore.test.QoreDynamicTest18": "
@@ -591,7 +691,7 @@ public class QoreDynamicTest18 extends AbstractTest {
             }
 
             {
-                Program p(PO_NEW_STYLE);
+                p = new Program(PO_NEW_STYLE);
                 p.setScriptPath(get_script_path());
                 p.importClass("DynamicTest");
                 p.parse("
@@ -705,10 +805,6 @@ auto sub test() {
 
     argTest() {
         {
-            Program p(PO_NEW_STYLE);
-            p.setScriptPath(get_script_path());
-            p.importClass("ArgTest");
-
             QoreJavaCompiler compiler();
             hash<auto> sources = {
                 "org.qore.test.QoreArgTest": "

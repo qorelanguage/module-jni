@@ -47,6 +47,7 @@ enum class Type {
 };
 
 DLLLOCAL extern bool jni_qore_init;
+DLLLOCAL extern bool jni_qore_init_done;
 
 DLLLOCAL const std::string JniImportedFunctionClassName = "$Functions";
 DLLLOCAL const std::string JniImportedConstantClassName = "$Constants";

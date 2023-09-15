@@ -222,16 +222,18 @@ protected:
 private:
     // initialization flag
     static bool init_done;
-    static std::mutex init_mutex;
-    static std::condition_variable init_cond;
 
-    DLLLOCAL static void staticInitBackground(ExceptionSink* xsink, void* pgm);
-
-    DLLLOCAL void initBackground(QoreProgram* pgm);
+    DLLLOCAL void initIntern(QoreProgram* pgm);
 
     DLLLOCAL jarray getJavaArrayIntern(Env& env, const QoreListNode* l, jclass cls, JniExternalProgramData* jpc);
 
     DLLLOCAL Class* loadProgramClass(Env& env, const char* name, JniExternalProgramData* jpc);
+
+#ifdef JNI_INIT_BACKGROUND
+    static std::mutex init_mutex;
+    static std::condition_variable init_cond;
+
+    DLLLOCAL static void staticInitBackground(ExceptionSink* xsink, void* pgm);
 
     class InitSignaler {
     public:
@@ -241,6 +243,7 @@ private:
 
         std::lock_guard<std::mutex> init_guard();
     };
+#endif
 };
 
 extern QoreJniClassMap qjcm;
@@ -254,7 +257,7 @@ enum qore_method_type_t {
 
 class QoreJavaParamHelper {
 public:
-    DLLLOCAL QoreJavaParamHelper(Env& env, const char* mname, jclass parent_class);
+    DLLLOCAL QoreJavaParamHelper(Env& env, const char* mname, jclass parent_class, const QoreClass* qore_parent);
 
     DLLLOCAL void add(LocalReference<jobject>& params);
 
@@ -265,6 +268,7 @@ private:
     Env& env;
     const char* mname;
     jclass parent_class;
+    const QoreClass* qore_parent;
     LocalReference<jobject> plist;
 };
 
@@ -441,15 +445,47 @@ protected:
     typedef std::map<std::string, QoreBuiltinClass*> fake_cls_map_t;
     fake_cls_map_t fake_cls_map;
 
+    // set of Java classes currently being created
+    strset_t in_progress_set;
+
     // override compat-types
     bool override_compat_types = false;
     // compat-types values
     bool compat_types = false;
 
     // injected module set
-    typedef std::set<std::string> strset_t;
     strset_t injected_module_set;
     mutable QoreThreadLock injected_module_lock;
+
+    // returns true if Java bytecode class creation is in progress
+    /** @param qpath the full Qore classpath to the Qore class
+    */
+    DLLLOCAL bool isCreateInProgress(const std::string& qpath) const {
+        return in_progress_set.find(qpath) != in_progress_set.end();
+    }
+
+    // sets the given class as creation in progress
+    /** @param qpath the full Qore classpath to the Qore class
+    */
+    DLLLOCAL void setCreateInProgress(const std::string& qpath) {
+#ifdef DEBUG
+        strset_t::iterator i = in_progress_set.find(qpath);
+        if (in_progress_set.find(qpath) != in_progress_set.end()) {
+            printd(0, "ERROR '%s' already in progress\n", qpath.c_str());
+        }
+#endif
+        assert(in_progress_set.find(qpath) == in_progress_set.end());
+        in_progress_set.insert(qpath);
+    }
+
+    // clears the given class as creation in progress
+    /** @param qpath the full Qore classpath to the Qore class
+    */
+    DLLLOCAL void clearCreateInProgress(const std::string& qpath) {
+        strset_t::iterator i = in_progress_set.find(qpath);
+        assert(i != in_progress_set.end());
+        in_progress_set.erase(i);
+    }
 
     // initializes the dynamic API in the constructor
     DLLLOCAL void initDynamicApi(Env& env);
@@ -489,7 +525,7 @@ protected:
         const QoreClass& qcls, const QoreMethod& m, QoreJavaParamHelper& jph, LocalReference<jobject>& bb);
 
     DLLLOCAL int addMethods(Env& env, jobject class_loader, const QoreClass& qcls, LocalReference<jobject>& bb,
-        jclass parent_class, strset_t& mset, const QoreClass* other_base = nullptr);
+        jclass parent_class, const QoreClass* qore_parent, strset_t& mset, const QoreClass* other_base = nullptr);
 
     DLLLOCAL int addFunctions(Env& env, jobject class_loader, const QoreNamespace& ns, LocalReference<jobject>& bb,
         QoreProgram* pgm);
