@@ -215,6 +215,26 @@ class QoreIteratorTest extends AbstractIterator {
 QORE_JNI_MIN_HEAP_SIZE=20m QORE_JNI_MAX_HEAP_SIZE=20m qore -l jni script.q
     @endverbatim
 
+    @subsection jni_signals Signals Used By the JVM
+
+    The JVM requires signals to run properly, and, while %Qore initializes the JVM with reduced signals (using the
+    <tt>-Xrs</tt> argument to the JVM), certain signals are critical to the operation of the JVM and cannot be used by
+    %Qore programs.
+
+    The signals in the following table are reserved by the JVM.
+
+    <b>Signals Reserved by the JVM</b>
+    |!Signal|!Description
+    |\c SIGTRAP|Trap exception
+    |\c SIGSEGV|Segmentation violation
+    |\c SIGBUS|Bus error
+    |\c SIGCHLD|Child process terminated
+    |\c SIGILL|Illegal instruction
+    |\c SIGFPE|Floating-point exception
+
+    If any %Qore code has a signal handler assigned to any of the above signals (for the signals that can be
+    assigned), the \c jni module cannot be initialized and will fail to load.
+
     @section jni_use_java_in_qore Using Java APIs in Qore
 
     @subsection jniimport Importing Java APIs into Qore
@@ -830,6 +850,9 @@ set_save_object_callback(callback);
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_2_3_2 jni Module Version 2.3.2
+    - fixed a bugs handling the signal mask that could cause hard-to-debug problems such as deadlocks in JIT in the
+      JVM on macOS aarch64
+      (<a href="https://github.com/qorelanguage/qore/issues/4793">issue 4793</a>)
     - fixed signatures for Java methods with varargs params
       (<a href="https://github.com/qorelanguage/qore/issues/4787">issue 4787</a>)
 

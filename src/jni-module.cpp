@@ -58,7 +58,7 @@ using namespace jni;
 
 sig_vec_t sig_vec = {
 #ifndef Q_WINDOWS
-    SIGTRAP, SIGUSR1, SIGSEGV, SIGBUS, SIGCHLD
+    SIGTRAP, SIGSEGV, SIGBUS, SIGCHLD, SIGILL, SIGFPE
 #endif
 };
 
@@ -167,7 +167,10 @@ static QoreStringNode* jni_module_init() {
 
     qore_set_module_option("jni", "jni-version", JNI_VERSION_10);
 
-    QoreStringNode* err = nullptr;
+    QoreStringNode* err = qore_reassign_signals(sig_vec, QORE_JNI_MODULE_NAME, true);
+    if (err) {
+        return err;
+    }
 
     ValueHolder jvm_ptr(qore_get_module_option("jni", "jvm-ptr"), nullptr);
     if (jvm_ptr->getType() == NT_INT) {
@@ -210,33 +213,6 @@ static QoreStringNode* jni_module_init() {
     jni::setup_jdbc_driver();
 
     printd(5, "jni_module_init() initialized JVM\n");
-
-#ifndef Q_WINDOWS
-    {
-        sig_vec_t new_sig_vec;
-        for (int sig : sig_vec) {
-            QoreStringNode* err = qore_reassign_signal(sig, QORE_JNI_MODULE_NAME);
-            if (err) {
-                printd(5, "%s\n", err->c_str());
-                // ignore errors; already assigned to another module
-                err->deref();
-            }
-            new_sig_vec.push_back(sig);
-        }
-        if (!new_sig_vec.empty()) {
-            sigset_t mask;
-            // setup signal mask
-            sigemptyset(&mask);
-            for (auto& sig : new_sig_vec) {
-                //printd(5, "jni_module_init() unblocking signal %d\n", sig);
-                sigaddset(&mask, sig);
-            }
-            // unblock threads
-            pthread_sigmask(SIG_UNBLOCK, &mask, 0);
-        }
-    }
-
-#endif
 
     if (!bootstrap) {
         return jni_module_init_finalize();

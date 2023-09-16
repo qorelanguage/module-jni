@@ -17,9 +17,9 @@ BuildRequires:  gcc-c++
 BuildRequires:  devtoolset-7-gcc-c++
 %endif
 BuildRequires:  cmake >= 3.5
-BuildRequires:  qore-devel >= 1.14
-BuildRequires:  qore-stdlib >= 1.14
-BuildRequires:  qore >= 1.14
+BuildRequires:  qore-devel >= 1.19
+BuildRequires:  qore-stdlib >= 1.19
+BuildRequires:  qore >= 1.19
 BuildRequires:  java-17-openjdk-devel
 BuildRequires:  unzip
 BuildRequires:  doxygen
