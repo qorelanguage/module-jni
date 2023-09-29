@@ -119,6 +119,7 @@ public:
 
         std::unique_ptr<ExceptionSink> xsink = std::unique_ptr<ExceptionSink>(new ExceptionSink());
         xsink->assimilate(src);
+        xsink->markExternallyManaged();
 
         jvalue arg;
         arg.j = reinterpret_cast<jlong>(xsink.get());
