@@ -34,6 +34,9 @@
 
 #! contains all public definitions in the MqttDataProvider module
 public namespace MqttDataProvider {
+#! MQTT application name
+public const AppName = "MQTT";
+
 #! Event- and message-based data provider for MQTT client-side events
 /**
 */
@@ -192,7 +195,7 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
     }
 
     #! Returns a client for the given options
-    private static hash<auto> getClient(hash<auto> copts) {
+    static hash<auto> getClient(hash<auto> copts) {
         # create the client object
         MemoryPersistence persistence();
         MqttClient client = new MqttClient(copts.url, copts.client_id, persistence);
@@ -233,7 +236,7 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
         }
     }
 
-    #! Connects to the server if necessar
+    #! Connects to the server if necessary
     private connect() {
         if (client.isConnected()) {
             return;
@@ -330,6 +333,25 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
                 logger.error("error sending MQTT message: %s", get_exception_string(ex));
             }
         }
+    }
+}
+
+#! Class that encapsulates the client and connection options
+public class MqttConnectionWrapper {
+    public {
+        MqttClient client;
+        MqttConnectOptions opts;
+    }
+
+    #! Creates the object from the arguments
+    constructor(MqttClient client, MqttConnectOptions opts) {
+        self.client = client;
+        self.opts = opts;
+    }
+
+    #! Redirects method calls to the client
+    auto methodGate(string method, ...) {
+        return call_object_method_args(client, method, argv);
     }
 }
 
