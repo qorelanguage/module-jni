@@ -54,7 +54,8 @@ module MqttDataProvider {
         # register the data provider application
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": MqttDataProvider::AppName,
-            "desc": "MQTT messaging",
+            "display_name": "MQTT Server",
+            "desc": "MQTT server for fast and efficient messaging",
             "scheme": "mqtt",
             "logo": MqttLogo,
             "logo_file_name": "generic-mqtt-logo.svg",
