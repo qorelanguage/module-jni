@@ -55,6 +55,7 @@ module MqttDataProvider {
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": MqttDataProvider::AppName,
             "display_name": "MQTT Server",
+            "short_desc": "MQTT server for fast and efficient messaging",
             "desc": "MQTT server for fast and efficient messaging",
             "scheme": "mqtt",
             "logo": MqttLogo,
@@ -66,9 +67,10 @@ module MqttDataProvider {
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": MqttDataProvider::AppName,
             "path": "/",
-            "action": "mqtt-event",
-            "short_desc": "A MQTT message is received",
-            "desc": "A MQTT message is received; react to an MQTT message",
+            "action": "mqtt-msg-received",
+            "display_name": "MQTT Message Received",
+            "short_desc": "An MQTT message is received",
+            "desc": "An MQTT message is received; react to an MQTT message",
             "action_code": DPAT_EVENT,
         });
     };
