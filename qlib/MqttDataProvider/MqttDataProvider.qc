@@ -53,6 +53,8 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
         #! Constructor options
         const ConstructorOptions = {
             "auto_reconnect": <DataProviderOptionInfo>{
+                "display_name": "Auto Reconnect",
+                "short_desc": "Sets whether the client will automatically attempt to reconnect",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "Sets whether the client will automatically attempt to reconnect to the server if the "
                     "connection is lost\n"
@@ -64,6 +66,9 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
                         "which point the delay will stay at 2 minutes",
             },
             "clean_session": <DataProviderOptionInfo>{
+                "display_name": "Start With Clean Session",
+                "short_desc": "Sets whether the client and server should remember state across restarts and "
+                    "reconnects",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "Sets whether the client and server should remember state across restarts and reconnects.\n"
                     "- If set to `False` both the client and server will maintain state across restarts of the \n"
@@ -79,16 +84,22 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
                 "default_value": True,
             },
             "client_id": <DataProviderOptionInfo>{
+                "display_name": "Client ID",
+                "short_desc": "The MQTT client ID",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The MQTT client ID",
                 "default_value": "QoreMqttClient",
             },
             "connect_timeout": <DataProviderOptionInfo>{
+                "display_name": "Connect Timeout",
+                "short_desc": "The connect timeout to the MQTT server in seconds",
                 "type": AbstractDataProviderTypeMap."int",
                 "desc": "The connect timeout to the MQTT server in seconds",
                 "default_value": 30,
             },
             "keep_alive_interval": <DataProviderOptionInfo>{
+                "display_name": "Keep-Alive Interval",
+                "short_desc": "Sets the keep-alive interval in seconds",
                 "type": AbstractDataProviderTypeMap."int",
                 "desc": "Sets the \"keep alive\" interval. This value, measured in seconds, defines the maximum \n"
                     "interval between messages sent or received. It enables the client to detect if the server is \n"
@@ -100,16 +111,22 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
                 "default_value": 60,
             },
             "max_in_flight": <DataProviderOptionInfo>{
+                "display_name": "Max In Flight",
+                "short_desc": "Set the max inflight value",
                 "type": AbstractDataProviderTypeMap."int",
-                "desc": "Sets the \"max inflight\"; please increase this value in a high traffic environment",
+                "desc": "Sets the \"max inflight\" value; please increase this value in a high traffic environment",
                 "default_value": 10,
             },
             "password": <DataProviderOptionInfo>{
+                "display_name": "Password",
+                "short_desc": "The password to use",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The password to use for the connection; if any",
                 "sensitive": True,
             },
             "subscription_qos": <DataProviderOptionInfo>{
+                "display_name": "Subscription QoS",
+                "short_desc": "The maximum quality of service at which to subscribe",
                 "type": AbstractDataProviderTypeMap."int",
                 "desc": "The maximum quality of service at which to subscribe. Messages published at a lower "
                     "quality of service will be received at the published QoS. Messages published at a higher "
@@ -118,18 +135,24 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
                 "default_value": 2,
             },
             "subscription_topic": <DataProviderOptionInfo>{
+                "display_name": "Topic",
+                "short_desc": "The topic to use when subscribing",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The topic to use when subscribing to messages",
                 "required": True,
                 "default_value": "#",
             },
             "url": <DataProviderOptionInfo>{
+                "display_name": "URL",
+                "short_desc": "The URL to the MQTT server",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The URL to the MQTT server; `tcp://` for unencrypted connections, `ssl://` for encrypted "
                     "connections",
                 "required": True,
             },
             "username": <DataProviderOptionInfo>{
+                "display_name": "Username",
+                "short_desc": "The username to use",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The username to use for the connection; if any",
             },
