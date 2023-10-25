@@ -383,23 +383,28 @@ public class MqttEventDataType inherits HashDataType {
         #! Field descriptions
         const Fields = {
             "id": {
+                "display_name": "Message ID",
                 "type": IntType,
                 "desc": "The MQTT id of the message",
             },
             "qos": {
+                "display_name": "Quality of Service",
                 "type": IntType,
                 "desc": "The quality of service value for this message",
                 "allowed_values": (0, 1, 2),
             },
             "payload": {
+                "display_name": "Message Body",
                 "type": DataType,
                 "desc": "The payload / message body",
             },
             "duplicate": {
+                "display_name": "Duplicate?",
                 "type": BoolType,
                 "desc": "If this message might be a duplicate of one which has already been received",
             },
             "retained": {
+                "display_name": "Retained?",
                 "type": BoolType,
                 "desc": "If this message was retained by the server",
             },
@@ -408,8 +413,7 @@ public class MqttEventDataType inherits HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
-            $1.value.allowed_values)), Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 
@@ -418,21 +422,25 @@ public class MqttMessageDataType inherits HashDataType {
         #! Field descriptions
         const Fields = {
             "topic": {
+                "display_name": "Message Topic",
                 "type": StringType,
                 "desc": "The message topic",
             },
             "qos": {
+                "display_name": "Message Body",
                 "type": IntType,
                 "desc": "The quality of service value for this message",
                 "default_value": 2,
                 "allowed_values": (0, 1, 2),
             },
             "payload": {
+                "display_name": "Message Body",
                 "type": AutoType,
                 "desc": "The payload / message body; a string or binary type is sent as-is, all others are "
                     "serialized with JSON and sent as a JSON string",
             },
             "retained": {
+                "display_name": "Retained?",
                 "type": BoolType,
                 "desc": "If this message should be retained by the server",
                 "default_value": False,
@@ -442,8 +450,7 @@ public class MqttMessageDataType inherits HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
-            $1.value.allowed_values)), Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }
