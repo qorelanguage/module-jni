@@ -32,6 +32,9 @@ public class MqttConnection inherits ConnectionProvider::AbstractConnectionWithI
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "MQTT Connection",
+            "short_desc": "A connection to an MQTT server",
+            "desc": "A connection to an MQTT server",
             "cls": Class::forName("MqttConnection"),
             "options": cast<hash<string, hash<ConnectionOptionInfo>>>(
                 map {
