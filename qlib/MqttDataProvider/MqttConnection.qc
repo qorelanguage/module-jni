@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore MqttDataProvider module definition
 
-/** MqttConnection.qc Copyright 2022 Qore Technologies, s.r.o.
+/** MqttConnection.qc Copyright 2022 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,12 +24,14 @@
 
 #! contains all public definitions in the MqttDataProvider module
 public namespace MqttDataProvider {
-#! class for Microsoft Common Data Service REST connections; returns @ref CdsRestClient objects
-/** supports the following options:
-    - TBD
+#! class for MQTT connections
+/** supports the options from @ref MqttDataProvider::ConstructorOptions
 */
 public class MqttConnection inherits ConnectionProvider::AbstractConnectionWithInfo {
     public {
+        #! A string containing the real URL using a tcp/ssl scheme
+        string real_url;
+
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "display_name": "MQTT Connection",
@@ -43,12 +45,21 @@ public class MqttConnection inherits ConnectionProvider::AbstractConnectionWithI
                     })
                 }, MqttDataProvider::ConstructorOptions.pairIterator(), $1.key !~ /^subscription_/
             ),
+            "schemes": {
+                "mqtttcp": True,
+                "mqttssl": True,
+            },
+            "base_scheme_map": {
+                "ssl": "mqttssl",
+                "tcp": "mqtttcp",
+            },
         };
     }
 
     #! Creates the object from the arguments
     constructor(string name, string desc, string url, hash<auto> attr = {}, hash<auto> options = {},
             *LoggerInterface logger) : AbstractConnectionWithInfo(name, desc, url, attr, options, logger) {
+        setRealUrl(url);
     }
 
     #! returns the string type name for the connection object
@@ -71,7 +82,7 @@ public class MqttConnection inherits ConnectionProvider::AbstractConnectionWithI
         @return a data provider object for this connection, if supported
     */
     AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
-        return new MqttDataProvider(orig_opts + constructor_options);
+        return new MqttDataProvider(orig_opts + {"url": real_url} + constructor_options);
     }
 
     #! Returns the string type for the first data provider type
@@ -109,11 +120,21 @@ public class MqttConnection inherits ConnectionProvider::AbstractConnectionWithI
         @return the connection object
     */
     private MqttConnectionWrapper getImpl(bool connect = True, *hash<auto> rtopts) {
-        hash<auto> copts = MqttDataProvider::getClient(orig_opts + rtopts);
+        hash<auto> copts = MqttDataProvider::getClient(orig_opts + {"url": real_url} + rtopts);
         if (connect) {
             copts.client.connect(copts.opts);
         }
         return new MqttConnectionWrapper(copts.client, copts.wrapper);
+    }
+
+    #! Called by the constructor to set the real URL
+    /** @path the new URL
+
+        sets the real HTTP URL for HTTP-based connections
+    */
+    private setRealUrl(string url) {
+        real_url = url;
+        real_url =~ s/^mqtt//;
     }
 }
 }
