@@ -25,7 +25,7 @@
 #! contains all public definitions in the MqttDataProvider module
 public namespace MqttDataProvider {
 #! The MQTT data provider factory
-public class MqttDataProviderFactory inherits AbstractDataProviderFactory {
+public class MqttDataProviderFactory inherits DataProvider::AbstractDataProviderFactory {
     private {
         #! Data provider type info
         static Class cls = new Class("MqttDataProvider");
