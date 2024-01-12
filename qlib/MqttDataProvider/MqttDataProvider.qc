@@ -248,14 +248,21 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
 
     #! Connects and starts receiving messages
     private start() {
-        connect();
+        try {
+            connect();
 
-        # get MessageListener interface class
-        lang::Class ml = load_class("org/eclipse/paho/client/mqttv3/IMqttMessageListener");
-        client.subscribe(topic, qos,
-            cast<IMqttMessageListener>(implement_interface(new QoreInvocationHandler(\messageReceived()), ml)));
-        if (logger) {
-            logger.debug("MQTT: listening on topic: %y", topic);
+            # get MessageListener interface class
+            lang::Class ml = load_class("org/eclipse/paho/client/mqttv3/IMqttMessageListener");
+            client.subscribe(topic, qos,
+                cast<IMqttMessageListener>(implement_interface(new QoreInvocationHandler(\messageReceived()), ml)));
+            if (logger) {
+                logger.debug("MQTT: listening on topic: %y", topic);
+            }
+        } catch (hash<ExceptionInfo> ex) {
+            if (logger && ex.arg instanceof object && ex.arg.hasCallableMethod("toString")) {
+                rethrow ex.err, sprintf("%s: %s", ex.desc, ex.arg.toString()), ex.arg;
+            }
+            rethrow;
         }
     }
 
