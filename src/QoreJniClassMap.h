@@ -326,6 +326,7 @@ public:
     }
 
     DLLLOCAL void addClasspath(const char* path);
+    DLLLOCAL void addParentClasspath(const char* path);
 
     // returns Java byte code (byte[]) for a Qore class
     DLLLOCAL LocalReference<jbyteArray> generateByteCode(Env& env, jobject class_loader,

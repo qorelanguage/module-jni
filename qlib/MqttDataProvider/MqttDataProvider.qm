@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore MqttDataProvider module definition
 
-/*  MqttDataProvider.qm Copyright 2022 Qore Technologies, s.r.o.
+/*  MqttDataProvider.qm Copyright 2022 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,8 +33,8 @@
 # enable all warnings
 %enable-all-warnings
 
-# import MQTT Paho Java Client Library
-%module-cmd(jni) add-relative-classpath ./jar/org.eclipse.paho.client.mqttv3-1.2.5.jar
+# import MQTT Paho Java Client Library: JAR must be added to the global classloader
+%module-cmd(jni) global-add-relative-classpath ./jar/org.eclipse.paho.client.mqttv3-1.2.5.jar
 
 # implements a data provider for MQTT functionality
 %requires(reexport) DataProvider
@@ -48,13 +48,17 @@ module MqttDataProvider {
     url = "http://qore.org";
     license = "MIT";
     init = sub () {
+        # register connection schemes
+        ConnectionSchemeCache::registerScheme("mqttssl", MqttConnection::ConnectionScheme);
+        ConnectionSchemeCache::registerScheme("mqtttcp", MqttConnection::ConnectionScheme);
+
         # register the data provider factory
         DataProvider::registerFactory(new MqttDataProviderFactory());
 
         # register the data provider application
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": MqttDataProvider::AppName,
-            "display_name": "MQTT Server",
+            "display_name": "MQTT",
             "short_desc": "MQTT server for fast and efficient messaging",
             "desc": "MQTT server for fast and efficient messaging",
             "scheme": "mqtt",
@@ -67,11 +71,32 @@ module MqttDataProvider {
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": MqttDataProvider::AppName,
             "path": "/",
-            "action": "mqtt-msg-received",
+            "action": "msg-received",
             "display_name": "MQTT Message Received",
             "short_desc": "An MQTT message is received",
             "desc": "An MQTT message is received; react to an MQTT message",
             "action_code": DPAT_EVENT,
+            "action_val": MqttDataProvider::EVENT_MQTT_MESSAGE,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": MqttDataProvider::AppName,
+            "path": "/",
+            "action": "send-msg",
+            "display_name": "Send MQTT Message",
+            "short_desc": "Send an MQTT message",
+            "desc": "Send an MQTT message",
+            "action_code": DPAT_SEND_MESSAGE,
+            "action_val": MqttDataProvider::MESSAGE_MQTT_MESSAGE,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                MqttMessageDataType::Fields{"topic", "payload"}, {
+                    "required": True,
+                    "preselected": True,
+                }
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                MqttMessageDataType::Fields{"qos", "retained"}
+            ),
         });
     };
 }
@@ -94,7 +119,7 @@ module MqttDataProvider {
     These examples are with \c qdp, the command-line interface to the Data Provider API.
 
     @par API Example: Send a Message
-    @verbatim qdp 'mqtt{url=ssl://eu1.cloud.thethings.network:8883,username=my-username,password=my-password}' send message 'topic=v3/1st-gdc-app@ttn/devices/bl-001/down/push,payload={downlinks=({f_port=15,frm_payload="AP8ACgo=",priority=NORMAL},)}'
+    @verbatim qdp 'mqtt{url=ssl://eu1.cloud.thethings.network:8883,username=my-username,password=my-password}' send message 'topic=v3/username@ttn/devices/bl-001/down/push,payload={downlinks=({f_port=15,frm_payload="AP8ACgo=",priority=NORMAL},)}'
     @endverbatim
 
     @par API Example: Listen for Messages
@@ -113,6 +138,8 @@ module MqttDataProvider {
 
 #! contains all public definitions in the MqttDataProvider module
 public namespace MqttDataProvider {
+#! MQTT application name
+public const AppName = "MQTT";
 }
 
 namespace Priv {

@@ -180,6 +180,7 @@ jmethodID Globals::methodClassLoaderLoadClass;
 GlobalReference<jclass> Globals::classQoreURLClassLoader;
 jmethodID Globals::ctorQoreURLClassLoader;
 jmethodID Globals::methodQoreURLClassLoaderAddPath;
+jmethodID Globals::methodQoreURLClassLoaderAddParentPath;
 jmethodID Globals::methodQoreURLClassLoaderLoadClass;
 jmethodID Globals::methodQoreURLClassLoaderLoadClassWithPtr;
 jmethodID Globals::methodQoreURLClassLoaderLoadResolveClass;
@@ -2436,6 +2437,8 @@ void Globals::defineQoreURLClassLoader(Env& env) {
 
     ctorQoreURLClassLoader = env.getMethod(classQoreURLClassLoader, "<init>", "(JLjava/lang/ClassLoader;)V");
     methodQoreURLClassLoaderAddPath = env.getMethod(classQoreURLClassLoader, "addPath", "(Ljava/lang/String;)V");
+    methodQoreURLClassLoaderAddParentPath = env.getMethod(classQoreURLClassLoader, "addParentPath",
+        "(Ljava/lang/String;)V");
     methodQoreURLClassLoaderLoadClass = env.getMethod(classQoreURLClassLoader, "loadClass",
         "(Ljava/lang/String;)Ljava/lang/Class;");
     methodQoreURLClassLoaderLoadClassWithPtr = env.getMethod(classQoreURLClassLoader, "loadClassWithPtr",

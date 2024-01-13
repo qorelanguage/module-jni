@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore MqttDataProvider module definition
 
-/** MqttDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** MqttDataProvider.qc Copyright 2022 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -32,11 +32,12 @@
 %define NoJson
 %endtry
 
+%try-module yaml
+%define NoYaml
+%endtry
+
 #! contains all public definitions in the MqttDataProvider module
 public namespace MqttDataProvider {
-#! MQTT application name
-public const AppName = "MQTT";
-
 #! Event- and message-based data provider for MQTT client-side events
 /**
 */
@@ -97,6 +98,13 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
                 "desc": "The connect timeout to the MQTT server in seconds",
                 "default_value": 30,
             },
+            "encoding": <DataProviderOptionInfo>{
+                "display_name": "String Character Encoding",
+                "short_desc": "The character encoding for the string messages",
+                "type": AbstractDataProviderTypeMap."string",
+                "desc": "Character encoding for string messages; only applicable if the `message_format` is `string`",
+                "default_value": "UTF-8",
+            },
             "keep_alive_interval": <DataProviderOptionInfo>{
                 "display_name": "Keep-Alive Interval",
                 "short_desc": "Sets the keep-alive interval in seconds",
@@ -116,6 +124,47 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
                 "type": AbstractDataProviderTypeMap."int",
                 "desc": "Sets the \"max inflight\" value; please increase this value in a high traffic environment",
                 "default_value": 10,
+            },
+            "message_format": <DataProviderOptionInfo>{
+                "display_name": "Message Format",
+                "short_desc": "The data format for messages",
+                "type": AbstractDataProviderTypeMap."string",
+                "desc": "The data format for messages",
+                "allowed_values": (
+%ifndef NoJson
+                    <AllowedValueInfo>{
+                        "display_name": "JSON",
+                        "short_desc": "Parse messages as JSON strings",
+                        "desc": "Parse messages as JSON strings",
+                        "value": "json",
+                    },
+%endif
+                    <AllowedValueInfo>{
+                        "display_name": "None",
+                        "short_desc": "No decoding; return message payloads as binary data",
+                        "desc": "No decoding; return message payloads as binary data",
+                        "value": "none",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "String",
+                        "short_desc": "Convert messages to strings with no deserialization",
+                        "desc": "Convert messages to strings with no deserialization",
+                        "value": "string",
+                    },
+%ifndef NoJson
+                    <AllowedValueInfo>{
+                        "display_name": "YAML",
+                        "short_desc": "Parse messages as YAML strings",
+                        "desc": "Parse messages as YAML strings",
+                        "value": "yaml",
+                    },
+%endif
+                ),
+%ifndef NoJson
+                "default_value": "json",
+%else
+                "default_value": "none",
+%endif
             },
             "password": <DataProviderOptionInfo>{
                 "display_name": "Password",
@@ -179,6 +228,12 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
 
         #! Subscription QoS
         int qos;
+
+        #! Message payload format
+        string message_format;
+
+        #! Encoding for message_format "string"
+        string encoding;
     }
 
     #! Creates the object from constructor options
@@ -189,14 +244,24 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
         opts = cinfo.opts;
         topic = copts.subscription_topic;
         qos = copts.subscription_qos;
+        message_format = copts.message_format;
+%ifdef NoJson
+        if (message_format == "json") {
+            throw "MESSAGE-FORMAT-ERROR", "cannot support format \"json\" without the json module";
+        }
+%endif
+%ifdef NoYaml
+        if (message_format == "yaml") {
+            throw "MESSAGE-FORMAT-ERROR", "cannot support format \"yaml\" without the yaml module";
+        }
+%endif
+        encoding = copts.encoding;
     }
 
     destructor() {
         if (client.isConnected()) {
             client.disconnect();
-            if (logger) {
-                logger.debug("MQTT: disconnected from %y", client.getServerURI());
-            }
+            debug("MQTT: Disconnected from %y", client.getServerURI());
         }
         delete client;
     }
@@ -255,13 +320,13 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
             lang::Class ml = load_class("org/eclipse/paho/client/mqttv3/IMqttMessageListener");
             client.subscribe(topic, qos,
                 cast<IMqttMessageListener>(implement_interface(new QoreInvocationHandler(\messageReceived()), ml)));
-            if (logger) {
-                logger.debug("MQTT: listening on topic: %y", topic);
-            }
+            debug("MQTT: Listening on topic: %y", topic);
         } catch (hash<ExceptionInfo> ex) {
-            if (logger && ex.arg instanceof object && ex.arg.hasCallableMethod("toString")) {
+            if (ex.arg instanceof object && ex.arg.hasCallableMethod("toString")) {
+                LoggerWrapper::error("MQTT: Error subscribing to topic: %s", ex.arg.toString());
                 rethrow ex.err, sprintf("%s: %s", ex.desc, ex.arg.toString()), ex.arg;
             }
+            LoggerWrapper::error("MQTT: Error subscribing to topic: %s", ex.err, ex.desc);
             rethrow;
         }
     }
@@ -271,28 +336,49 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
         if (client.isConnected()) {
             return;
         }
-        if (logger) {
-            logger.debug("MQTT: connecting to server %y", client.getServerURI());
-        }
+        debug("MQTT: Connecting to server %y", client.getServerURI());
         client.connect(opts);
-        if (logger) {
-            logger.debug("MQTT: connected to server %y", client.getServerURI());
-        }
+        debug("MQTT: Connected to server %y", client.getServerURI());
     }
 
     #! Qore callback for <tt>IMqttMessageListener.messageArrived(java.lang.String topic, MqttMessage message)</tt>
     private messageReceived(Method method, *list<auto> args) {
         MqttMessage message = args[1];
+        auto payload = message.getPayload();
+        try {
+            switch (message_format) {
+                case "string":
+                    payload = payload.toString(encoding);
+                    break;
+
+                case "json":
+%ifndef NoJson
+                    payload = parse_json(payload.toString());
+%else
+                    throw "MESSAGE-FORMAT-ERROR", "cannot support format \"json\" without the json module";
+%endif
+                    break;
+
+                case "yaml":
+%ifndef NoYaml
+                    payload = parse_json(payload.toString());
+%else
+                    throw "MESSAGE-FORMAT-ERROR", "cannot support format \"yaml\" without the yaml module";
+%endif
+                    break;
+            }
+        } catch (hash<ExceptionInfo> ex) {
+            LoggerWrapper::error("MQTT: Error decoding message payload as %y: %s", message_format,
+                get_exception_string(ex));
+        }
         hash<auto> msghash = {
             "id": message.getId(),
             "qos": message.getQos(),
-            "payload": message.getPayload(),
-            "duplicate": message.getDuplicate(),
-            "retained": message.getRetained(),
+            "payload": payload,
+            "duplicate": message.isDuplicate(),
+            "retained": message.isRetained(),
         };
-        if (logger) {
-            logger.debug("MQTT message received: %y", msghash);
-        }
+        debug("MQTT: Message received: %y", msghash);
         notifyObservers(EVENT_MQTT_MESSAGE, msghash);
     }
 
@@ -347,10 +433,8 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
                     softbinary payload = msg.payload;
                     connect();
                     client.publish(msg.topic, payload, msg.qos ?? 2, msg.retained ?? False);
-                    if (logger) {
-                        logger.debug("MQTT publish topic: %y qos: %y payload: %y retained: %y", msg.topic, msg.qos,
-                            msg.payload, msg.retained);
-                    }
+                    debug("MQTT: Published topic: %y qos: %y payload: %y retained: %y", msg.topic, msg.qos,
+                        msg.payload, msg.retained);
                     break;
                 }
 
@@ -359,9 +443,12 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
                         keys getMessageTypesImpl());
             }
         } catch (hash<ExceptionInfo> ex) {
-            if (logger) {
-                logger.error("error sending MQTT message: %s", get_exception_string(ex));
+            if (ex.arg instanceof object && ex.arg.hasCallableMethod("toString")) {
+                LoggerWrapper::error("MQTT: Error sending message: %s", ex.arg.toString());
+                rethrow ex.err, sprintf("%s: %s", ex.desc, ex.arg.toString()), ex.arg;
             }
+            LoggerWrapper::error("MQTT: Error sending message: %s", ex.err, ex.desc);
+            rethrow;
         }
     }
 }
@@ -370,11 +457,11 @@ public class MqttDataProvider inherits DataProvider::AbstractDataProvider, DataP
 public class MqttConnectionWrapper {
     public {
         MqttClient client;
-        MqttConnectOptions opts;
+        *MqttConnectOptions opts;
     }
 
     #! Creates the object from the arguments
-    constructor(MqttClient client, MqttConnectOptions opts) {
+    constructor(MqttClient client, *MqttConnectOptions opts) {
         self.client = client;
         self.opts = opts;
     }
@@ -402,8 +489,10 @@ public class MqttEventDataType inherits HashDataType {
             },
             "payload": {
                 "display_name": "Message Body",
-                "type": DataType,
-                "desc": "The payload / message body",
+                "type": AutoType,
+                "short_desc": "The payload / message body",
+                "desc": "The payload / message body, deserialized from JSON or YAML according to the "
+                    "`message_format` option",
             },
             "duplicate": {
                 "display_name": "Duplicate?",
@@ -425,7 +514,7 @@ public class MqttEventDataType inherits HashDataType {
 }
 
 public class MqttMessageDataType inherits HashDataType {
-    private {
+    public {
         #! Field descriptions
         const Fields = {
             "topic": {

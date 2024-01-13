@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore MqttDataProvider module definition
+#! Qore BusyLightDataProvider module definition
 
-/** MqttConnection.qc Copyright 2022 - 2024 Qore Technologies, s.r.o.
+/** BusyLightConnection.qc Copyright 2022 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,44 +22,41 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the MqttDataProvider module
-public namespace MqttDataProvider {
-#! class for MQTT connections
-/** supports the options from @ref MqttDataProvider::ConstructorOptions
+#! contains all public definitions in the BusyLightDataProvider module
+public namespace BusyLightDataProvider {
+#! class for BUSYLIGHT connections
+/** supports the options from @ref BusyLightDataProvider::ConstructorOptions
 */
-public class MqttConnection inherits ConnectionProvider::AbstractConnectionWithInfo {
+public class BusyLightConnection inherits MqttDataProvider::MqttConnection {
     public {
-        #! A string containing the real URL using a tcp/ssl scheme
-        string real_url;
-
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
-            "display_name": "MQTT Connection",
-            "short_desc": "A connection to an MQTT server",
-            "desc": "A connection to an MQTT server",
-            "cls": Class::forName("MqttConnection"),
+            "display_name": "BusyLight Connection",
+            "short_desc": "A connection to an BusyLight device",
+            "desc": "A connection to an BusyLight server",
+            "cls": Class::forName("BusyLightConnection"),
             "options": cast<hash<string, hash<ConnectionOptionInfo>>>(
                 map {
                     $1.key: cast<hash<ConnectionOptionInfo>>($1.value - ("type", "required") + {
                         "type": MqttConnection::getType($1.value),
                     })
-                }, MqttDataProvider::ConstructorOptions.pairIterator(), $1.key !~ /^subscription_/ && $1.key != "url"
+                }, BusyLightDataProvider::ConstructorOptions.pairIterator(), $1.key !~ /^subscription_/
+                    && $1.key != "url"
             ),
             "schemes": {
-                "mqtttcp": True,
-                "mqttssl": True,
+                "bltcp": True,
+                "blssl": True,
             },
             "base_scheme_map": {
-                "ssl": "mqttssl",
-                "tcp": "mqtttcp",
+                "ssl": "blssl",
+                "tcp": "bltcp",
             },
         };
     }
 
     #! Creates the object from the arguments
     constructor(string name, string desc, string url, hash<auto> attr = {}, hash<auto> options = {},
-            *LoggerInterface logger) : AbstractConnectionWithInfo(name, desc, url, attr, options, logger) {
-        setRealUrl(url);
+            *LoggerInterface logger) : MqttConnection(name, desc, url, attr, options, logger) {
     }
 
     #! Creates the object from the arguments
@@ -80,40 +77,21 @@ public class MqttConnection inherits ConnectionProvider::AbstractConnectionWithI
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
     */
-    constructor(hash<auto> config, *hash<auto> attr) : AbstractConnectionWithInfo(config, attr) {
-        setRealUrl(url);
+    constructor(hash<auto> config, *hash<auto> attr) : MqttConnection(config, attr) {
     }
 
     #! returns the string type name for the connection object
     string getType() {
-        return "mqtt";
+        return "busylight";
     }
 
-    #! Returns @ref True, as this connection class returns a data provider with the @ref getDataProvider() method
-    /** @return @ref True, as this connection class returns a data provider with the @ref getDataProvider() method
-
-        @see @ref getDataProvider()
-    */
-    bool hasDataProvider() {
-        return True;
-    }
-
-    #! Returns a @ref MqttDataProvider object for this connection
+    #! Returns a @ref BusyLightDataProvider object for this connection
     /** @param constructor_options any additional constructor options for the data provider
 
         @return a data provider object for this connection, if supported
     */
     AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
-        return new MqttDataProvider(orig_opts + {"url": real_url} + constructor_options);
-    }
-
-    #! Returns the string type for the first data provider type
-    static string getType(hash<DataProviderOptionInfo> opt) {
-        string type = opt.type[0].getName();
-        if (type[0] == "*") {
-            splice type, 0, 1;
-        }
-        return type;
+        return new BusyLightDataProvider(orig_opts + {"url": real_url} + constructor_options);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object
@@ -125,28 +103,12 @@ public class MqttConnection inherits ConnectionProvider::AbstractConnectionWithI
     /** @return a hash of data provider constructor option info for the primary data provider, if applicable
     */
     private *hash<string, hash<DataProviderOptionInfo>> getDataProviderConstructorOptionsImpl() {
-        return MqttDataProvider::ConstructorOptions;
+        return BusyLightDataProvider::ConstructorOptions;
     }
 
     #! Override to set child data provider capabilities once per child class
     private setChildCapabilities() {
-        children_can_support_observers = True;
         children_can_support_messages = True;
-    }
-
-    #! this method must return the connection object corresponding to the object's configuration
-    /** @param connect if @ref True "True" then the connection should be returned connected (and if possible a
-        round-trip "ping" of the server should be made)
-        @param rtopts options to override connection options
-
-        @return the connection object
-    */
-    private MqttConnectionWrapper getImpl(bool connect = True, *hash<auto> rtopts) {
-        hash<auto> copts = MqttDataProvider::getClient(orig_opts + {"url": real_url} + rtopts);
-        if (connect) {
-            copts.client.connect(copts.opts);
-        }
-        return new MqttConnectionWrapper(copts.client, copts.opts);
     }
 
     #! Called by the constructor to set the real URL
@@ -156,7 +118,7 @@ public class MqttConnection inherits ConnectionProvider::AbstractConnectionWithI
     */
     private setRealUrl(string url) {
         real_url = url;
-        real_url =~ s/^mqtt//;
+        real_url =~ s/^bl//;
     }
 }
 }

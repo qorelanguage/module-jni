@@ -90,6 +90,8 @@ static bool jni_init_failed = false;
 // module cmd type
 using qore_jni_module_cmd_t = void (*) (const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 static void qore_jni_mc_import(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
+static void qore_jni_mc_global_add_relative_classpath(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
+static void qore_jni_mc_global_add_classpath(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 static void qore_jni_mc_add_classpath(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 static void qore_jni_mc_add_relative_classpath(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc);
 // define-pending-class: for resolving circular dependencies with inner classes
@@ -107,6 +109,8 @@ static mcmap_t mcmap = {
     {"add-relative-classpath", qore_jni_mc_add_relative_classpath},
     {"define-pending-class", qore_jni_mc_define_pending_class},
     {"define-class", qore_jni_mc_define_class},
+    {"global-add-classpath", qore_jni_mc_global_add_classpath},
+    {"global-add-relative-classpath", qore_jni_mc_global_add_relative_classpath},
     {"set-compat-types", qore_jni_mc_set_compat_types},
     {"set-property", qore_jni_mc_set_property},
     {"mark-module-injected", qore_jni_mc_mark_module_injected},
@@ -360,6 +364,41 @@ static void qore_jni_mc_import(const QoreString& cmd_arg, QoreProgram* pgm, JniE
     }
 }
 
+static void qore_jni_mc_global_add_classpath(const QoreString& cmd_arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
+    QoreString arg(cmd_arg);
+    q_env_subst(arg);
+    printd(LogLevel, "qore_jni_mc_global_add_classpath() jpc: %p arg: '%s'\n", jpc, arg.c_str());
+    jpc->addParentClasspath(arg.c_str());
+}
+
+static void qore_jni_mc_global_add_relative_classpath(const QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
+    SimpleRefHolder<QoreStringNode> cwd_str;
+
+    assert(pgm);
+    cwd_str = pgm->getScriptDir();
+
+    if (!cwd_str) {
+        char* cwd = getcwd(nullptr, 0);
+        if (!cwd) {
+            throw QoreJniException("JNI-GLOBAL-ADD-RELATIVE-CLASSPATH-ERROR", "cannot determine relative path; there "
+                "is no information in the Program context and cannot get current working directory: %s",
+                strerror(errno));
+        }
+        ON_BLOCK_EXIT(free, cwd);
+        cwd_str = new QoreStringNode(cwd);
+    }
+
+    cwd_str->concat(QORE_DIR_SEP);
+    cwd_str->concat(arg.c_str());
+    q_normalize_path(**cwd_str);
+
+    cwd_str->concat('/');
+
+    printd(LogLevel, "qore_jni_mc_global_add_relative_classpath() arg: '%s' cwd: '%s'\n", arg.c_str(), cwd_str->c_str());
+
+    jpc->addParentClasspath(cwd_str->c_str());
+}
+
 static void qore_jni_mc_add_classpath(const QoreString& cmd_arg, QoreProgram* pgm, JniExternalProgramData* jpc) {
     QoreString arg(cmd_arg);
     q_env_subst(arg);
@@ -376,7 +415,7 @@ static void qore_jni_mc_add_relative_classpath(const QoreString& arg, QoreProgra
     if (!cwd_str) {
         char* cwd = getcwd(nullptr, 0);
         if (!cwd) {
-            throw QoreJniException("JNI-ADD-RELATIVE-CLASSPATH-ERROR", "cannot determine relative path; there is no " \
+            throw QoreJniException("JNI-ADD-RELATIVE-CLASSPATH-ERROR", "cannot determine relative path; there is no "
                 "information in the Program context and cannot get current working directory: %s", strerror(errno));
         }
         ON_BLOCK_EXIT(free, cwd);

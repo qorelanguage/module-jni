@@ -19,6 +19,8 @@
     generation.
 
     Also included with the \c jni module:
+    - <a href="../../BusyLightDataProvider/html/index.html">BusyLightDataProvider</a> a data provider API for
+      BusyLight devices using MQTT messaging.
     - <a href="../../MqttDataProvider/html/index.html">MqttDataProvider</a> a data provider API for MQTT messaging.
 
     This module is released under the MIT license (see \c COPYING.MIT in the source distribution for more
@@ -244,9 +246,13 @@ QORE_JNI_MIN_HEAP_SIZE=20m QORE_JNI_MAX_HEAP_SIZE=20m qore -l jni script.q
     - @code{.qore} %module-cmd(jni) import java.namespace.path.* @endcode imports the given wilcard path or class into
       the %Qore program
     - @code{.qore} %module-cmd(jni) add-classpath filesystem/path:another/path @endcode adds the given paths to the
-      runtime dynamic classpath; supports environment variable substitution
+      Program-specific runtime dynamic classpath; supports environment variable substitution
     - @code{.qore} %module-cmd(jni) add-relative-classpath ../relative/path @endcode adds the given paths as relative
-      to the current program to the runtime dynamic classpath
+      to the current program to the Program-specific runtime dynamic classpath
+    - @code{.qore} %module-cmd(jni) global-add-classpath filesystem/path:another/path @endcode adds the given paths to the
+      global runtime dynamic classpath; supports environment variable substitution
+    - @code{.qore} %module-cmd(jni) global-add-relative-classpath ../relative/path @endcode adds the given paths as relative
+      to the current program to the global runtime dynamic classpath
 
     All classes in \c java.lang.* are imported implicitly.  Referencing an imported class in %Qore code
     causes a %Qore class to be generated dynamically that presents the Java class.   Instantiating a %Qore class

@@ -2794,6 +2794,20 @@ void JniExternalProgramData::addClasspath(const char* path) {
     }
 }
 
+void JniExternalProgramData::addParentClasspath(const char* path) {
+    Env env;
+    LocalReference<jstring> jname = env.newString(path);
+    jvalue jarg;
+    jarg.l = jname;
+    try {
+        env.callVoidMethod(classLoader, Globals::methodQoreURLClassLoaderAddParentPath, &jarg);
+    } catch (jni::Exception& e) {
+        // display exception info on the console as an unhandled exception
+        ExceptionSink xsink;
+        e.convert(&xsink);
+    }
+}
+
 JniExternalProgramData* JniExternalProgramData::setContext(Env& env) {
     QoreProgram* pgm = nullptr;
     return setContext(env, pgm);

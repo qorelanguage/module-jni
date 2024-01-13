@@ -186,6 +186,7 @@ public:
     DLLLOCAL static GlobalReference<jclass> classQoreURLClassLoader;              // org.qore.jni.QoreURLClassLoader
     DLLLOCAL static jmethodID ctorQoreURLClassLoader;                             // QoreURLClassLoader(long)
     DLLLOCAL static jmethodID methodQoreURLClassLoaderAddPath;                    // void QoreURLClassLoader.addPath(String)
+    DLLLOCAL static jmethodID methodQoreURLClassLoaderAddParentPath;              // void QoreURLClassLoader.addParentPath(String)
     DLLLOCAL static jmethodID methodQoreURLClassLoaderLoadClass;                  // Class QoreURLClassLoader.loadClass(String)
     DLLLOCAL static jmethodID methodQoreURLClassLoaderLoadClassWithPtr;           // Class QoreURLClassLoader.loadClassWithPtr(String, long)
     DLLLOCAL static jmethodID methodQoreURLClassLoaderLoadResolveClass;           // Class QoreURLClassLoader.loadResolveClass(String)

@@ -582,6 +582,19 @@ public class QoreURLClassLoader extends URLClassLoader {
     }
 
     //! Adds a path to the classpath
+    public void addParentPath(String classpath) {
+        ClassLoader parent = getParent();
+        if (parent == null) {
+            throw new RuntimeException("No parent ClassLoader present");
+        }
+        if (!(parent instanceof QoreURLClassLoader)) {
+            throw new RuntimeException(String.format("Parent ClassLoader is not a QoreURLClassLoader (%s)",
+                parent.getClass().getCanonicalName()));
+        }
+        ((QoreURLClassLoader)parent).addPath(classpath);
+    }
+
+    //! Adds a path to the classpath
     public void addPath(String classpath) {
         //debugLog(String.format("%x: addPath(): %s", hashCode(), classpath));
 
