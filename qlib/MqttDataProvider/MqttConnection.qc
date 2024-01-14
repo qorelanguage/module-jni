@@ -44,7 +44,14 @@ public class MqttConnection inherits ConnectionProvider::AbstractConnectionWithI
                         "type": MqttConnection::getType($1.value),
                     })
                 }, MqttDataProvider::ConstructorOptions.pairIterator(), $1.key !~ /^subscription_/ && $1.key != "url"
-            ),
+            ) + {
+                "disable_automatic_pings": <ConnectionOptionInfo>{
+                    "display_name": "Disable Automatic Pings?",
+                    "short_desc": "Disables automatic pings",
+                    "type": "bool",
+                    "desc": "Disables automatic pings; useful for rate-limited or metered connections",
+                },
+            },
             "schemes": {
                 "mqtttcp": True,
                 "mqttssl": True,

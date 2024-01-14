@@ -35,14 +35,7 @@ public class BusyLightConnection inherits MqttDataProvider::MqttConnection {
             "short_desc": "A connection to an BusyLight device",
             "desc": "A connection to an BusyLight server",
             "cls": Class::forName("BusyLightConnection"),
-            "options": cast<hash<string, hash<ConnectionOptionInfo>>>(
-                map {
-                    $1.key: cast<hash<ConnectionOptionInfo>>($1.value - ("type", "required") + {
-                        "type": MqttConnection::getType($1.value),
-                    })
-                }, BusyLightDataProvider::ConstructorOptions.pairIterator(), $1.key !~ /^subscription_/
-                    && $1.key != "url"
-            ),
+            "options": MqttConnection::ConnectionScheme.options,
             "schemes": {
                 "bltcp": True,
                 "blssl": True,
