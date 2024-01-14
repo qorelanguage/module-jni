@@ -29,13 +29,13 @@ public namespace BusyLightDataProvider {
 #! Event- and message-based data provider for BusyLight client-side events
 /**
 */
-public class BusyLightDataProvider inherits MqttDataProvider::MqttDataProvider {
+public class BusyLightDataProvider inherits MqttDataProvider::AbstractFunctionalMqttDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "busylight",
             "desc": "Parent data provider for Kuando Busylight messaging functionality",
-        } + MqttDataProvider::ProviderInfo;
+        } + AbstractFunctionalMqttDataProvider::ProviderInfo;
 
         #! BusyLight update message type
         /** Publishes an MQTT message to the given topic to update a BusyLight
@@ -43,8 +43,12 @@ public class BusyLightDataProvider inherits MqttDataProvider::MqttDataProvider {
         const MESSAGE_BL_UPDATE = "update";
     }
 
+    #! Creates the object from another object of the same class
+    constructor(AbstractMqttDataProvider prev) : AbstractFunctionalMqttDataProvider(prev) {
+    }
+
     #! Creates the object from constructor options
-    constructor(*hash<auto> options) : MqttDataProvider(options) {
+    constructor(*hash<auto> options) : AbstractFunctionalMqttDataProvider(options) {
     }
 
     string getName() {

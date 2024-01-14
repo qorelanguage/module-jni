@@ -46,6 +46,9 @@ module BusyLightDataProvider {
     url = "http://qore.org";
     license = "MIT";
     init = sub () {
+        # register MQTT device
+        MqttDevicesDataProvider::registerChild("busylight", Class::forName("BusyLightDataProvider"));
+
         # register connection schemes
         ConnectionSchemeCache::registerScheme("blssl", BusyLightConnection::ConnectionScheme);
         ConnectionSchemeCache::registerScheme("bltcp", BusyLightConnection::ConnectionScheme);

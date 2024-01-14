@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore MqttDataProvider module definition
 
-/** MqttDataProvider.qc Copyright 2022 - 2024 Qore Technologies, s.r.o.
+/** MqttDevicesDataProvider.qc Copyright 2022 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,46 +22,33 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%module-cmd(jni) import org.eclipse.paho.client.mqttv3.MqttClient
-%module-cmd(jni) import org.eclipse.paho.client.mqttv3.MqttConnectOptions
-%module-cmd(jni) import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
-%module-cmd(jni) import org.eclipse.paho.client.mqttv3.IMqttMessageListener
-%module-cmd(jni) import org.eclipse.paho.client.mqttv3.MqttMessage
-
-%try-module json >= 1.5
-%define NoJson
-%endtry
-
-%try-module yaml
-%define NoYaml
-%endtry
-
 #! contains all public definitions in the MqttDataProvider module
 public namespace MqttDataProvider {
-#! Event- and message-based data provider for MQTT client-side events
+#! Parent data provider for MQTT devices
 /**
 */
-public class MqttDataProvider inherits AbstractFunctionalMqttDataProvider {
+public class MqttDevicesDataProvider inherits AbstractMqttDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "mqtt",
-            "desc": "Parent data provider for MQTT messaging functionality",
+            "name": "devices",
+            "desc": "Parent data provider for MQTT devices",
             "supports_children": True,
-        } + AbstractFunctionalMqttDataProvider::ProviderInfo - "supports_children";
-
-        #! Child data provider map
-        const ChildMap = {
-            "devices": Class::forName("MqttDevicesDataProvider"),
         };
     }
 
-    #! Creates the object from constructor options
-    constructor(*hash<auto> options) : AbstractFunctionalMqttDataProvider(options) {
+    private {
+        #! Child data provider classes
+        static hash<string, Reflection::Class> childMap;
     }
 
+    #! Creates the object from another object of the same class
+    constructor(AbstractMqttDataProvider prev) : AbstractMqttDataProvider(prev) {
+    }
+
+    #! Returns the name of the data provider
     string getName() {
-        return "mqtt";
+        return "devices";
     }
 
     #! Returns data provider static info
@@ -69,16 +56,25 @@ public class MqttDataProvider inherits AbstractFunctionalMqttDataProvider {
         return ProviderInfo;
     }
 
-    #! Return data provider summary info
-    *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
+    #! Register a new child data provider for Google calendars
+    static registerChild(string pathname, Reflection::Class cls) {
+        if (childMap{pathname}) {
+            throw "MQTT-DEVICES-CHILD-ERROR", sprintf("child %y already registered", pathname);
+        }
+        childMap{pathname} = cls;
+        ImplicitModuleTransaction::add(sub () { MqttDevicesDataProvider::deregisterChild(pathname); });
+    }
+
+    #! Deregister the named child data provider
+    private static deregisterChild(string pathname) {
+        remove childMap{pathname};
     }
 
     #! Returns a list of child data provider names, if any
     /** @return a list of child data provider names, if any
     */
     private *list<string> getChildProviderNamesImpl() {
-        return keys ChildMap;
+        return keys childMap;
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
@@ -87,7 +83,7 @@ public class MqttDataProvider inherits AbstractFunctionalMqttDataProvider {
         @see getChildProviderEx()
     */
     private *DataProvider::AbstractDataProvider getChildProviderImpl(string name) {
-        if (*Class cls = ChildMap{name}) {
+        if (*Class cls = childMap{name}) {
             return cls.newObject(self);
         }
     }
