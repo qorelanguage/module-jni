@@ -93,7 +93,7 @@ public class MqttConnection inherits ConnectionProvider::AbstractConnectionWithI
 
     #! returns the string type name for the connection object
     string getType() {
-        return "mqtt";
+        return "mqttssl";
     }
 
     #! Returns @ref True, as this connection class returns a data provider with the @ref getDataProvider() method

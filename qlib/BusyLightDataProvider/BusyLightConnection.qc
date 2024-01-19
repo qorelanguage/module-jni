@@ -75,7 +75,7 @@ public class BusyLightConnection inherits MqttDataProvider::MqttConnection {
 
     #! returns the string type name for the connection object
     string getType() {
-        return "busylight";
+        return "blssl";
     }
 
     #! Returns a @ref BusyLightDataProvider object for this connection
