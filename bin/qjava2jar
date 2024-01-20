@@ -58,6 +58,10 @@ class QJava2Jar {
 
         map printf("%s: %d bytes\n", $1.key, $1.value.size()), srcs.pairIterator();
 
+        if (hstat(start_dir).type == "REGULAR") {
+            start_dir = dirname(start_dir);
+        }
+
         QoreJavaCompiler compiler(ARGV);
         DiagnosticCollector diags();
         on_error
@@ -65,11 +69,22 @@ class QJava2Jar {
                 diags.getDiagnostics();
         string file_list;
         hash<string, CompilerOutput> cv = compiler.compile(srcs, diags);
+        string base_dir;
         foreach hash<auto> i in (cv.pairIterator()) {
             string class_file_name = i.key;
             class_file_name =~ s/\./\//g;
             class_file_name += ".class";
-            string fn = start_dir + "/" + class_file_name;
+            string fn;
+            if (base_dir) {
+                fn = base_dir + class_file_name;
+            } else if (class_file_name =~ /\// && (string dir = dirname(class_file_name))
+                && (regex(start_dir, dir + "$"))) {
+                base_dir = start_dir;
+                splice base_dir, -dir.length();
+                fn = base_dir + class_file_name;
+            } else {
+                fn = start_dir + "/" + class_file_name;
+            }
             io::InputStream stream = i.value.file.openInputStream();
             on_exit stream.close();
 
@@ -97,7 +112,7 @@ class QJava2Jar {
         if (!absolute_path(jar_path)) {
             jar_path = normalize_dir(getcwd() + "/" + jar_path);
         }
-        chdir(start_dir);
+        chdir(base_dir ?? start_dir);
         string args = opts.quiet ? "cf" : "cvf";
         string cmd = sprintf("jar " + args + " %y %s", jar_path, file_list);
         if (!opts.quiet) {

@@ -28,7 +28,7 @@ include(UseJava)
 
 find_package(BZip2 REQUIRED)
 
-# Check for C++11.
+# Check for C++11
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 if(COMPILER_SUPPORTS_CXX11)
@@ -103,6 +103,24 @@ MACRO(GENERATE_JAR _input _output)
 
     SET(QORE_INC_FILES ${QORE_INC_FILES} ${_inc_outfile})
 ENDMACRO(GENERATE_JAR)
+
+# adds a make rule for java -> jar generation using qjava2jar
+MACRO(MAKE_QJAR _output _classpath)
+    add_custom_command(
+        OUTPUT ${_output}
+        COMMAND ${CMAKE_SOURCE_DIR}/bin/qjava2jar ${_output} ${ARGN} -cp ${_classpath}
+        DEPENDS ${ARGN}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        VERBATIM
+    )
+ENDMACRO(MAKE_QJAR)
+
+set(EXCEL_JAR ${CMAKE_SOURCE_DIR}/qlib/ExcelDataProvider/jar/qore-dataprovider-excel.jar)
+make_qjar(${EXCEL_JAR} ${CMAKE_SOURCE_DIR}/qlib/ExcelDataProvider/jar/poi-ooxml-full-5.0.0.jar:${CMAKE_SOURCE_DIR}/qlib/ExcelDataProvider/jar/poi-5.0.0.jar:${CMAKE_SOURCE_DIR}/qlib/ExcelDataProvider/jar/poi-ooxml-5.0.0.jar ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/excel/ExcelIterator.java)
+
+add_custom_target(qore-excel-jar
+    DEPENDS ${EXCEL_JAR}
+)
 
 # adds a make rule for java -> class generation
 MACRO(ADD_JAVA_SOURCE _input)
@@ -335,7 +353,7 @@ add_custom_target(qore-jni-jar
 )
 
 # build and install this jar file so that java code using native classes can be compiled
-add_custom_target(qore-jni ALL DEPENDS qore-jni-jar qore-jni-compiler.jar)
+add_custom_target(qore-jni ALL DEPENDS qore-jni-jar qore-jni-compiler.jar qore-excel-jar)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qore-jni.jar DESTINATION ${CMAKE_INSTALL_PREFIX}/share/qore/java)
 
 add_jar(qore-jni-compiler ${JAVA_JAR_COMPILER_SRC}
@@ -415,6 +433,7 @@ set(CPP_SRC
 set(QMOD
     qlib/BusyLightDataProvider
     qlib/MqttDataProvider
+    qlib/ExcelDataProvider
 )
 
 qore_wrap_qpp_value(QPP_SOURCES ${QPP_SRC})
@@ -458,6 +477,7 @@ qore_user_modules("${QMOD}")
 
 qore_external_user_module("qlib/MqttDataProvider" "")
 qore_external_user_module("qlib/BusyLightDataProvider" "MqttDataProvider")
+qore_external_user_module("qlib/ExcelDataProvider" "")
 
 qore_dist(${PROJECT_VERSION})
 
