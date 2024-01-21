@@ -108,8 +108,8 @@ ENDMACRO(GENERATE_JAR)
 MACRO(MAKE_QJAR _output _classpath)
     add_custom_command(
         OUTPUT ${_output}
-        COMMAND ${CMAKE_SOURCE_DIR}/bin/qjava2jar ${_output} ${ARGN} -cp ${_classpath}
-        DEPENDS ${ARGN}
+        COMMAND ${CMAKE_COMMAND} -E env QORE_MODULE_DIR=. qore -l jni ${CMAKE_SOURCE_DIR}/bin/qjava2jar ${_output} ${ARGN} -cp ${_classpath}
+        DEPENDS ${module_name} ${ARGN}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         VERBATIM
     )
