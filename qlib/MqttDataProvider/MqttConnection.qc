@@ -111,7 +111,7 @@ public class MqttConnection inherits ConnectionProvider::AbstractConnectionWithI
         @return a data provider object for this connection, if supported
     */
     AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
-        return new MqttDataProvider(orig_opts + {"url": real_url} + constructor_options);
+        return new MqttDataProvider(orig_opts - "disable_automatic_pings" + {"url": real_url} + constructor_options);
     }
 
     #! Returns the string type for the first data provider type

@@ -84,7 +84,8 @@ public class BusyLightConnection inherits MqttDataProvider::MqttConnection {
         @return a data provider object for this connection, if supported
     */
     AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
-        return new BusyLightDataProvider(orig_opts + {"url": real_url} + constructor_options);
+        return new BusyLightDataProvider(orig_opts - "disable_automatic_pings" + {"url": real_url} +
+            constructor_options);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object
