@@ -78,9 +78,9 @@ public class BusyLightDataProvider inherits MqttDataProvider::AbstractFunctional
         try {
             switch (message_id) {
                 case MESSAGE_BL_UPDATE: {
-                    binary bin = msg.red.encodeLsb()[0..0]
-                        + msg.blue.encodeLsb()[0..0]
-                        + msg.green.encodeLsb()[0..0]
+                    binary bin = msg.color.r.encodeLsb()[0..0]
+                        + msg.color.b.encodeLsb()[0..0]
+                        + msg.color.g.encodeLsb()[0..0]
                         + msg.on.encodeLsb()[0..0]
                         + msg.off.encodeLsb()[0..0];
 
@@ -124,26 +124,11 @@ public class BusyLightUpdateMessageDataType inherits HashDataType {
                 "short_desc": "The topic to publish the message on",
                 "type": StringType,
             },
-            "red": {
-                "display_name": "Red",
-                "desc": "The RED color intensity from 0 - 255",
-                "short_desc": "The RED color intensity from 0 - 255",
-                "type": IntType,
-                "default_value": 0,
-            },
-            "green": {
-                "display_name": "Green",
-                "desc": "The GREEN color intensity from 0 - 255",
-                "short_desc": "The GREEN color intensity from 0 - 255",
-                "type": IntType,
-                "default_value": 0,
-            },
-            "blue": {
-                "display_name": "Blue",
-                "desc": "The BLUE color intensity from 0 - 255",
-                "short_desc": "The BLUE color intensity from 0 - 255",
-                "type": IntType,
-                "default_value": 0,
+            "color": {
+                "display_name": "Color",
+                "desc": "The color of the light",
+                "short_desc": "The color of the light (note that the `Alpha` value is ignored)",
+                "type": RgbColorDataType,
             },
             "on": {
                 "desc": "The length of time ON from 0 - 255",
