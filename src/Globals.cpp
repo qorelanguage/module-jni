@@ -2084,7 +2084,12 @@ static jobject JNICALL qore_url_classloader_shutdown_context(JNIEnv* jenv, jclas
     // teardown above stops its external-lifecycle workers; wait until their
     // native joins are published, then stop libqore's otherwise-idle reaper
     // before JVM shutdown reaches C++ static destruction.
-    tp_thread_counter.waitForZero();
+    ExceptionSink xsink;
+    if (tp_thread_counter.waitForZero(&xsink)) {
+        Env env(jenv);
+        QoreToJava::wrapException(env, xsink);
+        return nullptr;
+    }
     qore_stop_external_thread_reaper();
     return nullptr;
 }
