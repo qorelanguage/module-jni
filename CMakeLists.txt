@@ -1186,6 +1186,7 @@ set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/StringFactory.java
     test/java/src/org/qore/jni/test/QoreCallback.java
     test/java/src/org/qore/jni/test/OverloadedMethods.java
+    test/java/src/org/qore/jni/test/JvmPrimaryReaperExit.java
     test/java/src/org/qore/lang/test/QoreJavaLangApiTest.java
 )
 
@@ -1388,3 +1389,12 @@ add_executable(foreign_thread_deref_crash test/foreign_thread_deref_crash.cpp)
 target_include_directories(foreign_thread_deref_crash PRIVATE ${QORE_INCLUDE_DIRS})
 target_link_libraries(foreign_thread_deref_crash ${QORE_LIBRARY} Threads::Threads)
 add_test(NAME foreign_thread_deref_crash COMMAND foreign_thread_deref_crash)
+add_test(NAME jvm_primary_reaper_exit COMMAND ${CMAKE_COMMAND} -E env
+    QORE_LIBRARY=${QORE_LIBRARY}
+    QORE_MODULE_DIR=${CMAKE_CURRENT_BINARY_DIR}
+    ${Java_JAVA_EXECUTABLE}
+    --enable-native-access=ALL-UNNAMED
+    -Djava.system.class.loader=org.qore.jni.QoreURLClassLoader
+    -cp ${CMAKE_CURRENT_BINARY_DIR}/qore-jni.jar:${CMAKE_CURRENT_BINARY_DIR}/qore-jni-test.jar
+    org.qore.jni.test.JvmPrimaryReaperExit)
+set_tests_properties(jvm_primary_reaper_exit PROPERTIES TIMEOUT 10)
