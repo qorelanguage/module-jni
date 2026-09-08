@@ -1096,6 +1096,9 @@ JniQoreClass* QoreJniClassMap::findClassOrSelfPartial(QoreJniClassMapBase& map, 
 JniQoreClass* QoreJniClassMap::createClassInNamespace(QoreNamespace* ns, QoreNamespace& jns, const char* jpath,
         Class* jc, JniQoreClass* qc, QoreJniClassMapBase& map, QoreProgram* pgm) {
     QoreClassHolder qc_holder(qc);
+    // Duplicate and same-thread recursive lookups return before the new Qore class
+    // takes ownership. Keep the Java wrapper guarded until that transfer occurs.
+    SimpleRefHolder<Class> jc_holder(jc);
 
     JniExternalProgramData* jpc = pgm
         ? static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"))
@@ -1178,7 +1181,7 @@ JniQoreClass* QoreJniClassMap::createClassInNamespace(QoreNamespace* ns, QoreNam
     ClassCreateMarkerFinalizer fin(map, jpath_key, marker);
 
     // save pointer to java class info in JniQoreClass
-    qc->setManagedUserData(jc);
+    qc->setManagedUserData(jc_holder.release());
 
     int mods = jc->getModifiers();
     if (mods & JVM_ACC_FINAL) {

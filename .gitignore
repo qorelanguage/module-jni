@@ -1,4 +1,5 @@
 build/
+build-debug/
 
 .cproject
 .project
@@ -18,6 +19,14 @@ src/java/org/qore/dataprovider/kafka/*.class
 test/excel-test-data/
 test/word-test-data/
 test/powerpoint-test-data/
+test/access-test-data/
+test/email-test-data/
+test/ics-test-data/
+test/odp-test-data/
+test/ods-test-data/
+test/odt-test-data/
+test/vcf-test-data/
+test/visio-test-data/
 
 # JVM crash logs
 hs_err_pid*.log

@@ -1169,6 +1169,7 @@ install(PROGRAMS ${JNI_BIN_FILES}
 
 set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/Callbacks.java
+    test/java/src/org/qore/jni/test/ExceptionLocations.java
     test/java/src/org/qore/jni/test/Fields.java
     test/java/src/org/qore/jni/test/FloatConversions.java
     test/java/src/org/qore/jni/test/Methods.java

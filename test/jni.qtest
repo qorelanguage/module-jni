@@ -1,5 +1,6 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
 
 %modern
 
@@ -1448,8 +1449,14 @@ Content-Transfer-Encoding: base64\r
 bG9yZW0gaXBzdW0=\r
 --MjAxNjAxMjIxMTQ4MDg--\r
 ";
-            # get boundary from generated message
-            string boundary = (r =~ x/boundary=(\w+)/)[0];
+            # MIME permits quoted boundary parameters; current Qore quotes them.
+            list<*string> match = (r =~ x/boundary=(?:"([^"]+)"|([^\s;]+))/);
+            string boundary = match[0] ?? match[1];
+            assertTrue(boundary.size() > 0, "serialized message has a MIME boundary");
+            if (exists match[0]) {
+                refstr = replace(refstr, "boundary=MjAxNjAxMjIxMTQ4MDg",
+                    "boundary=\"MjAxNjAxMjIxMTQ4MDg\"");
+            }
             r = replace(r, boundary, "MjAxNjAxMjIxMTQ4MDg");
             assertEq(refstr, r);
         }
@@ -1484,8 +1491,14 @@ lorem ipsum\r
 --MjAxNjAxMjIxMTQ4MDg--\r
 ";
 
-            # get boundary from generated message
-            string boundary = (r =~ x/boundary=(\w+)/)[0];
+            # Accept the quoted and unquoted MIME parameter syntax used by supported Qore versions.
+            list<*string> match = (r =~ x/boundary=(?:"([^"]+)"|([^\s;]+))/);
+            string boundary = match[0] ?? match[1];
+            assertTrue(boundary.size() > 0, "serialized message has a MIME boundary");
+            if (exists match[0]) {
+                refstr = replace(refstr, "boundary=MjAxNjAxMjIxMTQ4MDg",
+                    "boundary=\"MjAxNjAxMjIxMTQ4MDg\"");
+            }
             r = replace(r, boundary, "MjAxNjAxMjIxMTQ4MDg");
             assertEq(refstr.split("\r\n"), r.split("\r\n"));
             #assertEq(refstr, r);

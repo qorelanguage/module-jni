@@ -56,6 +56,11 @@ public:
                     LocalReference<jstring> jfilename = env.callObjectMethod(jste, Globals::methodStackTraceElementGetFileName, nullptr).as<jstring>();
                     jni::Env::GetStringUtfChars file(env, jfilename);
                     jint line = env.callIntMethod(jste, Globals::methodStackTraceElementGetLineNumber, nullptr);
+                    // Java uses negative line numbers for unavailable source locations (-2 for native
+                    // methods). Qore represents all unknown locations with -1, including exception frames.
+                    if (line < -1) {
+                        line = -1;
+                    }
                     jboolean native = env.callBooleanMethod(jste, Globals::methodStackTraceElementIsNativeMethod, nullptr);
 
                     printd(LogLevel, "JniCallStack::JniCallStack() adding %s\n", code.c_str());

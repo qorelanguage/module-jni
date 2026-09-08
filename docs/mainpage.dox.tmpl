@@ -505,7 +505,8 @@ System::out.println("testing...");
     - \c arg: the exception object itself as a %Qore object wrapping the Java object
 
     Exception locations including call stack locations reflect the actual Java source location(s), and in such cases
-    the \c lang attribute will be \c "Java".
+    the \c lang attribute will be \c "Java". Negative Java source line numbers, including the native-method
+    sentinel \c -2, are exposed as Qore's unknown-location sentinel \c -1. Available source line numbers are preserved.
 
     @section jni_from_java Using the jni Module From Java
 
@@ -1005,6 +1006,10 @@ foreach hash<auto> column in (result.schemaV2()) {
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_2_7_0 jni Module Version 2.7.0
+    - release temporary Java class wrappers when recursive or duplicate class resolution reuses an existing
+      class, including exception-safe cleanup before the new class takes ownership
+    - fixed Java exceptions with native stack frames aborting Debug Qore: unavailable Java line numbers
+      are normalized to the Qore unknown-location sentinel while retaining exception and frame metadata
     - <b>Added explicit shared identity for dynamically projected %Qore classes</b>
       - <b>Symptom.</b> Passing an object between two Java-enabled %Programs could fail with
         \c ClassCastException even when the object's projected class inherited the requested type; the exception

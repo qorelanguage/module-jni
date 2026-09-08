@@ -1,0 +1,110 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../qlib"
+%requires QUnit
+%requires jni
+%module-cmd(jni) add-relative-classpath qore-jni-test.jar
+%module-cmd(jni) import java.lang.System
+%module-cmd(jni) import java.lang.Integer
+%module-cmd(jni) import org.qore.jni.test.ExceptionLocations
+%exec-class JavaExceptionLocationTest
+
+class JavaExceptionLocationTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Java exception source locations", "1.0") {
+        addTestCase("Native Java frames use the unknown-location sentinel", \nativeFrame());
+        addTestCase("Java source locations and recovery are preserved", \sourceFrame());
+        addTestCase("Unavailable source lines are normalized in all Java frames", \unknownLines());
+        addTestCase("Zero and positive source lines are preserved", \knownLines());
+        addTestCase("Missing source filenames are accepted", \missingFilename());
+        addTestCase("Empty Java stacks preserve the exception and allow recovery", \emptyStack());
+        set_return_value(main());
+    }
+
+    nativeFrame() {
+        try {
+            Jni::java::lang::System::arraycopy(NOTHING, 0, NOTHING, 0, 1);
+            fail("native arraycopy with null arrays must throw");
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("JNI-ERROR", ex.err);
+            assertTrue(index(ex.desc, "NullPointerException") >= 0);
+            assertEq("Java", ex.lang);
+            assertEq(-1, ex.line);
+            assertTrue(ex.callstack.size() > 0);
+            foreach hash<auto> frame in (ex.callstack) {
+                assertTrue(frame.line >= -1, "every converted frame has a valid Qore line number");
+            }
+        }
+    }
+
+    sourceFrame() {
+        try {
+            Jni::java::lang::Integer::parseInt("not-an-integer");
+            fail("invalid integer must throw");
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("JNI-ERROR", ex.err);
+            assertTrue(index(ex.desc, "NumberFormatException") >= 0);
+            assertEq("Java", ex.lang);
+            assertTrue(ex.line > 0);
+        }
+        assertEq(42, Jni::java::lang::Integer::parseInt("42"));
+    }
+
+    private checkLocation(*string filename, int line) {
+        int expected_line = line < 0 ? -1 : line;
+        try {
+            ExceptionLocations::throwWithLocation(filename, line);
+            fail("the location fixture must throw");
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("JNI-ERROR", ex.err);
+            assertEq("java.lang.IllegalStateException: location fixture", ex.desc);
+            assertEq("location fixture", ex.arg.getMessage());
+            assertEq("Java", ex.lang);
+            assertEq(filename ?? "", ex.file);
+            assertEq(expected_line, ex.line);
+            list<hash<auto>> frames = map $1, ex.callstack, $1.lang == "Java";
+            assertEq(2, frames.size());
+            assertEq("fixture.Top.throwHere", frames[0].function);
+            assertEq(filename ?? "", frames[0].file);
+            assertEq(expected_line, frames[0].line);
+            assertEq(line == -2 ? "builtin" : "user", frames[0].type);
+            assertEq("fixture.Caller.callHere", frames[1].function);
+            assertEq("Entry.java", frames[1].file);
+            assertEq(123, frames[1].line);
+            assertEq("user", frames[1].type);
+        }
+        assertEq(42, Jni::java::lang::Integer::parseInt("42"));
+    }
+
+    unknownLines() {
+        foreach int line in ((-1, -2, -7, -2147483648)) {
+            checkLocation("Fixture.java", line);
+        }
+    }
+
+    knownLines() {
+        foreach int line in ((0, 1, 123, 2147483647)) {
+            checkLocation("Fixture.java", line);
+        }
+    }
+
+    missingFilename() {
+        foreach int line in ((-2, -1, 42)) {
+            checkLocation(NOTHING, line);
+        }
+    }
+
+    emptyStack() {
+        try {
+            ExceptionLocations::throwWithoutStack();
+            fail("the empty stack fixture must throw");
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("JNI-ERROR", ex.err);
+            assertEq("java.lang.IllegalStateException: empty stack fixture", ex.desc);
+            assertEq("empty stack fixture", ex.arg.getMessage());
+            assertEq(0, (map $1, ex.callstack, $1.lang == "Java").size());
+        }
+        assertEq(42, Jni::java::lang::Integer::parseInt("42"));
+    }
+}
