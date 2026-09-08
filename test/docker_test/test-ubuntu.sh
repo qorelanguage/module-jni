@@ -40,6 +40,7 @@ make install
 
 # Verify that source-owned provider presentation catalogs match this checkout.
 ${MODULE_SRC_DIR}/test/docker_test/check-i18n.sh
+${MODULE_SRC_DIR}/test/docker_test/check-java-logging.sh
 
 # add Qore user and group
 groupadd -o -g ${QORE_GID} qore

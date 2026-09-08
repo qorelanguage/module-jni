@@ -42,6 +42,7 @@
 %module-cmd(jni) add-relative-classpath ./jar/jsoup-1.18.1.jar
 %module-cmd(jni) add-relative-classpath ./jar/juniversalchardet-2.5.0.jar
 %module-cmd(jni) add-relative-classpath ./jar/slf4j-api-2.0.16.jar
+%module-cmd(jni) add-relative-classpath ./jar/slf4j-nop-2.0.16.jar
 
 %module-cmd(jni) import org.qore.dataprovider.tika.TikaExtractor
 

@@ -41,6 +41,7 @@
 %module-cmd(jni) add-relative-classpath ./jar/commons-io-2.16.1.jar
 %module-cmd(jni) add-relative-classpath ./jar/commons-lang3-3.14.0.jar
 %module-cmd(jni) add-relative-classpath ./jar/slf4j-api-2.0.13.jar
+%module-cmd(jni) add-relative-classpath ./jar/slf4j-nop-2.0.13.jar
 
 %module-cmd(jni) import org.qore.dataprovider.avro.AvroIterator
 %module-cmd(jni) import org.qore.dataprovider.avro.AvroWriter

@@ -85,6 +85,7 @@
 %module-cmd(jni) global-add-relative-classpath ./jar/jaxb-core-4.0.5.jar
 %module-cmd(jni) global-add-relative-classpath ./jar/jaxb-runtime-4.0.5.jar
 %module-cmd(jni) global-add-relative-classpath ./jar/slf4j-api-2.0.16.jar
+%module-cmd(jni) global-add-relative-classpath ./jar/slf4j-nop-2.0.16.jar
 %module-cmd(jni) global-add-relative-classpath ./jar/snakeyaml-2.2.jar
 %module-cmd(jni) global-add-relative-classpath ./jar/txw2-4.0.5.jar
 

@@ -36,6 +36,7 @@
 %module-cmd(jni) add-relative-classpath ../qlib/IcsDataProvider/jar/commons-codec-1.17.0.jar
 %module-cmd(jni) add-relative-classpath ../qlib/IcsDataProvider/jar/commons-lang3-3.14.0.jar
 %module-cmd(jni) add-relative-classpath ../qlib/IcsDataProvider/jar/slf4j-api-2.0.12.jar
+%module-cmd(jni) add-relative-classpath ../qlib/IcsDataProvider/jar/slf4j-nop-2.0.12.jar
 %module-cmd(jni) add-relative-classpath ../qlib/IcsDataProvider/jar/threeten-extra-1.8.0.jar
 %module-cmd(jni) import org.qore.dataprovider.ical.IcsTestHelper
 

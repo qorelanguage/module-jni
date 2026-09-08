@@ -35,6 +35,7 @@
 %module-cmd(jni) add-relative-classpath ../qlib/AvroDataProvider/jar/commons-io-2.16.1.jar
 %module-cmd(jni) add-relative-classpath ../qlib/AvroDataProvider/jar/commons-lang3-3.14.0.jar
 %module-cmd(jni) add-relative-classpath ../qlib/AvroDataProvider/jar/slf4j-api-2.0.13.jar
+%module-cmd(jni) add-relative-classpath ../qlib/AvroDataProvider/jar/slf4j-nop-2.0.13.jar
 
 %requires QUnit
 %requires Util
