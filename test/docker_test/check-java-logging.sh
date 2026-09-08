@@ -5,6 +5,10 @@
 
 set -eu
 
+# JVM launcher option variables produce their own stderr diagnostics before Java or
+# any provider code runs.  Keep this check scoped to output from the providers.
+unset JAVA_TOOL_OPTIONS _JAVA_OPTIONS JDK_JAVA_OPTIONS
+
 log_dir=$(mktemp -d)
 trap 'rm -rf "$log_dir"' EXIT HUP INT TERM
 
