@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+//  Copyright (C) 2016 - 2026 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -244,7 +244,7 @@ LocalReference<jclass> Array::getClassForValue(QoreValue v, JniExternalProgramDa
 
 LocalReference<jarray> Array::toObjectArray(const QoreListNode* l, jclass elementClass, size_t start,
         JniExternalProgramData* jpc) {
-    assert(start < l->size());
+    assert(start <= l->size());
     Type elementType = Globals::getType(elementClass);
 
     LocalReference<jarray> jarray = getNew(elementType, elementClass, l->size() - start);
@@ -256,8 +256,10 @@ LocalReference<jarray> Array::toObjectArray(const QoreListNode* l, jclass elemen
 }
 
 LocalReference<jarray> Array::toJava(const QoreListNode* l, size_t start, JniExternalProgramData* jpc) {
-    if (l->size() <= start)
-        return nullptr;
+    if (l->size() <= start) {
+        // An empty list has no element type to infer, but must remain distinct from null.
+        return getNew(Type::Reference, Globals::classObject, 0);
+    }
 
     LocalReference<jclass> elementClass = nullptr;
     // to determine the common type, we need a typeInfo object
@@ -268,8 +270,9 @@ LocalReference<jarray> Array::toJava(const QoreListNode* l, size_t start, JniExt
     for (unsigned i = start, e = l->size(); i != e; ++i) {
         // get this element's target Java class
         QoreValue v = l->retrieveEntry(i);
-        if (v.isNullOrNothing())
+        if (v.isNullOrNothing()) {
             continue;
+        }
 
         if (!elementClass) {
             elementClass = getClassForValue(v, jpc);

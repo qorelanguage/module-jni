@@ -21,4 +21,17 @@ public final class ExceptionLocations {
         exception.setStackTrace(new StackTraceElement[0]);
         throw exception;
     }
+
+    public static void throwWithFailingMessage() {
+        throw new BrokenMessageException();
+    }
+
+    private static final class BrokenMessageException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public String getMessage() {
+            throw new IllegalStateException("message unavailable");
+        }
+    }
 }

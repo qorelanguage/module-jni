@@ -796,6 +796,10 @@ Object obj = newClassData.cls.getDeclaredConstructor().newInstance();
     scanned, and if it can be mapped to a single Java type, then an array of that type is created.  Otherwise, an
     array of \c java.lang.Object is created and the %Qore values are mapped directly to Java values.
 
+    An empty %Qore list becomes an empty \c Object[] when no Java array component type is specified, including
+    lists nested in hashes or other lists.  Empty lists remain distinct from \c null.  If a Java parameter
+    specifies an array type such as \c String[] or \c long[], an empty list produces an empty array of that type.
+
     %Qore lists are passed by value and Java arrays are objects (which, like %Qore objects, are passed with a copy of
     a reference to the object).  To get similar functionality in %Qore, you can use the
     @ref Jni::org::qore::jni::JavaArray "JavaArray" class supplied with the \c jni module, which is automatically
@@ -1006,6 +1010,12 @@ foreach hash<auto> column in (result.schemaV2()) {
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_2_7_0 jni Module Version 2.7.0
+    - fixed empty %Qore lists converting to Java \c null when passed as objects or nested in hashes and lists;
+      they now become empty \c Object[] arrays, allowing empty OPC UA address spaces to be described and
+      exported as NodeSet2 XML (<a href="https://github.com/qoretechnologies/qore/issues/5446">issue 5446</a>)
+    - allow empty trailing argument slices when converting typed Java varargs in Debug builds
+    - check Java exception metadata calls before validating their local references, avoiding JNI checker
+      warnings during conversion failures and preserving the original exception if \c getMessage() throws
     - release temporary Java class wrappers when recursive or duplicate class resolution reuses an existing
       class, including exception-safe cleanup before the new class takes ownership
     - fixed Java exceptions with native stack frames aborting Debug Qore: unavailable Java line numbers

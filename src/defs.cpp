@@ -208,9 +208,10 @@ QoreStringNode* JavaException::toString(bool clear) const {
 
 void JavaException::convert(ExceptionSink* xsink) {
     JNIEnv* env = Jvm::getEnv();         //not using the Env wrapper because we don't want any C++ exceptions here
-    LocalReference<jthrowable> throwable = env->ExceptionOccurred();
-    assert(throwable != nullptr);
+    jthrowable raw_throwable = env->ExceptionOccurred();
+    assert(raw_throwable != nullptr);
     env->ExceptionClear();
+    LocalReference<jthrowable> throwable(raw_throwable);
 
     if (env->IsInstanceOf(throwable, Globals::classQoreExceptionWrapper)) {
         jlong l = env->CallLongMethod(throwable, Globals::methodQoreExceptionWrapperGet);
@@ -246,13 +247,29 @@ void JavaException::convert(ExceptionSink* xsink) {
         return;
     }
 
-    LocalReference<jstring> excName = static_cast<jstring>(env->CallObjectMethod(env->GetObjectClass(throwable),
+    jclass raw_throwable_class = env->GetObjectClass(throwable);
+    if (env->ExceptionCheck()) {
+        env->ExceptionClear();
+        if (raw_throwable_class) {
+            env->DeleteLocalRef(raw_throwable_class);
+        }
+        xsink->raiseException("JNI-ERROR", "Unable to get exception class - another exception thrown");
+        return;
+    }
+    LocalReference<jclass> tcls(raw_throwable_class);
+
+    // Check for Java exceptions before LocalReference validates the result with another JNI call.
+    jstring raw_exc_name = static_cast<jstring>(env->CallObjectMethod(tcls,
         Globals::methodClassGetName));
     if (env->ExceptionCheck()) {
         env->ExceptionClear();
+        if (raw_exc_name) {
+            env->DeleteLocalRef(raw_exc_name);
+        }
         xsink->raiseException("JNI-ERROR", "Unable to get exception class name - another exception thrown");
         return;
     }
+    LocalReference<jstring> excName(raw_exc_name);
 
     const char* chars = env->GetStringUTFChars(excName, nullptr);
     if (!chars) {
@@ -263,11 +280,15 @@ void JavaException::convert(ExceptionSink* xsink) {
     SimpleRefHolder<QoreStringNode> desc(new QoreStringNode(chars, QCS_UTF8));
     env->ReleaseStringUTFChars(excName, chars);
 
-    LocalReference<jstring> msg = static_cast<jstring>(env->CallObjectMethod(throwable,
+    jstring raw_msg = static_cast<jstring>(env->CallObjectMethod(throwable,
         Globals::methodThrowableGetMessage));
     if (env->ExceptionCheck()) {
         env->ExceptionClear();
-    } else if (msg != nullptr) {
+        if (raw_msg) {
+            env->DeleteLocalRef(raw_msg);
+        }
+    } else if (raw_msg != nullptr) {
+        LocalReference<jstring> msg(raw_msg);
         desc->concat(": ");
         chars = env->GetStringUTFChars(msg, nullptr);
         if (!chars) {
@@ -285,7 +306,6 @@ void JavaException::convert(ExceptionSink* xsink) {
     QoreExternalProgramLocationWrapper loc;
     JniCallStack stack(throwable, loc);
 
-    LocalReference<jclass> tcls(env->GetObjectClass(throwable));
     {
         Env jenv(env);
         QoreClass* qc;

@@ -1,0 +1,94 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+%requires QUnit
+%requires jni
+%module-cmd(jni) add-relative-classpath qore-jni-test.jar
+%module-cmd(jni) import org.qore.jni.test.ListConversions
+%exec-class JniListConversionTest
+
+class JniListConversionTest inherits QUnit::Test {
+    constructor() : QUnit::Test("JNI list conversion", "1.0") {
+        addTestCase("Empty lists become Object arrays", \emptyLists());
+        addTestCase("Hash entries distinguish empty lists, null, and absent keys", \hashEntries());
+        addTestCase("Nested empty lists survive a round trip", \nestedLists());
+        addTestCase("Nonempty arrays retain inferred types and null elements", \nonemptyLists());
+        addTestCase("Typed empty arrays retain their component type", \typedArrays());
+        addTestCase("Varargs retain their component type and offset", \varargs());
+        addTestCase("Invalid typed elements throw and subsequent conversions recover", \invalidElements());
+        set_return_value(main());
+    }
+
+    emptyLists() {
+        assertEq("[Ljava.lang.Object;:0", ListConversions::describe(()));
+        list<string> strings = ();
+        assertEq("[Ljava.lang.Object;:0", ListConversions::describe(strings));
+        auto result = ListConversions::roundTrip(());
+        assertTrue(result instanceof list);
+        assertEq(0, result.size());
+        assertEq("null", ListConversions::describe(NULL));
+    }
+
+    hashEntries() {
+        hash<auto> value = {"empty": (), "null": NULL};
+        assertEq("[Ljava.lang.Object;:0", ListConversions::describeEntry(value, "empty"));
+        assertEq("null", ListConversions::describeEntry(value, "null"));
+        assertEq("absent", ListConversions::describeEntry(value, "missing"));
+        hash<auto> result = ListConversions::roundTrip(value);
+        assertTrue(result.hasKey("empty"));
+        assertTrue(result.empty instanceof list);
+        assertEq(0, result.empty.size());
+        assertTrue(result.hasKey("null"));
+        assertFalse(result.hasKey("missing"));
+    }
+
+    nestedLists() {
+        list<auto> value = ((), {"items": ()}, ((), ("value",)));
+        list<auto> result = ListConversions::roundTrip(value);
+        assertEq(value, result);
+        assertTrue(result[0] instanceof list);
+        assertTrue(result[1].items instanceof list);
+        assertTrue(result[2][0] instanceof list);
+    }
+
+    nonemptyLists() {
+        assertEq("[Ljava.lang.String;:2", ListConversions::describe(("a", "b")));
+        assertEq("[Ljava.lang.Long;:2", ListConversions::describe((1, 2)));
+        assertEq("[Ljava.lang.Object;:2", ListConversions::describe(("a", 1)));
+        assertEq("[Ljava.lang.Object;:2", ListConversions::describe((NULL, NOTHING)));
+        assertEq("[Ljava.lang.String;:2", ListConversions::describe((NULL, "a")));
+        list<auto> result = ListConversions::roundTrip((NULL, "a"));
+        assertEq(2, result.size());
+        assertEq(NOTHING, result[0]);
+        assertEq("a", result[1]);
+    }
+
+    typedArrays() {
+        assertEq("[Ljava.lang.Object;:0", ListConversions::describeObjects(()));
+        assertEq("[Ljava.lang.String;:0", ListConversions::describeStrings(()));
+        assertEq("[J:0", ListConversions::describeLongs(()));
+        assertEq("[J:2", ListConversions::describeLongs((1, 2)));
+        auto method = jni::load_class("org/qore/jni/test/ListConversions").getDeclaredMethod(
+            "describeStrings", (jni::load_class("[Ljava/lang/String;"),));
+        assertEq("null", jni::invoke(method, NOTHING, NULL));
+    }
+
+    varargs() {
+        assertEq("prefix:[Ljava.lang.String;:0", ListConversions::describeVarargs("prefix:", ()));
+        assertEq("prefix:[Ljava.lang.String;:2", ListConversions::describeVarargs("prefix:", ("a", "b")));
+        auto method = jni::load_class("org/qore/jni/test/ListConversions").getDeclaredMethod(
+            "describeVarargs", (jni::load_class("java/lang/String"), jni::load_class("[Ljava/lang/String;")));
+        assertEq("prefix:[Ljava.lang.String;:2", jni::invoke(method, NOTHING, "prefix:", "a", "b"));
+        assertEq("prefix:[Ljava.lang.String;:0", jni::invoke(method, NOTHING, "prefix:"));
+        assertEq("prefix:[Ljava.lang.String;:0", ListConversions::describeVarargs("prefix:"));
+    }
+
+    invalidElements() {
+        auto method = jni::load_class("org/qore/jni/test/ListConversions").getDeclaredMethod(
+            "describeStrings", (jni::load_class("[Ljava/lang/String;"),));
+        assertThrows("JNI-ERROR", sub() { jni::invoke(method, NOTHING, ("a", {})); });
+        assertEq("[Ljava.lang.Object;:0", ListConversions::describe(()));
+        assertEq("[Ljava.lang.String;:1", ListConversions::describeStrings(("a",)));
+    }
+}

@@ -20,6 +20,9 @@ public namespace OpcUaDataProvider {
     \c opcua: "1", contract version 1, a namespace table, and normalized variable or method endpoints.
     Missing endpoint IDs and node IDs are derived deterministically.
 
+    The \c endpoints list may be empty, for example while authoring a new address space.  The field is
+    required and must be a list; a missing or null value is invalid.
+
     @param document the native OPC UA address-space document
 
     @return the normalized schema snapshot
@@ -45,6 +48,18 @@ public namespace OpcUaDataProvider {
             "value_rank": -1,
         },),
     });
+    @endcode
+
+    An address space without nodes can also be described and exported:
+    @code
+    hash<auto> empty_document = {
+        "opcua": "1",
+        "contract_version": 1,
+        "namespaces": {"1": "urn:factory:machine"},
+        "endpoints": (),
+    };
+    hash<auto> empty_snapshot = OpcUaDataProvider::describeAddressSpace(empty_document);
+    string empty_nodeset2 = OpcUaDataProvider::exportNodeSet2(empty_document);
     @endcode
 */
 public hash<auto> sub describeAddressSpace(hash<auto> document) {
@@ -81,6 +96,8 @@ public hash<auto> sub nodeSet2ToAddressSpace(string xml) {
 
 #! Exports a native OPC UA address-space document to NodeSet2 XML without starting a server
 /** The output is the same NodeSet2 subset emitted by @ref OpcUaServerRuntime::exportNodeSet2().
+    An empty \c endpoints list produces a NodeSet2 document containing the namespace table without
+    variable or method nodes.
 
     @param document the native OPC UA address-space document
 

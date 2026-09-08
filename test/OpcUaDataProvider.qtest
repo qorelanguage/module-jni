@@ -1,5 +1,6 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
 
 %modern
 %allow-injection
@@ -76,6 +77,8 @@ public class OpcUaDataProviderTest inherits QUnit::Test {
         addTestCase("nodeset2 import", \nodeSet2ImportTest());
         addTestCase("nodeset2 import robustness", \nodeSet2ImportRobustnessTest());
         addTestCase("parse-only OPC UA address-space description", \addressSpaceDescriptionTest());
+        addTestCase("empty OPC UA address-space description and export", \emptyAddressSpaceTest());
+        addTestCase("invalid OPC UA endpoint lists remain rejected", \invalidEndpointListsTest());
         addTestCase("parse-only OPC UA address-space validation", \addressSpaceValidationTest());
         addTestCase("offline OPC UA NodeSet2 round trip", \nodeSet2RoundTripTest());
         addTestCase("generic OPC UA server runtime rejects non-loopback endpoints",
@@ -1217,6 +1220,65 @@ public class OpcUaDataProviderTest inherits QUnit::Test {
         assertTrue(generated_snapshot.endpoints[0].endpoint_id.val(), "a missing endpoint id is derived");
         assertTrue(generated_snapshot.endpoints[0].node_id =~ /^ns=1;s=var:Setpoint:/,
             "a missing variable node id is derived in its declared namespace");
+    }
+
+    #! Empty lists survive hash conversion to Java for both offline address-space APIs (issue #5446)
+    emptyAddressSpaceTest() {
+        hash<auto> document = {
+            "opcua": "1",
+            "contract_version": 1,
+            "source": "document",
+            "namespaces": {"1": "urn:qore:opcua:empty"},
+            "endpoints": (),
+        };
+        hash<auto> original = document;
+        hash<auto> snapshot = OpcUaDataProvider::describeAddressSpace(document);
+        assertEq("1", snapshot.opcua);
+        assertEq(1, snapshot.contract_version);
+        assertEq("document", snapshot.source);
+        assertTrue(snapshot.endpoints instanceof list);
+        assertEq(0, snapshot.endpoints.size());
+        assertEq("urn:qore:opcua:empty", snapshot.namespaces{"1"});
+        assertEq("http://opcfoundation.org/UA/", snapshot.namespaces{"0"});
+
+        string xml = OpcUaDataProvider::exportNodeSet2(document);
+        assertTrue(xml =~ /<UANodeSet /, "empty address spaces export valid NodeSet2 XML");
+        assertFalse(xml =~ /<UA(?:Variable|Method) /, "export does not invent sentinel endpoints");
+        hash<auto> round_trip = OpcUaDataProvider::nodeSet2ToAddressSpace(xml);
+        assertEq(snapshot.namespaces, round_trip.namespaces);
+        assertTrue(round_trip.endpoints instanceof list);
+        assertEq(0, round_trip.endpoints.size());
+        assertEq(xml, OpcUaDataProvider::exportNodeSet2(snapshot), "normalized empty snapshots export too");
+        assertEq(original, document, "description and export leave the caller's document unchanged");
+    }
+
+    #! Missing, null, scalar, hash, and invalid list elements must not be treated as empty endpoints
+    invalidEndpointListsTest() {
+        hash<auto> base = {
+            "opcua": "1",
+            "contract_version": 1,
+            "namespaces": {"1": "urn:qore:opcua:empty"},
+        };
+        foreach hash<auto> invalid in (({}, {"endpoints": NULL}, {"endpoints": "invalid"},
+                {"endpoints": 1}, {"endpoints": {}}, {"endpoints": (NULL,)})) {
+            hash<auto> document = base + invalid;
+            string pointer = invalid.endpoints instanceof list ? "/endpoints/0" : "/endpoints";
+            foreach code<nothing(hash<auto>)> api in ((sub(hash<auto> doc) {
+                    OpcUaDataProvider::describeAddressSpace(doc);
+                }, sub(hash<auto> doc) {
+                    OpcUaDataProvider::exportNodeSet2(doc);
+                })) {
+                bool threw = False;
+                try {
+                    api(document);
+                } catch (hash<ExceptionInfo> ex) {
+                    threw = True;
+                    assertEq("OPCUA-SCHEMA-ERROR", ex.err);
+                    assertEq(pointer, ex.arg.pointer);
+                }
+                assertTrue(threw, sprintf("invalid endpoints must fail at %s", pointer));
+            }
+        }
     }
 
     #! Tests structured parse-only validation errors, including the acceptance-case missing data type

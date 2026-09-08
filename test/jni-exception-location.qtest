@@ -19,6 +19,7 @@ class JavaExceptionLocationTest inherits QUnit::Test {
         addTestCase("Zero and positive source lines are preserved", \knownLines());
         addTestCase("Missing source filenames are accepted", \missingFilename());
         addTestCase("Empty Java stacks preserve the exception and allow recovery", \emptyStack());
+        addTestCase("Exceptions thrown by getMessage preserve the original exception", \failingMessage());
         set_return_value(main());
     }
 
@@ -93,6 +94,19 @@ class JavaExceptionLocationTest inherits QUnit::Test {
         foreach int line in ((-2, -1, 42)) {
             checkLocation(NOTHING, line);
         }
+    }
+
+    failingMessage() {
+        try {
+            ExceptionLocations::throwWithFailingMessage();
+            fail("the broken message fixture must throw");
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq("JNI-ERROR", ex.err);
+            assertEq("org.qore.jni.test.ExceptionLocations$BrokenMessageException", ex.desc);
+            assertEq("Java", ex.lang);
+            assertTrue(ex.line > 0);
+        }
+        assertEq(42, Jni::java::lang::Integer::parseInt("42"));
     }
 
     emptyStack() {
