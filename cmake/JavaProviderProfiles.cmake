@@ -51,6 +51,31 @@ function(qore_finalize_java_provider_profiles)
         message(FATAL_ERROR "No Java provider profiles were declared")
     endif()
 
+    set(_unique_modules ${_modules})
+    list(REMOVE_DUPLICATES _unique_modules)
+    list(LENGTH _modules _module_count)
+    list(LENGTH _unique_modules _unique_module_count)
+    if(NOT _module_count EQUAL _unique_module_count)
+        message(FATAL_ERROR "A Java provider dependency profile was declared more than once")
+    endif()
+
+    # Discover the declaration boundary independently of the profile list. A
+    # new Java-backed module must not evade qualification merely because its
+    # generated first-party JAR has no committed checksum entry.
+    file(GLOB _module_sources CONFIGURE_DEPENDS
+        "${CMAKE_SOURCE_DIR}/qlib/*/*.qm")
+    foreach(_module_source IN LISTS _module_sources)
+        file(STRINGS "${_module_source}" _classpath_lines
+            REGEX "^[ \t]*%module-cmd\\(jni\\)[ \t]+(global-)?add-relative-classpath[ \t]+")
+        if(_classpath_lines)
+            get_filename_component(_module_name "${_module_source}" NAME_WE)
+            if(NOT _module_name IN_LIST _modules)
+                message(FATAL_ERROR
+                    "Java-backed module ${_module_name} has runtime classpath directives but no dependency profile")
+            endif()
+        endif()
+    endforeach()
+
     set(_qmod_targets "")
     foreach(_module IN LISTS _modules)
         if(NOT TARGET ${_module}-qmod)

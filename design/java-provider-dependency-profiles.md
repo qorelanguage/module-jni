@@ -19,6 +19,9 @@ attaches exactly one logging policy:
 
 The helper emits `java-provider-profiles.tsv`. Source-tree, AOT-tree, install-tree, and fresh-process checks all
 consume this inventory, so adding a runtime JAR cannot require four independently maintained lists.
+Finalization independently scans every shipped `.qm` for JNI relative-classpath directives and rejects any module
+without exactly one profile, including a new module that contains only a generated first-party JAR and would
+therefore be invisible to the committed third-party checksum inventory.
 
 ## Static qualification
 
@@ -26,7 +29,8 @@ consume this inventory, so adding a runtime JAR cannot require four independentl
 
 - a missing, escaping, duplicate, uncommitted, or undeclared JAR;
 - a missing or stale checksum in `qlib/java-provider-dependencies.sha256`;
-- multiple SLF4J APIs/providers, mismatched API/provider versions, or incompatible 1.x/2.x service mechanisms;
+- multiple SLF4J APIs/providers, mismatched API/provider versions, missing provider classes named by service entries,
+  or incompatible 1.x/2.x service mechanisms;
 - a logging artifact under the `none` policy;
 - a two-way Log4j, JUL, or Commons Logging bridge cycle;
 - a build/AOT/install copy whose SHA-256 differs from the source inventory.
@@ -39,6 +43,11 @@ is committed and checksummed.
 
 Every declared provider is loaded in a fresh Qore process after installation. Both stdout and stderr must remain
 empty and the process must succeed. There are no output allowlists: an SLF4J warning is a dependency-profile defect.
+
+Source, AOT, and installed-tree checks each write an atomic JSON qualification report. The installed report also
+records every fresh-process outcome without embedding process output in a successful artifact. CI retains all three
+reports even when a check fails, together with the source revision and qore-test-base provenance, so release tooling
+never has to infer qualification from logs.
 
 When a provider dependency changes, update its `.qm` classpath directive, update the committed JAR, regenerate the
 checksum inventory, rebuild all provider qmods, and run `check-java-logging.sh` against an empty install prefix.

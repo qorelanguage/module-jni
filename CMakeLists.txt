@@ -1429,3 +1429,11 @@ add_test(NAME java_provider_profile_validator
     COMMAND ${QORE_JAVA_PROVIDER_PYTHON}
         ${CMAKE_SOURCE_DIR}/test/test-java-provider-profiles.py
         ${CMAKE_SOURCE_DIR}/test/docker_test/validate-java-provider-profiles.py)
+foreach(_java_profile_boundary_case IN ITEMS undeclared duplicate)
+    add_test(NAME java_provider_profile_${_java_profile_boundary_case}
+        COMMAND ${CMAKE_COMMAND}
+            -DCASE=${_java_profile_boundary_case}
+            -DHELPER=${CMAKE_SOURCE_DIR}/cmake/JavaProviderProfiles.cmake
+            -DWORK=${CMAKE_CURRENT_BINARY_DIR}/java-provider-profile-${_java_profile_boundary_case}
+            -P ${CMAKE_SOURCE_DIR}/test/test-java-provider-profile-boundary.cmake)
+endforeach()

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Regression tests for Java provider dependency-profile qualification."""
 
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -53,6 +54,7 @@ class JavaProviderProfileTest(unittest.TestCase):
         self.make_jar("slf4j-nop-2.0.16.jar", {
             "META-INF/services/org.slf4j.spi.SLF4JServiceProvider":
                 "org.slf4j.nop.NOPServiceProvider\n",
+            "org/slf4j/nop/NOPServiceProvider.class": b"fixture",
         })
 
     def test_valid_slf4j_nop_profile(self):
@@ -67,6 +69,7 @@ class JavaProviderProfileTest(unittest.TestCase):
         self.make_jar("slf4j-nop-2.0.15.jar", {
             "META-INF/services/org.slf4j.spi.SLF4JServiceProvider":
                 "org.slf4j.nop.NOPServiceProvider\n",
+            "org/slf4j/nop/NOPServiceProvider.class": b"fixture",
         })
         self.write_profile("slf4j-nop", (
             "slf4j-api-2.0.16.jar", "slf4j-nop-2.0.15.jar"))
@@ -79,6 +82,7 @@ class JavaProviderProfileTest(unittest.TestCase):
         self.make_jar("slf4j-simple-2.0.16.jar", {
             "META-INF/services/org.slf4j.spi.SLF4JServiceProvider":
                 "org.slf4j.simple.SimpleServiceProvider\n",
+            "org/slf4j/simple/SimpleServiceProvider.class": b"fixture",
         })
         self.write_profile("slf4j-nop", (
             "slf4j-api-2.0.16.jar", "slf4j-nop-2.0.16.jar",
@@ -98,6 +102,18 @@ class JavaProviderProfileTest(unittest.TestCase):
         self.assertNotEqual(0, result.returncode)
         self.assertIn("logging bridge cycle", result.stderr)
 
+    def test_missing_service_provider_class_is_rejected(self):
+        self.make_jar("slf4j-api-2.0.16.jar")
+        self.make_jar("slf4j-nop-2.0.16.jar", {
+            "META-INF/services/org.slf4j.spi.SLF4JServiceProvider":
+                "org.slf4j.nop.NOPServiceProvider\n",
+        })
+        self.write_profile("slf4j-nop", (
+            "slf4j-api-2.0.16.jar", "slf4j-nop-2.0.16.jar"))
+        result = self.run_validator()
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("provider class is missing", result.stderr)
+
     def test_staged_content_must_match_source(self):
         source = self.make_jar("qore-dataprovider-example.jar", marker=b"source")
         self.write_profile("none", (source.name,))
@@ -110,6 +126,28 @@ class JavaProviderProfileTest(unittest.TestCase):
             "--root", staged_root, "--reference-root", self.root)
         self.assertNotEqual(0, result.returncode)
         self.assertIn("differs from source", result.stderr)
+
+    def test_structured_report_is_atomic_and_records_success_or_failure(self):
+        report = self.base / "qualification" / "profile.json"
+        self.make_valid_slf4j()
+        self.write_profile("slf4j-nop", (
+            "slf4j-api-2.0.16.jar", "slf4j-nop-2.0.16.jar"))
+        result = self.run_validator("--scope", "source", "--report", report)
+        self.assertEqual(0, result.returncode, result.stderr)
+        payload = json.loads(report.read_text(encoding="utf-8"))
+        self.assertTrue(payload["complete"])
+        self.assertEqual("source", payload["qualification"]["scope"])
+        self.assertEqual(1, payload["qualification"]["module_count"])
+        self.assertEqual(2, payload["qualification"]["runtime_jar_declarations"])
+        self.assertEqual([], payload["errors"])
+
+        self.write_profile("none", ("slf4j-api-2.0.16.jar",))
+        result = self.run_validator("--scope", "source", "--report", report)
+        self.assertNotEqual(0, result.returncode)
+        payload = json.loads(report.read_text(encoding="utf-8"))
+        self.assertFalse(payload["complete"])
+        self.assertTrue(payload["errors"])
+        self.assertEqual([], list(report.parent.glob(".*.tmp.*")))
 
 
 if __name__ == "__main__":
