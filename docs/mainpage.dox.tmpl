@@ -1010,9 +1010,12 @@ foreach hash<auto> column in (result.schemaV2()) {
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_2_7_0 jni Module Version 2.7.0
-    - fixed JVM-primary processes hanging at exit after using a %Qore ThreadPool; the system
-      classloader's existing JVM shutdown hook now waits for external native thread joins and stops
-      libqore's cleanup reaper before static destruction reaches its synchronization primitives
+    - fixed JVM-primary processes aborting or hanging at exit, after the Java code had already
+      completed successfully, with the message <tt>external native threads still active while
+      stopping the cleanup worker</tt>; the system classloader's JVM shutdown hook was never
+      registered when the JVM owns the process, and now runs the documented \c qore_cleanup()
+      teardown, so %Qore \c ThreadPool workers and the process-wide async I/O controller are
+      stopped before libqore's static destructors run
     - fixed empty %Qore lists converting to Java \c null when passed as objects or nested in hashes and lists;
       they now become empty \c Object[] arrays, allowing empty OPC UA address spaces to be described and
       exported as NodeSet2 XML (<a href="https://github.com/qoretechnologies/qore/issues/5446">issue 5446</a>)

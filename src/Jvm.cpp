@@ -274,7 +274,13 @@ void Jvm::destroyVM() {
     Globals::stopNativeCleanupThread();
 
     Globals::cleanup();
-    vm->DestroyJavaVM();
+    // Only destroy the JVM if we created it.  In JVM-primary mode the host process owns the VM
+    // and destroys it itself; this path is reached from the QoreURLClassLoader shutdown hook
+    // (see qore_url_classloader_shutdown_context()), i.e. from inside the host's own
+    // DestroyJavaVM() call, so calling DestroyJavaVM() here would deadlock.
+    if (!Globals::getAlreadyInitialized()) {
+        vm->DestroyJavaVM();
+    }
     vm = nullptr;
     env = nullptr;
 }

@@ -2029,6 +2029,23 @@ static jobject JNICALL qore_url_classloader_get_classes_in_namespace(JNIEnv* jen
     return nullptr;
 }
 
+//! True once the JVM shutdown hook running the %Qore cleanup sequence has been requested
+/** See qore_url_classloader_get_context_program() and qore_url_classloader_shutdown_context().
+*/
+static std::atomic<bool> context_shutdown_hook_registered{false};
+
+//! Returns true if the %Qore library teardown must be driven from a JVM shutdown hook
+/** True only in JVM-primary mode - the JVM owns main() and libqore was initialized from its
+    JNI_OnLoad() - where nothing else ever calls qore_cleanup().
+
+    When %Qore owns the process the hook must not be used: there qore_cleanup() itself calls
+    jni_module_delete() -> Jvm::destroyVM() -> DestroyJavaVM(), which is what runs the JVM
+    shutdown hooks, so tearing the library down from a hook would re-enter qore_cleanup().
+*/
+static bool qore_cleanup_needs_jvm_shutdown_hook() {
+    return Globals::getAlreadyInitialized();
+}
+
 static jlong JNICALL qore_url_classloader_get_context_program(JNIEnv* jenv, jclass jcls, jobject new_syscl,
         jobject created, jboolean finalize_init) {
     Env env(jenv);
@@ -2047,8 +2064,20 @@ static jlong JNICALL qore_url_classloader_get_context_program(JNIEnv* jenv, jcla
         jni_module_init_finalize(true);
     }
 
-    bool pcreated;
-    jlong rv = Globals::getContextProgram(finalize_init ? nullptr : new_syscl, pcreated);
+    // Globals::getContextProgram() reports whether it created the global context Program; that
+    // is not what "created" means to the caller here - see below.
+    bool ignored_created;
+    jlong rv = Globals::getContextProgram(finalize_init ? nullptr : new_syscl, ignored_created);
+
+    // "created" tells Java to register the shutdown hook that runs the Qore library teardown.
+    // getContextProgram() only reports creation when it makes the global context Program itself,
+    // which never happens in JVM-primary mode: jni_module_init_finalize() - called above, or from
+    // jni_module_init() - has already created it.  That mode is exactly the one that needs the
+    // hook, so decide here instead, and register it exactly once per process (the Java flag
+    // driving finalize_init stays set for the life of the JVM, so later QoreURLClassLoader
+    // instances reach this code with finalize_init still true).
+    const bool pcreated = qore_cleanup_needs_jvm_shutdown_hook()
+        && !context_shutdown_hook_registered.exchange(true, std::memory_order_acq_rel);
     if (pcreated) {
         env.callVoidMethod(created, Globals::methodBooleanWrapperSetTrue, nullptr);
     }
@@ -2069,28 +2098,69 @@ static jobject JNICALL qore_url_classloader_clear_compilation_cache(JNIEnv* jenv
     return nullptr;
 }
 
-static jobject JNICALL qore_url_classloader_shutdown_context(JNIEnv* jenv, jclass jcls, jobject new_syscl,
-        jobject created) {
-    QoreThreadAttachHelper attach_helper;
-    try {
-        attach_helper.attach();
-    } catch (Exception& e) {
-        Env env(jenv);
+//! Runs the %Qore library cleanup sequence from a JVM shutdown hook
+/** Registered by QoreURLClassLoader.setContextProgram() on the loader that established the
+    process-wide %Qore context - including the JVM-primary case, where the JVM owns main() and
+    libqore is initialized from its JNI_OnLoad().
+
+    A JVM-primary process never calls qore_cleanup() on its own: the %Qore module manager
+    teardown is only driven by qore_main_intern() or the %Qore exit() builtin, neither of which
+    runs when Java owns the process.  Reaching C++ static destruction without it aborts the
+    process, because libqore's external-thread reaper refuses to shut down while
+    QTF_EXTERNAL_LIFECYCLE threads - ThreadPool workers and the process-wide async I/O
+    controller's workers - are still running.
+
+    qore_cleanup() is the documented embedder teardown and runs the whole sequence in order: it
+    releases the async I/O controller, runs module del handlers (stopping ThreadPools), stops the
+    controller, waits for the external thread counter to reach zero and stops the reaper.  It must
+    run here, in a shutdown hook, rather than from an atexit() handler: the module teardown it
+    triggers (jni_module_delete()) releases global JNI references and so needs a live JVM, while
+    by the time atexit() handlers run the host's DestroyJavaVM() has already completed.
+*/
+static jobject JNICALL qore_url_classloader_shutdown_context(JNIEnv* jenv, jclass jcls) {
+    Env env(jenv);
+
+    // Defensive: the hook is only registered in JVM-primary mode, and running it when %Qore owns
+    // the process would re-enter qore_cleanup() - see qore_cleanup_needs_jvm_shutdown_hook().
+    if (!qore_cleanup_needs_jvm_shutdown_hook()) {
+        return nullptr;
+    }
+
+    // JVM shutdown hooks run concurrently and a host may register more than one loader; the
+    // library can only be torn down once.
+    static std::atomic<bool> shutdown_done{false};
+    if (shutdown_done.exchange(true, std::memory_order_acq_rel)) {
+        return nullptr;
+    }
+
+    // Register this thread with %Qore for the teardown; unlike every other JNI entry point this
+    // must NOT use QoreThreadAttachHelper, because qore_cleanup() destroys the thread
+    // infrastructure that deregistration would need.  The registration is deliberately leaked;
+    // the process is exiting.
+    int rc = q_register_foreign_thread();
+    if (rc != QFT_OK && rc != QFT_REGISTERED) {
+        shutdown_done.store(false, std::memory_order_release);
         env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
         return nullptr;
     }
-    Globals::clearGlobalContext();
-    // A JVM-primary process does not call qore_cleanup(). The global context
-    // teardown above stops its external-lifecycle workers; wait until their
-    // native joins are published, then stop libqore's otherwise-idle reaper
-    // before JVM shutdown reaches C++ static destruction.
-    ExceptionSink xsink;
-    if (tp_thread_counter.waitForZero(&xsink)) {
-        Env env(jenv);
-        QoreToJava::wrapException(env, xsink);
-        return nullptr;
+
+    try {
+        // Drop the global context Program (and with it the Java references it owns) before the
+        // library teardown, mirroring the QoreProgramHelper scope that qore_main_intern() closes
+        // before calling qore_cleanup().  jni_module_delete() repeats this call harmlessly.
+        Globals::clearGlobalContext();
+
+        qore_cleanup();
+    } catch (...) {
+        // Report a fixed message rather than describing the exception: %Qore state is
+        // half-destroyed at this point, so neither jni::Exception::convert() nor
+        // QoreToJava::wrapException() can be relied on to run.  Nothing may propagate out of a
+        // JNI native method.
+        try {
+            env.throwNew(env.findClass("java/lang/Error"), "Qore library cleanup failed");
+        } catch (...) {
+        }
     }
-    qore_stop_external_thread_reaper();
     return nullptr;
 }
 
