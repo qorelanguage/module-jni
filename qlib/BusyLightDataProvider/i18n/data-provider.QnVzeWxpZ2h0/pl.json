@@ -3,53 +3,29 @@
   "locales": {
     "pl": {
       "messages": {
-        "app.QnVzeWxpZ2h0.action.dXBkYXRl.desc": {
-          "source": "Update Busylight configuration",
-          "message": "Aktualizuj konfigurację Busylight"
+        "app.QnVzeWxpZ2h0.display_name": {
+          "source": "MQTT Kuando Busylight",
+          "message": "MQTT Kuando Busylight"
+        },
+        "app.QnVzeWxpZ2h0.short_desc": {
+          "source": "MQTT Kuando Busylight devices (by Plenom)",
+          "message": "Urządzenia MQTT Kuando Busylight (firmy Plenom)"
+        },
+        "app.QnVzeWxpZ2h0.desc": {
+          "source": "MQTT server for accessing Kuando Busylight devices (by Plenom)",
+          "message": "Serwer MQTT do uzyskiwania dostępu do urządzeń Kuando Busylight (firmy Plenom)"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.display_name": {
           "source": "Update Busylight",
           "message": "Aktualizuj Busylight"
         },
-        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.desc": {
-          "source": "The color of the light",
-          "message": "Kolor światła"
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.short_desc": {
+          "source": "Update Busylight configuration",
+          "message": "Aktualizuj konfigurację Busylight"
         },
-        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.display_name": {
-          "source": "Color",
-          "message": "Kolor"
-        },
-        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.short_desc": {
-          "source": "The color of the light (note that the `Alpha` value is ignored)",
-          "message": "Kolor światła (uwaga: wartość `Alpha` jest ignorowana)"
-        },
-        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.b24.desc": {
-          "source": "The length of time ON from `0` - `255`",
-          "message": "Czas włączenia (ON) od `0` do `255`"
-        },
-        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.b24.display_name": {
-          "source": "On",
-          "message": "Włączone"
-        },
-        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.b24.short_desc": {
-          "source": "The length of time ON from 0 - 255",
-          "message": "Czas włączenia (ON) od 0 do 255"
-        },
-        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.b2Zm.desc": {
-          "source": "The length of time OFF from `0` - `255`",
-          "message": "Czas wyłączenia (OFF) od `0` do `255`"
-        },
-        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.b2Zm.display_name": {
-          "source": "Off",
-          "message": "Wyłączone"
-        },
-        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.b2Zm.short_desc": {
-          "source": "The length of time OFF from 0 - 255",
-          "message": "Czas wyłączenia (OFF) od 0 do 255"
-        },
-        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.dG9waWM.desc": {
-          "source": "The topic to publish the message on",
-          "message": "Temat, w którym ma zostać opublikowana wiadomość"
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.desc": {
+          "source": "Update Busylight configuration",
+          "message": "Aktualizuj konfigurację Busylight"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.dG9waWM.display_name": {
           "source": "Topic",
@@ -59,21 +35,93 @@
           "source": "The topic to publish the message on",
           "message": "Temat, w którym ma zostać opublikowana wiadomość"
         },
-        "app.QnVzeWxpZ2h0.action.dXBkYXRl.short_desc": {
-          "source": "Update Busylight configuration",
-          "message": "Aktualizuj konfigurację Busylight"
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.dG9waWM.desc": {
+          "source": "The topic to publish the message on",
+          "message": "Temat, w którym ma zostać opublikowana wiadomość"
         },
-        "app.QnVzeWxpZ2h0.desc": {
-          "source": "MQTT server for accessing Kuando Busylight devices (by Plenom)",
-          "message": "Serwer MQTT do uzyskiwania dostępu do urządzeń Kuando Busylight (firmy Plenom)"
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.display_name": {
+          "source": "Color",
+          "message": "Kolor"
         },
-        "app.QnVzeWxpZ2h0.display_name": {
-          "source": "MQTT Kuando Busylight",
-          "message": "MQTT Kuando Busylight"
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.short_desc": {
+          "source": "The color of the light (note that the `Alpha` value is ignored)",
+          "message": "Kolor światła (uwaga: wartość `Alpha` jest ignorowana)"
         },
-        "app.QnVzeWxpZ2h0.short_desc": {
-          "source": "MQTT Kuando Busylight devices (by Plenom)",
-          "message": "Urządzenia MQTT Kuando Busylight (firmy Plenom)"
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.desc": {
+          "source": "The color of the light",
+          "message": "Kolor światła"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.display_name": {
+          "source": "Alpha",
+          "message": "Alpha"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.short_desc": {
+          "source": "Alpha (transparency) component as an integer from 0 - 255",
+          "message": "Składnik alfa (przezroczystość) jako liczba całkowita od 0 do 255"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.desc": {
+          "source": "Alpha (transparency) component as an integer from `0` - `255`",
+          "message": "Składnik alfa (przezroczystość) jako liczba całkowita od `0` do `255`"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.Yg.display_name": {
+          "source": "Blue",
+          "message": "Niebieski"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.Yg.short_desc": {
+          "source": "Blue color component as an integer from 0 - 255",
+          "message": "Składowa koloru niebieskiego jako liczba całkowita od 0 do 255"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.Yg.desc": {
+          "source": "Blue color component as an integer from `0` - `255`",
+          "message": "Składowa koloru niebieskiego jako liczba całkowita od `0` do `255`"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.Zw.display_name": {
+          "source": "Green",
+          "message": "Zielony"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.Zw.short_desc": {
+          "source": "Green color component as an integer from 0 - 255",
+          "message": "Składowa koloru zielonego jako liczba całkowita od 0 do 255"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.Zw.desc": {
+          "source": "Green color component as an integer from `0` - `255`",
+          "message": "Składowa koloru zielonego jako liczba całkowita od `0` do `255`"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.cg.display_name": {
+          "source": "Red",
+          "message": "Czerwony"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.cg.short_desc": {
+          "source": "Red color component as an integer from 0 - 255",
+          "message": "Składowa koloru czerwonego jako liczba całkowita z zakresu 0 - 255"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.cg.desc": {
+          "source": "Red color component as an integer from `0` - `255`",
+          "message": "Składowa koloru czerwonego jako liczba całkowita z zakresu `0` - `255`"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.b24.display_name": {
+          "source": "On",
+          "message": "Włączone"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.b24.short_desc": {
+          "source": "The length of time ON from 0 - 255",
+          "message": "Czas włączenia (ON) od 0 do 255"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.b24.desc": {
+          "source": "The length of time ON from `0` - `255`",
+          "message": "Czas włączenia (ON) od `0` do `255`"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.b2Zm.display_name": {
+          "source": "Off",
+          "message": "Wyłączone"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.b2Zm.short_desc": {
+          "source": "The length of time OFF from 0 - 255",
+          "message": "Czas wyłączenia (OFF) od 0 do 255"
+        },
+        "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.b2Zm.desc": {
+          "source": "The length of time OFF from `0` - `255`",
+          "message": "Czas wyłączenia (OFF) od `0` do `255`"
         }
       }
     }
