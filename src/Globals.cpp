@@ -1537,6 +1537,30 @@ static const QoreNamespace* get_module_root_ns_intern(const char* name, QoreProg
     return nullptr;
 }
 
+const QoreNamespace* get_class_module_root_ns(const QoreClass& qc, const char* name) {
+    const QoreNamespace* ns = qc.getNamespace();
+    // a class declared outside any namespace contributed to by its module (a shadow / injection
+    // module class) has no module root namespace; the legacy qore.<class-path> form is correct there
+    if (!ns || !ns->isFromModule(name)) {
+        return nullptr;
+    }
+
+    ReferenceHolder<QoreHashNode> all_mod_info(MM.getModuleHash(), nullptr);
+    mod_dep_map_t mod_dep_map;
+
+    // walk up to the earliest ancestor still provided by the module, exactly as
+    // get_module_root_ns_intern() does once it has found a namespace from the module
+    while (true) {
+        const QoreNamespace* parent = ns->getParent();
+        if (!parent || !is_module(parent, name, *all_mod_info, mod_dep_map)) {
+            break;
+        }
+        ns = parent;
+    }
+    //printd(5, "get_class_module_root_ns('%s', '%s') -> '%s'\n", qc.getName(), name, ns->getPath(true).c_str());
+    return ns;
+}
+
 const QoreNamespace* get_module_root_ns(const char* name, QoreProgram* mod_pgm) {
     AutoLocker al(qmnc_lock_ref());
     qmnpc_t::iterator pi = qmnc_ref().lower_bound(mod_pgm);

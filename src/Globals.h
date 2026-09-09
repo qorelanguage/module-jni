@@ -655,6 +655,21 @@ private:
 // find the root namespace for the given module in the given QoreProgram
 DLLLOCAL const QoreNamespace* get_module_root_ns(const char* name, QoreProgram* mod_pgm);
 
+// find the root namespace of the given module from the class's own namespace chain
+/** get_module_root_ns() answers the same question by searching a QoreProgram's namespace tree, so
+    it can only see modules that the consumer Program actually imported.  A module's private
+    (non-reexported) dependencies are not imported into the consumer - a source module keeps them in
+    its own Program, and an AOT-compiled module has no Program at all - so for an AOT module's
+    dependency the search fails in every Program and the class silently loses its canonical
+    qoremod.<mod>.<rest> name.
+
+    The namespace chain, by contrast, is a property of the class itself and gives the same answer in
+    every context, which is what a canonical binary name requires.  Returns nullptr when the class
+    does not live in a namespace contributed to by the module (a shadow / injection module's
+    classes), where the legacy qore.<class-path> form is the correct name.
+*/
+DLLLOCAL const QoreNamespace* get_class_module_root_ns(const QoreClass& qc, const char* name);
+
 // drop all cached module root namespaces for the given QoreProgram
 /** get_module_root_ns() caches borrowed QoreNamespace pointers keyed by the raw QoreProgram
     pointer, so every entry for a Program dies with that Program.  This MUST be called before the

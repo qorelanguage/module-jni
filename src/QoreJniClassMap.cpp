@@ -2684,23 +2684,30 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCode(Env& env, jo
             if (!qpgm) {
                 qpgm = pgm;
             }
-            if (qpgm) {
-                const QoreNamespace* mod_ns = isInjectedModule(qcls->getModuleName())
-                    ? nullptr
-                    : get_module_root_ns(qcls->getModuleName(), qpgm);
-                // Skip the canonicalization rule when the module's root namespace
-                // has multiple module contributors — no single module is the
-                // canonical "owner" so there is no unambiguous qoremod.<mod>.*
-                // form to canonicalise to.  In that case the legacy `qore.<X>.<Y>`
-                // form is the correct binary name for the class.
-                if (mod_ns && mod_ns->getModuleCount() > 1) {
-                    mod_ns = nullptr;
+            const QoreNamespace* mod_ns = nullptr;
+            if (!isInjectedModule(qcls->getModuleName())) {
+                if (qpgm) {
+                    mod_ns = get_module_root_ns(qcls->getModuleName(), qpgm);
                 }
-                if (mod_ns) {
-                    std::string nspath = mod_ns->getPath(true);
-                    class_under_module_ns = qpath.size() >= nspath.size()
-                        && !memcmp(qpath.c_str(), nspath.c_str(), nspath.size());
+                if (!mod_ns) {
+                    // same blind spot as in getJavaNameForClass(): a Program-based search cannot
+                    // see a module's private dependencies, and without this fallback the guard
+                    // against dual binary names is disabled for exactly those classes
+                    mod_ns = get_class_module_root_ns(*qcls, qcls->getModuleName());
                 }
+            }
+            // Skip the canonicalization rule when the module's root namespace
+            // has multiple module contributors — no single module is the
+            // canonical "owner" so there is no unambiguous qoremod.<mod>.*
+            // form to canonicalise to.  In that case the legacy `qore.<X>.<Y>`
+            // form is the correct binary name for the class.
+            if (mod_ns && mod_ns->getModuleCount() > 1) {
+                mod_ns = nullptr;
+            }
+            if (mod_ns) {
+                std::string nspath = mod_ns->getPath(true);
+                class_under_module_ns = qpath.size() >= nspath.size()
+                    && !memcmp(qpath.c_str(), nspath.c_str(), nspath.size());
             }
             if (class_under_module_ns) {
                 const char* rest = strchr(jn.c_str() + 5, '.') + 1;
@@ -2810,7 +2817,24 @@ LocalReference<jstring> JniExternalProgramData::getJavaNameForClass(Env& env, co
                     pgm = getProgram();
                     assert(pgm);
                 }
-                const QoreNamespace* ns = isInjectedModule(mod) ? nullptr : get_module_root_ns(mod, pgm);
+                const QoreNamespace* ns = nullptr;
+                if (!isInjectedModule(mod)) {
+                    ns = get_module_root_ns(mod, pgm);
+                    if (!ns) {
+                        // The Program search sees only modules the consumer imported.  A module's
+                        // private (non-reexported) dependencies are not imported into the consumer,
+                        // and an AOT-compiled module has no Program of its own to fall back on, so
+                        // for those classes the search fails in every Program.  Falling through to
+                        // the shadow-module branch here would emit the legacy qore.<class-path>
+                        // name for a module-owned class: a second binary name for a class that
+                        // already has a canonical one, which no loader resolves in the consumer
+                        // (NoClassDefFoundError) and which splits the class's identity wherever it
+                        // is generated from a class pointer.  Derive the module's root namespace
+                        // from the class's own namespace chain instead - a property of the class,
+                        // so the name is the same in every context.
+                        ns = get_class_module_root_ns(qc, mod);
+                    }
+                }
                 bool class_under_module_ns = false;
                 if (ns) {
                     std::string nspath = ns->getPath(true);

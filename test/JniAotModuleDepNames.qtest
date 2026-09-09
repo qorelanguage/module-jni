@@ -1,0 +1,231 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+/*  JniAotModuleDepNames.qtest Copyright 2016 - 2026 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# A Qore class has exactly one canonical Java binary name: qoremod.<mod>.<rest> when it lives in
+# its module's own namespace.  getJavaNameForClass() used to derive that name by looking the
+# module's root namespace up in a QoreProgram, which only finds modules the consumer Program
+# actually imported.
+#
+# A module's private (non-reexported) dependencies are never imported into the consumer: a source
+# module keeps them in its own Program, and an AOT-compiled module has no Program at all.  For an
+# AOT module's dependency the Program search therefore failed everywhere, the class was mistaken
+# for a shadow-module class and got the legacy qore.<class-path> name instead - a name no loader
+# resolves in the consumer.
+#
+# That broke the Qore docs build: qjar issues "define-class" for QoreApiMetadata, whose methods
+# take astparser classes, and linking the defined class died with
+#
+#   java.lang.NoClassDefFoundError: qore/Qore/astparser/AstParser
+#
+# The same misnaming also silently splits a class's identity wherever the class is generated from
+# a class pointer (two Java Class objects for one QoreClass).
+
+%modern
+
+%prepend-module-path "${SCRIPT_DIR}/../build"
+
+%requires QUnit
+%requires FsUtil
+%requires reflection
+%requires jni
+
+%exec-class JniAotModuleDepNamesTest
+
+class JniAotModuleDepNamesTest inherits QUnit::Test {
+    public {
+        #! module source: the dependency's classes appear in the public method signatures
+        const ModuleTemplate = "%modern\n"
+            # qcc does not apply the module default parse options that the source loader applies
+            "%requires astparser\n"
+            "module %MODULE% {\n"
+            "    version = \"1.0\";\n"
+            "    desc = \"jni AOT dependency naming test fixture\";\n"
+            "    author = \"Qore Technologies, s.r.o.\";\n"
+            "    license = \"MIT\";\n"
+            "}\n"
+            "public namespace %MODULE% {\n"
+            "#! holds astparser objects\n"
+            "public class AstHolder {\n"
+            "    #! takes a dependency class and returns one\n"
+            "    static *AstTree parse(AstParser parser, string src) {\n"
+            "        return parser.parseString(src);\n"
+            "    }\n"
+            "    #! returns a dependency class\n"
+            "    static AstTreeSearcher searcher() {\n"
+            "        return new AstTreeSearcher();\n"
+            "    }\n"
+            "}\n"
+            "}\n";
+
+        #! consumer source: the fixture module itself is loaded at run time, as qjar loads it
+        const ConsumerTemplate = "%prepend-module-path %DIR%\n"
+            "%requires jni\n"
+            "binary sub byte_code(string path) {\n"
+            "    return Jni::org::qore::jni::get_byte_code(path);\n"
+            "}\n"
+            "string sub java_name(string path) {\n"
+            "    return Jni::org::qore::jni::get_java_name(path);\n"
+            "}\n"
+            "#! Returns the Java type names the JVM resolved for the given method\n"
+            "list<string> sub method_types(string bin_name, string method) {\n"
+            "    object cls = get_class_loader().loadClass(bin_name);\n"
+            "    foreach object m in (cls.getDeclaredMethods()) {\n"
+            "        if (m.getName() == method) {\n"
+            "            list<string> rv = map $1.getName(), m.getParameterTypes();\n"
+            "            rv += m.getReturnType().getName();\n"
+            "            return rv;\n"
+            "        }\n"
+            "    }\n"
+            "    throw \"NO-METHOD\", sprintf(\"%y has no method %y\", bin_name, method);\n"
+            "}\n"
+            "#! Returns the file the given module was loaded from\n"
+            "string sub module_file(string mod) {\n"
+            "    return get_module_hash(){mod}.filename;\n"
+            "}\n";
+
+        #! the dependency: any binary module the fixture module can depend on privately
+        const DepModule = "astparser";
+
+        #! the dependency's canonical Java binary name
+        const DepParser = "qoremod.astparser.AstParser";
+        const DepTree = "qoremod.astparser.AstTree";
+        const DepSearcher = "qoremod.astparser.AstTreeSearcher";
+    }
+
+    private {
+        TmpDir tmp();
+    }
+
+    constructor() : Test("JniAotModuleDepNamesTest", "1.0") {
+        addTestCase("an AOT module's private dependency keeps its canonical Java name",
+            \aotDependencyNameTest());
+        addTestCase("a source module's private dependency gets the same names",
+            \sourceDependencyNameTest());
+        set_return_value(main());
+    }
+
+    #! Writes the fixture module source for the given module name and returns the file path
+    private string writeModule(string module_name) {
+        string path = tmp.path + DirSep + module_name + ".qm";
+        string src = replace(ModuleTemplate, "%MODULE%", module_name);
+        File f();
+        f.open2(path, O_CREAT | O_WRONLY | O_TRUNC);
+        f.write(src);
+        return path;
+    }
+
+    #! Returns a Program that loaded the given module and can generate Java byte code for it
+    /** the module is loaded at run time, which is how qjar (and therefore the docs build) loads the
+        module it generates Java classes for
+    */
+    private Program getConsumer(string module_name) {
+        Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+        p.parse(replace(ConsumerTemplate, "%DIR%", tmp.path), "consumer");
+        p.loadModule(module_name);
+        return p;
+    }
+
+    #! Skips the test unless the dependency module can be loaded
+    /** the dependency is loaded in a throwaway Program rather than with %try-module on purpose: a
+        module loaded into this Program is inherited by every Program created here, which would hand
+        the consumer Programs below the very namespace whose absence this test is about
+    */
+    private checkDependency() {
+        Program p(PO_NEW_STYLE);
+        try {
+            p.loadModule(DepModule);
+        } catch (hash<ExceptionInfo> ex) {
+            testSkip(sprintf("the %s module is not available: %s: %s", DepModule, ex.err, ex.desc));
+        }
+    }
+
+    #! Skips the test unless the dependency and the AOT compiler are both usable here
+    private checkAot() {
+        checkDependency();
+        if (!strlen(trim(backquote("command -v qcc 2>/dev/null")))) {
+            testSkip("the AOT compiler (qcc) is not available");
+        }
+    }
+
+    #! AOT-compiles the fixture module and returns the .qmod path
+    private string aotCompile(string module_name) {
+        string src = writeModule(module_name);
+        string qmod = tmp.path + DirSep + module_name + ".qmod";
+        string out = backquote(sprintf("qcc -m %s -o %s 2>&1", src, qmod));
+        assertTrue(is_file(qmod), sprintf("qcc produced %y: %s", qmod, out));
+        # remove the source so the module can only be loaded in AOT form
+        unlink(src);
+        return qmod;
+    }
+
+    #! Asserts that every astparser type in the fixture's signatures uses its canonical name
+    private checkDependencyNames(Program p, string module_name) {
+        string bin_name = "qoremod." + module_name + ".AstHolder";
+        assertEq(bin_name, p.callFunction("java_name", "::" + module_name + "::AstHolder"),
+            "the fixture class itself uses its canonical binary name");
+
+        # the docs build fails here: define-class links the class, which resolves the astparser
+        # types in its method signatures through the consumer Program's class loader
+        binary b = p.callFunction("byte_code", "::" + module_name + "::AstHolder");
+        p.issueModuleCmd("jni", "define-class " + bin_name + " " + b.toBase64());
+
+        assertEq((DepParser, "java.lang.String", DepTree), p.callFunction("method_types", bin_name, "parse"),
+            "the dependency's classes resolve under qoremod.<mod>.<rest> in parse()");
+        assertEq((DepSearcher,), p.callFunction("method_types", bin_name, "searcher"),
+            "the dependency's class resolves under qoremod.<mod>.<rest> in searcher()");
+    }
+
+    private aotDependencyNameTest() {
+        checkAot();
+
+        string module_name = "JniAotDepFixture";
+        string qmod = aotCompile(module_name);
+        Program p = getConsumer(module_name);
+
+        # an AOT module has no Program of its own, which is what removes the last place a
+        # Program-based namespace search could have found the dependency
+        assertEq(qmod, p.callFunction("module_file", module_name),
+            "the fixture module was loaded in AOT form");
+
+        # the premise: an AOT module's private dependency is not imported into the consumer, so no
+        # Program-based lookup can find the astparser namespace for it
+        assertThrows("UNKNOWN-NAMESPACE", \Namespace::forName(), (p, "::Qore::astparser"),
+            "the dependency's namespace is not present in the consumer Program");
+
+        checkDependencyNames(p, module_name);
+    }
+
+    private sourceDependencyNameTest() {
+        checkDependency();
+
+        # the same module loaded from source must produce identical Java names: a canonical binary
+        # name is a property of the class, not of how its consumer happened to load it
+        string module_name = "JniSrcDepFixture";
+        string src = writeModule(module_name);
+        Program p = getConsumer(module_name);
+        assertEq(src, p.callFunction("module_file", module_name),
+            "the fixture module was loaded from source");
+        checkDependencyNames(p, module_name);
+    }
+}

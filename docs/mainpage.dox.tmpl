@@ -1010,6 +1010,14 @@ foreach hash<auto> column in (result.schemaV2()) {
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_2_7_0 jni Module Version 2.7.0
+    - fixed \c NoClassDefFoundError for a module class referenced by another module's method
+      signatures (for example <tt>java.lang.NoClassDefFoundError: qore/Qore/astparser/AstParser</tt>
+      when generating Java classes for a module that uses the astparser module); a class's canonical
+      \c qoremod.<i>mod</i>.<i>rest</i> binary name was derived by looking the owning module's namespace up in
+      the consuming %Program, which cannot see a module's private (non-reexported) dependencies -
+      those classes were then published under the legacy \c qore.<i>class-path</i> name, which no
+      classloader resolves; the name is now derived from the class's own namespace, so it is the same
+      in every context
     - fixed JVM-primary processes aborting or hanging at exit, after the Java code had already
       completed successfully, with the message <tt>external native threads still active while
       stopping the cleanup worker</tt>; the system classloader's JVM shutdown hook was never
