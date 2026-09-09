@@ -1018,6 +1018,10 @@ foreach hash<auto> column in (result.schemaV2()) {
       those classes were then published under the legacy \c qore.<i>class-path</i> name, which no
       classloader resolves; the name is now derived from the class's own namespace, so it is the same
       in every context
+    - added declarative Java provider dependency profiles generated from each module's runtime classpath directives;
+      source, AOT, and installed trees now validate committed checksums, SLF4J API/provider compatibility, service
+      entries, duplicate providers, logging bridge cycles, and exact staged JAR content before every provider is
+      loaded in an isolated fresh process
     - fixed JVM-primary processes aborting or hanging at exit, after the Java code had already
       completed successfully, with the message <tt>external native threads still active while
       stopping the cleanup worker</tt>; the system classloader's JVM shutdown hook was never

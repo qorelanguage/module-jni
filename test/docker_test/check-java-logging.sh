@@ -12,20 +12,19 @@ unset JAVA_TOOL_OPTIONS _JAVA_OPTIONS JDK_JAVA_OPTIONS
 log_dir=$(mktemp -d)
 trap 'rm -rf "$log_dir"' EXIT HUP INT TERM
 
-modules="
-AvroDataProvider
-IcsDataProvider
-CamelDataProvider
-TikaDataProvider
-OdsDataProvider
-OdtDataProvider
-OdpDataProvider
-ExcelDataProvider
-PowerPointDataProvider
-EmailDataProvider
-WordDataProvider
-VisioDataProvider
-"
+module_src_dir=${MODULE_SRC_DIR:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}
+profiles=${JAVA_PROVIDER_PROFILES:-$module_src_dir/build/java-provider-profiles.tsv}
+validator=$module_src_dir/test/docker_test/validate-java-provider-profiles.py
+source_root=$module_src_dir/qlib
+aot_root=${JAVA_PROVIDER_AOT_ROOT:-$module_src_dir/build/qlib-qmod}
+install_root=${JAVA_PROVIDER_INSTALL_ROOT:-${INSTALL_PREFIX:-/usr}/share/qore-modules}
+
+python3 "$validator" --profiles "$profiles" --root "$source_root" \
+    --checksums "$source_root/java-provider-dependencies.sha256" --require-committed
+python3 "$validator" --profiles "$profiles" --root "$aot_root" --reference-root "$source_root"
+python3 "$validator" --profiles "$profiles" --root "$install_root" --reference-root "$source_root"
+
+modules=$(awk -F '\t' '!/^#/ { print $1 }' "$profiles" | sort -u)
 
 for module in $modules; do
     stdout="$log_dir/$module.stdout"
@@ -46,4 +45,4 @@ for module in $modules; do
     fi
 done
 
-echo "Java logging provider check passed for $(echo "$modules" | wc -w) modules"
+echo "Java provider installed-artifact check passed for $(echo "$modules" | wc -w) modules"

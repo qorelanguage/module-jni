@@ -36,6 +36,7 @@ if (${Java_VERSION_MAJOR} LESS 21)
 endif()
 add_definitions(-DJAVA_VERSION_MAJOR=${Java_VERSION_MAJOR})
 include(UseJava)
+include(cmake/JavaProviderProfiles.cmake)
 
 # Find Kotlin compiler for QoreKotlinCompiler support
 set(KOTLIN_HOME "$ENV{KOTLIN_HOME}")
@@ -1320,6 +1321,30 @@ qore_external_user_module("qlib/TikaDataProvider" "")
 qore_external_user_module("qlib/JdbcDataProvider" "")
 qore_external_user_module("qlib/CamelDataProvider" "")
 
+# Runtime JARs come from the module directives parsed by the profile helper;
+# only the classloader-local logging policy is declared here.
+qore_java_provider_profile(AccessDataProvider none)
+qore_java_provider_profile(AvroDataProvider slf4j-nop)
+qore_java_provider_profile(CamelDataProvider slf4j-nop)
+qore_java_provider_profile(EmailDataProvider slf4j-nop)
+qore_java_provider_profile(ExcelDataProvider slf4j-nop)
+qore_java_provider_profile(FlywayDataProvider none)
+qore_java_provider_profile(IcsDataProvider slf4j-nop)
+qore_java_provider_profile(JakartaJmsDataProvider none)
+qore_java_provider_profile(JasperReportsDataProvider none)
+qore_java_provider_profile(JdbcDataProvider none)
+qore_java_provider_profile(KafkaDataProvider slf4j-nop)
+qore_java_provider_profile(MqttDataProvider none)
+qore_java_provider_profile(OdpDataProvider slf4j-nop)
+qore_java_provider_profile(OdsDataProvider slf4j-nop)
+qore_java_provider_profile(OdtDataProvider slf4j-nop)
+qore_java_provider_profile(OpcUaDataProvider slf4j-nop)
+qore_java_provider_profile(PowerPointDataProvider slf4j-nop)
+qore_java_provider_profile(TikaDataProvider slf4j-nop)
+qore_java_provider_profile(VcfDataProvider none)
+qore_java_provider_profile(VisioDataProvider slf4j-nop)
+qore_java_provider_profile(WordDataProvider slf4j-nop)
+
 # Reconcile the installed i18n catalog root against the fragments these modules
 # currently own.  Installing catalogs is otherwise additive: a fragment installed by
 # an earlier generation of these sources survives every later install, is still
@@ -1361,6 +1386,8 @@ add_jni_qlib_jar_dependency(JdbcDataProvider qore-jdbc-dp-jar)
 add_jni_qlib_jar_dependency(CamelDataProvider qore-camel-jar)
 add_jni_qlib_jar_dependency(OpcUaDataProvider qore-opcua-jar)
 
+qore_finalize_java_provider_profiles()
+
 qore_dist(${PROJECT_VERSION})
 
 # install qpp metadata files
@@ -1398,3 +1425,7 @@ add_test(NAME jvm_primary_reaper_exit COMMAND ${CMAKE_COMMAND} -E env
     -cp ${CMAKE_CURRENT_BINARY_DIR}/qore-jni.jar:${CMAKE_CURRENT_BINARY_DIR}/qore-jni-test.jar
     org.qore.jni.test.JvmPrimaryReaperExit)
 set_tests_properties(jvm_primary_reaper_exit PROPERTIES TIMEOUT 10)
+add_test(NAME java_provider_profile_validator
+    COMMAND ${QORE_JAVA_PROVIDER_PYTHON}
+        ${CMAKE_SOURCE_DIR}/test/test-java-provider-profiles.py
+        ${CMAKE_SOURCE_DIR}/test/docker_test/validate-java-provider-profiles.py)

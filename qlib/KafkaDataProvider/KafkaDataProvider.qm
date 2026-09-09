@@ -31,6 +31,7 @@
 %module-cmd(jni) global-add-relative-classpath ./jar/slf4j-api-2.0.16.jar
 %module-cmd(jni) global-add-relative-classpath ./jar/slf4j-nop-2.0.16.jar
 %module-cmd(jni) global-add-relative-classpath ./jar/zstd-jni-1.5.6-9.jar
+%module-cmd(jni) global-add-relative-classpath ./jar/lz4-java-1.8.0.jar
 %module-cmd(jni) global-add-relative-classpath ./jar/snappy-java-1.1.10.7.jar
 %module-cmd(jni) global-add-relative-classpath ./jar/qore-dataprovider-kafka.jar
 
@@ -139,6 +140,8 @@ module KafkaDataProvider {
     @section kafkadataprovider_relnotes Release Notes
 
     @subsection kafkadataprovider_v2_1 KafkaDataProvider v2.1
+    - fixed the runtime classpath to include the committed \c lz4-java dependency already used by the compile
+      classpath, preventing LZ4-compressed records from depending on an unrelated classloader having loaded it first
     - added AsyncAPI 3.0 validation support for producer request values and consumer event values via the
       \c asyncapi, \c validator, and \c asyncapi_channel options; \c validator accepts AsyncAPI schema file data or
       a schema location
