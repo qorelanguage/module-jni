@@ -28,10 +28,12 @@
 #include <memory>
 #include <set>
 #include <atomic>
+#include <stdexcept>
 
 #include "defs.h"
 #include "Jvm.h"
 #include "QoreJniClassMap.h"
+#include "GeneratedBinding.h"
 #include "ql_jni_debug.h"
 #include "Class.h"
 #include "Method.h"
@@ -1298,7 +1300,8 @@ void QoreJniClassMap::addSuperClass(Env& env, JniQoreClass& qc, jni::Class* pare
         if (env.callBooleanMethod(Globals::classQoreJavaClassBase, Globals::methodClassIsAssignableFrom, &jarg)) {
             // get class field
             bool throw_exception = false;
-            QoreClass* qore_parent = JniExternalProgramData::tryGetQoreClass(env, parent->getJavaObject(), true);
+            auto parent_binding = JniExternalProgramData::tryGetQoreClass(env, parent->getJavaObject());
+            QoreClass* qore_parent = parent_binding ? const_cast<QoreClass*>((*parent_binding)->cls) : nullptr;
             if (qore_parent) {
                 printd(5, "QoreJniClassMap::addSuperClass() Java class '%s' (%d) has Qore parent '%s' (%d)\n",
                     qc.getName(), qc.getID(), qore_parent->getName(), qore_parent->getID());
@@ -1498,13 +1501,14 @@ const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls, const QoreTypeInfo*
         jvalue jarg;
         jarg.l = cls;
         if (env.callBooleanMethod(Globals::classQoreJavaClassBase, Globals::methodClassIsAssignableFrom, &jarg)) {
-            // Use the safe (programId, qpath) lookup path to avoid dangling
+            // Use the registered class binding lookup to avoid dangling
             // QoreClass* dereferences when the canonical owner has been
             // destroyed but the cached classloader still surfaces the class.
-            // tryGetQoreClass(... inherited=true) does the resolve and
+            // tryGetQoreClass() retains a lease for the complete metadata read and
             // returns nullptr cleanly on dead-owner.
-            const QoreClass* qc = JniExternalProgramData::tryGetQoreClass(env, cls, true);
-            if (qc) {
+            auto binding = JniExternalProgramData::tryGetQoreClass(env, cls);
+            if (binding) {
+                const QoreClass* qc = (*binding)->cls;
                 return literal ? qc->getTypeInfo() : qc->getOrNothingTypeInfo();
             }
             // dead canonical owner — fall through to standard Java type
@@ -1853,118 +1857,21 @@ static LocalReference<jobject> get_java_type_param_list(Env& env, const QoreClas
 }
 #endif
 
-// Resolves a Qore wrapper Java class to its current QoreClass* via the
-// programId+qpath fields embedded at bytecode generation time.  Returns
-// nullptr if the canonical owner Program has been destroyed, or if the
-// class is no longer reachable in that program's namespace tree, or if
-// the bytecode predates this scheme (no $qore_cls_pgm_id field).
-//
-// Falls back to the raw-pointer $qore_cls_ptr only when the new fields
-// can't be read AND when called from the constructor-side path (inherited
-// = false) where stale-pointer risk is acceptable because the caller is
-// instantiating an object and the canonical Program must already be
-// reachable.  In the late-read case (inherited = true), we never fall
-// back to the raw pointer — better to return nullptr and let the caller
-// handle absence than to dereference freed memory.
-QoreClass* JniExternalProgramData::tryGetQoreClass(Env& env, jclass jcls, bool inherited) {
-    // Try the (programId, qpath) lookup first — safe across canonical-loader
-    // cache pinning.
-    //
-    // We must restrict the lookup to fields DECLARED on `jcls` itself.  Java
-    // inherits static fields from parent classes, so a user Java class
-    // (e.g. `Issue3485JavaTest extends qore.OMQ.UserApi.Job.QorusJob`) with no
-    // own embed would otherwise read its parent's `$qore_cls_pgm_id` /
-    // `$qore_cls_path` and resolve to the PARENT's QoreClass — which then
-    // surfaces in `qore_object_create()` as instantiating the (abstract)
-    // parent class instead of the concrete subclass.  Use Java reflection's
-    // `getDeclaredField()` (declared-only; throws NoSuchFieldException for
-    // inherited fields) to detect "no embed on this class" and fall through
-    // to `findCreateQoreClass()` which builds the proper Qore wrapper for
-    // the user class.
-    //
-    // `embed_present` tracks whether the new fields are declared on this
-    // class.  If they are, then `jcls` is JNI-generated and the raw-pointer
-    // fallback below is safe even on the inherited-walk path: pgm_id_raw==0
-    // identifies a system Qore class (no source/host Program at bytecode-
-    // generation time, e.g. ::Qore::AbstractIterator), whose QoreClass*
-    // lives for the qore-library's lifetime.  Without this distinction,
-    // inherited-walk lookups for system-class parents return nullptr and
-    // the resulting Qore wrapper has no parent class — surfacing as a
-    // PARSE-TYPE-ERROR when callers expect e.g. Qore::AbstractIterator.
-    bool embed_present = false;
+// Only declared fields identify generated classes: a user Java subclass must
+// get its own Qore wrapper, rather than inheriting the parent's class identity.
+// Legacy pointer fields are deliberately never dereferenced.
+std::unique_ptr<GeneratedBindingLease> JniExternalProgramData::tryGetQoreClass(Env& env, jclass jcls) {
     try {
-        jvalue jarg_pgm_id;
-        jarg_pgm_id.l = Globals::javaQoreClassPgmIdField;
-        LocalReference<jobject> pgm_id_field_obj = env.callObjectMethod(jcls,
-            Globals::methodClassGetDeclaredField, &jarg_pgm_id);
-        jvalue jarg_path;
-        jarg_path.l = Globals::javaQoreClassPathField;
-        LocalReference<jobject> path_field_obj = env.callObjectMethod(jcls,
-            Globals::methodClassGetDeclaredField, &jarg_path);
-        // both fields exist if we got here without exception
-        embed_present = true;
-        jvalue jarg_null;
-        jarg_null.l = nullptr;
-        jlong pgm_id_raw = env.callLongMethod(pgm_id_field_obj,
-            Globals::methodFieldGetLong, &jarg_null);
-        if (pgm_id_raw) {
-            unsigned pgm_id = (unsigned)pgm_id_raw;
-            QoreProgram* owner_pgm = QoreProgram::resolveProgramId(pgm_id);
-            if (owner_pgm) {
-                LocalReference<jstring> path_str = env.callObjectMethod(path_field_obj,
-                    Globals::methodFieldGet, &jarg_null).as<jstring>();
-                if (path_str) {
-                    Env::GetStringUtfChars path_chars(env, path_str);
-                    ExceptionSink xsink;
-                    QoreClass* qc = const_cast<QoreClass*>(
-                        owner_pgm->findClass(path_chars.c_str(), &xsink));
-                    xsink.clear();
-                    if (qc) {
-                        return qc;
-                    }
-                }
-            }
-            // pgm_id was set but the owner program is destroyed or no longer
-            // has the class — surface as not-found rather than crashing; in
-            // the inherited-walk case we never want to fall back to a raw
-            // pointer that may be stale.
-            if (inherited) {
-                return nullptr;
-            }
-        }
-        // pgm_id_raw == 0 with embed_present: system class — fall through to
-        // raw-pointer fallback below (safe since system QoreClass instances
-        // are process-lifetime).
-    } catch (jni::Exception& e) {
-        // ignore exceptions when the new fields aren't present (older bytecode
-        // or user-compiled classes without an own embed); embed_present stays
-        // false and the inherited-walk falls through to nullptr below.
-        e.ignore();
-    }
-
-    // Fallback path: raw `$qore_cls_ptr`.
-    //
-    // For inherited=false (constructor delegation) we use it unconditionally
-    // — instantiation pins the canonical owner via the loader chain, so the
-    // pointer is alive in this scope.
-    //
-    // For inherited=true (parent-class walk), only use it when embed_present
-    // — the class is JNI-generated and `$qore_cls_pgm_id == 0` means
-    // "no source/host Program", which only happens for Qore system classes
-    // whose QoreClass* lives as long as libqore.  User Java classes have no
-    // embed and we must NOT walk to a raw `$qore_cls_ptr` field that doesn't
-    // exist on them.
-    if (inherited && !embed_present) {
-        return nullptr;
-    }
-    try {
-        jvalue jarg;
-        jarg.l = Globals::javaQoreClassField;
-        LocalReference<jobject> field = env.callObjectMethod(jcls, Globals::methodClassGetDeclaredField, &jarg);
-        jarg.l = nullptr;
-        return reinterpret_cast<QoreClass*>(env.callLongMethod(field, Globals::methodFieldGetLong, &jarg));
+        jvalue arg;
+        arg.l = Globals::javaQoreClassField;
+        LocalReference<jobject> field = env.callObjectMethod(jcls, Globals::methodClassGetDeclaredField, &arg);
+        arg.l = nullptr;
+        jlong handle = env.callLongMethod(field, Globals::methodFieldGetLong, &arg);
+        return std::make_unique<GeneratedBindingLease>(handle, GeneratedBindingKind::Class);
     } catch (jni::Exception& e) {
         e.ignore();
+    } catch (const std::runtime_error&) {
+        // A missing or expired binding has no usable native class identity.
     }
     return nullptr;
 }
@@ -2213,8 +2120,8 @@ int JniExternalProgramData::addConstructorVariant(Env& env, jobject class_loader
             std::vector<jvalue> jargs(7);
             jargs[0].l = bb;
             jargs[1].l = parent_class;
-            jargs[2].j = reinterpret_cast<jlong>(&m);
-            jargs[3].j = reinterpret_cast<jlong>(&v);
+            jargs[2].j = 0;
+            jargs[3].j = 0;
             jargs[4].i = qore_jni_get_acc_visibility(v.getAccess());
             jargs[5].l = params;
             jargs[6].z = varargs;
@@ -2290,8 +2197,13 @@ int JniExternalProgramData::addNormalMethodVariant(Env& env, jobject class_loade
                 mname = env.newString(m.getName());
             }
             jargs[1].l = mname;
-            jargs[2].j = reinterpret_cast<jlong>(&m);
-            jargs[3].j = reinterpret_cast<jlong>(&v);
+            auto binding = std::make_shared<GeneratedBinding>(getProgram(), GeneratedBindingKind::Method,
+                qcls.getProgram());
+            binding->cls = &qcls;
+            binding->method = &m;
+            binding->variant = &v;
+            jargs[2].j = register_generated_binding(std::move(binding));
+            jargs[3].j = 0;
             jargs[4].i = qore_jni_get_acc_visibility(v.getAccess());
             LocalReference<jobject> return_type = getJavaTypeDefinition(env, class_loader, v.getReturnTypeInfo(),
                 false, &qcls);
@@ -2348,9 +2260,14 @@ int JniExternalProgramData::addStaticMethodVariant(Env& env, jobject class_loade
             jargs[0].l = bb;
             LocalReference<jstring> mname = env.newString(m.getName());
             jargs[1].l = mname;
-            jargs[2].j = (jlong)getProgram(),
-            jargs[3].j = reinterpret_cast<jlong>(&m);
-            jargs[4].j = reinterpret_cast<jlong>(&v);
+            jargs[2].j = getProgram()->getProgramId();
+            auto binding = std::make_shared<GeneratedBinding>(getProgram(), GeneratedBindingKind::StaticMethod,
+                qcls.getProgram());
+            binding->cls = &qcls;
+            binding->method = &m;
+            binding->variant = &v;
+            jargs[3].j = register_generated_binding(std::move(binding));
+            jargs[4].j = 0;
             jargs[5].i = qore_jni_get_acc_visibility(v.getAccess());
             LocalReference<jobject> return_type = getJavaTypeDefinition(env, class_loader, v.getReturnTypeInfo(),
                 false, &qcls);
@@ -2888,9 +2805,12 @@ int JniExternalProgramData::addFunctionVariant(Env& env, jobject class_loader, L
             jargs[0].l = bb;
             LocalReference<jstring> fname = env.newString(func.getName());
             jargs[1].l = fname;
-            jargs[2].j = reinterpret_cast<jlong>(pgm);
-            jargs[3].j = reinterpret_cast<jlong>(&func);
-            jargs[4].j = reinterpret_cast<jlong>(&v);
+            jargs[2].j = pgm->getProgramId();
+            auto binding = std::make_shared<GeneratedBinding>(pgm, GeneratedBindingKind::Function);
+            binding->function = &func;
+            binding->variant = &v;
+            jargs[3].j = register_generated_binding(std::move(binding));
+            jargs[4].j = 0;
             LocalReference<jobject> return_type = getJavaTypeDefinition(env, class_loader, v.getReturnTypeInfo());
             jargs[5].l = (jobject)return_type;
             jargs[6].l = params;
@@ -3033,7 +2953,9 @@ int JniExternalProgramData::addConstants(Env& env, jobject class_loader, jstring
         jargs[2].i = qore_jni_get_acc_visibility(c.getAccess());
         LocalReference<jobject> const_type = getJavaTypeDefinition(env, class_loader, typeInfo, true);
         jargs[3].l = const_type;
-        jargs[4].j = (jlong)&c;
+        auto binding = std::make_shared<GeneratedBinding>(pgm, GeneratedBindingKind::Constant);
+        binding->constant = &c;
+        jargs[4].j = register_generated_binding(std::move(binding));
         jargs[5].l = ilist;
         bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder, Globals::methodJavaClassBuilderAddStaticField,
             &jargs[0]);
@@ -3043,7 +2965,7 @@ int JniExternalProgramData::addConstants(Env& env, jobject class_loader, jstring
     jvalue jargs[4];
     jargs[0].l = bb;
     jargs[1].l = jname;
-    jargs[2].j = (long)pgm;
+    jargs[2].j = pgm->getProgramId();
     jargs[3].l = ilist;
 
     bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder, Globals::methodJavaClassBuilderCreateStaticInitializer,
@@ -3132,7 +3054,9 @@ int JniExternalProgramData::addClassConstants(Env& env, jstring jname, const Qor
         jargs[2].i = qore_jni_get_acc_visibility(c.getAccess());
         LocalReference<jobject> const_type = getJavaTypeDefinition(env, (jobject)classLoader, typeInfo, true);
         jargs[3].l = const_type;
-        jargs[4].j = (jlong)&c;
+        auto binding = std::make_shared<GeneratedBinding>(pgm, GeneratedBindingKind::Constant, qcls.getProgram());
+        binding->constant = &c;
+        jargs[4].j = register_generated_binding(std::move(binding));
         jargs[5].l = ilist;
         bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder, Globals::methodJavaClassBuilderAddStaticField,
             &jargs[0]);
@@ -3142,7 +3066,7 @@ int JniExternalProgramData::addClassConstants(Env& env, jstring jname, const Qor
     jvalue jargs[4];
     jargs[0].l = bb;
     jargs[1].l = jname;
-    jargs[2].j = (long)pgm;
+    jargs[2].j = pgm->getProgramId();
     jargs[3].l = ilist;
 
     bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder, Globals::methodJavaClassBuilderCreateStaticInitializer,
@@ -3235,7 +3159,10 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
             qcls->getName());
     }
 
-    jlong cptr = reinterpret_cast<jlong>(qcls);
+    auto class_binding = std::make_shared<GeneratedBinding>(getProgram(), GeneratedBindingKind::Class,
+        qcls->getProgram());
+    class_binding->cls = qcls;
+    jlong cptr = register_generated_binding(std::move(class_binding));
 
     printd(5, "JniExternalProgramData::generateByteCodeIntern() ns path: '%s': %p (abstract: %d) " \
         "jparent: %p (jname: %p)\n", qcls->getNamespacePath(true).c_str(), cptr, qcls->isAbstract(),
@@ -3251,8 +3178,8 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
         jname = njname;
     }
 
-    // programId + qpath are embedded for late-read class-identity resolution
-    // (see JavaClassBuilder.CLASS_PGM_ID_FIELD / CLASS_PATH_FIELD).  Use the
+    // Retain programId + qpath as descriptive class identity metadata
+    // (see JavaClassBuilder.CLASS_PGM_ID_FIELD / CLASS_PATH_FIELD). Use the
     // class's source program (where it was originally declared, preserved
     // across imports) so consumers in other Programs that import this class
     // resolve to the same canonical entry.  Fall back to the namespace's

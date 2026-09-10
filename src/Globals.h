@@ -42,10 +42,9 @@ DLLLOCAL QoreStringNode* jni_module_init_intern();
 
 namespace jni {
 
-// raw QoreClass* (used by constructor delegation chain at object instantiation)
-constexpr const char* JAVA_QORE_CLASS_FIELD = "$qore_cls_ptr";
-// programId of the canonical owner Program, used for late-read class identity
-// resolution via QoreProgram::resolveProgramId() — see JavaClassBuilder
+// Registered class binding handle, used for construction and native type lookup
+constexpr const char* JAVA_QORE_CLASS_FIELD = "$qore_cls_handle";
+// Canonical owner Program ID, retained as descriptive class identity metadata
 constexpr const char* JAVA_QORE_CLASS_PGM_ID_FIELD = "$qore_cls_pgm_id";
 // qpath of the class within the owner Program (e.g. "::OMQ::UserApi::Job::QorusJob")
 constexpr const char* JAVA_QORE_CLASS_PATH_FIELD = "$qore_cls_path";

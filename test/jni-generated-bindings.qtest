@@ -1,0 +1,115 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+%requires QUnit
+%requires FsUtil
+%requires jni
+%module-cmd(jni) add-relative-classpath qore-jni-test.jar
+%module-cmd(jni) import org.qore.jni.test.GeneratedBindings
+%module-cmd(jni) import java.lang.System
+%exec-class GeneratedBindingsTest
+
+class GeneratedBindingsTest inherits QUnit::Test {
+    private {
+        const Source = "%modern\n%requires jni\n"
+            "%module-cmd(jni) import org.qore.jni.QoreURLClassLoader\n"
+            "public namespace EmbeddedBindingTest {\n"
+            "    const NsValue = 73;\n"
+            "    public class Constants { public { const Value = 42; } }\n"
+            "    public class Calls {\n"
+            "        int value(int arg) { return arg + 3; }\n"
+            "        static int twice(int arg) { return arg * 2; }\n"
+            "    }\n"
+            "    int sub plus(int arg) { return arg + 1; }\n"
+            "}\n"
+            "binary sub bytes(string name) {\n"
+            "    return QoreURLClassLoader::getCurrent().generateByteCode(\"qore.EmbeddedBindingTest.\" + name);\n"
+            "}\n";
+    }
+
+    constructor() : Test("Generated JNI binding lifetimes", "1.0") {
+        addTestCase("Live generated constants and calls", \live());
+        addTestCase("Destroyed generating Program", \expired());
+        addTestCase("Invalid and legacy handles", \invalid());
+        addTestCase("Legacy constant initializer", \legacy());
+        addTestCase("Failed object retention during construction", \failedSave());
+        addTestCase("Persisted bytecode in a fresh process", \persisted());
+        set_return_value(main());
+    }
+
+    private GeneratedBindings fixture(Program p) {
+        p.parse(Source, "generated-binding-fixture");
+        return new GeneratedBindings(p.getProgramId(), p.callFunction("bytes", "Constants"),
+            p.callFunction("bytes", "Calls"), p.callFunction("bytes", "$Functions"),
+            p.callFunction("bytes", "$Constants"));
+    }
+
+    live() {
+        Program p(PO_NEW_STYLE);
+        GeneratedBindings f = fixture(p);
+        assertEq(42, f.constant());
+        assertEq(73, f.namespaceConstant());
+        assertEq(8, f.function(7));
+        assertEq(14, f.staticCall(7));
+        assertEq(10, f.normalCall(7));
+        assertEq(-4, f.function(-5));
+        assertEq(0, f.staticCall(0));
+    }
+
+    expired() {
+        Program p(PO_NEW_STYLE);
+        GeneratedBindings f = fixture(p);
+        delete p;
+        assertEq(6, f.expired());
+        # A replacement Program must not revive the expired handles.
+        Program replacement(PO_NEW_STYLE);
+        GeneratedBindings fresh = fixture(replacement);
+        assertEq(42, fresh.constant());
+        assertEq(14, fresh.staticCall(7));
+    }
+
+    invalid() {
+        Program p(PO_NEW_STYLE);
+        GeneratedBindings f = fixture(p);
+        assertEq(25, f.invalid());
+        assertEq(42, f.constant());
+        assertEq(8, f.function(7));
+    }
+
+    legacy() {
+        assertEq(1, GeneratedBindings::legacyInitializer());
+    }
+
+    failedSave() {
+        Program p(PO_NEW_STYLE);
+        GeneratedBindings f = fixture(p);
+        code callback = sub (object obj) {
+            throw "BINDING-SAVE-ERROR", "intentional retention failure";
+        };
+        Jni::org::qore::jni::set_save_object_callback(callback);
+        on_exit { Jni::org::qore::jni::set_save_object_callback(); }
+        assertThrows("BINDING-SAVE-ERROR", \f.normalCall(), (1,));
+        Jni::org::qore::jni::set_save_object_callback();
+        assertEq(4, f.normalCall(1));
+    }
+
+    private static string shellQuote(string arg) {
+        return "'" + replace(arg, "'", "'\\''") + "'";
+    }
+
+    persisted() {
+        Program p(PO_NEW_STYLE);
+        GeneratedBindings f = fixture(p);
+        string jar = f.persist();
+        on_exit { GeneratedBindings::deleteJar(jar); }
+        TmpFile script(NOTHING, ".qr");
+        script.file.write("%modern\n%requires jni\n"
+            "%module-cmd(jni) add-classpath " + get_script_dir() + "/qore-jni-test.jar\n"
+            "%module-cmd(jni) import org.qore.jni.test.GeneratedBindings\n"
+            "GeneratedBindings::checkJar(\"" + jar + "\");\n");
+        script.file.close();
+        string qore = QORE_ARGV[0];
+        assertEq(0, system(shellQuote(qore) + " -b --enable-debug " + shellQuote(script.path)));
+    }
+}

@@ -75,6 +75,7 @@ extern qore_classid_t CID_INVOCATIONHANDLER;
 // forward references
 class Class;
 class JniExternalProgramData;
+class GeneratedBindingLease;
 
 class QoreJniClassMapBase {
 protected:
@@ -507,7 +508,7 @@ public:
     DLLLOCAL static JniExternalProgramData* getCreateJniProgramData(QoreProgram* pgm);
 
     // try to get the QoreClass for a dynamically-created JavaClass
-    DLLLOCAL static QoreClass* tryGetQoreClass(Env& env, jclass obj, bool inherited);
+    DLLLOCAL static std::unique_ptr<GeneratedBindingLease> tryGetQoreClass(Env& env, jclass obj);
 
     // load service loader
     DLLLOCAL LocalReference<jobject> loadServiceLoader(Env& env, jclass jcls);

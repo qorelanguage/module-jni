@@ -37,6 +37,7 @@
 #include "Array.h"
 #include "QoreToJava.h"
 #include "QoreJniClassMap.h"
+#include "GeneratedBinding.h"
 
 #include <thread>
 #include <unordered_map>
@@ -47,6 +48,7 @@
 #include <dlfcn.h>
 #include <mutex>
 #include <string>
+#include <stdexcept>
 
 namespace jni {
 
@@ -1160,149 +1162,127 @@ static jbyteArray JNICALL qore_url_classloader_get_cached_class(JNIEnv* jenv, jc
     return array.release();
 }
 
+// No C++ exception may cross a JNI boundary, including failures while resolving
+// a generated handle, attaching a foreign thread, or converting arguments.
+template <typename Result, typename Callback>
+static Result generated_native_call(JNIEnv* jenv, Callback&& callback) {
+    Env env(jenv);
+    ExceptionSink xsink;
+    QoreThreadAttachHelper attach_helper;
+    try {
+        attach_helper.attach();
+        return callback(env, xsink);
+    } catch (jni::Exception& e) {
+        e.convert(&xsink);
+        QoreToJava::wrapException(env, xsink);
+    } catch (const std::bad_alloc& e) {
+        jclass cls = jenv->FindClass("java/lang/OutOfMemoryError");
+        if (cls) {
+            jenv->ThrowNew(cls, e.what());
+            jenv->DeleteLocalRef(cls);
+        }
+    } catch (const std::exception& e) {
+        jclass cls = jenv->FindClass("java/lang/RuntimeException");
+        if (cls) {
+            jenv->ThrowNew(cls, e.what());
+            jenv->DeleteLocalRef(cls);
+        }
+    } catch (...) {
+        jclass cls = jenv->FindClass("java/lang/RuntimeException");
+        if (cls) {
+            jenv->ThrowNew(cls, "Unknown exception in generated Qore binding");
+            jenv->DeleteLocalRef(cls);
+        }
+    }
+    return Result{};
+}
+
+static JniExternalProgramData* generated_program_context(QoreProgram* pgm, jlong program_id,
+        JniExternalProgramData* caller_context = nullptr) {
+    if (program_id != static_cast<jlong>(pgm->getProgramId())) {
+        throw std::runtime_error("Invalid Qore Program ID in generated binding; regenerate the class");
+    }
+    auto* jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+    if (!jpc) {
+        // A Qore-only module can own constants without loading JNI itself. Its
+        // metadata remains protected by the binding lease; conversion uses the
+        // already-active caller's loader, as it did before entering the owner.
+        jpc = caller_context;
+    }
+    if (!jpc) {
+        throw std::runtime_error("The Qore Program that generated this class has no JNI context");
+    }
+    return jpc;
+}
+
 static jobject JNICALL java_class_builder_do_normal_call(JNIEnv* jenv, jclass jcls, jstring mname, jlong qobj,
-        jlong mptr, jlong vptr, jobjectArray args) {
-    const QoreMethod* m = reinterpret_cast<const QoreMethod*>(mptr);
-    const QoreExternalMethodVariant* v = reinterpret_cast<const QoreExternalMethodVariant*>(vptr);
-    printd(5, "java_class_builder_do_normal_call() jcls: %p %s::%s() (%d) qobj: %p args: %p\n", jcls,
-        m->getClassName(), m->getName(), m->getClass()->getID(), qobj, args);
-
-    Env env(jenv);
-
-    if (!qobj) {
-        env.throwNew(env.findClass("java/lang/RuntimeException"), "JavaClassBuilder.doNormalCall0(): QoreObject " \
-            "ptr passed as nullptr");
-        return nullptr;
-    }
-
-    QoreObject* obj = reinterpret_cast<QoreObject*>(qobj);
-    QoreProgram* pgm = obj->getClass()->getProgram();
-    if (!pgm) {
-        jni_get_context_unconditional(pgm);
-    }
-
-    if (!pgm) {
-        printd(5, "java_class_builder_do_normal_call() no Program ctx!\n");
-        QoreStringMaker desc("JavaClassBuilder.doNormalCall0(): no Program context for object %p", obj);
-        env.throwNew(env.findClass("java/lang/RuntimeException"), desc.c_str());
-        return nullptr;
-    }
-
-    return qore_object_closure_call_internal(jenv, jcls, pgm, qobj, true, mname, args, m, v);
+        jlong method_handle, jlong reserved, jobjectArray args) {
+    return generated_native_call<jobject>(jenv, [&](Env& env, ExceptionSink& xsink) -> jobject {
+        GeneratedBindingContext binding(method_handle, GeneratedBindingKind::Method, &xsink);
+        if (!qobj || reserved) {
+            throw std::runtime_error("Invalid object or variant in generated Qore method call");
+        }
+        QoreObject* obj = reinterpret_cast<QoreObject*>(qobj);
+        QoreProgram* pgm = obj->getProgram();
+        if (!pgm) {
+            // Builtin objects (for example reflection::Type) need not have an
+            // object Program. Their registered binding supplies a live context.
+            pgm = binding->pgm;
+        }
+        return qore_object_closure_call_internal(jenv, jcls, pgm, qobj, true, mname, args,
+            binding->method, static_cast<const QoreExternalMethodVariant*>(binding->variant));
+    });
 }
 
-static jobject JNICALL java_class_builder_do_static_call(JNIEnv* jenv, jclass jcls, jstring mname, jlong qcls,
-        jlong pgmptr, jlong mptr, jlong vptr, jobjectArray args) {
-    printd(5, "java_class_builder_do_static_call() jcls: %p qcls: %p, args: %p\n", jcls, qcls, args);
-
-    Env env(jenv);
-
-    if (!qcls) {
-        env.throwNew(env.findClass("java/lang/RuntimeException"), "JavaClassBuilder.doStaticCall0(): QoreClass ptr " \
-            "passed as nullptr");
-        return nullptr;
-    }
-
-    const QoreClass* qc = reinterpret_cast<const QoreClass*>(qcls);
-
-    //printd(5, "java_class_builder_do_static_call() mname: %p mptr: %p pgmptr: %p cpgm: %p curr pgm: %p\n", mname,
-    //    mptr, pgmptr, qc->getProgram(), getProgram());
-
-    return java_api_call_static_method_internal(jenv, nullptr, pgmptr, true, nullptr, mname,
-        args, qc, reinterpret_cast<const QoreMethod*>(mptr),
-        reinterpret_cast<const QoreExternalMethodVariant*>(vptr));
+static jobject JNICALL java_class_builder_do_static_call(JNIEnv* jenv, jclass jcls, jstring mname, jlong class_handle,
+        jlong program_id, jlong method_handle, jlong reserved, jobjectArray args) {
+    return generated_native_call<jobject>(jenv, [&](Env& env, ExceptionSink& xsink) -> jobject {
+        GeneratedBindingContext binding(method_handle, GeneratedBindingKind::StaticMethod, &xsink);
+        GeneratedBindingContext cls(class_handle, GeneratedBindingKind::Class, &xsink);
+        generated_program_context(binding->pgm, program_id);
+        if (reserved || cls->cls != binding->cls) {
+            throw std::runtime_error("Invalid class or variant in generated Qore static method call");
+        }
+        return java_api_call_static_method_internal(jenv, nullptr, reinterpret_cast<jlong>(binding->pgm), true,
+            nullptr, mname, args, binding->cls, binding->method,
+            static_cast<const QoreExternalMethodVariant*>(binding->variant));
+    });
 }
 
-static jobject JNICALL java_class_builder_do_function_call(JNIEnv* jenv, jclass jcls, QoreProgram* pgm,
-        const QoreExternalFunction* func, const QoreExternalMethodVariant* v, jobjectArray args) {
-    printd(5, "java_class_builder_do_function_call() %s() v: %p args: %p\n", func->getName(), v, args);
-
-    assert(pgm);
-    assert(func);
-
-    JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
-
-    Env env(jenv);
-
-    QoreThreadAttachHelper attach_helper;
-    try {
-        attach_helper.attach();
-    } catch (Exception& e) {
-        env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
-        return nullptr;
-    }
-
-    QoreJniStackLocationHelper slh;
-
-    ExceptionSink xsink;
-    QoreExternalProgramContextHelper epch(&xsink, pgm);
-    if (xsink) {
-        QoreToJava::wrapException(env, xsink);
-        return nullptr;
-    }
-
-    jsize len = args ? env.getArrayLength(args) : 0;
-    ReferenceHolder<QoreListNode> qore_args(&xsink);
-
-    if (len) {
-        Array::getArgList(qore_args, env, args, pgm, true);
-    }
-
-    ValueHolder rv(func->evalFunction(v, *qore_args, pgm, &xsink), &xsink);
-    if (xsink) {
-        QoreToJava::wrapException(env, xsink);
-        return nullptr;
-    }
-
-    if (save_object(env, *rv, pgm, xsink)) {
-        return nullptr;
-    }
-
-    try {
+static jobject JNICALL java_class_builder_do_function_call(JNIEnv* jenv, jclass jcls, jlong program_id,
+        jlong function_handle, jlong reserved, jobjectArray args) {
+    return generated_native_call<jobject>(jenv, [&](Env& env, ExceptionSink& xsink) -> jobject {
+        GeneratedBindingContext binding(function_handle, GeneratedBindingKind::Function, &xsink);
+        QoreProgram* pgm = binding->pgm;
+        JniExternalProgramData* jpc = generated_program_context(pgm, program_id);
+        if (reserved) {
+            throw std::runtime_error("Invalid variant in generated Qore function call");
+        }
+        QoreJniStackLocationHelper slh;
+        ReferenceHolder<QoreListNode> qore_args(&xsink);
+        if (args && env.getArrayLength(args)) {
+            Array::getArgList(qore_args, env, args, pgm, true);
+        }
+        ValueHolder rv(binding->function->evalFunction(binding->variant, *qore_args, pgm, &xsink), &xsink);
+        if (xsink) {
+            throw XsinkException(xsink);
+        }
+        if (save_object(env, *rv, pgm, xsink)) {
+            return nullptr;
+        }
         return QoreToJava::toAnyObject(env, *rv, jpc);
-    } catch (jni::Exception& e) {
-        e.convert(&xsink);
-        QoreToJava::wrapException(env, xsink);
-        return nullptr;
-    }
+    });
 }
 
-static jobject JNICALL java_class_builder_get_constant_value(JNIEnv* jenv, jclass jcls, QoreProgram* pgm,
-        const QoreExternalConstant* constant_entry) {
-    assert(pgm);
-    assert(constant_entry);
-
-    JniExternalProgramData* jpc = jni_get_context_unconditional(pgm);
-
-    Env env(jenv);
-
-    QoreThreadAttachHelper attach_helper;
-    try {
-        attach_helper.attach();
-    } catch (Exception& e) {
-        env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
-        return nullptr;
-    }
-
-    ExceptionSink xsink;
-    QoreExternalProgramContextHelper epch(&xsink, pgm);
-    if (xsink) {
-        QoreToJava::wrapException(env, xsink);
-        return nullptr;
-    }
-
-    printd(5, "java_class_builder_get_constant_value() '%s' cl: %x pgm: %p jpc: %p\n", constant_entry->getName(),
-        env.callIntMethod(jpc->getClassLoader(), jni::Globals::methodObjectHashCode, nullptr), pgm, jpc);
-
-    ValueHolder val(constant_entry->getReferencedValue(), &xsink);
-    printd(5, "java_class_builder_get_constant_value() '%s' = %s\n", constant_entry->getName(), val->getFullTypeName());
-    try {
+static jobject JNICALL java_class_builder_get_constant_value(JNIEnv* jenv, jclass jcls, jlong program_id,
+        jlong constant_handle) {
+    return generated_native_call<jobject>(jenv, [&](Env& env, ExceptionSink& xsink) -> jobject {
+        JniExternalProgramData* caller_context = jni_get_context();
+        GeneratedBindingContext binding(constant_handle, GeneratedBindingKind::Constant, &xsink);
+        JniExternalProgramData* jpc = generated_program_context(binding->pgm, program_id, caller_context);
+        ValueHolder val(binding->constant->getReferencedValue(), &xsink);
         return QoreToJava::toAnyObject(env, *val, jpc);
-    } catch (jni::Exception& e) {
-        e.convert(&xsink);
-        QoreToJava::wrapException(env, xsink);
-        return nullptr;
-    }
+    });
 }
 
 static int load_module(Env& env, Env::GetStringUtfChars& mod_str, QoreProgram* pgm) {
@@ -2247,38 +2227,26 @@ static jobject JNICALL qore_url_classloader_debug(JNIEnv* jenv, jclass jcls, jlo
     return nullptr;
 }
 
-static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreClass* qc, const QoreMethod* meth,
-        const QoreExternalMethodVariant* v, jobject java_this, jobjectArray args) {
-    //printd(5, "qore_object_create() qc: %p meth: %p v: %p java_this: %p %s::%s() args: %p\n", qc, meth, v, java_this,
-    //    qc->getName(), meth ? meth->getName() : "n/a", args);
-
-    Env env(jenv);
-    if (!qc) {
-        env.throwNew(env.findClass("java/lang/RuntimeException"), "QoreClass ptr passed as nullptr");
-        return 0;
-    }
-
-    // create the object in the current object's Program; using the QoreClass's program will result in the wrong
-    // classloader being used to resolve any dependent classes
-    QoreProgram* pgm = jni_get_program_context();
-    if (!pgm) {
-        pgm = Globals::getJavaContextProgram();
-    }
-    QoreThreadAttachHelper attach_helper;
-    try {
-        attach_helper.attach();
-    } catch (Exception& e) {
-        env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
-        return 0;
-    }
-
-    ExceptionSink xsink;
-    try {
+static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, jlong class_handle, jlong reserved_method,
+        jlong reserved_variant, jobject java_this, jobjectArray args) {
+    return generated_native_call<jlong>(jenv, [&](Env& env, ExceptionSink& xsink) -> jlong {
+        // Capture the caller before entering the generating Program's context: the
+        // caller's loader is needed when constructing Java subclasses of Qore classes.
+        QoreProgram* pgm = jni_get_program_context();
+        if (!pgm) {
+            pgm = Globals::getJavaContextProgram();
+        }
+        GeneratedBindingContext binding(class_handle, GeneratedBindingKind::Class, &xsink);
+        if (!pgm || reserved_method || reserved_variant) {
+            throw std::runtime_error("Invalid context or constructor binding; regenerate the class");
+        }
+        const QoreClass* qc = binding->cls;
         // see if "this" (in Java) is being instantiated for the Qore class directly or a child class; if it's a child
         // class, then create a new Qore class for the Java class
         LocalReference<jclass> jcls = env.callObjectMethod(java_this, Globals::methodObjectGetClass, nullptr).as<jclass>();
         // only look for a Qore class in the immediate local class
-        const QoreClass* jqc = JniExternalProgramData::tryGetQoreClass(env, jcls, false);
+        auto java_class_binding = JniExternalProgramData::tryGetQoreClass(env, jcls);
+        const QoreClass* jqc = java_class_binding ? (*java_class_binding)->cls : nullptr;
         if (!jqc) {
             jqc = qjcm.findCreateQoreClass(env, jcls, pgm);
         }
@@ -2307,42 +2275,25 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, const QoreC
             return 0;
         }
 
-        assert(obj);
-        save_object(env, *obj, pgm, xsink);
-
         printd(5, "qore_object_create() created %s: %p (%s)\n", jqc->getName(), obj->get<const QoreObject>(),
             obj->getFullTypeName());
 
         assert(obj);
-        // increment weak ref count for assignment to QoreObjectBase
         QoreObject* qobj = obj->get<QoreObject>();
-        qobj->tRef();
-
         if (jqc != qc) {
-            // set private data for Java
-            qobj->setPrivate(jqc->getID(), new QoreJniPrivateData(java_this));
+            std::unique_ptr<QoreJniPrivateData> private_data(new QoreJniPrivateData(java_this));
+            qobj->setPrivate(jqc->getID(), private_data.get());
+            private_data.release();
+        }
+        if (save_object(env, *obj, pgm, xsink)) {
+            return 0;
         }
 
+        // Publish a weak reference only after every fallible construction step.
+        // QoreObjectBase leaves its cleanup pointer zero when create0 throws.
+        qobj->tRef();
         return reinterpret_cast<jlong>(qobj);
-    } catch (jni::QoreJniException& e) {
-        QoreString buf;
-        env.throwNew(env.findClass("java/lang/RuntimeException"), e.what(buf));
-    } catch (jni::Exception& e) {
-        e.convert(&xsink);
-        QoreToJava::wrapException(env, xsink);
-    } catch (const std::bad_alloc& e) {
-        // translate OOM C++ exception to a Java exception
-        env.throwNew(env.findClass("java/lang/OutOfMemoryError"), e.what());
-    } catch (const std::exception& e) {
-        // translate unknown C++ exceptions to a Java exception
-        env.throwNew(env.findClass("java/lang/Error"), e.what());
-    } catch (...) {
-        // translate unknown C++ exception to a Java exception
-        env.throwNew(env.findClass("java/lang/Error"), "Unknown exception type");
-    }
-
-    //assert(false);
-    return 0;
+    });
 }
 
 static void JNICALL qore_object_release(JNIEnv*, jclass, jlong ptr) {

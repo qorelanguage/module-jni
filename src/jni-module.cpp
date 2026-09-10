@@ -47,6 +47,7 @@
 #include "defs.h"
 #include "Jvm.h"
 #include "QoreJniClassMap.h"
+#include "GeneratedBinding.h"
 #include "Method.h"
 #include "QoreToJava.h"
 #include "Globals.h"
@@ -204,6 +205,7 @@ QoreStringNode* jni_module_init_finalize(bool system) {
     qore_register_program_cleanup_callback().
 */
 static void jni_program_cleanup(QoreProgram* pgm) {
+    jni::purge_generated_bindings(pgm);
     jni::purge_module_root_ns_cache(pgm);
 }
 
@@ -329,6 +331,7 @@ static void jni_module_ns_init(QoreNamespace* rns, QoreNamespace* qns, Exception
 static void jni_module_delete() {
     // stop libqore calling into this module's code once it is unloaded
     qore_deregister_program_cleanup_callback(jni_program_cleanup);
+    clear_generated_bindings();
 
     // clear all objects from stored classes before destroying the JVM (releases all global references)
     Globals::clearGlobalContext();

@@ -1188,11 +1188,12 @@ set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/QoreCallback.java
     test/java/src/org/qore/jni/test/OverloadedMethods.java
     test/java/src/org/qore/jni/test/JvmPrimaryReaperExit.java
+    test/java/src/org/qore/jni/test/GeneratedBindings.java
     test/java/src/org/qore/lang/test/QoreJavaLangApiTest.java
 )
 
 add_jar(qore-jni-test ${JAVA_TEST_JAR_SRC}
-    INCLUDE_JARS qore-jni.jar
+    INCLUDE_JARS ${CMAKE_CURRENT_BINARY_DIR}/qore-jni.jar
 )
 
 add_dependencies(qore-jni-test qore-jni)
@@ -1221,6 +1222,7 @@ set(CPP_SRC
     src/Dispatcher.cpp
     src/Field.cpp
     src/Globals.cpp
+    src/GeneratedBinding.cpp
     src/ql_jni_debug.cpp
     src/InvocationHandler.cpp
     src/Method.cpp
@@ -1412,6 +1414,11 @@ endif()
 # src/Globals.cpp (QoreForeignThreadHelper).
 enable_testing()
 find_package(Threads REQUIRED)
+add_executable(generated_binding_registry test/generated_binding_registry.cpp src/GeneratedBinding.cpp)
+target_include_directories(generated_binding_registry PRIVATE ${QORE_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(generated_binding_registry ${QORE_LIBRARY} Threads::Threads)
+add_test(NAME generated_binding_registry COMMAND generated_binding_registry)
+set_tests_properties(generated_binding_registry PROPERTIES TIMEOUT 30)
 add_executable(foreign_thread_deref_crash test/foreign_thread_deref_crash.cpp)
 target_include_directories(foreign_thread_deref_crash PRIVATE ${QORE_INCLUDE_DIRS})
 target_link_libraries(foreign_thread_deref_crash ${QORE_LIBRARY} Threads::Threads)
