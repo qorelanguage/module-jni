@@ -72,7 +72,23 @@ public hash<auto> sub describeAddressSpace(hash<auto> document) {
 }
 
 #! Converts NodeSet2 XML to the native OPC UA address-space document without starting a server
-/** @param xml the complete OPC UA NodeSet2 XML document
+/** Each node's browse path is built from its \c ParentNodeId - or, when that attribute is absent, from
+    its inverse hierarchical reference (\c HasComponent, \c HasProperty, \c Organizes) - up to the model's
+    top, so nodes sharing a browse name under different parents remain distinct and the model hierarchy is
+    preserved.  Every path segment carries its namespace index (e.g.
+    \c "/1:MeasurementContainerType/1:Temperature/0:EngineeringUnits"), and \c endpoint_id is derived from
+    the full path exactly as it is for a live server.  \c HasSubtype does not contribute a segment: it
+    relates a type to its supertype rather than placing a node inside another node.  A node whose parent
+    lies outside the model keeps a segment for that parent - its standard browse name for a well-known
+    address-space node, otherwise its NodeId - except for the Root and Objects folders, which are the
+    browse root.
+
+    A method's \c InputArguments and \c OutputArguments properties are folded into the method endpoint's
+    \c input_arguments and \c output_arguments rather than imported as variable endpoints of their own,
+    and data types written as \c Aliases are resolved to their NodeIds.  A leading UTF-8 byte order mark
+    is ignored.
+
+    @param xml the complete OPC UA NodeSet2 XML document
 
     @return the validated native address-space document carrying \c opcua: "1"
 
@@ -98,6 +114,12 @@ public hash<auto> sub nodeSet2ToAddressSpace(string xml) {
 /** The output is the same NodeSet2 subset emitted by @ref OpcUaServerRuntime::exportNodeSet2().
     An empty \c endpoints list produces a NodeSet2 document containing the namespace table without
     variable or method nodes.
+
+    The nodes named by an endpoint's browse path are exported as well - as objects, unless the path
+    segment is itself an exported endpoint - along with the parent references that hold the hierarchy
+    together and the \c InputArguments / \c OutputArguments properties carrying method argument metadata,
+    so that importing the exported document with @ref OpcUaDataProvider::nodeSet2ToAddressSpace()
+    reproduces the same browse paths and the same \c endpoint_id values.
 
     @param document the native OPC UA address-space document
 

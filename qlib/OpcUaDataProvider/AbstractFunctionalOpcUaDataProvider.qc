@@ -1053,6 +1053,9 @@ public class AbstractFunctionalOpcUaDataProvider inherits AbstractOpcUaDataProvi
         @return an imported schema snapshot (\c source is \c "imported"); it carries the namespace table,
         the resolved variable/method endpoints, the \c required_models, and \c missing_dependencies (the
         required model namespaces not present in the imported model's namespace table)
+
+        @see @ref OpcUaDataProvider::nodeSet2ToAddressSpace() for how a node's browse path is derived from
+        the model hierarchy and how method argument properties are folded into method endpoints
     */
     hash<auto> importNodeSet2(string location) {
         string xml = FileLocationHandler::getTextFileFromLocation(location);

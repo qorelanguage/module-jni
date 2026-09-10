@@ -123,6 +123,27 @@ All confirmed via `javap` against the 1.1.4 jars.
    the JDK's built-in XML parser (no new dependency); file retrieval is Qore-side via `FileLocationHandler`.
    Produces the same snapshot shape (matching `endpoint_id`s) plus `required_models` /
    `missing_dependencies`. Exposed via `importNodeSet2()`; verified with a minimal NodeSet2 file.
+
+   **Browse path derivation (module v1.10.1).** A node's browse path is the chain of namespace-qualified
+   browse names from the top of the model down to the node, walked through `ParentNodeId` and, when that
+   attribute is absent, through the node's inverse containment reference (`HasComponent`,
+   `HasOrderedComponent`, `HasProperty`, `Organizes`, `HasAddIn`). `HasSubtype` is excluded on purpose: it
+   relates a type to its supertype rather than placing a node inside another node, so a type defined by a
+   model is browsed at the top of that model. A chain that leaves the model keeps a segment for the
+   external parent — its standard browse name for a well-known address-space node (`i=92` → `0:XmlSchema`,
+   `i=93` → `0:OPC Binary`, …), its NodeId otherwise — except the Root and Objects folders, which are the
+   browse root and add no segment, matching the live `SchemaResolver` walk. Deriving the path from the
+   browse name alone (the pre-v1.10.1 behavior) both collapsed same-named nodes onto one `endpoint_id`
+   and flattened the model; see qore issue #5450. A method's `InputArguments` / `OutputArguments`
+   properties are folded into the method endpoint's argument lists instead of becoming endpoints, and
+   `Aliases` are resolved for data types and reference types.
+
+   **Export (module v1.10.1).** `AddressSpaceSchema.exportNodeSet2()` is the inverse: it emits the nodes
+   named by each endpoint's browse path (as objects, unless the segment is itself an exported endpoint),
+   the `ParentNodeId` / inverse references that hold the hierarchy together, and the argument properties,
+   so that export → import is identity on browse paths and `endpoint_id` values. `GenericServer`
+   materializes the same rule: a path segment that names an endpoint is materialized once, as that
+   endpoint, and its children hang from it rather than from a folder beside it.
 7. **Phase 5** (Qorus repo) — client design-time integration.
 
 ## Build/packaging tasks for the migration commit

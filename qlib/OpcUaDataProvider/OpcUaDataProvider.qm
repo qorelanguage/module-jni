@@ -104,7 +104,7 @@
 # implements file/resource location handling for offline NodeSet2 import
 %requires FileLocationHandler
 module OpcUaDataProvider {
-    version = "1.10.0";
+    version = "1.10.1";
     desc = "user module providing a data provider API for OPC UA servers";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -521,6 +521,35 @@ module OpcUaDataProvider {
     implicit history retention.  Runtime callbacks may still return explicit values for \c history-read.
 
     @section opcuadataproviderrelnotes Release Notes
+
+    @subsection opcuadataproviderv1101 OpcUaDataProvider v1.10.1
+    - fixed a bug where offline NodeSet2 import derived each node's browse path from its \c BrowseName
+      alone, so any two nodes sharing a browse name anywhere in the model collided (the import failed with
+      \c OPCUA-SCHEMA-ERROR reporting a duplicate endpoint id) and every node that did import landed at
+      the root of a flat address space; the browse path is now built from the node's \c ParentNodeId, or
+      from its inverse hierarchical reference when that attribute is absent, so a model's hierarchy
+      survives the import and a node's \c endpoint_id is derived from its full path exactly as it is for
+      a live server
+      (<a href="https://github.com/qoretechnologies/qore/issues/5450">issue 5450</a>)
+    - fixed a bug where a method's \c InputArguments and \c OutputArguments properties were imported as
+      variable endpoints of their own (typed \c Argument) instead of being folded into the method
+      endpoint's \c input_arguments / \c output_arguments; imported methods now carry the same argument
+      metadata as live and materialized ones
+    - fixed a bug where a NodeSet2 document serialized with a UTF-8 byte order mark - as published models
+      commonly are - was rejected with \c "Content is not allowed in prolog"; the mark is now stripped
+      before parsing
+    - fixed a bug where \c exportNodeSet2() wrote every endpoint as a top-level node with no containing
+      node, so exporting a nested address space and importing it back flattened the model and changed
+      every nested endpoint's id; the export now emits the containing nodes and parent references, plus
+      method argument properties, so an address space round trips unchanged
+    - fixed a bug where the generic server runtime materialized a browse path segment as a folder even
+      when the segment named an endpoint, leaving two sibling nodes with the same browse name in the
+      address space so that a client could not resolve the advertised browse path; a node with children
+      is now materialized once, and its children hang from it
+    - NodeSet2 data types and reference types written as \c Aliases are now resolved to their NodeIds,
+      so an imported variable reports \c "i=11" rather than \c "Double"
+    - an imported browse name always carries its namespace index (\c "0:EngineeringUnits" rather than
+      \c "EngineeringUnits"), matching the qualified form used by live snapshots
 
     @subsection opcuadataproviderv110 OpcUaDataProvider v1.10.0
     - added the parse-only @ref OpcUaDataProvider::describeAddressSpace() entry point for validating and

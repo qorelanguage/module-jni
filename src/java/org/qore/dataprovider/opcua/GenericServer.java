@@ -683,13 +683,33 @@ public class GenericServer {
                 throw new IllegalArgumentException("GenericServer requires schema.endpoints or endpoints");
             }
 
+            // a browse path segment may name an endpoint rather than a folder (a variable with
+            // properties, say), so every endpoint's materialized NodeId has to be known before any node
+            // is built; otherwise the segment would be materialized a second time as a folder and the
+            // address space would carry two sibling nodes with the same browse name
+            List<Map<String, Object>> specs = new ArrayList<>();
+            List<EndpointIdentity> identities = new ArrayList<>();
+            Map<String, NodeId> endpointNodeIds = new HashMap<>();
             for (Object specObj : endpointSpecs) {
                 Map<String, Object> spec = asMap(specObj);
                 if (spec == null) {
                     continue;
                 }
                 try {
-                    Endpoint endpoint = buildEndpoint(idx, folders, rootConfig, spec);
+                    EndpointIdentity identity = identityFor(idx, spec);
+                    specs.add(spec);
+                    identities.add(identity);
+                    endpointNodeIds.put(identity.localPath, identity.nodeId);
+                } catch (Exception e) {
+                    throw new IllegalArgumentException("error resolving OPC UA endpoint " + spec, e);
+                }
+            }
+
+            for (int i = 0; i < specs.size(); ++i) {
+                Map<String, Object> spec = specs.get(i);
+                try {
+                    Endpoint endpoint = buildEndpoint(idx, folders, rootConfig, endpointNodeIds,
+                        identities.get(i), spec);
                     orderedEndpoints.add(endpoint);
                     byEndpointId.put(endpoint.endpointId, endpoint);
                     if (!endpoint.method) {
@@ -720,20 +740,35 @@ public class GenericServer {
             }
         }
 
-        private Endpoint buildEndpoint(int idx, Map<String, UaFolderNode> folders,
-                RootConfig rootConfig, Map<String, Object> spec) throws Exception {
-            String kind = stringValue(spec.get("kind"), "variable");
-            boolean method = kind.startsWith("method");
+        /** Resolves the identity a spec's node gets when it is materialized, without building it. */
+        private EndpointIdentity identityFor(int idx, Map<String, Object> spec) throws Exception {
+            boolean method = stringValue(spec.get("kind"), "variable").startsWith("method");
             String localName = endpointLocalName(spec);
             String parentPath = parentPath(spec);
-            UaFolderNode parent = parentPath.isEmpty() ? null : folderFor(idx, folders, rootConfig, parentPath);
-            String actualBrowsePath = actualBrowsePath(idx, parentPath, localName);
+            String browsePath = actualBrowsePath(idx, parentPath, localName);
             String endpointId = stringValue(spec.get("endpoint_id"), null);
             if (endpointId == null || endpointId.isEmpty()) {
-                endpointId = SchemaResolver.deriveEndpointId(namespaceUri, actualBrowsePath,
+                endpointId = SchemaResolver.deriveEndpointId(namespaceUri, browsePath,
                     method ? "method-call" : "variable");
             }
-            NodeId nodeId = nodeIdFor(idx, spec, localName, endpointId, method);
+            return new EndpointIdentity(method, localName, parentPath, browsePath, endpointId,
+                nodeIdFor(idx, spec, localName, endpointId, method));
+        }
+
+        private Endpoint buildEndpoint(int idx, Map<String, UaFolderNode> folders,
+                RootConfig rootConfig, Map<String, NodeId> endpointNodeIds, EndpointIdentity identity,
+                Map<String, Object> spec) throws Exception {
+            boolean method = identity.method;
+            String localName = identity.localName;
+            String parentPath = identity.parentPath;
+            // the containing node is the endpoint at the containing path when there is one, so that a
+            // node with children is not also materialized as a folder beside itself
+            NodeId endpointParentNodeId = parentPath.isEmpty() ? null : endpointNodeIds.get(parentPath);
+            UaFolderNode parent = parentPath.isEmpty() || endpointParentNodeId != null ? null
+                : folderFor(idx, folders, rootConfig, endpointNodeIds, parentPath);
+            String actualBrowsePath = identity.browsePath;
+            String endpointId = identity.endpointId;
+            NodeId nodeId = identity.nodeId;
             String displayName = stringValue(spec.get("display_name"), localName);
 
             Hash endpointSnapshot = new Hash();
@@ -764,9 +799,11 @@ public class GenericServer {
                         true));
                     endpointSnapshot.put("object_node_id", parent.getNodeId().toParseableString());
                 } else {
-                    node.addReference(new Reference(nodeId, NodeIds.HasComponent, NodeIds.ObjectsFolder.expanded(),
+                    NodeId owner = endpointParentNodeId != null ? endpointParentNodeId
+                        : NodeIds.ObjectsFolder;
+                    node.addReference(new Reference(nodeId, NodeIds.HasComponent, owner.expanded(),
                         false));
-                    endpointSnapshot.put("object_node_id", NodeIds.ObjectsFolder.toParseableString());
+                    endpointSnapshot.put("object_node_id", owner.toParseableString());
                 }
                 endpointSnapshot.put("input_arguments", argumentsToSnapshot(handler.getInputArguments()));
                 endpointSnapshot.put("output_arguments", argumentsToSnapshot(handler.getOutputArguments()));
@@ -801,6 +838,10 @@ public class GenericServer {
             getNodeManager().addNode(node);
             if (parent != null) {
                 parent.addOrganizes(node);
+            } else if (endpointParentNodeId != null) {
+                // a node under another endpoint is a component of it; Organizes has an Object source
+                node.addReference(new Reference(nodeId, NodeIds.HasComponent,
+                    endpointParentNodeId.expanded(), false));
             } else {
                 node.addReference(new Reference(nodeId, NodeIds.Organizes, NodeIds.ObjectsFolder.expanded(),
                     false));
@@ -832,7 +873,7 @@ public class GenericServer {
         }
 
         private UaFolderNode folderFor(int idx, Map<String, UaFolderNode> folders, RootConfig rootConfig,
-                String path) {
+                Map<String, NodeId> endpointNodeIds, String path) {
             UaFolderNode existing = folders.get(path);
             if (existing != null) {
                 return existing;
@@ -845,7 +886,11 @@ public class GenericServer {
                 parentPath = path.substring(0, slash);
                 local = path.substring(slash + 1);
             }
-            UaFolderNode parent = parentPath.isEmpty() ? null : folderFor(idx, folders, rootConfig, parentPath);
+            // as in buildEndpoint(): an endpoint at the containing path is the containing node, so the
+            // folder chain stops there instead of duplicating it as a folder
+            NodeId endpointParentNodeId = parentPath.isEmpty() ? null : endpointNodeIds.get(parentPath);
+            UaFolderNode parent = parentPath.isEmpty() || endpointParentNodeId != null ? null
+                : folderFor(idx, folders, rootConfig, endpointNodeIds, parentPath);
             NodeId folderNodeId = rootConfig != null && path.equals(rootConfig.localPath)
                 ? rootConfig.materializedNodeId : new NodeId(idx, "folder:" + path);
             UaFolderNode folder = new UaFolderNode(getNodeContext(),
@@ -853,11 +898,14 @@ public class GenericServer {
                 new QualifiedName(idx, local),
                 LocalizedText.english(local));
             getNodeManager().addNode(folder);
-            if (parentPath.isEmpty()) {
-                folder.addReference(new Reference(folder.getNodeId(), NodeIds.Organizes,
-                    NodeIds.ObjectsFolder.expanded(), false));
-            } else {
+            if (parent != null) {
                 parent.addOrganizes(folder);
+            } else {
+                NodeId owner = endpointParentNodeId != null ? endpointParentNodeId
+                    : NodeIds.ObjectsFolder;
+                folder.addReference(new Reference(folder.getNodeId(),
+                    endpointParentNodeId != null ? NodeIds.HasComponent : NodeIds.Organizes,
+                    owner.expanded(), false));
             }
             folders.put(path, folder);
             return folder;
@@ -914,6 +962,40 @@ public class GenericServer {
             } catch (Throwable t) {
                 throw new UaException(StatusCodes.Bad_InternalError, t);
             }
+        }
+    }
+
+    /**
+     * The identity an endpoint spec gets when it is materialized.
+     *
+     * <p>It is resolved for every spec before any node is built, because a node's containing node may be
+     * another endpoint that has not been materialized yet.
+     */
+    private static final class EndpointIdentity {
+        final boolean method;
+        final String localName;
+
+        /** The unqualified browse path of the containing node, empty for a node at the browse root. */
+        final String parentPath;
+
+        /** The unqualified browse path of the node itself. */
+        final String localPath;
+
+        /** The namespace-qualified browse path the materialized node reports. */
+        final String browsePath;
+
+        final String endpointId;
+        final NodeId nodeId;
+
+        EndpointIdentity(boolean method, String localName, String parentPath, String browsePath,
+                String endpointId, NodeId nodeId) {
+            this.method = method;
+            this.localName = localName;
+            this.parentPath = parentPath;
+            this.localPath = parentPath.isEmpty() ? localName : parentPath + "/" + localName;
+            this.browsePath = browsePath;
+            this.endpointId = endpointId;
+            this.nodeId = nodeId;
         }
     }
 

@@ -30,6 +30,23 @@ public final class AddressSpaceSchema {
     /** The standard OPC UA namespace, always at namespace index 0. */
     public static final String UA_NAMESPACE = "http://opcfoundation.org/UA/";
 
+    /** The XML namespace of the OPC UA built-in types, used for NodeSet2 node values. */
+    private static final String UA_TYPES_NAMESPACE = "http://opcfoundation.org/UA/2008/02/Types.xsd";
+
+    /** The hierarchical reference types written by the NodeSet2 export. */
+    private static final String ORGANIZES_REFERENCE = NodeIds.Organizes.toParseableString();
+    private static final String HAS_COMPONENT_REFERENCE = NodeIds.HasComponent.toParseableString();
+    private static final String HAS_PROPERTY_REFERENCE = NodeIds.HasProperty.toParseableString();
+
+    /** The browse names of the method properties that carry method argument metadata. */
+    private static final String[] ARGUMENT_PROPERTIES = {"InputArguments", "OutputArguments"};
+
+    /**
+     * The string NodeId prefix of the objects synthesized by the NodeSet2 export for the containing
+     * nodes named by an endpoint's browse path; the browse path itself follows, so the id is stable.
+     */
+    private static final String CONTAINER_NODE_ID_PREFIX = "path:";
+
     private AddressSpaceSchema() {
     }
 
@@ -163,6 +180,48 @@ public final class AddressSpaceSchema {
         }
 
         List<Object> endpoints = asList(snapshot.get("endpoints"));
+
+        // an endpoint's browse path names the nodes that contain it. A containing node that is itself an
+        // endpoint (a variable with properties, say) is already in the export; every other one has to be
+        // synthesized as an object, or importing the exported model would flatten the hierarchy and
+        // derive different endpoint ids
+        int containerNamespaceIndex = exportedIndexes.isEmpty() ? 0 : 1;
+        Map<String, String> endpointPaths = new LinkedHashMap<>();
+        for (Object endpointObject : endpoints) {
+            Map<?, ?> endpoint = asMap(endpointObject);
+            endpointPaths.put(joinPath(exportedBrowsePathSegments(endpoint, exportedIndexes)),
+                remapNodeId(String.valueOf(endpoint.get("node_id")), exportedIndexes));
+        }
+        Map<String, String> containers = new LinkedHashMap<>();
+        for (Object endpointObject : endpoints) {
+            List<String> segments = exportedBrowsePathSegments(asMap(endpointObject), exportedIndexes);
+            StringBuilder path = new StringBuilder();
+            for (int i = 0; i + 1 < segments.size(); ++i) {
+                path.append('/').append(segments.get(i));
+                if (!endpointPaths.containsKey(path.toString())) {
+                    containers.putIfAbsent(path.toString(), segments.get(i));
+                }
+            }
+        }
+        for (Map.Entry<String, String> container : containers.entrySet()) {
+            String path = container.getKey();
+            String browseName = container.getValue();
+            String parent = parentNodeIdFor(path, endpointPaths, containers, containerNamespaceIndex);
+            xml.append("  <UAObject NodeId=\"")
+                .append(xmlEscape(containerNodeId(path, containerNamespaceIndex))).append("\"")
+                .append(" BrowseName=\"").append(xmlEscape(browseName)).append("\"")
+                .append(" ParentNodeId=\"").append(xmlEscape(parent)).append("\">\n");
+            xml.append("    <DisplayName>").append(xmlEscape(stripQualifiedName(browseName)))
+                .append("</DisplayName>\n");
+            xml.append("    <References>\n");
+            appendParentReference(xml, parent, ORGANIZES_REFERENCE);
+            xml.append("      <Reference ReferenceType=\"")
+                .append(NodeIds.HasTypeDefinition.toParseableString()).append("\">")
+                .append(NodeIds.FolderType.toParseableString()).append("</Reference>\n");
+            xml.append("    </References>\n");
+            xml.append("  </UAObject>\n");
+        }
+
         for (Object endpointObject : endpoints) {
             Map<?, ?> endpoint = asMap(endpointObject);
             String kind = String.valueOf(endpoint.get("kind"));
@@ -170,9 +229,19 @@ public final class AddressSpaceSchema {
             String tag = method ? "UAMethod" : "UAVariable";
             String nodeId = remapNodeId(String.valueOf(endpoint.get("node_id")), exportedIndexes);
             String browseName = remapQualifiedName(String.valueOf(endpoint.get("browse_name")), exportedIndexes);
+            List<String> segments = exportedBrowsePathSegments(endpoint, exportedIndexes);
+            String parent = parentNodeIdFor(joinPath(segments), endpointPaths, containers,
+                containerNamespaceIndex);
+            // a node directly under the Objects folder is organized by it; a contained node is a
+            // component of the node that contains it
+            String parentReference = segments.size() > 1 ? HAS_COMPONENT_REFERENCE : ORGANIZES_REFERENCE;
+            List<Object> inputArguments = method ? asList(endpoint.get("input_arguments")) : null;
+            List<Object> outputArguments = method ? asList(endpoint.get("output_arguments")) : null;
+
             xml.append("  <").append(tag)
                 .append(" NodeId=\"").append(xmlEscape(nodeId)).append("\"")
-                .append(" BrowseName=\"").append(xmlEscape(browseName)).append("\"");
+                .append(" BrowseName=\"").append(xmlEscape(browseName)).append("\"")
+                .append(" ParentNodeId=\"").append(xmlEscape(parent)).append("\"");
             if (!method) {
                 xml.append(" DataType=\"")
                     .append(xmlEscape(exportDataType(endpoint.get("data_type"), exportedIndexes)))
@@ -189,10 +258,137 @@ public final class AddressSpaceSchema {
             xml.append(">\n");
             xml.append("    <DisplayName>").append(xmlEscape(endpoint.get("display_name")))
                 .append("</DisplayName>\n");
+            xml.append("    <References>\n");
+            appendParentReference(xml, parent, parentReference);
+            if (inputArguments != null && !inputArguments.isEmpty()) {
+                appendPropertyReference(xml, nodeId, ARGUMENT_PROPERTIES[0]);
+            }
+            if (outputArguments != null && !outputArguments.isEmpty()) {
+                appendPropertyReference(xml, nodeId, ARGUMENT_PROPERTIES[1]);
+            }
+            xml.append("    </References>\n");
             xml.append("  </").append(tag).append(">\n");
+
+            // method argument metadata lives in the method's argument properties, not in the method node
+            if (inputArguments != null && !inputArguments.isEmpty()) {
+                appendArgumentProperty(xml, nodeId, ARGUMENT_PROPERTIES[0], inputArguments, exportedIndexes);
+            }
+            if (outputArguments != null && !outputArguments.isEmpty()) {
+                appendArgumentProperty(xml, nodeId, ARGUMENT_PROPERTIES[1], outputArguments, exportedIndexes);
+            }
         }
         xml.append("</UANodeSet>\n");
         return xml.toString();
+    }
+
+    /** Returns the endpoint's browse path segments with every namespace index remapped for export. */
+    private static List<String> exportedBrowsePathSegments(Map<?, ?> endpoint,
+            Map<Integer, Integer> exportedIndexes) {
+        List<String> rv = new ArrayList<>();
+        Object browsePath = endpoint.get("browse_path");
+        if (browsePath == null) {
+            return rv;
+        }
+        for (String segment : String.valueOf(browsePath).split("/")) {
+            if (!segment.isEmpty()) {
+                rv.add(remapQualifiedName(segment, exportedIndexes));
+            }
+        }
+        return rv;
+    }
+
+    /** Joins browse path segments into a browse path (an empty segment list yields the empty path). */
+    private static String joinPath(List<String> segments) {
+        StringBuilder rv = new StringBuilder();
+        for (String segment : segments) {
+            rv.append('/').append(segment);
+        }
+        return rv.toString();
+    }
+
+    /** Returns the deterministic NodeId of the synthesized object that holds the given browse path. */
+    private static String containerNodeId(String path, int namespaceIndex) {
+        return new NodeId(namespaceIndex, CONTAINER_NODE_ID_PREFIX + path).toParseableString();
+    }
+
+    /**
+     * Returns the NodeId of the node that contains the node at the given browse path: the exported
+     * endpoint at the containing path, else the object synthesized for it, else the Objects folder.
+     */
+    private static String parentNodeIdFor(String path, Map<String, String> endpointPaths,
+            Map<String, String> containers, int namespaceIndex) {
+        int slash = path.lastIndexOf('/');
+        String parentPath = slash > 0 ? path.substring(0, slash) : "";
+        String endpointNodeId = endpointPaths.get(parentPath);
+        if (endpointNodeId != null) {
+            return endpointNodeId;
+        }
+        return containers.containsKey(parentPath) ? containerNodeId(parentPath, namespaceIndex)
+            : NodeIds.ObjectsFolder.toParseableString();
+    }
+
+    /** Appends the inverse hierarchical reference that places a node under its containing node. */
+    private static void appendParentReference(StringBuilder xml, String parentNodeId,
+            String referenceType) {
+        xml.append("      <Reference ReferenceType=\"").append(referenceType)
+            .append("\" IsForward=\"false\">").append(xmlEscape(parentNodeId)).append("</Reference>\n");
+    }
+
+    /** Appends the forward HasProperty reference from a method to one of its argument properties. */
+    private static void appendPropertyReference(StringBuilder xml, String methodNodeId,
+            String browseName) {
+        xml.append("      <Reference ReferenceType=\"").append(HAS_PROPERTY_REFERENCE).append("\">")
+            .append(xmlEscape(argumentPropertyNodeId(methodNodeId, browseName))).append("</Reference>\n");
+    }
+
+    /** Returns the deterministic NodeId of a method's InputArguments / OutputArguments property. */
+    private static String argumentPropertyNodeId(String methodNodeId, String browseName) {
+        NodeId method = NodeId.parse(methodNodeId);
+        return new NodeId(method.getNamespaceIndex(),
+            method.getIdentifier() + "/" + browseName).toParseableString();
+    }
+
+    /** Appends a method's argument property node, carrying the argument metadata as its value. */
+    private static void appendArgumentProperty(StringBuilder xml, String methodNodeId, String browseName,
+            List<Object> arguments, Map<Integer, Integer> exportedIndexes) {
+        xml.append("  <UAVariable NodeId=\"")
+            .append(xmlEscape(argumentPropertyNodeId(methodNodeId, browseName))).append("\"")
+            .append(" BrowseName=\"").append(browseName).append("\"")
+            .append(" ParentNodeId=\"").append(xmlEscape(methodNodeId)).append("\"")
+            .append(" DataType=\"").append(NodeIds.Argument.toParseableString()).append("\"")
+            .append(" ValueRank=\"1\" ArrayDimensions=\"").append(arguments.size()).append("\">\n");
+        xml.append("    <DisplayName>").append(browseName).append("</DisplayName>\n");
+        xml.append("    <References>\n");
+        appendParentReference(xml, methodNodeId, HAS_PROPERTY_REFERENCE);
+        xml.append("    </References>\n");
+        xml.append("    <Value>\n");
+        xml.append("      <ListOfExtensionObject xmlns=\"").append(UA_TYPES_NAMESPACE).append("\">\n");
+        for (Object argumentObject : arguments) {
+            Map<?, ?> argument = asMap(argumentObject);
+            xml.append("        <ExtensionObject>\n");
+            xml.append("          <TypeId><Identifier>")
+                .append(NodeIds.Argument_Encoding_DefaultXml.toParseableString())
+                .append("</Identifier></TypeId>\n");
+            xml.append("          <Body>\n");
+            xml.append("            <Argument>\n");
+            xml.append("              <Name>").append(xmlEscape(argument.get("name"))).append("</Name>\n");
+            xml.append("              <DataType><Identifier>")
+                .append(xmlEscape(exportDataType(argument.get("data_type"), exportedIndexes)))
+                .append("</Identifier></DataType>\n");
+            xml.append("              <ValueRank>").append(argument.get("value_rank"))
+                .append("</ValueRank>\n");
+            Object description = argument.get("description");
+            if (description != null) {
+                xml.append("              <Description><Text>").append(xmlEscape(description))
+                    .append("</Text></Description>\n");
+            }
+            xml.append("            </Argument>\n");
+            xml.append("          </Body>\n");
+            xml.append("        </ExtensionObject>\n");
+        }
+        xml.append("      </ListOfExtensionObject>\n");
+        xml.append("    </Value>\n");
+        xml.append("  </UAVariable>\n");
     }
 
     /**

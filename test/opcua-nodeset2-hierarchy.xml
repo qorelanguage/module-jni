@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hierarchical OPC UA NodeSet2 model for OpcUaDataProvider.qtest.
+
+     Exercises the shapes a real published NodeSet2 uses and that a flat, BrowseName-only import cannot
+     represent: ParentNodeId-derived browse paths, properties that share a browse name under different
+     parents, a method whose argument metadata lives in InputArguments / OutputArguments properties,
+     type derivation (HasSubtype) that must not become a path segment, aliased data types, and nodes
+     hanging from standard address-space folders outside the model. -->
+<UANodeSet xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+  <NamespaceUris>
+    <Uri>urn:qore:opcua:hierarchy</Uri>
+  </NamespaceUris>
+  <Models>
+    <Model ModelUri="urn:qore:opcua:hierarchy" Version="1.0" PublicationDate="2026-01-01T00:00:00Z">
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05"
+          PublicationDate="2022-06-28T00:00:00Z"/>
+    </Model>
+  </Models>
+  <Aliases>
+    <Alias Alias="Double">i=11</Alias>
+    <Alias Alias="String">i=12</Alias>
+    <Alias Alias="ByteString">i=15</Alias>
+    <Alias Alias="Argument">i=296</Alias>
+    <Alias Alias="Organizes">i=35</Alias>
+    <Alias Alias="HasProperty">i=46</Alias>
+    <Alias Alias="HasComponent">i=47</Alias>
+    <Alias Alias="HasSubtype">i=45</Alias>
+    <Alias Alias="HasTypeDefinition">i=40</Alias>
+  </Aliases>
+
+  <!-- the supertype (i=58 BaseObjectType) is outside the model: HasSubtype must not add a path segment,
+       so this type is browsed at the top of the model rather than under its supertype -->
+  <UAObjectType NodeId="ns=1;i=1" BrowseName="1:MeasurementContainerType">
+    <DisplayName>MeasurementContainerType</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent">ns=1;i=2</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=4</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=6</Reference>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+    </References>
+  </UAObjectType>
+
+  <UAVariable NodeId="ns=1;i=2" BrowseName="1:Temperature" ParentNodeId="ns=1;i=1" DataType="Double"
+      AccessLevel="3">
+    <DisplayName>Temperature</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty">ns=1;i=3</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1</Reference>
+    </References>
+  </UAVariable>
+  <!-- shares its browse name with the Pressure property below; only the parent chain keeps them apart,
+       and the unprefixed BrowseName means namespace index 0 -->
+  <UAVariable NodeId="ns=1;i=3" BrowseName="EngineeringUnits" ParentNodeId="ns=1;i=2" DataType="String">
+    <DisplayName>EngineeringUnits</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=2</Reference>
+    </References>
+  </UAVariable>
+
+  <!-- no ParentNodeId attribute: the containing node comes from the inverse HasComponent reference -->
+  <UAVariable NodeId="ns=1;i=4" BrowseName="1:Pressure" DataType="Double">
+    <DisplayName>Pressure</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty">ns=1;i=5</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=5" BrowseName="EngineeringUnits" ParentNodeId="ns=1;i=4" DataType="String">
+    <DisplayName>EngineeringUnits</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=4</Reference>
+    </References>
+  </UAVariable>
+
+  <UAMethod NodeId="ns=1;i=6" BrowseName="1:Reset" ParentNodeId="ns=1;i=1">
+    <DisplayName>Reset</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty">ns=1;i=7</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=8</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1</Reference>
+    </References>
+  </UAMethod>
+  <UAVariable NodeId="ns=1;i=7" BrowseName="InputArguments" ParentNodeId="ns=1;i=6" DataType="Argument"
+      ValueRank="1" ArrayDimensions="2">
+    <DisplayName>InputArguments</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6</Reference>
+    </References>
+    <Value>
+      <ListOfExtensionObject xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+        <ExtensionObject>
+          <TypeId>
+            <Identifier>i=297</Identifier>
+          </TypeId>
+          <Body>
+            <Argument>
+              <Name>NewTemperature</Name>
+              <DataType>
+                <Identifier>i=11</Identifier>
+              </DataType>
+              <ValueRank>-1</ValueRank>
+              <ArrayDimensions />
+              <Description>
+                <Locale>en</Locale>
+                <Text>the new temperature setpoint</Text>
+              </Description>
+            </Argument>
+          </Body>
+        </ExtensionObject>
+        <ExtensionObject>
+          <TypeId>
+            <Identifier>i=297</Identifier>
+          </TypeId>
+          <Body>
+            <Argument>
+              <Name>NewPressure</Name>
+              <DataType>
+                <Identifier>i=11</Identifier>
+              </DataType>
+              <ValueRank>-1</ValueRank>
+              <ArrayDimensions />
+            </Argument>
+          </Body>
+        </ExtensionObject>
+      </ListOfExtensionObject>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=8" BrowseName="OutputArguments" ParentNodeId="ns=1;i=6" DataType="Argument"
+      ValueRank="1" ArrayDimensions="1">
+    <DisplayName>OutputArguments</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6</Reference>
+    </References>
+    <Value>
+      <ListOfExtensionObject xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+        <ExtensionObject>
+          <TypeId>
+            <Identifier>i=297</Identifier>
+          </TypeId>
+          <Body>
+            <Argument>
+              <Name>OldTemperature</Name>
+              <DataType>
+                <Identifier>i=11</Identifier>
+              </DataType>
+              <ValueRank>-1</ValueRank>
+              <ArrayDimensions />
+            </Argument>
+          </Body>
+        </ExtensionObject>
+      </ListOfExtensionObject>
+    </Value>
+  </UAVariable>
+
+  <!-- organized by the standard Objects folder, which is the browse root and adds no path segment -->
+  <UAVariable NodeId="ns=1;i=9" BrowseName="1:Status" DataType="String">
+    <DisplayName>Status</DisplayName>
+    <References>
+      <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+    </References>
+  </UAVariable>
+
+  <!-- two type dictionaries with the same browse name under different standard folders: the standard
+       folder keeps them distinct (i=93 is OPC Binary, i=92 is XmlSchema) -->
+  <UAVariable NodeId="ns=1;i=10" BrowseName="1:Schema" DataType="ByteString">
+    <DisplayName>Schema</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=93</Reference>
+    </References>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=11" BrowseName="1:Schema" DataType="ByteString">
+    <DisplayName>Schema</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=92</Reference>
+    </References>
+  </UAVariable>
+</UANodeSet>
