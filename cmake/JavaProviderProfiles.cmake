@@ -4,6 +4,9 @@
 # %module-cmd(jni) add-relative-classpath directives.  This helper attaches one
 # logging policy to that declaration and emits the common inventory consumed by
 # source-tree, AOT-tree, install-tree, and fresh-process checks.
+#
+# Copyright 2026 Qore Technologies, s.r.o.
+# SPDX-License-Identifier: MIT
 
 set(QORE_JAVA_PROVIDER_PROFILE_FILE
     "${CMAKE_CURRENT_BINARY_DIR}/java-provider-profiles.tsv")
@@ -77,12 +80,16 @@ function(qore_finalize_java_provider_profiles)
     endforeach()
 
     set(_qmod_targets "")
-    foreach(_module IN LISTS _modules)
-        if(NOT TARGET ${_module}-qmod)
-            message(FATAL_ERROR "Java provider ${_module} has no qmod build target")
-        endif()
-        list(APPEND _qmod_targets ${_module}-qmod)
-    endforeach()
+    # Bootstrap builds install binaries and sources before enabling AOT. Qore
+    # intentionally creates no qmod targets in that first pass.
+    if(QORE_BUILD_AOT_MODULES)
+        foreach(_module IN LISTS _modules)
+            if(NOT TARGET ${_module}-qmod)
+                message(FATAL_ERROR "Java provider ${_module} has no qmod build target")
+            endif()
+            list(APPEND _qmod_targets ${_module}-qmod)
+        endforeach()
+    endif()
 
     find_program(QORE_JAVA_PROVIDER_PYTHON NAMES python3)
     if(NOT QORE_JAVA_PROVIDER_PYTHON)
@@ -95,7 +102,10 @@ function(qore_finalize_java_provider_profiles)
             --root "${CMAKE_SOURCE_DIR}/qlib"
             --checksums "${CMAKE_SOURCE_DIR}/qlib/java-provider-dependencies.sha256"
             --require-committed
-        DEPENDS ${_qmod_targets}
+        # qore-jni builds and stages every generated provider JAR, including
+        # when qmod targets are absent. ALL targets alone do not order a
+        # parallel build, and validation can also be requested directly.
+        DEPENDS qore-jni ${_qmod_targets}
         VERBATIM
     )
 

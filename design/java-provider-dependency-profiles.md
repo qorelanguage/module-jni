@@ -39,6 +39,27 @@ Generated first-party `qore-dataprovider-*.jar` files are compared across stagin
 from the committed checksum file because ZIP timestamps make rebuilt output non-reproducible. Every third-party JAR
 is committed and checksummed.
 
+The `validate-java-provider-profiles` target runs in both source and AOT builds. It depends on `qore-jni`, which
+builds and stages all generated provider JARs before validation, including when the target is requested directly
+in a parallel build. With `QORE_BUILD_AOT_MODULES=ON`, validation additionally requires every provider's `-qmod`
+target. With AOT disabled, those targets are intentionally absent so the first pass of a bootstrap build can
+install the binaries and sources before resolving cross-module AOT dependencies.
+
+For example, the following configures and validates the source build before enabling AOT in the same build tree:
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DQORE_BUILD_AOT_MODULES=OFF
+cmake --build build --target validate-java-provider-profiles --parallel 4
+ctest --test-dir build --output-on-failure -R '^java_provider_profile_'
+# After installing this module and its external dependencies:
+cmake -S . -B build -DQORE_BUILD_AOT_MODULES=ON
+cmake --build build --target validate-java-provider-profiles --parallel 4
+```
+
+Use the installation prefix of the Qore installation being built against. CTest covers generated-JAR ordering,
+profile installation, switching AOT modes, and rejection of missing qmod targets, missing JARs, and changed
+dependency checksums. The Ubuntu and Alpine CI scripts run these profile tests after building.
+
 ## Dynamic qualification
 
 Every declared provider is loaded in a fresh Qore process after installation. Both stdout and stderr must remain

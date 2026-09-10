@@ -1010,6 +1010,10 @@ foreach hash<auto> column in (result.schemaV2()) {
     @section jnireleasenotes jni Module Release Notes
 
     @subsection jni_2_7_0 jni Module Version 2.7.0
+    - fixed Java provider qualification aborting CMake configuration with
+      <tt>Java provider AccessDataProvider has no qmod build target</tt> when
+      <tt>QORE_BUILD_AOT_MODULES=OFF</tt>; source builds now validate after generating provider JARs, while
+      AOT builds retain the required qmod dependencies
     - fixed the bundled <a href="../../OpcUaDataProvider/html/index.html">OpcUaDataProvider</a> module's
       offline OPC UA NodeSet2 conversion: an imported node's browse path is now built from the model's
       containment hierarchy instead of from its browse name alone, so a real published model no longer

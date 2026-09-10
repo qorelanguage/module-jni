@@ -36,6 +36,7 @@ mkdir -p ${MODULE_SRC_DIR}/build
 cd ${MODULE_SRC_DIR}/build
 cmake .. -DCMAKE_BUILD_TYPE=debug -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}
 make -j${MAKE_JOBS}
+ctest --output-on-failure -R '^java_provider_profile_'
 make install
 
 # Verify that source-owned provider presentation catalogs match this checkout.
