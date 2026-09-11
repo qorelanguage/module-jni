@@ -394,7 +394,7 @@ public class NodeSet2Importer {
         Hash rv = new Hash();
         rv.put("name", name);
         rv.put("description", description != null ? childText(description, "Text") : null);
-        rv.put("data_type", resolveAlias(dataType, aliases));
+        rv.put("data_type", DataTypeNames.canonical(resolveAlias(dataType, aliases)));
         String valueRank = childText(argument, "ValueRank");
         rv.put("value_rank", valueRank != null ? Integer.parseInt(valueRank) : -1);
         return rv;
@@ -431,7 +431,8 @@ public class NodeSet2Importer {
         endpoint.put("display_name", displayName != null ? displayName.getTextContent().trim() : null);
         if ("variable".equals(kind)) {
             String dataType = element.getAttribute("DataType");
-            endpoint.put("data_type", dataType.isEmpty() ? null : resolveAlias(dataType, aliases));
+            endpoint.put("data_type", dataType.isEmpty() ? null
+                : DataTypeNames.canonical(resolveAlias(dataType, aliases)));
             String valueRank = element.getAttribute("ValueRank");
             endpoint.put("value_rank", valueRank.isEmpty() ? -1 : Integer.parseInt(valueRank));
             String arrayDimensions = element.getAttribute("ArrayDimensions");

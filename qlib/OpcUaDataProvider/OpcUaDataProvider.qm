@@ -546,8 +546,19 @@ module OpcUaDataProvider {
       when the segment named an endpoint, leaving two sibling nodes with the same browse name in the
       address space so that a client could not resolve the advertised browse path; a node with children
       is now materialized once, and its children hang from it
-    - NodeSet2 data types and reference types written as \c Aliases are now resolved to their NodeIds,
-      so an imported variable reports \c "i=11" rather than \c "Double"
+    - NodeSet2 data types and reference types written as \c Aliases are now resolved
+    - fixed a bug where the \c data_type of a variable endpoint or method argument was reported in
+      whichever form its source happened to use - the built-in type name (\c "Double") for a hand-written
+      document, the NodeId (\c "i=11") for a live server, and either one for an imported NodeSet2 model,
+      depending on the model's \c Aliases - so that two nodes carrying the same OPC UA type read as
+      different types.  Every address-space document now reports \c data_type in one canonical form: the
+      OPC UA built-in type name for a built-in type (\c "Double", \c "Int32", \c "DateTime"), and the
+      NodeId for any other type (\c "i=887", \c "ns=1;i=31").  Both forms are still accepted on input,
+      so existing documents remain valid.  This applies to live schema snapshots
+      (\c getSchemaSnapshot()), imported models (@ref OpcUaDataProvider::nodeSet2ToAddressSpace()),
+      described documents (@ref OpcUaDataProvider::describeAddressSpace()), and the schema reported by a
+      materialized \c OpcUaServerRuntime
+      (<a href="https://github.com/qoretechnologies/qore/issues/5450">issue 5450</a>)
     - an imported browse name always carries its namespace index (\c "0:EngineeringUnits" rather than
       \c "EngineeringUnits"), matching the qualified form used by live snapshots
 

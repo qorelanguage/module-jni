@@ -185,7 +185,7 @@ public class SchemaResolver {
 
         Object dataType = attrValue(results[0]);
         endpoint.put("data_type",
-            dataType instanceof NodeId ? ((NodeId) dataType).toParseableString() : null);
+            dataType instanceof NodeId ? DataTypeNames.canonical((NodeId) dataType) : null);
         Object valueRank = attrValue(results[1]);
         endpoint.put("value_rank", valueRank != null ? ((Number) valueRank).intValue() : null);
         Object arrayDims = attrValue(results[2]);
@@ -272,7 +272,7 @@ public class SchemaResolver {
             Hash a = new Hash();
             a.put("name", arg.getName());
             a.put("description", arg.getDescription() != null ? arg.getDescription().getText() : null);
-            a.put("data_type", arg.getDataType() != null ? arg.getDataType().toParseableString() : null);
+            a.put("data_type", DataTypeNames.canonical(arg.getDataType()));
             a.put("value_rank", arg.getValueRank());
             rv.add(a);
         }

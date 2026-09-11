@@ -79,6 +79,7 @@ public class OpcUaDataProviderTest inherits QUnit::Test {
         addTestCase("nodeset2 hierarchical import", \nodeSet2HierarchyTest());
         addTestCase("nodeset2 hierarchical import errors", \nodeSet2HierarchyErrorTest());
         addTestCase("parse-only OPC UA address-space description", \addressSpaceDescriptionTest());
+        addTestCase("OPC UA data types are reported in canonical form", \dataTypeCanonicalFormTest());
         addTestCase("empty OPC UA address-space description and export", \emptyAddressSpaceTest());
         addTestCase("invalid OPC UA endpoint lists remain rejected", \invalidEndpointListsTest());
         addTestCase("parse-only OPC UA address-space validation", \addressSpaceValidationTest());
@@ -1009,20 +1010,21 @@ public class OpcUaDataProviderTest inherits QUnit::Test {
 
         # Phase 2: live introspection enriches each endpoint with type/access/argument metadata
         hash<auto> int32 = by_name."2:Int32Var";
-        assertEq("i=6", int32.data_type, "Int32Var data_type resolved");
+        assertEq("Int32", int32.data_type, "Int32Var data_type resolved to its built-in name");
         assertEq(-1, int32.value_rank, "Int32Var value_rank (scalar)");
         assertTrue(int32.readable, "Int32Var readable");
         assertTrue(int32.writable, "Int32Var writable");
         assertEq(("read", "observe", "write"), int32.directions, "Int32Var directions");
         assertEq(False, int32.historizing, "Int32Var not historizing");
         hash<auto> dbl = by_name."2:DoubleVar";
-        assertEq("i=11", dbl.data_type, "DoubleVar data_type resolved");
+        assertEq("Double", dbl.data_type, "DoubleVar data_type resolved to its built-in name");
         assertFalse(dbl.writable, "DoubleVar read-only");
         assertEq(("read", "observe"), dbl.directions, "DoubleVar directions");
         # method argument metadata resolved into the snapshot
         hash<auto> addm = by_name."2:Add";
         assertEq(("a", "b"), (map $1.name, addm.input_arguments), "Add input argument names");
-        assertEq(("i=8", "i=8"), (map $1.data_type, addm.input_arguments), "Add input argument types");
+        assertEq(("Int64", "Int64"), (map $1.data_type, addm.input_arguments),
+            "Add input argument types");
         assertEq(("sum",), (map $1.name, addm.output_arguments), "Add output argument names");
     }
 
@@ -1100,7 +1102,7 @@ public class OpcUaDataProviderTest inherits QUnit::Test {
 
         hash<string, hash<auto>> bn = map {$1.browse_name: $1}, snap.endpoints;
         assertEq("variable", bn."1:ImportedTemperature".kind, "imported variable kind");
-        assertEq("i=11", bn."1:ImportedTemperature".data_type, "imported variable data_type");
+        assertEq("Double", bn."1:ImportedTemperature".data_type, "imported variable data_type");
         assertEq(-1, bn."1:ImportedTemperature".value_rank, "imported variable value_rank");
         assertTrue(bn."1:ImportedTemperature".writable, "imported variable access level");
         assertTrue(bn."1:ImportedTemperature".user_writable, "imported variable user access level");
@@ -1191,7 +1193,7 @@ public class OpcUaDataProviderTest inherits QUnit::Test {
         hash<auto> snap = OpcUaDataProvider::nodeSet2ToAddressSpace(xml);
 
         assertEq(ns_uri, snap.namespaces{"1"}, "hierarchical model namespace uri");
-        assertEq(8, snap.endpoints.size(), "every node of the hierarchical model is imported");
+        assertEq(9, snap.endpoints.size(), "every node of the hierarchical model is imported");
 
         hash<string, hash<auto>> by_path = map {$1.browse_path: $1}, snap.endpoints;
         # the exact path set covers all of: nesting under the containing node, a supertype (HasSubtype)
@@ -1201,6 +1203,7 @@ public class OpcUaDataProviderTest inherits QUnit::Test {
         assertEq((
             "/0:OPC Binary/1:Schema",
             "/0:XmlSchema/1:Schema",
+            "/1:MeasurementContainerType/1:Orientation",
             "/1:MeasurementContainerType/1:Pressure",
             "/1:MeasurementContainerType/1:Pressure/0:EngineeringUnits",
             "/1:MeasurementContainerType/1:Reset",
@@ -1221,7 +1224,7 @@ public class OpcUaDataProviderTest inherits QUnit::Test {
             "InputArguments are folded into the method endpoint");
         assertEq(("OldTemperature",), (map $1.name, reset.output_arguments),
             "OutputArguments are folded into the method endpoint");
-        assertEq("i=11", reset.input_arguments[0].data_type, "method argument data types are imported");
+        assertEq("Double", reset.input_arguments[0].data_type, "method argument data types are imported");
         assertEq(-1, reset.input_arguments[0].value_rank, "method argument value ranks are imported");
         assertEq("the new temperature setpoint", reset.input_arguments[0].description,
             "method argument descriptions are imported");
@@ -1238,7 +1241,9 @@ public class OpcUaDataProviderTest inherits QUnit::Test {
             "a same-named property under another parent is a distinct endpoint");
 
         hash<auto> temperature = by_path."/1:MeasurementContainerType/1:Temperature";
-        assertEq("i=11", temperature.data_type, "an aliased data type resolves to its NodeId");
+        assertEq("Double", temperature.data_type, "an aliased data type resolves to its built-in name");
+        assertEq("ns=1;i=31", by_path."/1:MeasurementContainerType/1:Orientation".data_type,
+            "a data type that is not a built-in one keeps its NodeId");
         assertTrue(temperature.writable, "the imported access level is honored");
         assertFalse(by_path."/1:Status".writable, "the default access level is read-only");
 
@@ -1401,6 +1406,113 @@ public class OpcUaDataProviderTest inherits QUnit::Test {
         assertTrue(generated_snapshot.endpoints[0].endpoint_id.val(), "a missing endpoint id is derived");
         assertTrue(generated_snapshot.endpoints[0].node_id =~ /^ns=1;s=var:Setpoint:/,
             "a missing variable node id is derived in its declared namespace");
+    }
+
+    #! Tests that a data type is reported in one form whatever form it was written in (issue #5450)
+    /** A built-in type reports its name and any other type reports its NodeId, whether the node was
+        hand-written, imported from a NodeSet2 model, or introspected, so that two nodes carrying the
+        same OPC UA type compare equal.  Both forms remain accepted on input.
+    */
+    dataTypeCanonicalFormTest() {
+        # each pair is (as written, as reported); a built-in type reports its name, anything else its id
+        hash<string, string> canonical = {
+            "Double": "Double",
+            "i=11": "Double",
+            "ns=0;i=11": "Double",
+            "Int32": "Int32",
+            "i=6": "Int32",
+            "DateTime": "DateTime",
+            "i=13": "DateTime",
+            "ByteString": "ByteString",
+            "i=15": "ByteString",
+            "BaseDataType": "BaseDataType",
+            "i=24": "BaseDataType",
+            "i=887": "i=887",
+            "ns=1;i=31": "ns=1;i=31",
+            "ns=1;s=CustomType": "ns=1;s=CustomType",
+        };
+        foreach hash<auto> i in (canonical.pairIterator()) {
+            hash<auto> document = {
+                "opcua": "1",
+                "contract_version": 1,
+                "namespaces": {"1": "urn:qore:opcua:data-types"},
+                "endpoints": ({
+                    "endpoint_id": "value",
+                    "node_id": "ns=1;s=Value",
+                    "browse_name": "1:Value",
+                    "browse_path": "/1:Value",
+                    "namespace_uri": "urn:qore:opcua:data-types",
+                    "kind": "variable",
+                    "data_type": i.key,
+                    "value_rank": -1,
+                }, {
+                    "endpoint_id": "call",
+                    "node_id": "ns=1;s=Call",
+                    "browse_name": "1:Call",
+                    "browse_path": "/1:Call",
+                    "namespace_uri": "urn:qore:opcua:data-types",
+                    "kind": "method-call",
+                    "input_arguments": ({"name": "arg", "data_type": i.key, "value_rank": -1},),
+                }),
+            };
+            hash<auto> snapshot = OpcUaDataProvider::describeAddressSpace(document);
+            assertEq(i.value, snapshot.endpoints[0].data_type,
+                sprintf("variable data type %y is reported as %y", i.key, i.value));
+            assertEq(i.value, snapshot.endpoints[1].input_arguments[0].data_type,
+                sprintf("method argument data type %y is reported as %y", i.key, i.value));
+            # the canonical form is itself accepted and is stable under a second description
+            assertEq(i.value, OpcUaDataProvider::describeAddressSpace(snapshot).endpoints[0].data_type,
+                sprintf("the canonical form of %y is stable", i.key));
+        }
+
+        # an unknown data type is still rejected rather than passed through
+        hash<auto> invalid = {
+            "opcua": "1",
+            "contract_version": 1,
+            "namespaces": {"1": "urn:qore:opcua:data-types"},
+            "endpoints": ({
+                "endpoint_id": "value",
+                "node_id": "ns=1;s=Value",
+                "browse_name": "1:Value",
+                "browse_path": "/1:Value",
+                "namespace_uri": "urn:qore:opcua:data-types",
+                "kind": "variable",
+                "data_type": "NotAType",
+                "value_rank": -1,
+            },),
+        };
+        hash<ExceptionInfo> ex_info;
+        try {
+            OpcUaDataProvider::describeAddressSpace(invalid);
+        } catch (hash<ExceptionInfo> ex) {
+            ex_info = ex;
+        }
+        assertEq("OPCUA-SCHEMA-ERROR", ex_info.err, "an unknown data type is rejected");
+        assertEq("/endpoints/0/data_type", ex_info.arg.pointer, "the invalid data type is located");
+        assertTrue(ex_info.desc =~ /NotAType/, "the invalid data type is named");
+
+        # a NodeSet2 model reports the same values: an aliased built-in type, a built-in type written as
+        # a NodeId, and a model-defined type that has no built-in name
+        string xml = ReadOnlyFile::readTextFile(normalize_dir(get_script_dir()) + DirSep
+            + "opcua-nodeset2-hierarchy.xml");
+        hash<auto> imported = OpcUaDataProvider::nodeSet2ToAddressSpace(xml);
+        hash<string, hash<auto>> by_path = map {$1.browse_path: $1}, imported.endpoints;
+        assertEq("Double", by_path."/1:MeasurementContainerType/1:Temperature".data_type,
+            "an imported built-in type reports the same name as a hand-written one");
+        assertEq("String", by_path."/1:MeasurementContainerType/1:Temperature/0:EngineeringUnits".data_type,
+            "a nested imported property reports its built-in type name");
+        assertEq("ns=1;i=31", by_path."/1:MeasurementContainerType/1:Orientation".data_type,
+            "an imported model-defined type keeps its NodeId");
+
+        # the export writes NodeIds (the NodeSet2 form) whichever form the document carries, and the
+        # canonical form survives the round trip
+        hash<auto> exported_by_path = map {$1.browse_path: $1},
+            OpcUaDataProvider::nodeSet2ToAddressSpace(
+                OpcUaDataProvider::exportNodeSet2(imported)).endpoints;
+        assertEq("Double", exported_by_path."/1:MeasurementContainerType/1:Temperature".data_type,
+            "a built-in type round trips through NodeSet2 in canonical form");
+        assertEq("ns=1;i=31", exported_by_path."/1:MeasurementContainerType/1:Orientation".data_type,
+            "a model-defined type round trips through NodeSet2 unchanged");
     }
 
     #! Empty lists survive hash conversion to Java for both offline address-space APIs (issue #5446)
@@ -2046,7 +2158,8 @@ sub startSandboxedRuntime(int port) {
             runtimeChildNames(prov, "i=85", idx), "each browse path root is materialized once");
 
         string container = runtimeChildNodeId(prov, "i=85", idx, "MeasurementContainerType");
-        assertEq(("Pressure", "Reset", "Temperature"), runtimeChildNames(prov, container, idx),
+        assertEq(("Orientation", "Pressure", "Reset", "Temperature"),
+            runtimeChildNames(prov, container, idx),
             "a containing node is not duplicated as a folder beside the endpoints it contains");
 
         string temperature = runtimeChildNodeId(prov, container, idx, "Temperature");

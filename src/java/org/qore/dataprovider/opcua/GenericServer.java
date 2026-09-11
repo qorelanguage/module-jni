@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -856,7 +855,7 @@ public class GenericServer {
             if (historizing) {
                 directions.add("history-read");
             }
-            endpointSnapshot.put("data_type", dataType.toParseableString());
+            endpointSnapshot.put("data_type", DataTypeNames.canonical(dataType));
             endpointSnapshot.put("value_rank", valueRank);
             endpointSnapshot.put("array_dimensions", null);
             endpointSnapshot.put("access_level", accessLevel);
@@ -869,7 +868,7 @@ public class GenericServer {
             endpointSnapshot.put("minimum_sampling_interval", 0.0);
 
             return new Endpoint(endpointId, nodeId, localName, displayName, false, writable, dataType,
-                valueRank, builtinName(dataType), historizing, node, endpointSnapshot);
+                valueRank, DataTypeNames.scalarName(dataType), historizing, node, endpointSnapshot);
         }
 
         private UaFolderNode folderFor(int idx, Map<String, UaFolderNode> folders, RootConfig rootConfig,
@@ -1204,7 +1203,7 @@ public class GenericServer {
             Hash h = new Hash();
             h.put("name", arg.getName());
             h.put("description", arg.getDescription() != null ? arg.getDescription().getText() : null);
-            h.put("data_type", arg.getDataType().toParseableString());
+            h.put("data_type", DataTypeNames.canonical(arg.getDataType()));
             h.put("value_rank", arg.getValueRank());
             rv.add(h);
         }
@@ -1216,55 +1215,19 @@ public class GenericServer {
     }
 
     private static Variant variantFor(NodeId dataType, Object value) {
-        String name = builtinName(dataType);
-        if (name != null && ValueCodec.isSupportedScalarType(name)) {
+        String name = DataTypeNames.scalarName(dataType);
+        if (name != null) {
             return ValueCodec.toVariant(value, name);
         }
         return new Variant(value);
     }
 
     private static NodeId dataTypeNodeId(Object dataType) {
-        if (dataType == null) {
-            return NodeIds.String;
-        }
-        String s = String.valueOf(dataType);
-        switch (s) {
-            case "Boolean": return NodeIds.Boolean;
-            case "SByte": return NodeIds.SByte;
-            case "Byte": return NodeIds.Byte;
-            case "Int16": return NodeIds.Int16;
-            case "UInt16": return NodeIds.UInt16;
-            case "Int32": return NodeIds.Int32;
-            case "UInt32": return NodeIds.UInt32;
-            case "Int64": return NodeIds.Int64;
-            case "UInt64": return NodeIds.UInt64;
-            case "Float": return NodeIds.Float;
-            case "Double": return NodeIds.Double;
-            case "String": return NodeIds.String;
-            case "ByteString": return NodeIds.ByteString;
-            default: return NodeId.parse(s);
-        }
-    }
-
-    private static String builtinName(NodeId dataType) {
-        if (Objects.equals(dataType, NodeIds.Boolean)) return "Boolean";
-        if (Objects.equals(dataType, NodeIds.SByte)) return "SByte";
-        if (Objects.equals(dataType, NodeIds.Byte)) return "Byte";
-        if (Objects.equals(dataType, NodeIds.Int16)) return "Int16";
-        if (Objects.equals(dataType, NodeIds.UInt16)) return "UInt16";
-        if (Objects.equals(dataType, NodeIds.Int32)) return "Int32";
-        if (Objects.equals(dataType, NodeIds.UInt32)) return "UInt32";
-        if (Objects.equals(dataType, NodeIds.Int64)) return "Int64";
-        if (Objects.equals(dataType, NodeIds.UInt64)) return "UInt64";
-        if (Objects.equals(dataType, NodeIds.Float)) return "Float";
-        if (Objects.equals(dataType, NodeIds.Double)) return "Double";
-        if (Objects.equals(dataType, NodeIds.String)) return "String";
-        if (Objects.equals(dataType, NodeIds.ByteString)) return "ByteString";
-        return null;
+        return dataType != null ? DataTypeNames.toNodeId(String.valueOf(dataType)) : NodeIds.String;
     }
 
     private static Object defaultValue(NodeId dataType) {
-        String name = builtinName(dataType);
+        String name = DataTypeNames.scalarName(dataType);
         if (name == null) {
             return null;
         }

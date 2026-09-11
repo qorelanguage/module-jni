@@ -541,6 +541,9 @@ public final class AddressSpaceSchema {
         String dataType = requireString(source.get("data_type"), pointer + "/data_type", endpointId,
             "variable endpoints require a non-empty `data_type`");
         validateDataType(dataType, pointer + "/data_type", endpointId);
+        // a type written either way ("Double", "i=11") is normalized to one form, so that a hand-written
+        // node and an imported or introspected one describing the same type compare equal
+        dataType = DataTypeNames.canonical(dataType);
         int valueRank = optionalInteger(source.get("value_rank"), -1, pointer + "/value_rank", endpointId);
         if (valueRank < -3) {
             throw error(pointer + "/value_rank", endpointId,
@@ -632,7 +635,7 @@ public final class AddressSpaceSchema {
                 "method arguments require a non-empty `data_type`");
             validateDataType(dataType, argumentPointer + "/data_type", endpointId);
             argument.put("name", name);
-            argument.put("data_type", dataType);
+            argument.put("data_type", DataTypeNames.canonical(dataType));
             int valueRank = optionalInteger(sourceArgument.get("value_rank"), -1,
                 argumentPointer + "/value_rank", endpointId);
             if (valueRank < -3) {
@@ -812,23 +815,7 @@ public final class AddressSpaceSchema {
     }
 
     private static NodeId dataTypeNodeId(Object dataType) {
-        String value = String.valueOf(dataType);
-        switch (value) {
-            case "Boolean": return NodeIds.Boolean;
-            case "SByte": return NodeIds.SByte;
-            case "Byte": return NodeIds.Byte;
-            case "Int16": return NodeIds.Int16;
-            case "UInt16": return NodeIds.UInt16;
-            case "Int32": return NodeIds.Int32;
-            case "UInt32": return NodeIds.UInt32;
-            case "Int64": return NodeIds.Int64;
-            case "UInt64": return NodeIds.UInt64;
-            case "Float": return NodeIds.Float;
-            case "Double": return NodeIds.Double;
-            case "String": return NodeIds.String;
-            case "ByteString": return NodeIds.ByteString;
-            default: return NodeId.parse(value);
-        }
+        return DataTypeNames.toNodeId(dataType != null ? String.valueOf(dataType) : null);
     }
 
     private static String exportDataType(Object dataType, Map<Integer, Integer> exportedIndexes) {

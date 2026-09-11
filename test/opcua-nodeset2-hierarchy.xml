@@ -36,6 +36,7 @@
       <Reference ReferenceType="HasComponent">ns=1;i=2</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=4</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=12</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
     </References>
   </UAObjectType>
@@ -151,6 +152,15 @@
         </ExtensionObject>
       </ListOfExtensionObject>
     </Value>
+  </UAVariable>
+
+  <!-- a data type defined by the model itself: it has no built-in name, so it keeps its NodeId -->
+  <UAVariable NodeId="ns=1;i=12" BrowseName="1:Orientation" ParentNodeId="ns=1;i=1"
+      DataType="ns=1;i=31">
+    <DisplayName>Orientation</DisplayName>
+    <References>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1</Reference>
+    </References>
   </UAVariable>
 
   <!-- organized by the standard Objects folder, which is the browse root and adds no path segment -->
