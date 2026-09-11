@@ -64,7 +64,7 @@ variables:
 
 test-ubuntu:
   stage: test
-  image: $CI_REGISTRY/infrastructure/qore-test-base/qore-test-base@sha256:b486c7fc4d87dbc75d69c89bb0b4e1dd946758113318611a2a98a92a654d6010
+  image: $CI_REGISTRY/infrastructure/qore-test-base/qore-test-base:develop
   script:
     - |
         if test/docker_test/test-ubuntu.sh; then
@@ -86,7 +86,7 @@ test-ubuntu:
 
 test-alpine:
   stage: test
-  image: $CI_REGISTRY/infrastructure/qore-test-base/qore-test-base@sha256:a04ebc8dfde3d564acd00f252f53650ce832321daeb40be24f46de705827f682
+  image: $CI_REGISTRY/infrastructure/qore-test-base/qore-test-base:develop-alpine
   script:
     - |
         if test/docker_test/test-alpine.sh; then
