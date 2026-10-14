@@ -79,7 +79,17 @@
       millions of rows are read in bounded memory instead of loading the whole workbook. Their writers add the
       \c column_formats option, a display format code for each column (such as \c dd.mm.yyyy or
       <tt>#,##0.00</tt>), so the cells keep their dates and numbers and are shown as intended in Excel and
-      LibreOffice.
+      LibreOffice, and the \c column_masks option, the display format of each column as a mask of %Qore's
+      \c ValueMask module (such as \c DD.MM.YYYY or <tt>#.##0,00 €</tt>), the masks that CSV files and Qorus
+      sheet contracts are read and written with; the \c column_headers option gives header text that is not the
+      column name, \c write_headers set to \c false writes no header row, and the \c timezone option gives the
+      time zone whose wall-clock time dates are written in.
+    - <b>Behavior change: Excel cells now hold a date's own wall-clock time, as ODS cells do.</b> The
+      @ref exceldataproviderintro "ExcelDataProvider" writer wrote a date as the wall-clock time of the Java
+      virtual machine's time zone.  This affects files written by development builds of the writer, which is new
+      in this release, from dates in another time zone than the Java virtual machine's (for example a date with a
+      UTC offset from an API, written by a server in another time zone); dates in the server's own time zone are
+      written as before.  Use the \c timezone option to write dates in a given time zone.
 
     @subsubsection jni_3_0_0_columnar Columnar JDBC Results
 

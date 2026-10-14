@@ -44,24 +44,24 @@
           "message": "Колір"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.short_desc": {
-          "source": "The color of the light (note that the `Alpha` value is ignored)",
-          "message": "Колір індикатора (зверніть увагу, що значення `Alpha` ігнорується)"
+          "source": "The color of the light; its opacity (`a`) is ignored",
+          "message": "Колір світла; його непрозорість (`a`) ігнорується"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.desc": {
           "source": "The color of the light",
           "message": "Колір індикатора"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.display_name": {
-          "source": "Alpha",
-          "message": "Альфа"
+          "source": "Opacity",
+          "message": "Непрозорість"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.short_desc": {
-          "source": "Alpha (transparency) component as an integer from 0 - 255",
-          "message": "Компонент альфа (прозорість) у вигляді цілого числа від 0 до 255"
+          "source": "Opacity, from 0 (transparent) to 1 (opaque)",
+          "message": "Непрозорість від 0 (прозоро) до 1 (непрозоро)"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.desc": {
-          "source": "Alpha (transparency) component as an integer from `0` - `255`",
-          "message": "Компонент альфа (прозорість) у вигляді цілого числа від `0` до `255`"
+          "source": "Opacity, from `0` (transparent) to `1` (opaque)",
+          "message": "Непрозорість від `0` (прозоро) до `1` (непрозоро)"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.Yg.display_name": {
           "source": "Blue",

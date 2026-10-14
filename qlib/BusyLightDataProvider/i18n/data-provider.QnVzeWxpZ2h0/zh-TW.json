@@ -44,24 +44,24 @@
           "message": "顏色"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.short_desc": {
-          "source": "The color of the light (note that the `Alpha` value is ignored)",
-          "message": "燈光的顏色（請注意 `Alpha` 值會被忽略）"
+          "source": "The color of the light; its opacity (`a`) is ignored",
+          "message": "燈光的顏色；其不透明度（`a`）將被忽略"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.desc": {
           "source": "The color of the light",
           "message": "燈光的顏色"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.display_name": {
-          "source": "Alpha",
-          "message": "Alpha"
+          "source": "Opacity",
+          "message": "不透明度"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.short_desc": {
-          "source": "Alpha (transparency) component as an integer from 0 - 255",
-          "message": "透明度（Alpha）組件，整數範圍為 0 - 255"
+          "source": "Opacity, from 0 (transparent) to 1 (opaque)",
+          "message": "不透明度，從 0（透明）到 1（不透明）"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.desc": {
-          "source": "Alpha (transparency) component as an integer from `0` - `255`",
-          "message": "透明度（Alpha）組件，整數範圍為 `0` - `255`"
+          "source": "Opacity, from `0` (transparent) to `1` (opaque)",
+          "message": "不透明度，從 `0`（透明）到 `1`（不透明）"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.Yg.display_name": {
           "source": "Blue",

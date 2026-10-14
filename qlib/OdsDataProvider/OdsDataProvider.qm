@@ -30,6 +30,7 @@
 %requires(reexport) DataProvider >= 3.9
 %requires FileLocationHandler
 %requires Util
+%requires ValueMask
 
 %module-cmd(jni) add-relative-classpath ./jar/qore-dataprovider-ods.jar
 %module-cmd(jni) add-relative-classpath ./jar/odfdom-java-0.13.0.jar
@@ -225,7 +226,8 @@ module OdsDataProvider {
                 "- `worksheet` — the worksheet name (defaults to `Sheet1`)\n"
                 "- `headers` — explicit column header names; if not provided, headers are auto-detected "
                 "from the first record\n"
-                "- `column_formats` — the display format of columns, such as `dd.mm.yyyy` or `#,##0.00`",
+                "- `column_formats` — the display format of columns, such as `dd.mm.yyyy` or `#,##0.00`\n"
+                "- `column_masks` — the display format of columns as masks, such as `DD.MM.YYYY` or `#.##0,00 €`",
             "action_code": DPAT_CREATE,
             "cls": "OdsDataProvider::OdsWriteDataProvider",
             "options": DataProviderActionCatalog::getActionOptionFromFields(
@@ -260,7 +262,8 @@ module OdsDataProvider {
                 "- `worksheet` — the worksheet name (defaults to `Sheet1`)\n"
                 "- `headers` — explicit column header names; if not provided, headers are auto-detected "
                 "from the first record\n"
-                "- `column_formats` — the display format of columns, such as `dd.mm.yyyy` or `#,##0.00`",
+                "- `column_formats` — the display format of columns, such as `dd.mm.yyyy` or `#,##0.00`\n"
+                "- `column_masks` — the display format of columns as masks, such as `DD.MM.YYYY` or `#.##0,00 €`",
             "action_code": DPAT_CREATE,
             "output_data_type": DPAD_CREATE_OUTPUT,
             "output_type": GeneratedDataOutputDataType,
@@ -348,6 +351,15 @@ module OdsDataProvider {
     a format for a column that is not written, raises \c ODS-WRITE-OPTION-ERROR naming the column and the problem.
     Each distinct code is one data style in the document, whatever the number of rows.
 
+    The \c column_masks option gives columns their display format as masks of the @ref valuemaskintro "ValueMask"
+    module, such as \c DD.MM.YYYY or <tt>#.##0,00 €</tt>, the masks that CSV files and the sheet contracts of
+    Qorus design mode are read and written with, as for the
+    @ref ExcelDataProvider_writing_column_masks "ExcelDataProvider writer": each mask becomes the display format code
+    of its column, the separators are shown as the language of whoever opens the file uses them, and a mask without
+    a display format raises \c ODS-WRITE-OPTION-ERROR naming the column and the reason.  The \c column_headers
+    option gives header text that is not the column name, \c write_headers set to \c False writes no header row,
+    and the \c timezone option gives the time zone whose wall-clock time dates are written in.
+
     The following classes are provided by this module:
     - @ref OdsDataProvider::OdsReadDataProvider "OdsReadDataProvider" - for reading ODS files
     - @ref OdsDataProvider::OdsReadDataProviderFactory "OdsReadDataProviderFactory" - factory for read providers
@@ -369,6 +381,12 @@ module OdsDataProvider {
       <tt>#,##0.00</tt> or \c 0.0%, written as an OpenDocument data style while the cells keep their dates and
       numbers
     - date cells are written with their clock time; before, only the date was written
+    - added the \c column_masks write option: the display format of each column as a mask of the
+      @ref valuemaskintro "ValueMask" module, such as \c DD.MM.YYYY or <tt>#.##0,00 €</tt>, the masks that CSV
+      files and Qorus sheet contracts are read and written with
+    - added the \c column_headers write option, for header text that is not the column name, the
+      \c write_headers write option, to write no header row, and the \c timezone write option, whose wall-clock
+      time dates are written in
     - added the \c formula_field read option, which returns the formulas of each record's cells in a field of the
       record, as the \c profile action gives them, so a totals row made only of \c SUM formulas is recognized when
       the file is read as it is when the file is profiled

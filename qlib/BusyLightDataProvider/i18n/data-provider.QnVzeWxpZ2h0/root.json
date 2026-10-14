@@ -44,24 +44,24 @@
           "message": "Color"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.short_desc": {
-          "source": "The color of the light (note that the `Alpha` value is ignored)",
-          "message": "The color of the light (note that the `Alpha` value is ignored)"
+          "source": "The color of the light; its opacity (`a`) is ignored",
+          "message": "The color of the light; its opacity (`a`) is ignored"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.desc": {
           "source": "The color of the light",
           "message": "The color of the light"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.display_name": {
-          "source": "Alpha",
-          "message": "Alpha"
+          "source": "Opacity",
+          "message": "Opacity"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.short_desc": {
-          "source": "Alpha (transparency) component as an integer from 0 - 255",
-          "message": "Alpha (transparency) component as an integer from 0 - 255"
+          "source": "Opacity, from 0 (transparent) to 1 (opaque)",
+          "message": "Opacity, from 0 (transparent) to 1 (opaque)"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.desc": {
-          "source": "Alpha (transparency) component as an integer from `0` - `255`",
-          "message": "Alpha (transparency) component as an integer from `0` - `255`"
+          "source": "Opacity, from `0` (transparent) to `1` (opaque)",
+          "message": "Opacity, from `0` (transparent) to `1` (opaque)"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.Yg.display_name": {
           "source": "Blue",

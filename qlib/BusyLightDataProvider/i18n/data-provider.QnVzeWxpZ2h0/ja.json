@@ -44,24 +44,24 @@
           "message": "色"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.short_desc": {
-          "source": "The color of the light (note that the `Alpha` value is ignored)",
-          "message": "ライトの色（`Alpha` の値は無視されることに注意してください）"
+          "source": "The color of the light; its opacity (`a`) is ignored",
+          "message": "ライトの色。不透明度 (`a`) は無視されます"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.desc": {
           "source": "The color of the light",
           "message": "ライトの色"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.display_name": {
-          "source": "Alpha",
-          "message": "Alpha"
+          "source": "Opacity",
+          "message": "不透明度"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.short_desc": {
-          "source": "Alpha (transparency) component as an integer from 0 - 255",
-          "message": "0 ～ 255 の整数で表されるアルファ（透明度）成分"
+          "source": "Opacity, from 0 (transparent) to 1 (opaque)",
+          "message": "不透明度。0 (透明) から 1 (不透明) まで"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.desc": {
-          "source": "Alpha (transparency) component as an integer from `0` - `255`",
-          "message": "`0` ～ `255` の整数で表されるアルファ（透明度）成分"
+          "source": "Opacity, from `0` (transparent) to `1` (opaque)",
+          "message": "不透明度。`0` (透明) から `1` (不透明) まで"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.Yg.display_name": {
           "source": "Blue",

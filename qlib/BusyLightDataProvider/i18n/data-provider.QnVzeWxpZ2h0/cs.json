@@ -44,24 +44,24 @@
           "message": "Barva"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.short_desc": {
-          "source": "The color of the light (note that the `Alpha` value is ignored)",
-          "message": "Barva světla (všimněte si, že hodnota `Alpha` je ignorována)"
+          "source": "The color of the light; its opacity (`a`) is ignored",
+          "message": "Barva světla; její neprůhlednost (`a`) se ignoruje"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.desc": {
           "source": "The color of the light",
           "message": "Barva světla"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.display_name": {
-          "source": "Alpha",
-          "message": "Alpha"
+          "source": "Opacity",
+          "message": "Neprůhlednost"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.short_desc": {
-          "source": "Alpha (transparency) component as an integer from 0 - 255",
-          "message": "Složka alfa (průhlednost) jako celé číslo od 0 do 255"
+          "source": "Opacity, from 0 (transparent) to 1 (opaque)",
+          "message": "Neprůhlednost od 0 (průhledné) do 1 (neprůhledné)"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.desc": {
-          "source": "Alpha (transparency) component as an integer from `0` - `255`",
-          "message": "Složka alfa (průhlednost) jako celé číslo od `0` do `255`"
+          "source": "Opacity, from `0` (transparent) to `1` (opaque)",
+          "message": "Neprůhlednost od `0` (průhledné) do `1` (neprůhledné)"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.Yg.display_name": {
           "source": "Blue",

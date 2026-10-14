@@ -44,24 +44,24 @@
           "message": "Kolor"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.short_desc": {
-          "source": "The color of the light (note that the `Alpha` value is ignored)",
-          "message": "Kolor światła (uwaga: wartość `Alpha` jest ignorowana)"
+          "source": "The color of the light; its opacity (`a`) is ignored",
+          "message": "Kolor światła; jego krycie (`a`) jest ignorowane"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.desc": {
           "source": "The color of the light",
           "message": "Kolor światła"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.display_name": {
-          "source": "Alpha",
-          "message": "Alpha"
+          "source": "Opacity",
+          "message": "Krycie"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.short_desc": {
-          "source": "Alpha (transparency) component as an integer from 0 - 255",
-          "message": "Składnik alfa (przezroczystość) jako liczba całkowita od 0 do 255"
+          "source": "Opacity, from 0 (transparent) to 1 (opaque)",
+          "message": "Krycie od 0 (przezroczysty) do 1 (nieprzezroczysty)"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.desc": {
-          "source": "Alpha (transparency) component as an integer from `0` - `255`",
-          "message": "Składnik alfa (przezroczystość) jako liczba całkowita od `0` do `255`"
+          "source": "Opacity, from `0` (transparent) to `1` (opaque)",
+          "message": "Krycie od `0` (przezroczysty) do `1` (nieprzezroczysty)"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.Yg.display_name": {
           "source": "Blue",

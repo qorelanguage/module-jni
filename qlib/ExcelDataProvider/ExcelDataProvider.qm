@@ -30,6 +30,7 @@
 %requires(reexport) DataProvider >= 3.9
 %requires FileLocationHandler
 %requires Util
+%requires ValueMask
 
 %module-cmd(jni) add-relative-classpath ./jar/qore-dataprovider-excel.jar
 %module-cmd(jni) add-relative-classpath ./jar/poi-5.5.0.jar
@@ -327,6 +328,12 @@ module ExcelDataProvider {
     - \c streaming: Use streaming mode for large files (reduces memory usage)
     - \c column_formats: The display format of columns by header name (see
       @ref ExcelDataProvider_writing_column_formats)
+    - \c column_masks: The display format of columns as masks, such as \c DD.MM.YYYY or <tt>#.##0,00 €</tt> (see
+      @ref ExcelDataProvider_writing_column_masks)
+    - \c column_headers: The header text of columns whose header is not their name
+    - \c write_headers: Set to \c False to write no header row
+    - \c timezone: The time zone whose wall-clock time dates are written in; if not given, a date is written as
+      its own wall-clock time
 
     @subsection ExcelDataProvider_writing_column_formats Column Display Formats
 
@@ -372,6 +379,43 @@ module ExcelDataProvider {
     code does not show, such as a string in a number column, is written without the format.  Each distinct code
     is one cell style in the workbook, whatever the number of rows.
 
+    @subsection ExcelDataProvider_writing_column_masks Column Masks
+
+    The \c column_masks option gives columns their display format as masks of the @ref valuemaskintro "ValueMask"
+    module, the masks that CSV files (see the \c mask field attribute of @ref csvutilintro "CsvUtil") and the sheet
+    contracts of Qorus design mode are read and written with, so one mask describes a column in every kind of file.
+    Each mask becomes the display format code of its column (see
+    @ref ValueMask::ValueMask::toSpreadsheetFormat() "ValueMask::toSpreadsheetFormat()"), and the cells keep their
+    real values.  The records and every column option name the columns as the records do; \c column_headers only
+    changes the text of the header row.
+
+    @code{.py}
+    ExcelWriteDataProvider dp("rejects.xlsx", {
+        "worksheet": "Rejected Lines",
+        "headers": ("po", "date", "amount", "share"),
+        "column_headers": {"po": "PO Number", "date": "Order Date", "amount": "Amount", "share": "Share"},
+        "column_masks": {"date": "DD.MM.YYYY", "amount": "#.##0,00 €", "share": "0.#%"},
+        "timezone": "Europe/Prague",
+    });
+    dp.createRecord({"po": "PO-1", "date": 2026-11-02T10:00:00Z, "amount": 1234.5, "share": 0.125});
+    dp.finishCreate();
+    @endcode
+
+    A spreadsheet shows a cell differently from text in these ways:
+    - the group separator and decimal mark are shown as the language of whoever opens the file uses them; the
+      mask's separators only say whether digits are grouped and how many decimals are shown, so
+      <tt>#.##0,00</tt> and <tt>#,##0.00</tt> give the same display format
+    - \c Mon shows the month name in the language of whoever opens the file, as the cell holds a real date
+    - a final \c # shows at most 10 decimals, and a whole number with the decimal mark after it (\c 12.)
+
+    A mask without a display format raises \c EXCEL-WRITE-OPTION-ERROR naming the column and the reason: \c ZZ
+    (a cell holds no UTC offset), \c MON (there is no upper-case month name), \c sss not directly after \c SS.,
+    a minute that is not directly after an hour or before the seconds, and a numeric month that is.  A column
+    cannot have both a mask and a format code in \c column_formats.
+
+    A cell holds a date and time without a time zone: a date is written as its own wall-clock time, or with the
+    \c timezone option as the wall-clock time in that time zone.
+
     @subsection ExcelDataProvider_writing_formats Output Formats
 
     The write provider supports two formats:
@@ -403,6 +447,14 @@ module ExcelDataProvider {
     @section ExcelDataProvider_relnotes Release Notes
 
     @subsection ExcelDataProvider_v1_1 ExcelDataProvider v1.1
+    - added the \c column_masks write option: the display format of each column as a mask of the
+      @ref valuemaskintro "ValueMask" module, such as \c DD.MM.YYYY or <tt>#.##0,00 €</tt>, the masks that CSV
+      files and Qorus sheet contracts are read and written with (see @ref ExcelDataProvider_writing_column_masks)
+    - added the \c column_headers write option, for header text that is not the column name, the
+      \c write_headers write option, to write no header row, and the \c timezone write option, whose wall-clock
+      time dates are written in
+    - a date is written as its own wall-clock time, as by the @ref odsdataproviderintro "OdsDataProvider" writer;
+      before, it was written as the wall-clock time of the time zone of the Java virtual machine
     - added the \c column_formats write option: a display format code for each column, such as \c dd.mm.yyyy,
       <tt>#,##0.00</tt> or \c 0.0%, written as a cell style while the cells keep their dates and numbers (see
       @ref ExcelDataProvider_writing_column_formats)

@@ -34,6 +34,7 @@
 %requires jni
 %requires reflection
 %requires ExcelDataProvider
+%requires ValueMask
 
 # Add classpaths for the test helper - must come after ExcelDataProvider to share its POI classpath
 %module-cmd(jni) add-relative-classpath ../qlib/ExcelDataProvider/jar/qore-dataprovider-excel.jar
@@ -83,6 +84,47 @@ public class ExcelDataProviderTest inherits QUnit::Test {
             "Amount": "#,##0.00;(#,##0.00)",
             "Share": "0.0%",
             "Code": "@",
+        };
+
+        #! the columns of the column mask tests
+        const MaskHeaders = ("Name", "Date", "Time", "Stamp", "Amount", "Share", "Debit", "Credit", "Count");
+
+        #! the column masks of the column mask tests; Name has none
+        const ColumnMasks = {
+            "Date": "DD.MM.YYYY",
+            "Time": "hh:mm AM",
+            "Stamp": "YYYY-MM-DDTHH:mm:SS",
+            "Amount": "#.##0,00 €",
+            "Share": "0.#%",
+            "Debit": "(#,##0.00)",
+            "Credit": "#.##0,00-",
+            "Count": "# ##0",
+        };
+
+        #! a record of the column mask tests
+        const MaskRecord = {
+            "Name": "a",
+            "Date": 2026-11-02T00:00:00,
+            "Time": 2026-11-02T15:05:00,
+            "Stamp": 2026-11-02T15:05:09,
+            "Amount": 1234.5,
+            "Share": 0.125,
+            "Debit": -1234.5,
+            "Credit": -1234.56,
+            "Count": 1234567,
+        };
+
+        #! masks whose separators are those that LibreOffice shows by default, so a spreadsheet shows a value as the
+        #! mask writes it as text
+        const RenderMasks = {
+            "Date": "DD.MM.YYYY",
+            "Time": "hh:mm AM",
+            "Stamp": "YYYY-MM-DDTHH:mm:SS",
+            "Amount": "#,##0.00 €",
+            "Share": "0.#%",
+            "Debit": "(#,##0.00)",
+            "Credit": "#,##0.00-",
+            "Count": "#,##0",
         };
 
         #! a record of the column format tests
@@ -234,6 +276,14 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         addTestCase("write: negative - invalid column formats", \testWriteNegativeColumnFormats());
         addTestCase("write: the write actions offer column formats", \testColumnFormatsActionOption());
         addTestCase("write: column formats as LibreOffice shows them", \testWriteColumnFormatsRendered());
+        addTestCase("write: column masks", \testWriteColumnMasks());
+        addTestCase("write: every common mask is a display format of xlsx and xls files", \testCommonColumnMasks());
+        addTestCase("write: negative - masks without a display format", \testWriteNegativeColumnMasks());
+        addTestCase("write: column header text", \testWriteColumnHeaders());
+        addTestCase("write: no header row", \testWriteNoHeaderRow());
+        addTestCase("write: dates as wall-clock time", \testWriteTimeZone());
+        addTestCase("write: the write actions offer the output options", \testOutputOptionsAction());
+        addTestCase("write: column masks as LibreOffice shows them", \testWriteColumnMasksRendered());
         addTestCase("negative: a file that cannot be read as a workbook", \testUnreadableFiles());
         addTestCase("read: the formulas of each record", \testFormulaField());
         addTestCase("read: the formulas of a data range", \testFormulaFieldDataRange());
@@ -1955,5 +2005,220 @@ printf(\"RESULT:%%s\\n\", make_json({\"count\": count, \"mismatches\": mismatche
         assertEq(0, system(cmd), cmd);
         string csv = sprintf("%s/%s.csv", dir.path, basename(path).split(".")[0]);
         return map $1, new CsvFileIterator(csv, {"header_names": True});
+    }
+    testWriteColumnMasks() {
+        # each variant: the writer options and the file extension
+        hash<string, hash<auto>> variants = {
+            "xlsx": {"ext": "xlsx", "opts": {}},
+            "streaming xlsx": {"ext": "xlsx", "opts": {"streaming": True}},
+            "xls": {"ext": "xls", "opts": {"format": "xls"}},
+        };
+        foreach hash<auto> i in (variants.pairIterator()) {
+            string path = sprintf("%s/column-masks.%s", test_data_dir, i.value.ext);
+            on_exit unlink(path);
+            ExcelWriteDataProvider dp(path, i.value.opts + {
+                "headers": MaskHeaders,
+                "column_masks": ColumnMasks,
+            });
+            dp.createRecord(MaskRecord);
+            dp.finishCreate();
+
+            # the format code of each cell is the display format of its mask
+            assertEq(("General", "dd\\.mm\\.yyyy", "hh:mm AM/PM", "yyyy-mm-dd\\Thh:mm:ss", "#,##0.00\" €\"",
+                "0.##########%", "#,##0.00;(#,##0.00)", "#,##0.00;#,##0.00-", "#,##0"),
+                ExcelTestHelper::getCellFormats(path, 1), i.key + ": formats");
+            assertEq(("General",) + (map ValueMask::toSpreadsheetFormat(ColumnMasks{$1}), MaskHeaders[1..]),
+                ExcelTestHelper::getCellFormats(path, 1), i.key + ": ValueMask");
+
+            # the values keep their types
+            ExcelReadDataProvider rdp(path, {"header_names": True});
+            list<hash<auto>> recs = map $1, rdp.searchRecords();
+            assertEq((MaskRecord + {"Count": 1234567.0},), recs, i.key + ": values");
+        }
+        # a column format and a column mask for different columns
+        string path = test_data_dir + "/column-masks-formats.xlsx";
+        on_exit unlink(path);
+        ExcelWriteDataProvider dp(path, {"headers": ("A", "B"), "column_formats": {"A": "0.00"},
+            "column_masks": {"B": "DD.MM.YYYY"}});
+        dp.createRecord({"A": 1, "B": 2026-11-02T00:00:00});
+        dp.finishCreate();
+        assertEq(("0.00", "dd\\.mm\\.yyyy"), ExcelTestHelper::getCellFormats(path, 1));
+    }
+
+    testCommonColumnMasks() {
+        foreach string mask in (ValueMask::DateFormats + ValueMask::TimeFormats + ValueMask::NumberFormats
+                + ValueMask::AmountFormats) {
+            # a mask with an offset has no display format
+            if (mask =~ /ZZ/) {
+                assertThrows("EXCEL-WRITE-OPTION-ERROR", "column \"V\": .*holds no UTC offset", sub () {
+                    ExcelWriteDataProvider dp({"column_masks": {"V": mask}});
+                }, NOTHING, mask);
+                continue;
+            }
+            string code = ValueMask::toSpreadsheetFormat(mask);
+            assertNothing(ExcelWriter::formatCodeIssue(code), mask);
+            auto value = ValueMask::maskKind(mask) == "number" ? -1234.5 : 2026-11-02T15:05:09.123;
+            foreach string format in (("xlsx", "xls")) {
+                string path = sprintf("%s/common-mask.%s", test_data_dir, format);
+                on_exit unlink(path);
+                ExcelWriteDataProvider dp(path, {"format": format, "headers": ("V",), "column_masks": {"V": mask}});
+                dp.createRecord({"V": value});
+                dp.finishCreate();
+                assertEq((code,), ExcelTestHelper::getCellFormats(path, 1), format + ": " + mask);
+            }
+        }
+    }
+
+    testWriteNegativeColumnMasks() {
+        hash<string, string> refused = {
+            "YYYY-MM-DDTHH:mm:SSZZ": "holds no UTC offset \\(ZZ\\)",
+            "DD MON YYYY": "no upper-case month name \\(use Mon\\)",
+            "HH:mm:SS,sss": "a fraction of a second only directly after the seconds and a decimal point",
+            "mm HH": "shows mm as a minute only directly after an hour or before the seconds",
+            "YYYY-DD HH MM": "shows MM directly after an hour or before the seconds as a minute",
+            "DD.MM.JJJJ": "is not a valid date, time or number mask: unknown letters \"JJJJ\"",
+        };
+        foreach hash<auto> i in (refused.pairIterator()) {
+            assertThrows("EXCEL-WRITE-OPTION-ERROR", "invalid \"column_masks\" option: column \"V\": .*" + i.value,
+                sub () {
+                    ExcelWriteDataProvider dp({"column_masks": {"V": i.key}});
+                }, NOTHING, i.key);
+        }
+        # a column with a mask and a format code
+        assertThrows("EXCEL-WRITE-OPTION-ERROR", "column \"A\" also has a format code in the \"column_formats\" "
+            "option", sub () {
+            ExcelWriteDataProvider dp({"column_formats": {"A": "0.00"}, "column_masks": {"A": "0.00"}});
+        });
+        # a column that is not written
+        assertThrows("EXCEL-WRITE-OPTION-ERROR", "invalid \"column_masks\" option: a mask is given for column "
+            "\"X\", which is not written; the columns written are: \\[\"A\"\\]", sub () {
+            ExcelWriteDataProvider dp({"headers": ("A",), "column_masks": {"A": "0", "X": "0"}});
+        });
+        ExcelWriteDataProvider bad({"column_masks": {"Amount": "0.00", "Total": "0.00"}});
+        assertThrows("CREATE-RECORD-ERROR", "EXCEL-WRITE-OPTION-ERROR.*a mask is given for column \"Total\", which "
+            "is not written", \bad.createRecord(), {"Name": "a", "Amount": 1});
+        assertEq(0, bad.getCreatedCount());
+    }
+
+    testWriteColumnHeaders() {
+        string path = test_data_dir + "/column-headers.xlsx";
+        on_exit unlink(path);
+        # the records and the column options name the columns as the records do
+        ExcelWriteDataProvider dp(path, {
+            "headers": ("id", "amount"),
+            "column_headers": {"id": "Order No.", "amount": "Amount (EUR)"},
+            "column_masks": {"amount": "#,##0.00"},
+        });
+        dp.createRecord({"id": "A-1", "amount": 1234.5});
+        dp.finishCreate();
+        assertEq(("General", "#,##0.00"), ExcelTestHelper::getCellFormats(path, 1));
+        ExcelReadDataProvider rdp(path, {"header_names": True});
+        assertEq(({"Order No.": "A-1", "Amount (EUR)": 1234.5},), (map $1, rdp.searchRecords()));
+
+        # without headers: the columns of the first record
+        path = test_data_dir + "/column-headers-first-record.xlsx";
+        on_exit unlink(path);
+        dp = new ExcelWriteDataProvider(path, {"column_headers": {"id": "Order No."}});
+        dp.createRecord({"id": "A-1", "amount": 1234.5});
+        dp.finishCreate();
+        rdp = new ExcelReadDataProvider(path, {"header_names": True});
+        assertEq(({"Order No.": "A-1", "amount": 1234.5},), (map $1, rdp.searchRecords()));
+
+        # a header for a column that is not written
+        assertThrows("EXCEL-WRITE-OPTION-ERROR", "invalid \"column_headers\" option: a header is given for "
+            "column \"x\", which is not written", sub () {
+            ExcelWriteDataProvider dp({"headers": ("id",), "column_headers": {"x": "X"}});
+        });
+    }
+
+    testWriteNoHeaderRow() {
+        foreach string format in (("xlsx", "xls")) {
+            string path = sprintf("%s/no-header-row.%s", test_data_dir, format);
+            on_exit unlink(path);
+            ExcelWriteDataProvider dp(path, {"format": format, "headers": ("id", "date"), "write_headers": False,
+                "column_masks": {"date": "DD.MM.YYYY"}});
+            dp.createRecord({"id": "A-1", "date": 2026-11-02T00:00:00});
+            dp.createRecord({"id": "A-2", "date": 2026-11-03T00:00:00});
+            dp.finishCreate();
+            # the first record is in the first row
+            assertEq(("General", "dd\\.mm\\.yyyy"), ExcelTestHelper::getCellFormats(path, 0), format);
+            ExcelReadDataProvider rdp(path, {"headers": ("id", "date")});
+            assertEq(({"id": "A-1", "date": 2026-11-02T00:00:00}, {"id": "A-2", "date": 2026-11-03T00:00:00}),
+                (map $1, rdp.searchRecords()), format);
+        }
+        # without headers: the first record's keys are the columns, and no header row is written
+        string path = test_data_dir + "/no-header-row-first-record.xlsx";
+        on_exit unlink(path);
+        ExcelWriteDataProvider dp(path, {"write_headers": False});
+        dp.createRecord({"id": "A-1", "n": 1});
+        dp.finishCreate();
+        ExcelReadDataProvider rdp(path, {"headers": ("id", "n")});
+        assertEq(({"id": "A-1", "n": 1.0},), (map $1, rdp.searchRecords()));
+    }
+
+    testWriteTimeZone() {
+        foreach string format in (("xlsx", "xls")) {
+            string path = sprintf("%s/time-zone.%s", test_data_dir, format);
+            on_exit unlink(path);
+            # a date is written as its own wall-clock time: a cell holds no time zone
+            ExcelWriteDataProvider dp(path, {"format": format, "headers": ("d",)});
+            dp.createRecord({"d": 2026-11-02T14:05:00+05:30});
+            dp.finishCreate();
+            ExcelReadDataProvider rdp(path, {"header_names": True});
+            assertEq(("2026-11-02 14:05",), (map $1.d.format("YYYY-MM-DD HH:mm"), rdp.searchRecords()),
+                format + ": own wall-clock time");
+
+            # the wall-clock time in the given time zone
+            dp = new ExcelWriteDataProvider(path, {"format": format, "headers": ("d", "n"),
+                "timezone": "Europe/Berlin"});
+            dp.createRecord({"d": 2026-11-02T14:05:00Z, "n": 1});
+            dp.createRecord({"d": 2026-07-02T14:05:00Z, "n": 2});
+            dp.finishCreate();
+            rdp = new ExcelReadDataProvider(path, {"header_names": True});
+            assertEq(("2026-11-02 15:05", "2026-07-02 16:05"), (map $1.d.format("YYYY-MM-DD HH:mm"),
+                rdp.searchRecords()), format + ": time zone");
+        }
+        assertThrows("EXCEL-WRITE-OPTION-ERROR", "invalid \"timezone\" option \"Mars/Base\"", sub () {
+            ExcelWriteDataProvider dp({"timezone": "Mars/Base"});
+        });
+    }
+
+    testOutputOptionsAction() {
+        foreach string action in (("write", "write-data")) {
+            hash<DataProviderActionInfo> info = DataProviderActionCatalog::getAppActionEx("Excel", action);
+            foreach string opt in (("column_masks", "column_headers", "write_headers", "timezone")) {
+                assertTrue(exists info.options{opt}, action + ": " + opt);
+            }
+        }
+        hash<DataProviderOptionInfo> opt = ExcelWriteDataProvider::ConstructorOptions.column_masks;
+        assertEq("hash<string, string>", opt.type[0].getName());
+        # the example is a valid option value
+        foreach hash<auto> i in (opt.example_value.pairIterator()) {
+            assertNothing(ValueMask::spreadsheetFormatIssue(i.value), i.key);
+        }
+        assertEq(True, ExcelWriteDataProvider::ConstructorOptions.write_headers.default_value);
+        assertNothing(ValueMask::timezoneIssue(ExcelWriteDataProvider::ConstructorOptions.timezone.example_value));
+    }
+
+    testWriteColumnMasksRendered() {
+        *string soffice = findLibreOffice();
+        if (!soffice) {
+            testSkip("LibreOffice (soffice) is not installed");
+        }
+        foreach string format in (("xlsx", "xls")) {
+            string path = sprintf("%s/column-masks-rendered.%s", test_data_dir, format);
+            on_exit unlink(path);
+            ExcelWriteDataProvider dp(path, {"format": format, "headers": MaskHeaders, "column_masks": RenderMasks});
+            dp.createRecord(MaskRecord);
+            dp.finishCreate();
+            # a cell is shown as the mask writes the value as text
+            hash<auto> expected = {"Name": "a"} + map {
+                $1.key: MaskRecord{$1.key}.typeCode() == NT_DATE
+                    ? ValueMask::formatDate(MaskRecord{$1.key}, $1.value, NOTHING,
+                        ValueMask::maskKind($1.value) == "time" ? "time" : "date")
+                    : ValueMask::formatNumber(MaskRecord{$1.key}, $1.value)
+            }, RenderMasks.pairIterator();
+            assertEq((expected,), renderWithLibreOffice(soffice, path), format);
+        }
     }
 }

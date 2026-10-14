@@ -44,24 +44,24 @@
           "message": "Couleur"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.short_desc": {
-          "source": "The color of the light (note that the `Alpha` value is ignored)",
-          "message": "La couleur du voyant (remarquez que la valeur `Alpha` est ignorée)"
+          "source": "The color of the light; its opacity (`a`) is ignored",
+          "message": "La couleur de la lumière ; son opacité (`a`) est ignorée"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.desc": {
           "source": "The color of the light",
           "message": "La couleur du voyant"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.display_name": {
-          "source": "Alpha",
-          "message": "Alpha"
+          "source": "Opacity",
+          "message": "Opacité"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.short_desc": {
-          "source": "Alpha (transparency) component as an integer from 0 - 255",
-          "message": "Composante alpha (transparence) sous forme d'entier de 0 à 255"
+          "source": "Opacity, from 0 (transparent) to 1 (opaque)",
+          "message": "Opacité, de 0 (transparent) à 1 (opaque)"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.desc": {
-          "source": "Alpha (transparency) component as an integer from `0` - `255`",
-          "message": "Composante alpha (transparence) sous forme d'entier de `0` à `255`"
+          "source": "Opacity, from `0` (transparent) to `1` (opaque)",
+          "message": "Opacité, de `0` (transparent) à `1` (opaque)"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.Yg.display_name": {
           "source": "Blue",

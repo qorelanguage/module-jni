@@ -44,24 +44,24 @@
           "message": "Farbe"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.short_desc": {
-          "source": "The color of the light (note that the `Alpha` value is ignored)",
-          "message": "Die Farbe des Lichts (beachten Sie, dass der Wert `Alpha` ignoriert wird)"
+          "source": "The color of the light; its opacity (`a`) is ignored",
+          "message": "Die Farbe des Lichts; ihre Deckkraft (`a`) wird ignoriert"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.desc": {
           "source": "The color of the light",
           "message": "Die Farbe des Lichts"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.display_name": {
-          "source": "Alpha",
-          "message": "Alpha"
+          "source": "Opacity",
+          "message": "Deckkraft"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.short_desc": {
-          "source": "Alpha (transparency) component as an integer from 0 - 255",
-          "message": "Alpha-Komponente (Transparenz) als Ganzzahl von 0 bis 255"
+          "source": "Opacity, from 0 (transparent) to 1 (opaque)",
+          "message": "Deckkraft von 0 (transparent) bis 1 (deckend)"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.desc": {
-          "source": "Alpha (transparency) component as an integer from `0` - `255`",
-          "message": "Alpha-Komponente (Transparenz) als Ganzzahl von `0` bis `255`"
+          "source": "Opacity, from `0` (transparent) to `1` (opaque)",
+          "message": "Deckkraft von `0` (transparent) bis `1` (deckend)"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.Yg.display_name": {
           "source": "Blue",

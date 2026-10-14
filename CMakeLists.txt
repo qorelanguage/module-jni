@@ -32,9 +32,9 @@ endif()
 # required to mirror mutable Java static fields
 find_package(Qore 3.0 REQUIRED)
 # Public Qore indexes used by the Java wrappers and provider documentation.
-list(APPEND QORE_DOXYGEN_MODULES AsyncApi ConnectionProvider DataProvider FileLocationHandler
+list(APPEND QORE_DOXYGEN_MODULES AsyncApi ConnectionProvider CsvUtil DataProvider FileLocationHandler
     HttpClientIo MailMessage Mapper Mime RestClient RestSchemaValidator SmtpClient SqlUtil
-    Swagger TableMapper Util reflection)
+    Swagger TableMapper Util ValueMask reflection)
 option(QORE_JNI_STRICT_DOCS "Fail JNI documentation builds on warnings" OFF)
 # The bridge uses JNI's JVM API, not the native AWT drawing interface.
 # Older CMake releases do not support FindJNI components.

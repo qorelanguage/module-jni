@@ -483,6 +483,54 @@
           "source": "The display format of columns by their header name, so that whoever opens the file sees each value as intended: a date as `dd.mm.yyyy`, an amount as `#,##0.00`, or a share as `0.0%`.  The cells keep their real values (a date stays a date and a number a number); only the way they are shown changes.  A column without a format is written as without this option: dates as `yyyy-mm-dd hh:mm:ss` and numbers without a format.\n\nFormat codes are written as in Excel and LibreOffice:\n- **numbers**: `0` (a digit that is always shown), `#` (a digit shown when significant), `,` between digits (thousands grouping), `,` after the last digit (divide by 1000), `.` (the decimal point), and `E+00` (scientific notation); up to three sections for positive, negative and zero values separated by `;`, such as `#,##0.00;(#,##0.00)` or `#,##0.00;#,##0.00-`\n- **percentages**: a `%` in each section, such as `0.0%`; the value is a fraction, so `0.25` is shown as `25.0%`\n- **dates and times**: `yy` or `yyyy` (year), `m`, `mm`, `mmm` or `mmmm` (month as a number or a name), `d` or `dd` (day), `ddd` or `dddd` (weekday name), `h` or `hh` (hour), `m` or `mm` directly after an hour or before a second (minute), `s` or `ss` (second), `.0` to `.000` after the second (fractions of a second), and `AM/PM`, such as `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText in a code is written in double quotes (`\"EUR\"`), escaped with a backslash (`\\x`), as a currency symbol in brackets (`[$€-407]`), or as itself for `$ - + / ( ) :`, spaces and symbols such as `€`; a section can start with a color such as `[Red]`.\n\nA value that its column's code does not show, such as a string in a number column, is written without the format.  An invalid or unsupported code (`General`, fractions, fill characters, conditions, or elapsed times), or a column that is not written, raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the problem",
           "message": "파일을 여는 사람이 각 값을 의도한 대로 볼 수 있도록 헤더 이름으로 지정하는 열의 표시 형식입니다. 예를 들어 날짜는 `dd.mm.yyyy`, 금액은 `#,##0.00`, 비율은 `0.0%`로 표시됩니다. 셀은 실제 값을 유지하며(날짜는 날짜로, 숫자는 숫자로 유지됨) 표시 방식만 바뀝니다. 형식이 없는 열은 이 옵션이 없을 때와 같이 기록됩니다. 즉, 날짜는 `yyyy-mm-dd hh:mm:ss`로, 숫자는 형식 없이 기록됩니다.\n\n형식 코드는 Excel 및 LibreOffice에서와 같이 작성합니다.\n- **숫자**: `0`(항상 표시되는 자릿수), `#`(유효할 때 표시되는 자릿수), 숫자 사이의 `,`(천 단위 구분), 마지막 숫자 뒤의 `,`(1000으로 나누기), `.`(소수점), `E+00`(지수 표기). 양수, 음수, 0 값에 대해 `;`로 구분된 최대 세 개의 섹션을 사용할 수 있습니다(예: `#,##0.00;(#,##0.00)` 또는 `#,##0.00;#,##0.00-`)\n- **백분율**: 각 섹션에 `%`를 포함합니다(예: `0.0%`). 값은 분수이므로 `0.25`는 `25.0%`로 표시됩니다\n- **날짜 및 시간**: `yy` 또는 `yyyy`(연도), `m`, `mm`, `mmm` 또는 `mmmm`(숫자 또는 이름으로 나타낸 월), `d` 또는 `dd`(일), `ddd` 또는 `dddd`(요일 이름), `h` 또는 `hh`(시), 시 바로 뒤 또는 초 바로 앞의 `m` 또는 `mm`(분), `s` 또는 `ss`(초), 초 뒤의 `.0`~`.000`(초의 소수 부분), `AM/PM`(예: `dd.mm.yyyy hh:mm`)\n- **텍스트**: `@`\n\n코드 안의 텍스트는 큰따옴표로 묶거나(`\"EUR\"`), 백슬래시로 이스케이프하거나(`\\x`), 대괄호 안의 통화 기호로 작성하며(`[$€-407]`), `$ - + / ( ) :`, 공백 및 `€` 같은 기호는 그대로 작성합니다. 섹션은 `[Red]` 같은 색으로 시작할 수 있습니다.\n\n열의 코드로 표시할 수 없는 값(예: 숫자 열의 문자열)은 형식 없이 기록됩니다. 유효하지 않거나 지원되지 않는 코드(`General`, 분수, 채우기 문자, 조건 또는 경과 시간)나 기록되지 않는 열은 해당 열과 문제를 명시하는 `EXCEL-WRITE-OPTION-ERROR`를 발생시킵니다"
         },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.display_name": {
+          "source": "Column Masks",
+          "message": "열 마스크"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.short_desc": {
+          "source": "The display format of each column as a mask, such as DD.MM.YYYY or #.##0,00 €",
+          "message": "각 열의 표시 형식을 마스크로 지정(예: DD.MM.YYYY 또는 #.##0,00 €)"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.desc": {
+          "source": "The display format of columns by column name as masks of the [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) module, the masks that CSV files and sheet contracts are read and written with: a date as `DD.MM.YYYY`, a time as `hh:mm AM`, an amount as `#.##0,00 €` or a share as `0.#%`.  Each mask becomes the display format code of its column (`DD.MM.YYYY` is `dd\\.mm\\.yyyy`, `#.##0,00 €` is `#,##0.00\" €\"`), so the cells keep their real values (a date stays a date and a number a number) and are shown as the mask describes, with these differences from text:\n- the group separator and decimal mark are shown as the language of whoever opens the file uses them; the mask's separators only say whether digits are grouped and how many decimals are shown\n- `Mon` shows the month name in the language of whoever opens the file\n- a final `#` shows at most 10 decimals, and a whole number with the decimal mark after it (`12.`)\n\nA mask without a display format raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the reason: `ZZ` (a cell holds no UTC offset), `MON` (there is no upper-case month name), `sss` not directly after `SS.`, a minute that is not directly after an hour or before the seconds, and a numeric month that is.  A column cannot have both a mask and a format code in `column_formats`",
+          "message": "열 이름별 열의 표시 형식을 CSV 파일과 시트 계약을 읽고 쓰는 데 사용하는 [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) 모듈의 마스크로 지정합니다. 예: 날짜는 `DD.MM.YYYY`, 시간은 `hh:mm AM`, 금액은 `#.##0,00 €`, 비율은 `0.#%`. 각 마스크는 해당 열의 표시 형식 코드가 되므로(`DD.MM.YYYY`는 `dd\\.mm\\.yyyy`, `#.##0,00 €`는 `#,##0.00\" €\"`) 셀은 실제 값을 유지하고(날짜는 날짜로, 숫자는 숫자로) 마스크가 설명하는 대로 표시됩니다. 텍스트와의 차이점은 다음과 같습니다.\n- 그룹 구분 기호와 소수점 기호는 파일을 여는 사람의 언어에서 사용하는 방식으로 표시됩니다. 마스크의 구분 기호는 숫자를 그룹화할지 여부와 표시할 소수 자릿수만 결정합니다\n- `Mon`은 파일을 여는 사람의 언어로 월 이름을 표시합니다\n- 끝의 `#`은 소수점 이하를 최대 10자리까지 표시하며, 정수는 뒤에 소수점 기호를 붙여 표시합니다(`12.`)\n\n표시 형식이 없는 마스크는 열 이름과 이유를 포함한 `EXCEL-WRITE-OPTION-ERROR`를 발생시킵니다: `ZZ`(셀에는 UTC 오프셋이 없음), `MON`(대문자 월 이름이 없음), `SS.` 바로 뒤에 있지 않은 `sss`, 시 바로 뒤나 초 바로 앞에 있지 않은 분, 그리고 그 자리에 있는 숫자 월. 한 열에 마스크와 `column_formats`의 형식 코드를 모두 지정할 수 없습니다"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.display_name": {
+          "source": "Column Header Text",
+          "message": "열 헤더 텍스트"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.short_desc": {
+          "source": "The header text of each column whose header is not its name",
+          "message": "헤더가 이름과 다른 각 열의 헤더 텍스트"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.desc": {
+          "source": "The header text of columns by column name, for columns whose header is not their name.  The records are written by column name, so `headers` and the other column options name the columns as the records do; this option only changes the text of the header row",
+          "message": "헤더가 이름과 다른 열에 대한 열 이름별 헤더 텍스트입니다. 레코드는 열 이름으로 쓰이므로 `headers`와 다른 열 옵션은 레코드와 같은 이름으로 열을 지정합니다. 이 옵션은 헤더 행의 텍스트만 변경합니다"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.display_name": {
+          "source": "Write Header Row",
+          "message": "헤더 행 쓰기"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.short_desc": {
+          "source": "Write the column headers as the first row",
+          "message": "열 헤더를 첫 번째 행으로 씁니다"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.desc": {
+          "source": "Set to `false` to write no header row: the first record is written in the first row of the worksheet; the default is `true`",
+          "message": "헤더 행을 쓰지 않으려면 `false`로 설정합니다. 그러면 첫 번째 레코드가 워크시트의 첫 번째 행에 쓰입니다. 기본값은 `true`입니다"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.display_name": {
+          "source": "Time Zone",
+          "message": "시간대"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.short_desc": {
+          "source": "The time zone whose wall-clock time dates are written in",
+          "message": "날짜를 해당 현지 시각으로 쓰는 시간대"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.desc": {
+          "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
+          "message": "날짜를 해당 현지 시각으로 쓰는 시간대 지역(예: `Europe/Prague` 또는 `America/New_York`)입니다. 셀은 시간대가 없는 날짜와 시간을 담기 때문입니다. 지정하지 않으면 날짜는 자체 현지 시각으로 쓰입니다"
+        },
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.display_name": {
           "source": "Create Excel Spreadsheet Data",
           "message": "Excel 스프레드시트 데이터 생성"
@@ -578,6 +626,54 @@
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2Zvcm1hdHM.desc": {
           "source": "The display format of columns by their header name, so that whoever opens the file sees each value as intended: a date as `dd.mm.yyyy`, an amount as `#,##0.00`, or a share as `0.0%`.  The cells keep their real values (a date stays a date and a number a number); only the way they are shown changes.  A column without a format is written as without this option: dates as `yyyy-mm-dd hh:mm:ss` and numbers without a format.\n\nFormat codes are written as in Excel and LibreOffice:\n- **numbers**: `0` (a digit that is always shown), `#` (a digit shown when significant), `,` between digits (thousands grouping), `,` after the last digit (divide by 1000), `.` (the decimal point), and `E+00` (scientific notation); up to three sections for positive, negative and zero values separated by `;`, such as `#,##0.00;(#,##0.00)` or `#,##0.00;#,##0.00-`\n- **percentages**: a `%` in each section, such as `0.0%`; the value is a fraction, so `0.25` is shown as `25.0%`\n- **dates and times**: `yy` or `yyyy` (year), `m`, `mm`, `mmm` or `mmmm` (month as a number or a name), `d` or `dd` (day), `ddd` or `dddd` (weekday name), `h` or `hh` (hour), `m` or `mm` directly after an hour or before a second (minute), `s` or `ss` (second), `.0` to `.000` after the second (fractions of a second), and `AM/PM`, such as `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText in a code is written in double quotes (`\"EUR\"`), escaped with a backslash (`\\x`), as a currency symbol in brackets (`[$€-407]`), or as itself for `$ - + / ( ) :`, spaces and symbols such as `€`; a section can start with a color such as `[Red]`.\n\nA value that its column's code does not show, such as a string in a number column, is written without the format.  An invalid or unsupported code (`General`, fractions, fill characters, conditions, or elapsed times), or a column that is not written, raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the problem",
           "message": "파일을 여는 사람이 각 값을 의도한 대로 볼 수 있도록 헤더 이름으로 지정하는 열의 표시 형식입니다. 예를 들어 날짜는 `dd.mm.yyyy`, 금액은 `#,##0.00`, 비율은 `0.0%`로 표시됩니다. 셀은 실제 값을 유지하며(날짜는 날짜로, 숫자는 숫자로 유지됨) 표시 방식만 바뀝니다. 형식이 없는 열은 이 옵션이 없을 때와 같이 기록됩니다. 즉, 날짜는 `yyyy-mm-dd hh:mm:ss`로, 숫자는 형식 없이 기록됩니다.\n\n형식 코드는 Excel 및 LibreOffice에서와 같이 작성합니다.\n- **숫자**: `0`(항상 표시되는 자릿수), `#`(유효할 때 표시되는 자릿수), 숫자 사이의 `,`(천 단위 구분), 마지막 숫자 뒤의 `,`(1000으로 나누기), `.`(소수점), `E+00`(지수 표기). 양수, 음수, 0 값에 대해 `;`로 구분된 최대 세 개의 섹션을 사용할 수 있습니다(예: `#,##0.00;(#,##0.00)` 또는 `#,##0.00;#,##0.00-`)\n- **백분율**: 각 섹션에 `%`를 포함합니다(예: `0.0%`). 값은 분수이므로 `0.25`는 `25.0%`로 표시됩니다\n- **날짜 및 시간**: `yy` 또는 `yyyy`(연도), `m`, `mm`, `mmm` 또는 `mmmm`(숫자 또는 이름으로 나타낸 월), `d` 또는 `dd`(일), `ddd` 또는 `dddd`(요일 이름), `h` 또는 `hh`(시), 시 바로 뒤 또는 초 바로 앞의 `m` 또는 `mm`(분), `s` 또는 `ss`(초), 초 뒤의 `.0`~`.000`(초의 소수 부분), `AM/PM`(예: `dd.mm.yyyy hh:mm`)\n- **텍스트**: `@`\n\n코드 안의 텍스트는 큰따옴표로 묶거나(`\"EUR\"`), 백슬래시로 이스케이프하거나(`\\x`), 대괄호 안의 통화 기호로 작성하며(`[$€-407]`), `$ - + / ( ) :`, 공백 및 `€` 같은 기호는 그대로 작성합니다. 섹션은 `[Red]` 같은 색으로 시작할 수 있습니다.\n\n열의 코드로 표시할 수 없는 값(예: 숫자 열의 문자열)은 형식 없이 기록됩니다. 유효하지 않거나 지원되지 않는 코드(`General`, 분수, 채우기 문자, 조건 또는 경과 시간)나 기록되지 않는 열은 해당 열과 문제를 명시하는 `EXCEL-WRITE-OPTION-ERROR`를 발생시킵니다"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.display_name": {
+          "source": "Column Masks",
+          "message": "열 마스크"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.short_desc": {
+          "source": "The display format of each column as a mask, such as DD.MM.YYYY or #.##0,00 €",
+          "message": "각 열의 표시 형식을 마스크로 지정(예: DD.MM.YYYY 또는 #.##0,00 €)"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.desc": {
+          "source": "The display format of columns by column name as masks of the [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) module, the masks that CSV files and sheet contracts are read and written with: a date as `DD.MM.YYYY`, a time as `hh:mm AM`, an amount as `#.##0,00 €` or a share as `0.#%`.  Each mask becomes the display format code of its column (`DD.MM.YYYY` is `dd\\.mm\\.yyyy`, `#.##0,00 €` is `#,##0.00\" €\"`), so the cells keep their real values (a date stays a date and a number a number) and are shown as the mask describes, with these differences from text:\n- the group separator and decimal mark are shown as the language of whoever opens the file uses them; the mask's separators only say whether digits are grouped and how many decimals are shown\n- `Mon` shows the month name in the language of whoever opens the file\n- a final `#` shows at most 10 decimals, and a whole number with the decimal mark after it (`12.`)\n\nA mask without a display format raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the reason: `ZZ` (a cell holds no UTC offset), `MON` (there is no upper-case month name), `sss` not directly after `SS.`, a minute that is not directly after an hour or before the seconds, and a numeric month that is.  A column cannot have both a mask and a format code in `column_formats`",
+          "message": "열 이름별 열의 표시 형식을 CSV 파일과 시트 계약을 읽고 쓰는 데 사용하는 [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) 모듈의 마스크로 지정합니다. 예: 날짜는 `DD.MM.YYYY`, 시간은 `hh:mm AM`, 금액은 `#.##0,00 €`, 비율은 `0.#%`. 각 마스크는 해당 열의 표시 형식 코드가 되므로(`DD.MM.YYYY`는 `dd\\.mm\\.yyyy`, `#.##0,00 €`는 `#,##0.00\" €\"`) 셀은 실제 값을 유지하고(날짜는 날짜로, 숫자는 숫자로) 마스크가 설명하는 대로 표시됩니다. 텍스트와의 차이점은 다음과 같습니다.\n- 그룹 구분 기호와 소수점 기호는 파일을 여는 사람의 언어에서 사용하는 방식으로 표시됩니다. 마스크의 구분 기호는 숫자를 그룹화할지 여부와 표시할 소수 자릿수만 결정합니다\n- `Mon`은 파일을 여는 사람의 언어로 월 이름을 표시합니다\n- 끝의 `#`은 소수점 이하를 최대 10자리까지 표시하며, 정수는 뒤에 소수점 기호를 붙여 표시합니다(`12.`)\n\n표시 형식이 없는 마스크는 열 이름과 이유를 포함한 `EXCEL-WRITE-OPTION-ERROR`를 발생시킵니다: `ZZ`(셀에는 UTC 오프셋이 없음), `MON`(대문자 월 이름이 없음), `SS.` 바로 뒤에 있지 않은 `sss`, 시 바로 뒤나 초 바로 앞에 있지 않은 분, 그리고 그 자리에 있는 숫자 월. 한 열에 마스크와 `column_formats`의 형식 코드를 모두 지정할 수 없습니다"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.display_name": {
+          "source": "Column Header Text",
+          "message": "열 헤더 텍스트"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.short_desc": {
+          "source": "The header text of each column whose header is not its name",
+          "message": "헤더가 이름과 다른 각 열의 헤더 텍스트"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.desc": {
+          "source": "The header text of columns by column name, for columns whose header is not their name.  The records are written by column name, so `headers` and the other column options name the columns as the records do; this option only changes the text of the header row",
+          "message": "헤더가 이름과 다른 열에 대한 열 이름별 헤더 텍스트입니다. 레코드는 열 이름으로 쓰이므로 `headers`와 다른 열 옵션은 레코드와 같은 이름으로 열을 지정합니다. 이 옵션은 헤더 행의 텍스트만 변경합니다"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.display_name": {
+          "source": "Write Header Row",
+          "message": "헤더 행 쓰기"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.short_desc": {
+          "source": "Write the column headers as the first row",
+          "message": "열 헤더를 첫 번째 행으로 씁니다"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.desc": {
+          "source": "Set to `false` to write no header row: the first record is written in the first row of the worksheet; the default is `true`",
+          "message": "헤더 행을 쓰지 않으려면 `false`로 설정합니다. 그러면 첫 번째 레코드가 워크시트의 첫 번째 행에 쓰입니다. 기본값은 `true`입니다"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.display_name": {
+          "source": "Time Zone",
+          "message": "시간대"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.short_desc": {
+          "source": "The time zone whose wall-clock time dates are written in",
+          "message": "날짜를 해당 현지 시각으로 쓰는 시간대"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.desc": {
+          "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
+          "message": "날짜를 해당 현지 시각으로 쓰는 시간대 지역(예: `Europe/Prague` 또는 `America/New_York`)입니다. 셀은 시간대가 없는 날짜와 시간을 담기 때문입니다. 지정하지 않으면 날짜는 자체 현지 시각으로 쓰입니다"
         }
       }
     }

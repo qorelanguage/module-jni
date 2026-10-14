@@ -384,8 +384,8 @@
           "message": "ODS スプレッドシート ファイルにデータを書き込む"
         },
         "app.T0RT.action.d3JpdGU.desc": {
-          "source": "Write data to an ODS spreadsheet file at a specified path.\n\nUse this action to generate ODS files from structured data for reporting, data export, or integration with LibreOffice Calc and other OpenDocument-compatible applications.\n\n**Key Options**:\n- `path` (required) — the output file location\n- `worksheet` — the worksheet name (defaults to `Sheet1`)\n- `headers` — explicit column header names; if not provided, headers are auto-detected from the first record\n- `column_formats` — the display format of columns, such as `dd.mm.yyyy` or `#,##0.00`",
-          "message": "指定されたパスにある ODS スプレッドシート ファイルにデータを書き込みます。\n\nこのアクションを使用して、構造化データから ODS ファイルを生成し、レポート作成、データ エクスポート、あるいは LibreOffice Calc やその他の OpenDocument 互換アプリケーションとの連携に使用します。\n\n**主なオプション**:\n- `path` (必須) — 出力ファイルの位置\n- `worksheet` — ワークシート名 (デフォルトは `Sheet1`)\n- `headers` — 明示的な列ヘッダー名。指定されない場合、ヘッダーは最初のレコードから自動検出されます\n- `column_formats` — 列の表示形式 (`dd.mm.yyyy` や `#,##0.00` など)"
+          "source": "Write data to an ODS spreadsheet file at a specified path.\n\nUse this action to generate ODS files from structured data for reporting, data export, or integration with LibreOffice Calc and other OpenDocument-compatible applications.\n\n**Key Options**:\n- `path` (required) — the output file location\n- `worksheet` — the worksheet name (defaults to `Sheet1`)\n- `headers` — explicit column header names; if not provided, headers are auto-detected from the first record\n- `column_formats` — the display format of columns, such as `dd.mm.yyyy` or `#,##0.00`\n- `column_masks` — the display format of columns as masks, such as `DD.MM.YYYY` or `#.##0,00 €`",
+          "message": "指定されたパスにある ODS スプレッドシート ファイルにデータを書き込みます。\n\nこのアクションを使用して、構造化データから ODS ファイルを生成し、レポート作成、データ エクスポート、あるいは LibreOffice Calc やその他の OpenDocument 互換アプリケーションとの連携に使用します。\n\n**主なオプション**:\n- `path` (必須) — 出力ファイルの位置\n- `worksheet` — ワークシート名 (デフォルトは `Sheet1`)\n- `headers` — 明示的な列ヘッダー名。指定されない場合、ヘッダーは最初のレコードから自動検出されます\n- `column_formats` — 列の表示形式 (`dd.mm.yyyy` や `#,##0.00` など)\n- `column_masks` — マスクで指定する列の表示形式 (例: `DD.MM.YYYY`、`#.##0,00 €`)"
         },
         "app.T0RT.action.d3JpdGU.option.cGF0aA.display_name": {
           "source": "ODS Output Path",
@@ -435,6 +435,54 @@
           "source": "The display format of columns by their header name, so that whoever opens the file sees each value as intended: a date as `dd.mm.yyyy`, an amount as `#,##0.00`, or a share as `0.0%`.  The cells keep their real values (a date stays a date and a number a number); only the way they are shown changes.  Each format is written as an OpenDocument data style, which LibreOffice and Excel show the same way.  A column without a format is written as without this option.\n\nFormat codes are written as in LibreOffice and Excel:\n- **numbers**: `0` (a digit that is always shown), `#` (a digit shown when significant), `,` between digits (thousands grouping), `,` after the last digit (divide by 1000), `.` (the decimal point), and `E+00` (scientific notation); up to three sections for positive, negative and zero values separated by `;`, such as `#,##0.00;(#,##0.00)` or `#,##0.00;#,##0.00-`\n- **percentages**: a `%` in each section, such as `0.0%`; the value is a fraction, so `0.25` is shown as `25.0%`, and it is written as a percentage cell, which is read back as a number\n- **dates and times**: `yy` or `yyyy` (year), `m`, `mm`, `mmm` or `mmmm` (month as a number or a name), `d` or `dd` (day), `ddd` or `dddd` (weekday name), `h` or `hh` (hour), `m` or `mm` directly after an hour or before a second (minute), `s` or `ss` (second), `.0` to `.000` after the second (fractions of a second), and `AM/PM`, such as `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText in a code is written in double quotes (`\"EUR\"`), escaped with a backslash (`\\x`), as a currency symbol in brackets (`[$€-407]`), or as itself for `$ - + / ( ) :`, spaces and symbols such as `€`; a section can start with a color such as `[Red]`.\n\nA value that its column's code does not show, such as a string in a number column, is written without the format.  An invalid or unsupported code (`General`, fractions, fill characters, conditions, or elapsed times), or a column that is not written, raises `ODS-WRITE-OPTION-ERROR` naming the column and the problem",
           "message": "ファイルを開いたユーザーに各値が意図どおりに表示されるよう、ヘッダー名で指定する列の表示形式です。日付は `dd.mm.yyyy`、金額は `#,##0.00`、割合は `0.0%` のように表示できます。セルは実際の値を保持し (日付は日付、数値は数値のまま)、表示方法のみが変わります。各形式は OpenDocument のデータスタイルとして書き込まれ、LibreOffice と Excel で同じように表示されます。形式を指定しない列は、このオプションがない場合と同様に書き込まれます。\n\n形式コードは LibreOffice および Excel と同じように記述します:\n- **数値**: `0` (常に表示される桁)、`#` (有効な場合に表示される桁)、桁の間の `,` (桁区切り)、最後の桁の後の `,` (1000 で除算)、`.` (小数点)、`E+00` (指数表記)。正の値、負の値、ゼロ値に対して最大 3 つのセクションを `;` で区切って指定できます。例: `#,##0.00;(#,##0.00)` や `#,##0.00;#,##0.00-`\n- **パーセント**: 各セクションに `%` を含めます。例: `0.0%`。値は小数であるため、`0.25` は `25.0%` と表示されます。パーセントのセルとして書き込まれ、読み戻すと数値になります\n- **日付と時刻**: `yy` または `yyyy` (年)、`m`、`mm`、`mmm` または `mmmm` (数値または名前による月)、`d` または `dd` (日)、`ddd` または `dddd` (曜日名)、`h` または `hh` (時)、時の直後または秒の直前の `m` または `mm` (分)、`s` または `ss` (秒)、秒の後の `.0` から `.000` (秒の小数部)、および `AM/PM`。例: `dd.mm.yyyy hh:mm`\n- **テキスト**: `@`\n\nコード内のテキストは、二重引用符で囲む (`\"EUR\"`)、バックスラッシュでエスケープする (`\\x`)、角かっこ内の通貨記号として記述する (`[$€-407]`) のいずれかで記述し、`$ - + / ( ) :`、スペース、`€` などの記号はそのまま記述します。セクションの先頭には `[Red]` などの色を指定できます。\n\n列のコードで表示できない値 (数値列の文字列など) は、形式なしで書き込まれます。無効またはサポートされていないコード (`General`、分数、埋め文字、条件、経過時間) や、書き込まれない列を指定すると、列と問題を示す `ODS-WRITE-OPTION-ERROR` が発生します"
         },
+        "app.T0RT.action.d3JpdGU.option.Y29sdW1uX21hc2tz.display_name": {
+          "source": "Column Masks",
+          "message": "列マスク"
+        },
+        "app.T0RT.action.d3JpdGU.option.Y29sdW1uX21hc2tz.short_desc": {
+          "source": "The display format of each column as a mask, such as DD.MM.YYYY or #.##0,00 €",
+          "message": "各列の表示形式をマスクで指定 (例: DD.MM.YYYY、#.##0,00 €)"
+        },
+        "app.T0RT.action.d3JpdGU.option.Y29sdW1uX21hc2tz.desc": {
+          "source": "The display format of columns by column name as masks of the [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) module, the masks that CSV files and sheet contracts are read and written with: a date as `DD.MM.YYYY`, a time as `hh:mm AM`, an amount as `#.##0,00 €` or a share as `0.#%`.  Each mask becomes the display format code of its column (`DD.MM.YYYY` is `dd\\.mm\\.yyyy`, `#.##0,00 €` is `#,##0.00\" €\"`), so the cells keep their real values (a date stays a date and a number a number) and are shown as the mask describes, with these differences from text:\n- the group separator and decimal mark are shown as the language of whoever opens the file uses them; the mask's separators only say whether digits are grouped and how many decimals are shown\n- `Mon` shows the month name in the language of whoever opens the file\n- a final `#` shows at most 10 decimals, and a whole number with the decimal mark after it (`12.`)\n\nA mask without a display format raises `ODS-WRITE-OPTION-ERROR` naming the column and the reason: `ZZ` (a cell holds no UTC offset), `MON` (there is no upper-case month name), `sss` not directly after `SS.`, a minute that is not directly after an hour or before the seconds, and a numeric month that is.  A column cannot have both a mask and a format code in `column_formats`",
+          "message": "列名ごとの列の表示形式を、[ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) モジュールのマスク (CSV ファイルとシートコントラクトの読み書きに使うマスク) で指定します。例: 日付は `DD.MM.YYYY`、時刻は `hh:mm AM`、金額は `#.##0,00 €`、比率は `0.#%`。各マスクはその列の表示形式コードになり (`DD.MM.YYYY` は `dd\\.mm\\.yyyy`、`#.##0,00 €` は `#,##0.00\" €\"`)、セルは実際の値を保持し (日付は日付、数値は数値のまま)、マスクのとおりに表示されます。テキストとの違いは次のとおりです。\n- 桁区切り記号と小数点記号は、ファイルを開く人の言語での使い方で表示されます。マスクの区切り記号は、桁をグループ化するかどうかと表示する小数点以下の桁数だけを決めます\n- `Mon` は、ファイルを開く人の言語で月名を表示します\n- 末尾の `#` は小数点以下を最大 10 桁表示し、整数は後ろに小数点記号を付けて表示します (`12.`)\n\n表示形式のないマスクは、列名と理由を示して `ODS-WRITE-OPTION-ERROR` を発生させます: `ZZ` (セルは UTC オフセットを保持しません)、`MON` (大文字の月名はありません)、`SS.` の直後にない `sss`、時の直後または秒の直前にない分、およびそこにある数値の月。1 つの列にマスクと `column_formats` の書式コードの両方を指定することはできません"
+        },
+        "app.T0RT.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.display_name": {
+          "source": "Column Header Text",
+          "message": "列見出しテキスト"
+        },
+        "app.T0RT.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.short_desc": {
+          "source": "The header text of each column whose header is not its name",
+          "message": "見出しが列名と異なる各列の見出しテキスト"
+        },
+        "app.T0RT.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.desc": {
+          "source": "The header text of columns by column name, for columns whose header is not their name.  The records are written by column name, so `headers` and the other column options name the columns as the records do; this option only changes the text of the header row",
+          "message": "見出しが列名と異なる列の、列名ごとの見出しテキスト。レコードは列名で書き込まれるため、`headers` やその他の列オプションはレコードと同じ名前で列を指定します。このオプションは見出し行のテキストだけを変更します"
+        },
+        "app.T0RT.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.display_name": {
+          "source": "Write Header Row",
+          "message": "見出し行を書き込む"
+        },
+        "app.T0RT.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.short_desc": {
+          "source": "Write the column headers as the first row",
+          "message": "列見出しを 1 行目に書き込みます"
+        },
+        "app.T0RT.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.desc": {
+          "source": "Set to `false` to write no header row: the first record is written in the first row of the worksheet; the default is `true`",
+          "message": "`false` に設定すると見出し行を書き込みません。最初のレコードがワークシートの 1 行目に書き込まれます。既定値は `true` です"
+        },
+        "app.T0RT.action.d3JpdGU.option.dGltZXpvbmU.display_name": {
+          "source": "Time Zone",
+          "message": "タイムゾーン"
+        },
+        "app.T0RT.action.d3JpdGU.option.dGltZXpvbmU.short_desc": {
+          "source": "The time zone whose wall-clock time dates are written in",
+          "message": "日付をその現地時刻で書き込むタイムゾーン"
+        },
+        "app.T0RT.action.d3JpdGU.option.dGltZXpvbmU.desc": {
+          "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
+          "message": "日付をその現地時刻で書き込むタイムゾーンの地域 (`Europe/Prague`、`America/New_York` など)。セルはタイムゾーンのない日付と時刻を保持するためです。指定しない場合、日付はそれ自身の現地時刻で書き込まれます"
+        },
         "app.T0RT.action.d3JpdGUtZGF0YQ.display_name": {
           "source": "Create ODS Spreadsheet Data",
           "message": "ODS スプレッドシート データの作成"
@@ -444,8 +492,8 @@
           "message": "ODS スプレッドシート データを生成しバイナリとして返す"
         },
         "app.T0RT.action.d3JpdGUtZGF0YQ.desc": {
-          "source": "Create ODS spreadsheet data in memory and return it as binary data.\n\nUse this action when you need to generate an ODS file without writing to disk — for example, to return the spreadsheet as an API response, store it in a database, or pass it to another processing step. The action returns the generated spreadsheet in `data` and the number of records in `record_count`.\n\n**Key Options**:\n- `worksheet` — the worksheet name (defaults to `Sheet1`)\n- `headers` — explicit column header names; if not provided, headers are auto-detected from the first record\n- `column_formats` — the display format of columns, such as `dd.mm.yyyy` or `#,##0.00`",
-          "message": "メモリ内に ODS スプレッドシート データを生成し、バイナリ データとして返します。\n\nディスクに書き込まずに ODS ファイルを生成する必要がある場合にこのアクションを使用します。たとえば、スプレッドシートを API レスポンスとして返したり、データベースに保存したり、別の処理ステップに渡したりできます。アクションは生成されたスプレッドシートを `data` に、レコード数を `record_count` に返します。\n\n**主なオプション**:\n- `worksheet` — ワークシート名 (デフォルトは `Sheet1`)\n- `headers` — 明示的な列ヘッダー名。指定されない場合、ヘッダーは最初のレコードから自動検出されます\n- `column_formats` — 列の表示形式 (`dd.mm.yyyy` や `#,##0.00` など)"
+          "source": "Create ODS spreadsheet data in memory and return it as binary data.\n\nUse this action when you need to generate an ODS file without writing to disk — for example, to return the spreadsheet as an API response, store it in a database, or pass it to another processing step. The action returns the generated spreadsheet in `data` and the number of records in `record_count`.\n\n**Key Options**:\n- `worksheet` — the worksheet name (defaults to `Sheet1`)\n- `headers` — explicit column header names; if not provided, headers are auto-detected from the first record\n- `column_formats` — the display format of columns, such as `dd.mm.yyyy` or `#,##0.00`\n- `column_masks` — the display format of columns as masks, such as `DD.MM.YYYY` or `#.##0,00 €`",
+          "message": "メモリ内に ODS スプレッドシート データを生成し、バイナリ データとして返します。\n\nディスクに書き込まずに ODS ファイルを生成する必要がある場合にこのアクションを使用します。たとえば、スプレッドシートを API レスポンスとして返したり、データベースに保存したり、別の処理ステップに渡したりできます。アクションは生成されたスプレッドシートを `data` に、レコード数を `record_count` に返します。\n\n**主なオプション**:\n- `worksheet` — ワークシート名 (デフォルトは `Sheet1`)\n- `headers` — 明示的な列ヘッダー名。指定されない場合、ヘッダーは最初のレコードから自動検出されます\n- `column_formats` — 列の表示形式 (`dd.mm.yyyy` や `#,##0.00` など)\n- `column_masks` — マスクで指定する列の表示形式 (例: `DD.MM.YYYY`、`#.##0,00 €`)"
         },
         "app.T0RT.action.d3JpdGUtZGF0YQ.option.d29ya3NoZWV0.display_name": {
           "source": "Worksheet Name",
@@ -482,6 +530,54 @@
         "app.T0RT.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2Zvcm1hdHM.desc": {
           "source": "The display format of columns by their header name, so that whoever opens the file sees each value as intended: a date as `dd.mm.yyyy`, an amount as `#,##0.00`, or a share as `0.0%`.  The cells keep their real values (a date stays a date and a number a number); only the way they are shown changes.  Each format is written as an OpenDocument data style, which LibreOffice and Excel show the same way.  A column without a format is written as without this option.\n\nFormat codes are written as in LibreOffice and Excel:\n- **numbers**: `0` (a digit that is always shown), `#` (a digit shown when significant), `,` between digits (thousands grouping), `,` after the last digit (divide by 1000), `.` (the decimal point), and `E+00` (scientific notation); up to three sections for positive, negative and zero values separated by `;`, such as `#,##0.00;(#,##0.00)` or `#,##0.00;#,##0.00-`\n- **percentages**: a `%` in each section, such as `0.0%`; the value is a fraction, so `0.25` is shown as `25.0%`, and it is written as a percentage cell, which is read back as a number\n- **dates and times**: `yy` or `yyyy` (year), `m`, `mm`, `mmm` or `mmmm` (month as a number or a name), `d` or `dd` (day), `ddd` or `dddd` (weekday name), `h` or `hh` (hour), `m` or `mm` directly after an hour or before a second (minute), `s` or `ss` (second), `.0` to `.000` after the second (fractions of a second), and `AM/PM`, such as `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText in a code is written in double quotes (`\"EUR\"`), escaped with a backslash (`\\x`), as a currency symbol in brackets (`[$€-407]`), or as itself for `$ - + / ( ) :`, spaces and symbols such as `€`; a section can start with a color such as `[Red]`.\n\nA value that its column's code does not show, such as a string in a number column, is written without the format.  An invalid or unsupported code (`General`, fractions, fill characters, conditions, or elapsed times), or a column that is not written, raises `ODS-WRITE-OPTION-ERROR` naming the column and the problem",
           "message": "ファイルを開いたユーザーに各値が意図どおりに表示されるよう、ヘッダー名で指定する列の表示形式です。日付は `dd.mm.yyyy`、金額は `#,##0.00`、割合は `0.0%` のように表示できます。セルは実際の値を保持し (日付は日付、数値は数値のまま)、表示方法のみが変わります。各形式は OpenDocument のデータスタイルとして書き込まれ、LibreOffice と Excel で同じように表示されます。形式を指定しない列は、このオプションがない場合と同様に書き込まれます。\n\n形式コードは LibreOffice および Excel と同じように記述します:\n- **数値**: `0` (常に表示される桁)、`#` (有効な場合に表示される桁)、桁の間の `,` (桁区切り)、最後の桁の後の `,` (1000 で除算)、`.` (小数点)、`E+00` (指数表記)。正の値、負の値、ゼロ値に対して最大 3 つのセクションを `;` で区切って指定できます。例: `#,##0.00;(#,##0.00)` や `#,##0.00;#,##0.00-`\n- **パーセント**: 各セクションに `%` を含めます。例: `0.0%`。値は小数であるため、`0.25` は `25.0%` と表示されます。パーセントのセルとして書き込まれ、読み戻すと数値になります\n- **日付と時刻**: `yy` または `yyyy` (年)、`m`、`mm`、`mmm` または `mmmm` (数値または名前による月)、`d` または `dd` (日)、`ddd` または `dddd` (曜日名)、`h` または `hh` (時)、時の直後または秒の直前の `m` または `mm` (分)、`s` または `ss` (秒)、秒の後の `.0` から `.000` (秒の小数部)、および `AM/PM`。例: `dd.mm.yyyy hh:mm`\n- **テキスト**: `@`\n\nコード内のテキストは、二重引用符で囲む (`\"EUR\"`)、バックスラッシュでエスケープする (`\\x`)、角かっこ内の通貨記号として記述する (`[$€-407]`) のいずれかで記述し、`$ - + / ( ) :`、スペース、`€` などの記号はそのまま記述します。セクションの先頭には `[Red]` などの色を指定できます。\n\n列のコードで表示できない値 (数値列の文字列など) は、形式なしで書き込まれます。無効またはサポートされていないコード (`General`、分数、埋め文字、条件、経過時間) や、書き込まれない列を指定すると、列と問題を示す `ODS-WRITE-OPTION-ERROR` が発生します"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.display_name": {
+          "source": "Column Masks",
+          "message": "列マスク"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.short_desc": {
+          "source": "The display format of each column as a mask, such as DD.MM.YYYY or #.##0,00 €",
+          "message": "各列の表示形式をマスクで指定 (例: DD.MM.YYYY、#.##0,00 €)"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.desc": {
+          "source": "The display format of columns by column name as masks of the [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) module, the masks that CSV files and sheet contracts are read and written with: a date as `DD.MM.YYYY`, a time as `hh:mm AM`, an amount as `#.##0,00 €` or a share as `0.#%`.  Each mask becomes the display format code of its column (`DD.MM.YYYY` is `dd\\.mm\\.yyyy`, `#.##0,00 €` is `#,##0.00\" €\"`), so the cells keep their real values (a date stays a date and a number a number) and are shown as the mask describes, with these differences from text:\n- the group separator and decimal mark are shown as the language of whoever opens the file uses them; the mask's separators only say whether digits are grouped and how many decimals are shown\n- `Mon` shows the month name in the language of whoever opens the file\n- a final `#` shows at most 10 decimals, and a whole number with the decimal mark after it (`12.`)\n\nA mask without a display format raises `ODS-WRITE-OPTION-ERROR` naming the column and the reason: `ZZ` (a cell holds no UTC offset), `MON` (there is no upper-case month name), `sss` not directly after `SS.`, a minute that is not directly after an hour or before the seconds, and a numeric month that is.  A column cannot have both a mask and a format code in `column_formats`",
+          "message": "列名ごとの列の表示形式を、[ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) モジュールのマスク (CSV ファイルとシートコントラクトの読み書きに使うマスク) で指定します。例: 日付は `DD.MM.YYYY`、時刻は `hh:mm AM`、金額は `#.##0,00 €`、比率は `0.#%`。各マスクはその列の表示形式コードになり (`DD.MM.YYYY` は `dd\\.mm\\.yyyy`、`#.##0,00 €` は `#,##0.00\" €\"`)、セルは実際の値を保持し (日付は日付、数値は数値のまま)、マスクのとおりに表示されます。テキストとの違いは次のとおりです。\n- 桁区切り記号と小数点記号は、ファイルを開く人の言語での使い方で表示されます。マスクの区切り記号は、桁をグループ化するかどうかと表示する小数点以下の桁数だけを決めます\n- `Mon` は、ファイルを開く人の言語で月名を表示します\n- 末尾の `#` は小数点以下を最大 10 桁表示し、整数は後ろに小数点記号を付けて表示します (`12.`)\n\n表示形式のないマスクは、列名と理由を示して `ODS-WRITE-OPTION-ERROR` を発生させます: `ZZ` (セルは UTC オフセットを保持しません)、`MON` (大文字の月名はありません)、`SS.` の直後にない `sss`、時の直後または秒の直前にない分、およびそこにある数値の月。1 つの列にマスクと `column_formats` の書式コードの両方を指定することはできません"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.display_name": {
+          "source": "Column Header Text",
+          "message": "列見出しテキスト"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.short_desc": {
+          "source": "The header text of each column whose header is not its name",
+          "message": "見出しが列名と異なる各列の見出しテキスト"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.desc": {
+          "source": "The header text of columns by column name, for columns whose header is not their name.  The records are written by column name, so `headers` and the other column options name the columns as the records do; this option only changes the text of the header row",
+          "message": "見出しが列名と異なる列の、列名ごとの見出しテキスト。レコードは列名で書き込まれるため、`headers` やその他の列オプションはレコードと同じ名前で列を指定します。このオプションは見出し行のテキストだけを変更します"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.display_name": {
+          "source": "Write Header Row",
+          "message": "見出し行を書き込む"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.short_desc": {
+          "source": "Write the column headers as the first row",
+          "message": "列見出しを 1 行目に書き込みます"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.desc": {
+          "source": "Set to `false` to write no header row: the first record is written in the first row of the worksheet; the default is `true`",
+          "message": "`false` に設定すると見出し行を書き込みません。最初のレコードがワークシートの 1 行目に書き込まれます。既定値は `true` です"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.display_name": {
+          "source": "Time Zone",
+          "message": "タイムゾーン"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.short_desc": {
+          "source": "The time zone whose wall-clock time dates are written in",
+          "message": "日付をその現地時刻で書き込むタイムゾーン"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.desc": {
+          "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
+          "message": "日付をその現地時刻で書き込むタイムゾーンの地域 (`Europe/Prague`、`America/New_York` など)。セルはタイムゾーンのない日付と時刻を保持するためです。指定しない場合、日付はそれ自身の現地時刻で書き込まれます"
         }
       }
     }

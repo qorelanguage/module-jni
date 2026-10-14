@@ -67,6 +67,10 @@ public class ExcelWriter implements Closeable {
     private ArrayList<String> headers = new ArrayList<String>();
     private int currentRow = 0;
     private boolean headersWritten = false;
+    // the header text of columns whose header is not their name, by column name
+    private HashMap<String, String> columnHeaders = new HashMap<String, String>();
+    // false if no header row is written
+    private boolean writeHeaderRow = true;
     private String sheetName;
     private String format;
     private boolean streaming;
@@ -207,16 +211,55 @@ public class ExcelWriter implements Closeable {
     }
 
     /**
-     * Writes the header row.
+     * Sets the header text of columns whose header is not their name
+     *
+     * @param headers the header text of each column by its name; the records are written by column name
+     * @throws IllegalArgumentException a header text is not a string, or rows have already been written
+     */
+    public void setColumnHeaders(Hash headers) {
+        if (currentRow > 0) {
+            throw new IllegalArgumentException("column headers must be set before any row is written");
+        }
+        HashMap<String, String> names = new HashMap<String, String>();
+        for (Map.Entry<String, Object> e : headers.entrySet()) {
+            Object value = e.getValue();
+            if (!(value instanceof String)) {
+                throw new IllegalArgumentException(String.format("the header of column \"%s\" is not a string",
+                    e.getKey()));
+            }
+            names.put(e.getKey(), (String) value);
+        }
+        columnHeaders = names;
+    }
+
+    /**
+     * Sets whether a header row is written
+     *
+     * @param write false to write no header row: the first record is written in the first row
+     * @throws IllegalArgumentException rows have already been written
+     */
+    public void setWriteHeaders(boolean write) {
+        if (currentRow > 0) {
+            throw new IllegalArgumentException("the header row must be set before any row is written");
+        }
+        writeHeaderRow = write;
+    }
+
+    /**
+     * Writes the header row, unless it is disabled with {@link #setWriteHeaders(boolean)}
      */
     public void writeHeaders() {
         if (headersWritten || headers.isEmpty()) {
             return;
         }
+        if (!writeHeaderRow) {
+            headersWritten = true;
+            return;
+        }
         Row row = sheet.createRow(currentRow++);
         for (int i = 0; i < headers.size(); i++) {
             Cell cell = row.createCell(i);
-            cell.setCellValue(headers.get(i));
+            cell.setCellValue(columnHeaders.getOrDefault(headers.get(i), headers.get(i)));
         }
         headersWritten = true;
     }
@@ -260,7 +303,8 @@ public class ExcelWriter implements Closeable {
         } else if (value instanceof Number) {
             cell.setCellValue(((Number) value).doubleValue());
         } else if (value instanceof ZonedDateTime) {
-            cell.setCellValue(Date.from(((ZonedDateTime) value).toInstant()));
+            // the clock time of the value, as a cell has no time zone, as in the ODS writer
+            cell.setCellValue(((ZonedDateTime) value).toLocalDateTime());
             cell.setCellStyle(dateStyle);
         } else if (value instanceof Date) {
             cell.setCellValue((Date) value);

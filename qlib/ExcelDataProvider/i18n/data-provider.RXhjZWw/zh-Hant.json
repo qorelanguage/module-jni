@@ -483,6 +483,54 @@
           "source": "The display format of columns by their header name, so that whoever opens the file sees each value as intended: a date as `dd.mm.yyyy`, an amount as `#,##0.00`, or a share as `0.0%`.  The cells keep their real values (a date stays a date and a number a number); only the way they are shown changes.  A column without a format is written as without this option: dates as `yyyy-mm-dd hh:mm:ss` and numbers without a format.\n\nFormat codes are written as in Excel and LibreOffice:\n- **numbers**: `0` (a digit that is always shown), `#` (a digit shown when significant), `,` between digits (thousands grouping), `,` after the last digit (divide by 1000), `.` (the decimal point), and `E+00` (scientific notation); up to three sections for positive, negative and zero values separated by `;`, such as `#,##0.00;(#,##0.00)` or `#,##0.00;#,##0.00-`\n- **percentages**: a `%` in each section, such as `0.0%`; the value is a fraction, so `0.25` is shown as `25.0%`\n- **dates and times**: `yy` or `yyyy` (year), `m`, `mm`, `mmm` or `mmmm` (month as a number or a name), `d` or `dd` (day), `ddd` or `dddd` (weekday name), `h` or `hh` (hour), `m` or `mm` directly after an hour or before a second (minute), `s` or `ss` (second), `.0` to `.000` after the second (fractions of a second), and `AM/PM`, such as `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText in a code is written in double quotes (`\"EUR\"`), escaped with a backslash (`\\x`), as a currency symbol in brackets (`[$€-407]`), or as itself for `$ - + / ( ) :`, spaces and symbols such as `€`; a section can start with a color such as `[Red]`.\n\nA value that its column's code does not show, such as a string in a number column, is written without the format.  An invalid or unsupported code (`General`, fractions, fill characters, conditions, or elapsed times), or a column that is not written, raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the problem",
           "message": "依標題名稱指定的欄位顯示格式，讓開啟檔案的人都能依預期看到每個值：日期顯示為 `dd.mm.yyyy`、金額顯示為 `#,##0.00`，或比例顯示為 `0.0%`。儲存格會保留其實際值（日期仍為日期，數字仍為數字），只有顯示方式會改變。未指定格式的欄位會如同未使用此選項時一樣寫入：日期為 `yyyy-mm-dd hh:mm:ss`，數字則不套用格式。\n\n格式代碼的寫法與 Excel 和 LibreOffice 相同：\n- **數字**：`0`（一律顯示的位數）、`#`（有效時才顯示的位數）、位數之間的 `,`（千分位分組）、最後一位數之後的 `,`（除以 1000）、`.`（小數點）以及 `E+00`（科學記號）；正值、負值與零值最多可有三個以 `;` 分隔的區段，例如 `#,##0.00;(#,##0.00)` 或 `#,##0.00;#,##0.00-`\n- **百分比**：每個區段中有一個 `%`，例如 `0.0%`；值為小數，因此 `0.25` 會顯示為 `25.0%`\n- **日期與時間**：`yy` 或 `yyyy`（年）、`m`、`mm`、`mmm` 或 `mmmm`（以數字或名稱表示的月）、`d` 或 `dd`（日）、`ddd` 或 `dddd`（星期名稱）、`h` 或 `hh`（時）、緊接在時之後或秒之前的 `m` 或 `mm`（分）、`s` 或 `ss`（秒）、秒之後的 `.0` 至 `.000`（秒的小數部分），以及 `AM/PM`，例如 `dd.mm.yyyy hh:mm`\n- **文字**：`@`\n\n代碼中的文字可以雙引號括住（`\"EUR\"`）、以反斜線跳脫（`\\x`）、寫成方括號中的貨幣符號（`[$€-407]`），而 `$ - + / ( ) :`、空格及 `€` 等符號則可直接書寫；區段可以用 `[Red]` 等色彩開頭。\n\n欄位代碼無法顯示的值（例如數字欄位中的字串）會以不套用格式的方式寫入。無效或不支援的代碼（`General`、分數、填滿字元、條件或經過時間），或未寫入的欄位，會引發 `EXCEL-WRITE-OPTION-ERROR`，並指出該欄位與問題"
         },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.display_name": {
+          "source": "Column Masks",
+          "message": "欄遮罩"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.short_desc": {
+          "source": "The display format of each column as a mask, such as DD.MM.YYYY or #.##0,00 €",
+          "message": "以遮罩表示的各欄顯示格式，例如 DD.MM.YYYY 或 #.##0,00 €"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.desc": {
+          "source": "The display format of columns by column name as masks of the [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) module, the masks that CSV files and sheet contracts are read and written with: a date as `DD.MM.YYYY`, a time as `hh:mm AM`, an amount as `#.##0,00 €` or a share as `0.#%`.  Each mask becomes the display format code of its column (`DD.MM.YYYY` is `dd\\.mm\\.yyyy`, `#.##0,00 €` is `#,##0.00\" €\"`), so the cells keep their real values (a date stays a date and a number a number) and are shown as the mask describes, with these differences from text:\n- the group separator and decimal mark are shown as the language of whoever opens the file uses them; the mask's separators only say whether digits are grouped and how many decimals are shown\n- `Mon` shows the month name in the language of whoever opens the file\n- a final `#` shows at most 10 decimals, and a whole number with the decimal mark after it (`12.`)\n\nA mask without a display format raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the reason: `ZZ` (a cell holds no UTC offset), `MON` (there is no upper-case month name), `sss` not directly after `SS.`, a minute that is not directly after an hour or before the seconds, and a numeric month that is.  A column cannot have both a mask and a format code in `column_formats`",
+          "message": "依欄名稱指定欄的顯示格式，使用 [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) 模組的遮罩，也就是讀寫 CSV 檔案與工作表合約所用的遮罩：日期如 `DD.MM.YYYY`、時間如 `hh:mm AM`、金額如 `#.##0,00 €`、比例如 `0.#%`。每個遮罩會成為其欄的顯示格式代碼（`DD.MM.YYYY` 為 `dd\\.mm\\.yyyy`，`#.##0,00 €` 為 `#,##0.00\" €\"`），因此儲存格保留實際的值（日期仍是日期，數字仍是數字），並依遮罩的描述顯示，與文字的差異如下：\n- 分組分隔符號與小數點符號依開啟檔案者的語言使用方式顯示；遮罩的分隔符號只決定數字是否分組以及顯示幾位小數\n- `Mon` 以開啟檔案者的語言顯示月份名稱\n- 結尾的 `#` 最多顯示 10 位小數，整數則在後面加上小數點符號顯示（`12.`）\n\n沒有顯示格式的遮罩會引發 `EXCEL-WRITE-OPTION-ERROR`，並指出欄與原因：`ZZ`（儲存格不含 UTC 偏移）、`MON`（沒有大寫的月份名稱）、不緊接在 `SS.` 之後的 `sss`、不緊接在小時之後或秒之前的分鐘，以及位於該處的數字月份。一個欄不能同時有遮罩與 `column_formats` 中的格式代碼"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.display_name": {
+          "source": "Column Header Text",
+          "message": "欄標頭文字"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.short_desc": {
+          "source": "The header text of each column whose header is not its name",
+          "message": "標頭不是欄名稱之各欄的標頭文字"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.desc": {
+          "source": "The header text of columns by column name, for columns whose header is not their name.  The records are written by column name, so `headers` and the other column options name the columns as the records do; this option only changes the text of the header row",
+          "message": "依欄名稱指定標頭不是其名稱之欄的標頭文字。記錄依欄名稱寫入，因此 `headers` 與其他欄選項以記錄所用的名稱指定欄；此選項只變更標頭列的文字"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.display_name": {
+          "source": "Write Header Row",
+          "message": "寫入標頭列"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.short_desc": {
+          "source": "Write the column headers as the first row",
+          "message": "將欄標頭寫入為第一列"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.desc": {
+          "source": "Set to `false` to write no header row: the first record is written in the first row of the worksheet; the default is `true`",
+          "message": "設為 `false` 即不寫入標頭列：第一筆記錄寫入工作表的第一列；預設值為 `true`"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.display_name": {
+          "source": "Time Zone",
+          "message": "時區"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.short_desc": {
+          "source": "The time zone whose wall-clock time dates are written in",
+          "message": "日期以其當地時間寫入的時區"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.desc": {
+          "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
+          "message": "日期以其當地時間寫入的時區地區（例如 `Europe/Prague` 或 `America/New_York`），因為儲存格保存的是不含時區的日期與時間；若未指定，日期以其自身的當地時間寫入"
+        },
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.display_name": {
           "source": "Create Excel Spreadsheet Data",
           "message": "建立 Excel 試算表資料"
@@ -578,6 +626,54 @@
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2Zvcm1hdHM.desc": {
           "source": "The display format of columns by their header name, so that whoever opens the file sees each value as intended: a date as `dd.mm.yyyy`, an amount as `#,##0.00`, or a share as `0.0%`.  The cells keep their real values (a date stays a date and a number a number); only the way they are shown changes.  A column without a format is written as without this option: dates as `yyyy-mm-dd hh:mm:ss` and numbers without a format.\n\nFormat codes are written as in Excel and LibreOffice:\n- **numbers**: `0` (a digit that is always shown), `#` (a digit shown when significant), `,` between digits (thousands grouping), `,` after the last digit (divide by 1000), `.` (the decimal point), and `E+00` (scientific notation); up to three sections for positive, negative and zero values separated by `;`, such as `#,##0.00;(#,##0.00)` or `#,##0.00;#,##0.00-`\n- **percentages**: a `%` in each section, such as `0.0%`; the value is a fraction, so `0.25` is shown as `25.0%`\n- **dates and times**: `yy` or `yyyy` (year), `m`, `mm`, `mmm` or `mmmm` (month as a number or a name), `d` or `dd` (day), `ddd` or `dddd` (weekday name), `h` or `hh` (hour), `m` or `mm` directly after an hour or before a second (minute), `s` or `ss` (second), `.0` to `.000` after the second (fractions of a second), and `AM/PM`, such as `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText in a code is written in double quotes (`\"EUR\"`), escaped with a backslash (`\\x`), as a currency symbol in brackets (`[$€-407]`), or as itself for `$ - + / ( ) :`, spaces and symbols such as `€`; a section can start with a color such as `[Red]`.\n\nA value that its column's code does not show, such as a string in a number column, is written without the format.  An invalid or unsupported code (`General`, fractions, fill characters, conditions, or elapsed times), or a column that is not written, raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the problem",
           "message": "依標題名稱指定的欄位顯示格式，讓開啟檔案的人都能依預期看到每個值：日期顯示為 `dd.mm.yyyy`、金額顯示為 `#,##0.00`，或比例顯示為 `0.0%`。儲存格會保留其實際值（日期仍為日期，數字仍為數字），只有顯示方式會改變。未指定格式的欄位會如同未使用此選項時一樣寫入：日期為 `yyyy-mm-dd hh:mm:ss`，數字則不套用格式。\n\n格式代碼的寫法與 Excel 和 LibreOffice 相同：\n- **數字**：`0`（一律顯示的位數）、`#`（有效時才顯示的位數）、位數之間的 `,`（千分位分組）、最後一位數之後的 `,`（除以 1000）、`.`（小數點）以及 `E+00`（科學記號）；正值、負值與零值最多可有三個以 `;` 分隔的區段，例如 `#,##0.00;(#,##0.00)` 或 `#,##0.00;#,##0.00-`\n- **百分比**：每個區段中有一個 `%`，例如 `0.0%`；值為小數，因此 `0.25` 會顯示為 `25.0%`\n- **日期與時間**：`yy` 或 `yyyy`（年）、`m`、`mm`、`mmm` 或 `mmmm`（以數字或名稱表示的月）、`d` 或 `dd`（日）、`ddd` 或 `dddd`（星期名稱）、`h` 或 `hh`（時）、緊接在時之後或秒之前的 `m` 或 `mm`（分）、`s` 或 `ss`（秒）、秒之後的 `.0` 至 `.000`（秒的小數部分），以及 `AM/PM`，例如 `dd.mm.yyyy hh:mm`\n- **文字**：`@`\n\n代碼中的文字可以雙引號括住（`\"EUR\"`）、以反斜線跳脫（`\\x`）、寫成方括號中的貨幣符號（`[$€-407]`），而 `$ - + / ( ) :`、空格及 `€` 等符號則可直接書寫；區段可以用 `[Red]` 等色彩開頭。\n\n欄位代碼無法顯示的值（例如數字欄位中的字串）會以不套用格式的方式寫入。無效或不支援的代碼（`General`、分數、填滿字元、條件或經過時間），或未寫入的欄位，會引發 `EXCEL-WRITE-OPTION-ERROR`，並指出該欄位與問題"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.display_name": {
+          "source": "Column Masks",
+          "message": "欄遮罩"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.short_desc": {
+          "source": "The display format of each column as a mask, such as DD.MM.YYYY or #.##0,00 €",
+          "message": "以遮罩表示的各欄顯示格式，例如 DD.MM.YYYY 或 #.##0,00 €"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.desc": {
+          "source": "The display format of columns by column name as masks of the [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) module, the masks that CSV files and sheet contracts are read and written with: a date as `DD.MM.YYYY`, a time as `hh:mm AM`, an amount as `#.##0,00 €` or a share as `0.#%`.  Each mask becomes the display format code of its column (`DD.MM.YYYY` is `dd\\.mm\\.yyyy`, `#.##0,00 €` is `#,##0.00\" €\"`), so the cells keep their real values (a date stays a date and a number a number) and are shown as the mask describes, with these differences from text:\n- the group separator and decimal mark are shown as the language of whoever opens the file uses them; the mask's separators only say whether digits are grouped and how many decimals are shown\n- `Mon` shows the month name in the language of whoever opens the file\n- a final `#` shows at most 10 decimals, and a whole number with the decimal mark after it (`12.`)\n\nA mask without a display format raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the reason: `ZZ` (a cell holds no UTC offset), `MON` (there is no upper-case month name), `sss` not directly after `SS.`, a minute that is not directly after an hour or before the seconds, and a numeric month that is.  A column cannot have both a mask and a format code in `column_formats`",
+          "message": "依欄名稱指定欄的顯示格式，使用 [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) 模組的遮罩，也就是讀寫 CSV 檔案與工作表合約所用的遮罩：日期如 `DD.MM.YYYY`、時間如 `hh:mm AM`、金額如 `#.##0,00 €`、比例如 `0.#%`。每個遮罩會成為其欄的顯示格式代碼（`DD.MM.YYYY` 為 `dd\\.mm\\.yyyy`，`#.##0,00 €` 為 `#,##0.00\" €\"`），因此儲存格保留實際的值（日期仍是日期，數字仍是數字），並依遮罩的描述顯示，與文字的差異如下：\n- 分組分隔符號與小數點符號依開啟檔案者的語言使用方式顯示；遮罩的分隔符號只決定數字是否分組以及顯示幾位小數\n- `Mon` 以開啟檔案者的語言顯示月份名稱\n- 結尾的 `#` 最多顯示 10 位小數，整數則在後面加上小數點符號顯示（`12.`）\n\n沒有顯示格式的遮罩會引發 `EXCEL-WRITE-OPTION-ERROR`，並指出欄與原因：`ZZ`（儲存格不含 UTC 偏移）、`MON`（沒有大寫的月份名稱）、不緊接在 `SS.` 之後的 `sss`、不緊接在小時之後或秒之前的分鐘，以及位於該處的數字月份。一個欄不能同時有遮罩與 `column_formats` 中的格式代碼"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.display_name": {
+          "source": "Column Header Text",
+          "message": "欄標頭文字"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.short_desc": {
+          "source": "The header text of each column whose header is not its name",
+          "message": "標頭不是欄名稱之各欄的標頭文字"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.desc": {
+          "source": "The header text of columns by column name, for columns whose header is not their name.  The records are written by column name, so `headers` and the other column options name the columns as the records do; this option only changes the text of the header row",
+          "message": "依欄名稱指定標頭不是其名稱之欄的標頭文字。記錄依欄名稱寫入，因此 `headers` 與其他欄選項以記錄所用的名稱指定欄；此選項只變更標頭列的文字"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.display_name": {
+          "source": "Write Header Row",
+          "message": "寫入標頭列"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.short_desc": {
+          "source": "Write the column headers as the first row",
+          "message": "將欄標頭寫入為第一列"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.desc": {
+          "source": "Set to `false` to write no header row: the first record is written in the first row of the worksheet; the default is `true`",
+          "message": "設為 `false` 即不寫入標頭列：第一筆記錄寫入工作表的第一列；預設值為 `true`"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.display_name": {
+          "source": "Time Zone",
+          "message": "時區"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.short_desc": {
+          "source": "The time zone whose wall-clock time dates are written in",
+          "message": "日期以其當地時間寫入的時區"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.desc": {
+          "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
+          "message": "日期以其當地時間寫入的時區地區（例如 `Europe/Prague` 或 `America/New_York`），因為儲存格保存的是不含時區的日期與時間；若未指定，日期以其自身的當地時間寫入"
         }
       }
     }

@@ -483,6 +483,54 @@
           "source": "The display format of columns by their header name, so that whoever opens the file sees each value as intended: a date as `dd.mm.yyyy`, an amount as `#,##0.00`, or a share as `0.0%`.  The cells keep their real values (a date stays a date and a number a number); only the way they are shown changes.  A column without a format is written as without this option: dates as `yyyy-mm-dd hh:mm:ss` and numbers without a format.\n\nFormat codes are written as in Excel and LibreOffice:\n- **numbers**: `0` (a digit that is always shown), `#` (a digit shown when significant), `,` between digits (thousands grouping), `,` after the last digit (divide by 1000), `.` (the decimal point), and `E+00` (scientific notation); up to three sections for positive, negative and zero values separated by `;`, such as `#,##0.00;(#,##0.00)` or `#,##0.00;#,##0.00-`\n- **percentages**: a `%` in each section, such as `0.0%`; the value is a fraction, so `0.25` is shown as `25.0%`\n- **dates and times**: `yy` or `yyyy` (year), `m`, `mm`, `mmm` or `mmmm` (month as a number or a name), `d` or `dd` (day), `ddd` or `dddd` (weekday name), `h` or `hh` (hour), `m` or `mm` directly after an hour or before a second (minute), `s` or `ss` (second), `.0` to `.000` after the second (fractions of a second), and `AM/PM`, such as `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText in a code is written in double quotes (`\"EUR\"`), escaped with a backslash (`\\x`), as a currency symbol in brackets (`[$€-407]`), or as itself for `$ - + / ( ) :`, spaces and symbols such as `€`; a section can start with a color such as `[Red]`.\n\nA value that its column's code does not show, such as a string in a number column, is written without the format.  An invalid or unsupported code (`General`, fractions, fill characters, conditions, or elapsed times), or a column that is not written, raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the problem",
           "message": "Format wyświetlania kolumn według nazw ich nagłówków, tak aby każdy, kto otworzy plik, widział każdą wartość zgodnie z zamierzeniem: datę jako `dd.mm.yyyy`, kwotę jako `#,##0.00` lub udział jako `0.0%`. Komórki zachowują swoje rzeczywiste wartości (data pozostaje datą, a liczba liczbą); zmienia się jedynie sposób ich wyświetlania. Kolumna bez formatu jest zapisywana tak jak bez tej opcji: daty jako `yyyy-mm-dd hh:mm:ss`, a liczby bez formatu.\n\nKody formatów zapisuje się tak jak w programach Excel i LibreOffice:\n- **liczby**: `0` (cyfra wyświetlana zawsze), `#` (cyfra wyświetlana, gdy jest znacząca), `,` między cyframi (grupowanie tysięcy), `,` po ostatniej cyfrze (dzielenie przez 1000), `.` (separator dziesiętny) i `E+00` (notacja naukowa); maksymalnie trzy sekcje dla wartości dodatnich, ujemnych i zerowych, oddzielone `;`, np. `#,##0.00;(#,##0.00)` lub `#,##0.00;#,##0.00-`\n- **wartości procentowe**: `%` w każdej sekcji, np. `0.0%`; wartość jest ułamkiem, więc `0.25` jest wyświetlane jako `25.0%`\n- **daty i godziny**: `yy` lub `yyyy` (rok), `m`, `mm`, `mmm` lub `mmmm` (miesiąc jako liczba lub nazwa), `d` lub `dd` (dzień), `ddd` lub `dddd` (nazwa dnia tygodnia), `h` lub `hh` (godzina), `m` lub `mm` bezpośrednio po godzinie lub przed sekundą (minuta), `s` lub `ss` (sekunda), od `.0` do `.000` po sekundzie (ułamki sekundy) oraz `AM/PM`, np. `dd.mm.yyyy hh:mm`\n- **tekst**: `@`\n\nTekst w kodzie zapisuje się w cudzysłowie podwójnym (`\"EUR\"`), poprzedza ukośnikiem odwrotnym (`\\x`), zapisuje jako symbol waluty w nawiasach kwadratowych (`[$€-407]`) lub bezpośrednio w przypadku `$ - + / ( ) :`, spacji i symboli takich jak `€`; sekcja może zaczynać się od koloru, np. `[Red]`.\n\nWartość, której kod danej kolumny nie wyświetla, np. ciąg znaków w kolumnie liczbowej, jest zapisywana bez formatu. Nieprawidłowy lub nieobsługiwany kod (`General`, ułamki, znaki wypełnienia, warunki lub czas upływający) albo kolumna, która nie jest zapisywana, powoduje zgłoszenie błędu `EXCEL-WRITE-OPTION-ERROR` ze wskazaniem kolumny i problemu"
         },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.display_name": {
+          "source": "Column Masks",
+          "message": "Maski kolumn"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.short_desc": {
+          "source": "The display format of each column as a mask, such as DD.MM.YYYY or #.##0,00 €",
+          "message": "Format wyświetlania każdej kolumny jako maska, np. DD.MM.YYYY lub #.##0,00 €"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.desc": {
+          "source": "The display format of columns by column name as masks of the [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) module, the masks that CSV files and sheet contracts are read and written with: a date as `DD.MM.YYYY`, a time as `hh:mm AM`, an amount as `#.##0,00 €` or a share as `0.#%`.  Each mask becomes the display format code of its column (`DD.MM.YYYY` is `dd\\.mm\\.yyyy`, `#.##0,00 €` is `#,##0.00\" €\"`), so the cells keep their real values (a date stays a date and a number a number) and are shown as the mask describes, with these differences from text:\n- the group separator and decimal mark are shown as the language of whoever opens the file uses them; the mask's separators only say whether digits are grouped and how many decimals are shown\n- `Mon` shows the month name in the language of whoever opens the file\n- a final `#` shows at most 10 decimals, and a whole number with the decimal mark after it (`12.`)\n\nA mask without a display format raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the reason: `ZZ` (a cell holds no UTC offset), `MON` (there is no upper-case month name), `sss` not directly after `SS.`, a minute that is not directly after an hour or before the seconds, and a numeric month that is.  A column cannot have both a mask and a format code in `column_formats`",
+          "message": "Format wyświetlania kolumn według nazwy kolumny jako maski modułu [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html), czyli maski, z którymi odczytywane i zapisywane są pliki CSV i kontrakty arkuszy: data jako `DD.MM.YYYY`, godzina jako `hh:mm AM`, kwota jako `#.##0,00 €` lub udział jako `0.#%`.  Każda maska staje się kodem formatu wyświetlania swojej kolumny (`DD.MM.YYYY` to `dd\\.mm\\.yyyy`, `#.##0,00 €` to `#,##0.00\" €\"`), dzięki czemu komórki zachowują swoje rzeczywiste wartości (data pozostaje datą, a liczba liczbą) i są wyświetlane tak, jak opisuje maska, z tymi różnicami w stosunku do tekstu:\n- separator grup i znak dziesiętny są wyświetlane tak, jak używa ich język osoby otwierającej plik; separatory maski określają tylko, czy cyfry są grupowane i ile miejsc po przecinku jest wyświetlanych\n- `Mon` wyświetla nazwę miesiąca w języku osoby otwierającej plik\n- końcowy `#` wyświetla co najwyżej 10 miejsc po przecinku, a liczbę całkowitą ze znakiem dziesiętnym za nią (`12.`)\n\nMaska bez formatu wyświetlania powoduje `EXCEL-WRITE-OPTION-ERROR` z nazwą kolumny i przyczyną: `ZZ` (komórka nie zawiera przesunięcia względem UTC), `MON` (nie ma nazwy miesiąca wielkimi literami), `sss` nie bezpośrednio po `SS.`, minuta, która nie jest bezpośrednio po godzinie lub przed sekundami, oraz miesiąc liczbowy, który tam jest.  Kolumna nie może mieć jednocześnie maski i kodu formatu w `column_formats`"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.display_name": {
+          "source": "Column Header Text",
+          "message": "Tekst nagłówka kolumny"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.short_desc": {
+          "source": "The header text of each column whose header is not its name",
+          "message": "Tekst nagłówka każdej kolumny, której nagłówek nie jest jej nazwą"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.desc": {
+          "source": "The header text of columns by column name, for columns whose header is not their name.  The records are written by column name, so `headers` and the other column options name the columns as the records do; this option only changes the text of the header row",
+          "message": "Tekst nagłówka kolumn według nazwy kolumny, dla kolumn, których nagłówek nie jest ich nazwą.  Rekordy są zapisywane według nazwy kolumny, więc `headers` i pozostałe opcje kolumn nazywają kolumny tak jak rekordy; ta opcja zmienia tylko tekst wiersza nagłówka"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.display_name": {
+          "source": "Write Header Row",
+          "message": "Zapisz wiersz nagłówka"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.short_desc": {
+          "source": "Write the column headers as the first row",
+          "message": "Zapisuje nagłówki kolumn jako pierwszy wiersz"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.desc": {
+          "source": "Set to `false` to write no header row: the first record is written in the first row of the worksheet; the default is `true`",
+          "message": "Ustaw na `false`, aby nie zapisywać wiersza nagłówka: pierwszy rekord jest zapisywany w pierwszym wierszu arkusza; wartość domyślna to `true`"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.display_name": {
+          "source": "Time Zone",
+          "message": "Strefa czasowa"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.short_desc": {
+          "source": "The time zone whose wall-clock time dates are written in",
+          "message": "Strefa czasowa, w której czasie lokalnym zapisywane są daty"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.desc": {
+          "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
+          "message": "Region strefy czasowej (np. `Europe/Prague` lub `America/New_York`), w której czasie lokalnym zapisywane są daty, ponieważ komórka zawiera datę i godzinę bez strefy czasowej; jeśli nie jest podany, data jest zapisywana we własnym czasie lokalnym"
+        },
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.display_name": {
           "source": "Create Excel Spreadsheet Data",
           "message": "Utwórz dane arkusza kalkulacyjnego Excel"
@@ -578,6 +626,54 @@
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2Zvcm1hdHM.desc": {
           "source": "The display format of columns by their header name, so that whoever opens the file sees each value as intended: a date as `dd.mm.yyyy`, an amount as `#,##0.00`, or a share as `0.0%`.  The cells keep their real values (a date stays a date and a number a number); only the way they are shown changes.  A column without a format is written as without this option: dates as `yyyy-mm-dd hh:mm:ss` and numbers without a format.\n\nFormat codes are written as in Excel and LibreOffice:\n- **numbers**: `0` (a digit that is always shown), `#` (a digit shown when significant), `,` between digits (thousands grouping), `,` after the last digit (divide by 1000), `.` (the decimal point), and `E+00` (scientific notation); up to three sections for positive, negative and zero values separated by `;`, such as `#,##0.00;(#,##0.00)` or `#,##0.00;#,##0.00-`\n- **percentages**: a `%` in each section, such as `0.0%`; the value is a fraction, so `0.25` is shown as `25.0%`\n- **dates and times**: `yy` or `yyyy` (year), `m`, `mm`, `mmm` or `mmmm` (month as a number or a name), `d` or `dd` (day), `ddd` or `dddd` (weekday name), `h` or `hh` (hour), `m` or `mm` directly after an hour or before a second (minute), `s` or `ss` (second), `.0` to `.000` after the second (fractions of a second), and `AM/PM`, such as `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText in a code is written in double quotes (`\"EUR\"`), escaped with a backslash (`\\x`), as a currency symbol in brackets (`[$€-407]`), or as itself for `$ - + / ( ) :`, spaces and symbols such as `€`; a section can start with a color such as `[Red]`.\n\nA value that its column's code does not show, such as a string in a number column, is written without the format.  An invalid or unsupported code (`General`, fractions, fill characters, conditions, or elapsed times), or a column that is not written, raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the problem",
           "message": "Format wyświetlania kolumn według nazw ich nagłówków, tak aby każdy, kto otworzy plik, widział każdą wartość zgodnie z zamierzeniem: datę jako `dd.mm.yyyy`, kwotę jako `#,##0.00` lub udział jako `0.0%`. Komórki zachowują swoje rzeczywiste wartości (data pozostaje datą, a liczba liczbą); zmienia się jedynie sposób ich wyświetlania. Kolumna bez formatu jest zapisywana tak jak bez tej opcji: daty jako `yyyy-mm-dd hh:mm:ss`, a liczby bez formatu.\n\nKody formatów zapisuje się tak jak w programach Excel i LibreOffice:\n- **liczby**: `0` (cyfra wyświetlana zawsze), `#` (cyfra wyświetlana, gdy jest znacząca), `,` między cyframi (grupowanie tysięcy), `,` po ostatniej cyfrze (dzielenie przez 1000), `.` (separator dziesiętny) i `E+00` (notacja naukowa); maksymalnie trzy sekcje dla wartości dodatnich, ujemnych i zerowych, oddzielone `;`, np. `#,##0.00;(#,##0.00)` lub `#,##0.00;#,##0.00-`\n- **wartości procentowe**: `%` w każdej sekcji, np. `0.0%`; wartość jest ułamkiem, więc `0.25` jest wyświetlane jako `25.0%`\n- **daty i godziny**: `yy` lub `yyyy` (rok), `m`, `mm`, `mmm` lub `mmmm` (miesiąc jako liczba lub nazwa), `d` lub `dd` (dzień), `ddd` lub `dddd` (nazwa dnia tygodnia), `h` lub `hh` (godzina), `m` lub `mm` bezpośrednio po godzinie lub przed sekundą (minuta), `s` lub `ss` (sekunda), od `.0` do `.000` po sekundzie (ułamki sekundy) oraz `AM/PM`, np. `dd.mm.yyyy hh:mm`\n- **tekst**: `@`\n\nTekst w kodzie zapisuje się w cudzysłowie podwójnym (`\"EUR\"`), poprzedza ukośnikiem odwrotnym (`\\x`), zapisuje jako symbol waluty w nawiasach kwadratowych (`[$€-407]`) lub bezpośrednio w przypadku `$ - + / ( ) :`, spacji i symboli takich jak `€`; sekcja może zaczynać się od koloru, np. `[Red]`.\n\nWartość, której kod danej kolumny nie wyświetla, np. ciąg znaków w kolumnie liczbowej, jest zapisywana bez formatu. Nieprawidłowy lub nieobsługiwany kod (`General`, ułamki, znaki wypełnienia, warunki lub czas upływający) albo kolumna, która nie jest zapisywana, powoduje zgłoszenie błędu `EXCEL-WRITE-OPTION-ERROR` ze wskazaniem kolumny i problemu"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.display_name": {
+          "source": "Column Masks",
+          "message": "Maski kolumn"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.short_desc": {
+          "source": "The display format of each column as a mask, such as DD.MM.YYYY or #.##0,00 €",
+          "message": "Format wyświetlania każdej kolumny jako maska, np. DD.MM.YYYY lub #.##0,00 €"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.desc": {
+          "source": "The display format of columns by column name as masks of the [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) module, the masks that CSV files and sheet contracts are read and written with: a date as `DD.MM.YYYY`, a time as `hh:mm AM`, an amount as `#.##0,00 €` or a share as `0.#%`.  Each mask becomes the display format code of its column (`DD.MM.YYYY` is `dd\\.mm\\.yyyy`, `#.##0,00 €` is `#,##0.00\" €\"`), so the cells keep their real values (a date stays a date and a number a number) and are shown as the mask describes, with these differences from text:\n- the group separator and decimal mark are shown as the language of whoever opens the file uses them; the mask's separators only say whether digits are grouped and how many decimals are shown\n- `Mon` shows the month name in the language of whoever opens the file\n- a final `#` shows at most 10 decimals, and a whole number with the decimal mark after it (`12.`)\n\nA mask without a display format raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the reason: `ZZ` (a cell holds no UTC offset), `MON` (there is no upper-case month name), `sss` not directly after `SS.`, a minute that is not directly after an hour or before the seconds, and a numeric month that is.  A column cannot have both a mask and a format code in `column_formats`",
+          "message": "Format wyświetlania kolumn według nazwy kolumny jako maski modułu [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html), czyli maski, z którymi odczytywane i zapisywane są pliki CSV i kontrakty arkuszy: data jako `DD.MM.YYYY`, godzina jako `hh:mm AM`, kwota jako `#.##0,00 €` lub udział jako `0.#%`.  Każda maska staje się kodem formatu wyświetlania swojej kolumny (`DD.MM.YYYY` to `dd\\.mm\\.yyyy`, `#.##0,00 €` to `#,##0.00\" €\"`), dzięki czemu komórki zachowują swoje rzeczywiste wartości (data pozostaje datą, a liczba liczbą) i są wyświetlane tak, jak opisuje maska, z tymi różnicami w stosunku do tekstu:\n- separator grup i znak dziesiętny są wyświetlane tak, jak używa ich język osoby otwierającej plik; separatory maski określają tylko, czy cyfry są grupowane i ile miejsc po przecinku jest wyświetlanych\n- `Mon` wyświetla nazwę miesiąca w języku osoby otwierającej plik\n- końcowy `#` wyświetla co najwyżej 10 miejsc po przecinku, a liczbę całkowitą ze znakiem dziesiętnym za nią (`12.`)\n\nMaska bez formatu wyświetlania powoduje `EXCEL-WRITE-OPTION-ERROR` z nazwą kolumny i przyczyną: `ZZ` (komórka nie zawiera przesunięcia względem UTC), `MON` (nie ma nazwy miesiąca wielkimi literami), `sss` nie bezpośrednio po `SS.`, minuta, która nie jest bezpośrednio po godzinie lub przed sekundami, oraz miesiąc liczbowy, który tam jest.  Kolumna nie może mieć jednocześnie maski i kodu formatu w `column_formats`"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.display_name": {
+          "source": "Column Header Text",
+          "message": "Tekst nagłówka kolumny"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.short_desc": {
+          "source": "The header text of each column whose header is not its name",
+          "message": "Tekst nagłówka każdej kolumny, której nagłówek nie jest jej nazwą"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.desc": {
+          "source": "The header text of columns by column name, for columns whose header is not their name.  The records are written by column name, so `headers` and the other column options name the columns as the records do; this option only changes the text of the header row",
+          "message": "Tekst nagłówka kolumn według nazwy kolumny, dla kolumn, których nagłówek nie jest ich nazwą.  Rekordy są zapisywane według nazwy kolumny, więc `headers` i pozostałe opcje kolumn nazywają kolumny tak jak rekordy; ta opcja zmienia tylko tekst wiersza nagłówka"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.display_name": {
+          "source": "Write Header Row",
+          "message": "Zapisz wiersz nagłówka"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.short_desc": {
+          "source": "Write the column headers as the first row",
+          "message": "Zapisuje nagłówki kolumn jako pierwszy wiersz"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.desc": {
+          "source": "Set to `false` to write no header row: the first record is written in the first row of the worksheet; the default is `true`",
+          "message": "Ustaw na `false`, aby nie zapisywać wiersza nagłówka: pierwszy rekord jest zapisywany w pierwszym wierszu arkusza; wartość domyślna to `true`"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.display_name": {
+          "source": "Time Zone",
+          "message": "Strefa czasowa"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.short_desc": {
+          "source": "The time zone whose wall-clock time dates are written in",
+          "message": "Strefa czasowa, w której czasie lokalnym zapisywane są daty"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.desc": {
+          "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
+          "message": "Region strefy czasowej (np. `Europe/Prague` lub `America/New_York`), w której czasie lokalnym zapisywane są daty, ponieważ komórka zawiera datę i godzinę bez strefy czasowej; jeśli nie jest podany, data jest zapisywana we własnym czasie lokalnym"
         }
       }
     }

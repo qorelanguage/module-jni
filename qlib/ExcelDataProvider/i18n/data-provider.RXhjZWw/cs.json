@@ -483,6 +483,54 @@
           "source": "The display format of columns by their header name, so that whoever opens the file sees each value as intended: a date as `dd.mm.yyyy`, an amount as `#,##0.00`, or a share as `0.0%`.  The cells keep their real values (a date stays a date and a number a number); only the way they are shown changes.  A column without a format is written as without this option: dates as `yyyy-mm-dd hh:mm:ss` and numbers without a format.\n\nFormat codes are written as in Excel and LibreOffice:\n- **numbers**: `0` (a digit that is always shown), `#` (a digit shown when significant), `,` between digits (thousands grouping), `,` after the last digit (divide by 1000), `.` (the decimal point), and `E+00` (scientific notation); up to three sections for positive, negative and zero values separated by `;`, such as `#,##0.00;(#,##0.00)` or `#,##0.00;#,##0.00-`\n- **percentages**: a `%` in each section, such as `0.0%`; the value is a fraction, so `0.25` is shown as `25.0%`\n- **dates and times**: `yy` or `yyyy` (year), `m`, `mm`, `mmm` or `mmmm` (month as a number or a name), `d` or `dd` (day), `ddd` or `dddd` (weekday name), `h` or `hh` (hour), `m` or `mm` directly after an hour or before a second (minute), `s` or `ss` (second), `.0` to `.000` after the second (fractions of a second), and `AM/PM`, such as `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText in a code is written in double quotes (`\"EUR\"`), escaped with a backslash (`\\x`), as a currency symbol in brackets (`[$€-407]`), or as itself for `$ - + / ( ) :`, spaces and symbols such as `€`; a section can start with a color such as `[Red]`.\n\nA value that its column's code does not show, such as a string in a number column, is written without the format.  An invalid or unsupported code (`General`, fractions, fill characters, conditions, or elapsed times), or a column that is not written, raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the problem",
           "message": "Formát zobrazení sloupců podle názvu jejich záhlaví, aby každý, kdo soubor otevře, viděl každou hodnotu tak, jak je zamýšleno: datum jako `dd.mm.yyyy`, částku jako `#,##0.00` nebo podíl jako `0.0%`. Buňky si zachovávají své skutečné hodnoty (datum zůstává datem a číslo číslem); mění se pouze způsob jejich zobrazení. Sloupec bez formátu se zapíše jako bez této volby: data jako `yyyy-mm-dd hh:mm:ss` a čísla bez formátu.\n\nKódy formátů se zapisují stejně jako v aplikacích Excel a LibreOffice:\n- **čísla**: `0` (číslice, která se zobrazí vždy), `#` (číslice zobrazená, je-li významná), `,` mezi číslicemi (seskupení tisíců), `,` za poslední číslicí (dělení 1000), `.` (desetinná tečka) a `E+00` (vědecký zápis); až tři oddíly pro kladné, záporné a nulové hodnoty oddělené `;`, například `#,##0.00;(#,##0.00)` nebo `#,##0.00;#,##0.00-`\n- **procenta**: `%` v každém oddílu, například `0.0%`; hodnota je zlomek, takže `0.25` se zobrazí jako `25.0%`\n- **data a časy**: `yy` nebo `yyyy` (rok), `m`, `mm`, `mmm` nebo `mmmm` (měsíc jako číslo nebo název), `d` nebo `dd` (den), `ddd` nebo `dddd` (název dne v týdnu), `h` nebo `hh` (hodina), `m` nebo `mm` přímo za hodinou nebo před sekundou (minuta), `s` nebo `ss` (sekunda), `.0` až `.000` za sekundou (zlomky sekundy) a `AM/PM`, například `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText v kódu se zapisuje ve dvojitých uvozovkách (`\"EUR\"`), escapuje se zpětným lomítkem (`\\x`), zapisuje se jako symbol měny v hranatých závorkách (`[$€-407]`) nebo přímo v případě `$ - + / ( ) :`, mezer a symbolů jako `€`; oddíl může začínat barvou, například `[Red]`.\n\nHodnota, kterou kód jejího sloupce nezobrazuje, například řetězec v číselném sloupci, se zapíše bez formátu. Neplatný nebo nepodporovaný kód (`General`, zlomky, výplňové znaky, podmínky nebo uplynulé časy) nebo sloupec, který se nezapisuje, vyvolá `EXCEL-WRITE-OPTION-ERROR` s uvedením sloupce a problému"
         },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.display_name": {
+          "source": "Column Masks",
+          "message": "Masky sloupců"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.short_desc": {
+          "source": "The display format of each column as a mask, such as DD.MM.YYYY or #.##0,00 €",
+          "message": "Formát zobrazení každého sloupce jako maska, například DD.MM.YYYY nebo #.##0,00 €"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.desc": {
+          "source": "The display format of columns by column name as masks of the [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) module, the masks that CSV files and sheet contracts are read and written with: a date as `DD.MM.YYYY`, a time as `hh:mm AM`, an amount as `#.##0,00 €` or a share as `0.#%`.  Each mask becomes the display format code of its column (`DD.MM.YYYY` is `dd\\.mm\\.yyyy`, `#.##0,00 €` is `#,##0.00\" €\"`), so the cells keep their real values (a date stays a date and a number a number) and are shown as the mask describes, with these differences from text:\n- the group separator and decimal mark are shown as the language of whoever opens the file uses them; the mask's separators only say whether digits are grouped and how many decimals are shown\n- `Mon` shows the month name in the language of whoever opens the file\n- a final `#` shows at most 10 decimals, and a whole number with the decimal mark after it (`12.`)\n\nA mask without a display format raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the reason: `ZZ` (a cell holds no UTC offset), `MON` (there is no upper-case month name), `sss` not directly after `SS.`, a minute that is not directly after an hour or before the seconds, and a numeric month that is.  A column cannot have both a mask and a format code in `column_formats`",
+          "message": "Formát zobrazení sloupců podle názvu sloupce jako masky modulu [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html), tedy masky, se kterými se čtou a zapisují soubory CSV a smlouvy listů: datum jako `DD.MM.YYYY`, čas jako `hh:mm AM`, částka jako `#.##0,00 €` nebo podíl jako `0.#%`.  Každá maska se stane kódem formátu zobrazení svého sloupce (`DD.MM.YYYY` je `dd\\.mm\\.yyyy`, `#.##0,00 €` je `#,##0.00\" €\"`), takže buňky si ponechají své skutečné hodnoty (datum zůstane datem a číslo číslem) a zobrazí se tak, jak maska popisuje, s těmito rozdíly oproti textu:\n- oddělovač skupin a desetinná značka se zobrazují tak, jak je používá jazyk toho, kdo soubor otevře; oddělovače masky určují jen, zda se číslice seskupují a kolik desetinných míst se zobrazí\n- `Mon` zobrazí název měsíce v jazyce toho, kdo soubor otevře\n- koncový `#` zobrazí nejvýše 10 desetinných míst a celé číslo s desetinnou značkou za ním (`12.`)\n\nMaska bez formátu zobrazení vyvolá `EXCEL-WRITE-OPTION-ERROR` s názvem sloupce a důvodem: `ZZ` (buňka neobsahuje posun od UTC), `MON` (neexistuje název měsíce velkými písmeny), `sss` ne bezprostředně za `SS.`, minuta, která není bezprostředně za hodinou nebo před sekundami, a číselný měsíc, který tam je.  Sloupec nemůže mít současně masku i kód formátu v `column_formats`"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.display_name": {
+          "source": "Column Header Text",
+          "message": "Text záhlaví sloupců"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.short_desc": {
+          "source": "The header text of each column whose header is not its name",
+          "message": "Text záhlaví každého sloupce, jehož záhlaví není jeho název"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.desc": {
+          "source": "The header text of columns by column name, for columns whose header is not their name.  The records are written by column name, so `headers` and the other column options name the columns as the records do; this option only changes the text of the header row",
+          "message": "Text záhlaví sloupců podle názvu sloupce, pro sloupce, jejichž záhlaví není jejich název.  Záznamy se zapisují podle názvu sloupce, takže `headers` a ostatní volby sloupců pojmenovávají sloupce stejně jako záznamy; tato volba mění pouze text řádku záhlaví"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.display_name": {
+          "source": "Write Header Row",
+          "message": "Zapsat řádek záhlaví"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.short_desc": {
+          "source": "Write the column headers as the first row",
+          "message": "Zapsat záhlaví sloupců jako první řádek"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.desc": {
+          "source": "Set to `false` to write no header row: the first record is written in the first row of the worksheet; the default is `true`",
+          "message": "Nastavte na `false`, aby se nezapsal žádný řádek záhlaví: první záznam se zapíše do prvního řádku listu; výchozí hodnota je `true`"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.display_name": {
+          "source": "Time Zone",
+          "message": "Časové pásmo"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.short_desc": {
+          "source": "The time zone whose wall-clock time dates are written in",
+          "message": "Časové pásmo, v jehož místním čase se zapisují data"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.desc": {
+          "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
+          "message": "Oblast časového pásma (například `Europe/Prague` nebo `America/New_York`), v jehož místním čase se zapisují data, protože buňka obsahuje datum a čas bez časového pásma; pokud není zadána, datum se zapíše ve svém vlastním místním čase"
+        },
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.display_name": {
           "source": "Create Excel Spreadsheet Data",
           "message": "Vytvořit data tabulky Excel"
@@ -578,6 +626,54 @@
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2Zvcm1hdHM.desc": {
           "source": "The display format of columns by their header name, so that whoever opens the file sees each value as intended: a date as `dd.mm.yyyy`, an amount as `#,##0.00`, or a share as `0.0%`.  The cells keep their real values (a date stays a date and a number a number); only the way they are shown changes.  A column without a format is written as without this option: dates as `yyyy-mm-dd hh:mm:ss` and numbers without a format.\n\nFormat codes are written as in Excel and LibreOffice:\n- **numbers**: `0` (a digit that is always shown), `#` (a digit shown when significant), `,` between digits (thousands grouping), `,` after the last digit (divide by 1000), `.` (the decimal point), and `E+00` (scientific notation); up to three sections for positive, negative and zero values separated by `;`, such as `#,##0.00;(#,##0.00)` or `#,##0.00;#,##0.00-`\n- **percentages**: a `%` in each section, such as `0.0%`; the value is a fraction, so `0.25` is shown as `25.0%`\n- **dates and times**: `yy` or `yyyy` (year), `m`, `mm`, `mmm` or `mmmm` (month as a number or a name), `d` or `dd` (day), `ddd` or `dddd` (weekday name), `h` or `hh` (hour), `m` or `mm` directly after an hour or before a second (minute), `s` or `ss` (second), `.0` to `.000` after the second (fractions of a second), and `AM/PM`, such as `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText in a code is written in double quotes (`\"EUR\"`), escaped with a backslash (`\\x`), as a currency symbol in brackets (`[$€-407]`), or as itself for `$ - + / ( ) :`, spaces and symbols such as `€`; a section can start with a color such as `[Red]`.\n\nA value that its column's code does not show, such as a string in a number column, is written without the format.  An invalid or unsupported code (`General`, fractions, fill characters, conditions, or elapsed times), or a column that is not written, raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the problem",
           "message": "Formát zobrazení sloupců podle názvu jejich záhlaví, aby každý, kdo soubor otevře, viděl každou hodnotu tak, jak je zamýšleno: datum jako `dd.mm.yyyy`, částku jako `#,##0.00` nebo podíl jako `0.0%`. Buňky si zachovávají své skutečné hodnoty (datum zůstává datem a číslo číslem); mění se pouze způsob jejich zobrazení. Sloupec bez formátu se zapíše jako bez této volby: data jako `yyyy-mm-dd hh:mm:ss` a čísla bez formátu.\n\nKódy formátů se zapisují stejně jako v aplikacích Excel a LibreOffice:\n- **čísla**: `0` (číslice, která se zobrazí vždy), `#` (číslice zobrazená, je-li významná), `,` mezi číslicemi (seskupení tisíců), `,` za poslední číslicí (dělení 1000), `.` (desetinná tečka) a `E+00` (vědecký zápis); až tři oddíly pro kladné, záporné a nulové hodnoty oddělené `;`, například `#,##0.00;(#,##0.00)` nebo `#,##0.00;#,##0.00-`\n- **procenta**: `%` v každém oddílu, například `0.0%`; hodnota je zlomek, takže `0.25` se zobrazí jako `25.0%`\n- **data a časy**: `yy` nebo `yyyy` (rok), `m`, `mm`, `mmm` nebo `mmmm` (měsíc jako číslo nebo název), `d` nebo `dd` (den), `ddd` nebo `dddd` (název dne v týdnu), `h` nebo `hh` (hodina), `m` nebo `mm` přímo za hodinou nebo před sekundou (minuta), `s` nebo `ss` (sekunda), `.0` až `.000` za sekundou (zlomky sekundy) a `AM/PM`, například `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText v kódu se zapisuje ve dvojitých uvozovkách (`\"EUR\"`), escapuje se zpětným lomítkem (`\\x`), zapisuje se jako symbol měny v hranatých závorkách (`[$€-407]`) nebo přímo v případě `$ - + / ( ) :`, mezer a symbolů jako `€`; oddíl může začínat barvou, například `[Red]`.\n\nHodnota, kterou kód jejího sloupce nezobrazuje, například řetězec v číselném sloupci, se zapíše bez formátu. Neplatný nebo nepodporovaný kód (`General`, zlomky, výplňové znaky, podmínky nebo uplynulé časy) nebo sloupec, který se nezapisuje, vyvolá `EXCEL-WRITE-OPTION-ERROR` s uvedením sloupce a problému"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.display_name": {
+          "source": "Column Masks",
+          "message": "Masky sloupců"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.short_desc": {
+          "source": "The display format of each column as a mask, such as DD.MM.YYYY or #.##0,00 €",
+          "message": "Formát zobrazení každého sloupce jako maska, například DD.MM.YYYY nebo #.##0,00 €"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.desc": {
+          "source": "The display format of columns by column name as masks of the [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) module, the masks that CSV files and sheet contracts are read and written with: a date as `DD.MM.YYYY`, a time as `hh:mm AM`, an amount as `#.##0,00 €` or a share as `0.#%`.  Each mask becomes the display format code of its column (`DD.MM.YYYY` is `dd\\.mm\\.yyyy`, `#.##0,00 €` is `#,##0.00\" €\"`), so the cells keep their real values (a date stays a date and a number a number) and are shown as the mask describes, with these differences from text:\n- the group separator and decimal mark are shown as the language of whoever opens the file uses them; the mask's separators only say whether digits are grouped and how many decimals are shown\n- `Mon` shows the month name in the language of whoever opens the file\n- a final `#` shows at most 10 decimals, and a whole number with the decimal mark after it (`12.`)\n\nA mask without a display format raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the reason: `ZZ` (a cell holds no UTC offset), `MON` (there is no upper-case month name), `sss` not directly after `SS.`, a minute that is not directly after an hour or before the seconds, and a numeric month that is.  A column cannot have both a mask and a format code in `column_formats`",
+          "message": "Formát zobrazení sloupců podle názvu sloupce jako masky modulu [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html), tedy masky, se kterými se čtou a zapisují soubory CSV a smlouvy listů: datum jako `DD.MM.YYYY`, čas jako `hh:mm AM`, částka jako `#.##0,00 €` nebo podíl jako `0.#%`.  Každá maska se stane kódem formátu zobrazení svého sloupce (`DD.MM.YYYY` je `dd\\.mm\\.yyyy`, `#.##0,00 €` je `#,##0.00\" €\"`), takže buňky si ponechají své skutečné hodnoty (datum zůstane datem a číslo číslem) a zobrazí se tak, jak maska popisuje, s těmito rozdíly oproti textu:\n- oddělovač skupin a desetinná značka se zobrazují tak, jak je používá jazyk toho, kdo soubor otevře; oddělovače masky určují jen, zda se číslice seskupují a kolik desetinných míst se zobrazí\n- `Mon` zobrazí název měsíce v jazyce toho, kdo soubor otevře\n- koncový `#` zobrazí nejvýše 10 desetinných míst a celé číslo s desetinnou značkou za ním (`12.`)\n\nMaska bez formátu zobrazení vyvolá `EXCEL-WRITE-OPTION-ERROR` s názvem sloupce a důvodem: `ZZ` (buňka neobsahuje posun od UTC), `MON` (neexistuje název měsíce velkými písmeny), `sss` ne bezprostředně za `SS.`, minuta, která není bezprostředně za hodinou nebo před sekundami, a číselný měsíc, který tam je.  Sloupec nemůže mít současně masku i kód formátu v `column_formats`"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.display_name": {
+          "source": "Column Header Text",
+          "message": "Text záhlaví sloupců"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.short_desc": {
+          "source": "The header text of each column whose header is not its name",
+          "message": "Text záhlaví každého sloupce, jehož záhlaví není jeho název"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.desc": {
+          "source": "The header text of columns by column name, for columns whose header is not their name.  The records are written by column name, so `headers` and the other column options name the columns as the records do; this option only changes the text of the header row",
+          "message": "Text záhlaví sloupců podle názvu sloupce, pro sloupce, jejichž záhlaví není jejich název.  Záznamy se zapisují podle názvu sloupce, takže `headers` a ostatní volby sloupců pojmenovávají sloupce stejně jako záznamy; tato volba mění pouze text řádku záhlaví"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.display_name": {
+          "source": "Write Header Row",
+          "message": "Zapsat řádek záhlaví"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.short_desc": {
+          "source": "Write the column headers as the first row",
+          "message": "Zapsat záhlaví sloupců jako první řádek"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.desc": {
+          "source": "Set to `false` to write no header row: the first record is written in the first row of the worksheet; the default is `true`",
+          "message": "Nastavte na `false`, aby se nezapsal žádný řádek záhlaví: první záznam se zapíše do prvního řádku listu; výchozí hodnota je `true`"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.display_name": {
+          "source": "Time Zone",
+          "message": "Časové pásmo"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.short_desc": {
+          "source": "The time zone whose wall-clock time dates are written in",
+          "message": "Časové pásmo, v jehož místním čase se zapisují data"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.desc": {
+          "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
+          "message": "Oblast časového pásma (například `Europe/Prague` nebo `America/New_York`), v jehož místním čase se zapisují data, protože buňka obsahuje datum a čas bez časového pásma; pokud není zadána, datum se zapíše ve svém vlastním místním čase"
         }
       }
     }

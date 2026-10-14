@@ -44,24 +44,24 @@
           "message": "색상"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.short_desc": {
-          "source": "The color of the light (note that the `Alpha` value is ignored)",
-          "message": "조명의 색상(`Alpha` 값은 무시됨)"
+          "source": "The color of the light; its opacity (`a`) is ignored",
+          "message": "조명의 색상, 불투명도(`a`)는 무시됩니다"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.desc": {
           "source": "The color of the light",
           "message": "조명의 색상"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.display_name": {
-          "source": "Alpha",
-          "message": "알파"
+          "source": "Opacity",
+          "message": "불투명도"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.short_desc": {
-          "source": "Alpha (transparency) component as an integer from 0 - 255",
-          "message": "0 - 255 사이의 정수로 표현된 알파 (투명도) 구성 요소"
+          "source": "Opacity, from 0 (transparent) to 1 (opaque)",
+          "message": "불투명도, 0(투명)에서 1(불투명)까지"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.YQ.desc": {
-          "source": "Alpha (transparency) component as an integer from `0` - `255`",
-          "message": "`0` - `255` 사이의 정수로 표현된 알파 (투명도) 구성 요소"
+          "source": "Opacity, from `0` (transparent) to `1` (opaque)",
+          "message": "불투명도, `0`(투명)에서 `1`(불투명)까지"
         },
         "app.QnVzeWxpZ2h0.action.dXBkYXRl.option.Y29sb3I.field.Yg.display_name": {
           "source": "Blue",

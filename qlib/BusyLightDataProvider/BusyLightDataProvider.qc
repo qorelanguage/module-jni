@@ -132,7 +132,7 @@ public class BusyLightUpdateMessageDataType inherits HashDataType {
             "color": {
                 "display_name": "Color",
                 "desc": "The color of the light",
-                "short_desc": "The color of the light (note that the `Alpha` value is ignored)",
+                "short_desc": "The color of the light; its opacity (`a`) is ignored",
                 "type": RgbColorDataType,
             },
             "on": {
