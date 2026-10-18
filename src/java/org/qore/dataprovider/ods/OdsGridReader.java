@@ -50,6 +50,10 @@ import org.qore.jni.Hash;
  * sheet row by row, whether each sheet is hidden, its merged ranges, and its formula text in A1 notation, plus the
  * document's named ranges.  Repeated rows and cells are expanded only up to the last cell with content, so the
  * million empty rows an ODS sheet typically ends with are never materialized.
+ *
+ * The document is read as it is streamed, in one pass over its content (see OdsSheetReader), so a document of any
+ * size is read in bounded memory: the rows after the maximum number of rows read are counted but not kept.  The grid
+ * is the one that ODFDOM's document model gives (see readGridDom()).
  */
 public class OdsGridReader {
     private static final String TABLE_NS = OdfDocumentNamespace.TABLE.getUri();
@@ -74,11 +78,30 @@ public class OdsGridReader {
     /**
      * Reads a spreadsheet document as a raw grid.
      *
+     * The content is copied to a temporary file, in bounded memory, which is deleted when the document has been read.
+     *
      * @param stream the document content; closed when the document has been read
      * @param max_rows the maximum number of rows read per sheet; a sheet with more rows reports its row count
      * @return a hash with the keys format, sheets, and named_ranges
      */
     public static Hash readGrid(java.io.InputStream stream, int max_rows) throws Throwable {
+        try (java.io.InputStream in = stream) {
+            if (max_rows <= 0) {
+                throw new IllegalArgumentException("max_rows must be positive; got " + max_rows);
+            }
+            return OdsSheetReader.readGrid(in, max_rows, ZoneId.systemDefault());
+        }
+    }
+
+    /**
+     * Reads a spreadsheet document into memory as a raw grid with ODFDOM's document model, as the profile read every
+     * document before it was streamed; the grid read as it is streamed must be the same
+     *
+     * @param stream the document content; closed when the document has been read
+     * @param max_rows the maximum number of rows read per sheet; a sheet with more rows reports its row count
+     * @return a hash with the keys format, sheets, and named_ranges
+     */
+    static Hash readGridDom(java.io.InputStream stream, int max_rows) throws Throwable {
         if (max_rows <= 0) {
             stream.close();
             throw new IllegalArgumentException("max_rows must be positive; got " + max_rows);

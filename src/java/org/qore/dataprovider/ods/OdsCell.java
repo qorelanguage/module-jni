@@ -52,11 +52,15 @@ final class OdsCell {
     private final boolean has_text;
     // the table:formula attribute in ODF syntax; null if not set or empty
     private final String formula;
+    // the number of rows and columns that the cell spans (table:number-rows-spanned, table:number-columns-spanned)
+    private final int rows_spanned;
+    private final int cols_spanned;
     // true if LibreOffice's calcext:value-type attribute marks the cell as an error
     private final boolean error;
 
     private OdsCell(String value_type, String value, String boolean_value, String date_value, String time_value,
-            String display_text, boolean has_text, String formula, boolean error) {
+            String display_text, boolean has_text, String formula, boolean error, int rows_spanned,
+            int cols_spanned) {
         this.value_type = value_type;
         this.value = value;
         this.boolean_value = boolean_value;
@@ -66,6 +70,8 @@ final class OdsCell {
         this.has_text = has_text;
         this.formula = formula;
         this.error = error;
+        this.rows_spanned = rows_spanned;
+        this.cols_spanned = cols_spanned;
     }
 
     /**
@@ -91,6 +97,8 @@ final class OdsCell {
             formula = null;
         }
         boolean error = "error".equals(xr.getAttributeValue(OdsSheetReader.NS_CALCEXT, "value-type"));
+        int rows_spanned = getSpan(xr.getAttributeValue(OdsSheetReader.NS_TABLE, "number-rows-spanned"));
+        int cols_spanned = getSpan(xr.getAttributeValue(OdsSheetReader.NS_TABLE, "number-columns-spanned"));
 
         StringBuilder display = new StringBuilder();
         boolean has_text = false;
@@ -163,7 +171,35 @@ final class OdsCell {
             }
         }
         return new OdsCell(value_type, value, boolean_value, date_value, time_value, display.toString(), has_text,
-            formula, error);
+            formula, error, rows_spanned, cols_spanned);
+    }
+
+    /**
+     * Returns the number of rows or columns of a span attribute: 1 if it is missing or invalid
+     */
+    private static int getSpan(String value) {
+        if (value == null || value.isEmpty()) {
+            return 1;
+        }
+        try {
+            return Math.max(1, Integer.parseInt(value));
+        } catch (NumberFormatException e) {
+            return 1;
+        }
+    }
+
+    /**
+     * Returns the number of rows that the cell spans (table:number-rows-spanned), 1 if not merged
+     */
+    int getRowsSpanned() {
+        return rows_spanned;
+    }
+
+    /**
+     * Returns the number of columns that the cell spans (table:number-columns-spanned), 1 if not merged
+     */
+    int getColumnsSpanned() {
+        return cols_spanned;
     }
 
     /**

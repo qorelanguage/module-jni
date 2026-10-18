@@ -604,6 +604,10 @@ module ExcelDataProvider {
       file, deleted with the provider
     - fixed a worksheet provider created without input failing with a Java exception; it has no records
 
+    - the \c profile action reads an .xlsx workbook one sheet at a time as it is streamed, keeping the rows up to
+      \c max_rows and counting the others, so a workbook of any size is profiled in bounded memory; before, the
+      workbook was loaded in memory; .xls workbooks are still read in memory
+
     @subsection ExcelDataProvider_v1_0 ExcelDataProvider v1.0
     - initial release
 */

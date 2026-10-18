@@ -122,6 +122,10 @@ final class XlsxSheetSource implements SheetSource {
     // the defined names of the workbook: {name, 0-based local sheet index or null, function attribute or null,
     // formula}
     private ArrayList<String[]> defined_names = new ArrayList<String[]>();
+    // true if the merged regions of the sheet are read by the passes over its rows
+    private boolean read_merged = false;
+    // the merged regions read by the last pass that reached the end of the sheet data, in document order
+    private ArrayList<CellRangeAddress> merged_regions = new ArrayList<CellRangeAddress>();
     // the workbook used to parse and render shared formulas, created on first use; null if not yet created
     private XSSFWorkbook formula_workbook;
     private XSSFEvaluationWorkbook formula_eval;
@@ -178,6 +182,30 @@ final class XlsxSheetSource implements SheetSource {
      */
     static XlsxSheetSource open(File file, String sheet_name) throws IOException, InvalidFormatException {
         return open(file, null, sheet_name);
+    }
+
+    /**
+     * Opens the worksheet at the given 0-based position of a workbook file, as XSSFWorkbook.getSheetAt() gives it
+     *
+     * @param file the workbook file
+     * @param index the 0-based position of the sheet in the workbook
+     */
+    static XlsxSheetSource openAt(File file, int index) throws IOException, InvalidFormatException {
+        XlsxSheetSource rv = null;
+        try {
+            rv = new XlsxSheetSource(openPackage(file), null);
+            rv.selectSheetAt(index);
+            return rv;
+        } catch (Throwable t) {
+            try {
+                if (rv != null) {
+                    rv.close();
+                }
+            } catch (Throwable t1) {
+                t.addSuppressed(t1);
+            }
+            throw t;
+        }
     }
 
     private static XlsxSheetSource open(File file, Path tmp, String sheet_name) throws IOException,
@@ -249,6 +277,19 @@ final class XlsxSheetSource implements SheetSource {
                 rv.add(h);
             }
             return rv;
+        } finally {
+            pkg.revert();
+        }
+    }
+
+    /**
+     * Returns the defined names of a workbook file in workbook order, as XSSFWorkbook.getAllNames() gives them: for
+     * each, {name, 0-based local sheet index or null, function attribute or null, formula}
+     */
+    static ArrayList<String[]> getDefinedNames(File file) throws IOException, InvalidFormatException {
+        OPCPackage pkg = openPackage(file);
+        try {
+            return readWorkbook(pkg, XMLHelper.newXMLInputFactory()).names;
         } finally {
             pkg.revert();
         }
@@ -326,6 +367,21 @@ final class XlsxSheetSource implements SheetSource {
                 throw new RuntimeException(String.format("sheet %s is unknown", sheet_name));
             }
         }
+        useSheet(info, sheet);
+    }
+
+    /**
+     * Reads the workbook part and selects the sheet at the given 0-based position as XSSFWorkbook.getSheetAt() does
+     */
+    private void selectSheetAt(int index) throws IOException, InvalidFormatException {
+        WorkbookInfo info = readWorkbook(pkg, xml_factory);
+        useSheet(info, getSheetAt(info, index));
+    }
+
+    /**
+     * Selects a sheet of the workbook and reads the shared strings and styles of the workbook
+     */
+    private void useSheet(WorkbookInfo info, SheetInfo sheet) throws IOException, InvalidFormatException {
         sheet_part = sheet.part;
         date1904 = info.date1904;
         for (SheetInfo s : info.sheets) {
@@ -598,6 +654,22 @@ final class XlsxSheetSource implements SheetSource {
         return rv;
     }
 
+    /**
+     * Makes the passes over the rows started afterwards read the merged regions of the sheet, which follow its rows;
+     * see getMergedRegions()
+     */
+    void enableMergedRegions() {
+        read_merged = true;
+    }
+
+    /**
+     * Returns the merged regions of the sheet as XSSFSheet.getMergedRegions() gives them, read by the last pass over
+     * its rows that reached their end after enableMergedRegions() was called
+     */
+    ArrayList<CellRangeAddress> getMergedRegions() {
+        return merged_regions;
+    }
+
     @Override
     public void enableFormulas() {
         read_formulas = true;
@@ -848,6 +920,8 @@ final class XlsxSheetSource implements SheetSource {
         private final HashMap<Long, SharedFormulaMaster> shared_formulas = new HashMap<Long, SharedFormulaMaster>();
         // true if the formula text of the cells is read in this pass
         private final boolean formulas = read_formulas;
+        // true if the merged regions of the sheet are read at the end of this pass
+        private final boolean merged = read_merged;
 
         XlsxRowReader() throws IOException {
             in = sheet_part.getInputStream();
@@ -901,7 +975,10 @@ final class XlsxSheetSource implements SheetSource {
                         // other elements before the sheet data are descended into; only column definitions
                         // are used from them
                     } else if (ev == XMLStreamConstants.END_ELEMENT && in_sheet_data) {
-                        // the end of the sheet data: the rest of the sheet has no cells
+                        // the end of the sheet data: the rest of the sheet has no cells, but its merged regions
+                        if (merged) {
+                            readMergedRegions();
+                        }
                         close();
                         return null;
                     }
@@ -911,6 +988,24 @@ final class XlsxSheetSource implements SheetSource {
             } catch (XMLStreamException e) {
                 throw new IOException("invalid worksheet XML: " + e.getMessage(), e);
             }
+        }
+
+        /**
+         * Reads the merged regions of the sheet in the rest of the sheet XML, as XSSFSheet.getMergedRegions() gives
+         * them: the ref attribute of each mergeCell element
+         */
+        private void readMergedRegions() throws XMLStreamException {
+            ArrayList<CellRangeAddress> rv = new ArrayList<CellRangeAddress>();
+            while (xr.hasNext()) {
+                if (xr.next() == XMLStreamConstants.START_ELEMENT && NS_MAIN.equals(xr.getNamespaceURI())
+                    && "mergeCell".equals(xr.getLocalName())) {
+                    String ref = xr.getAttributeValue(null, "ref");
+                    if (ref != null) {
+                        rv.add(CellRangeAddress.valueOf(ref));
+                    }
+                }
+            }
+            merged_regions = rv;
         }
 
         private void readCol() throws IOException {

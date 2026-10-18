@@ -28,6 +28,9 @@ public namespace ExcelDataProvider {
 /** Reads every sheet of an \c .xlsx or \c .xls workbook as raw cells, including hidden sheets, merged regions,
     formula text, and named ranges, and profiles it with @ref DataProvider::TabularProfiler "TabularProfiler".
 
+    An \c .xlsx workbook is read one sheet at a time as it is streamed, so a workbook of any size is profiled in
+    bounded memory: the rows after \c max_rows are counted but not kept; an \c .xls workbook is read in memory.
+
     @since ExcelDataProvider 1.1
 */
 public class ExcelProfileDataProvider inherits AbstractTabularProfileDataProvider {
@@ -69,6 +72,13 @@ public class ExcelProfileDataProvider inherits AbstractTabularProfileDataProvide
     #! Returns the content of the file at a location
     private binary readLocation(string location) {
         return FileLocationHandler::getBinaryFileFromLocation(location);
+    }
+
+    #! Reads the workbook at a location as a raw grid of cells, from a stream, so that its content is not held in
+    #! memory (with DataProvider 3.11 and later)
+    private hash<TabularWorkbookGrid> readLocationGrid(string location, int max_rows) {
+        return TabularProfiler::gridFromHash(ExcelGridReader::readGrid(
+            FileLocationHandler::getBinaryStreamFromLocation(location), max_rows));
     }
 }
 }

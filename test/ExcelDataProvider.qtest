@@ -55,6 +55,7 @@
 %module-cmd(jni) add-relative-classpath ../qlib/ExcelDataProvider/jar/slf4j-nop-2.0.16.jar
 %module-cmd(jni) add-relative-classpath ../qlib/ExcelDataProvider/jar/curvesapi-1.08.jar
 %module-cmd(jni) import org.qore.dataprovider.excel.ExcelTestHelper
+%module-cmd(jni) import org.qore.dataprovider.excel.ExcelGridReader
 %module-cmd(jni) import org.qore.dataprovider.excel.ExcelIterator
 %module-cmd(jni) import org.qore.dataprovider.excel.ExcelWriter
 %module-cmd(jni) import java.lang.System
@@ -300,6 +301,8 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         addTestCase("typing: a value of another type after the sample", \testTypeMismatch());
         addTestCase("error cells", \testErrorCells());
         addTestCase("typing and error options of the read actions", \testTypingActionOptions());
+        addTestCase("profile: the grid of a workbook read as it is streamed", \testProfileGridStreamed());
+        addTestCase("profile: a large workbook is profiled in bounded memory", \testProfileLargeWorkbook());
         set_return_value(main());
     }
 
@@ -1867,6 +1870,47 @@ public class ExcelDataProviderTest inherits QUnit::Test {
             assertEq(6, grid.sheets[0].row_count);
         }
         assertThrows("JNI-ERROR", \ExcelProfileDataProvider::readWorkbookGrid(), (binary("not a workbook"), 10));
+    }
+
+    #! The grid of an .xlsx workbook read as it is streamed is the grid that POI's usermodel gives, with every row
+    #! limit; an .xls workbook is read into memory
+    testProfileGridStreamed() {
+        list<string> files = sort(glob(test_data_dir + "/*.xls*"));
+        assertGt(10, files.size());
+        foreach string path in (files) {
+            foreach int max_rows in ((1, 2, 3, 5, 10000)) {
+                assertEq(ExcelTestHelper::readGridInMemory(path, max_rows),
+                    ExcelGridReader::readGrid(new FileInputStream(path), max_rows),
+                    sprintf("%s max_rows %d", basename(path), max_rows));
+            }
+        }
+    }
+
+    #! A worksheet with 200000 rows is profiled with a JVM heap far smaller than the workbook loaded in memory
+    #! needs; a child process has its own JVM with a 64 MB heap
+    testProfileLargeWorkbook() {
+        string path = test_data_dir + "/large-profile.xlsx";
+        on_exit unlink(path);
+        ExcelTestHelper::createLargeExcel(path, LargeRows, True);
+
+        string src = sprintf("%%modern
+%%prepend-module-path \"%s/../qlib\"
+%%requires DataProvider
+%%requires json
+%%requires ExcelDataProvider
+
+ExcelProfileDataProvider prov();
+hash<auto> profile = prov.doRequest({\"path\": ARGV[0], \"max_rows\": 1000});
+hash<auto> sheet = profile.sheets[0];
+printf(\"RESULT:%%s\\n\", make_json({\"format\": profile.format, \"row_count\": sheet.row_count,
+    \"header_row\": sheet.header_row, \"columns\": (map $1.header, sheet.columns)}));
+", get_script_dir() == "." ? getcwd() : get_script_dir());
+        hash<auto> result = runChild(src, path);
+        assertEq("xlsx", result.format);
+        # the header row and the data rows
+        assertEq(LargeRows + 1, result.row_count);
+        assertEq(1, result.header_row);
+        assertEq(("Id", "Name", "Amount", "When", "Flag"), result.columns);
     }
 
     testProfileAction() {

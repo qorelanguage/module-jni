@@ -51,6 +51,17 @@ import java.time.LocalDateTime;
  * Helper class for creating test Excel files for the ExcelDataProvider tests.
  */
 public class ExcelTestHelper {
+    /**
+     * Reads a workbook file into memory as a raw grid with POI's usermodel, as the profile read every workbook before
+     * .xlsx workbooks were streamed; the grid of an .xlsx workbook read as it is streamed must be the same
+     *
+     * @param path the path of the workbook file
+     * @param max_rows the maximum number of rows read per sheet
+     */
+    public static org.qore.jni.Hash readGridInMemory(String path, int max_rows) throws Throwable {
+        return ExcelGridReader.readWorkbookGrid(new File(path), max_rows);
+    }
+
 
     /**
      * Creates a simple Excel file with headers and data.

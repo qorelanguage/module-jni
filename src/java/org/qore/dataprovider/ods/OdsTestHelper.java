@@ -46,6 +46,17 @@ import java.util.GregorianCalendar;
  * Helper class for creating test ODS files for the OdsDataProvider tests.
  */
 public class OdsTestHelper {
+    /**
+     * Reads a spreadsheet document file into memory as a raw grid with ODFDOM's document model, as the profile read
+     * every document before it was streamed; the grid read as it is streamed must be the same
+     *
+     * @param path the path of the document file
+     * @param max_rows the maximum number of rows read per sheet
+     */
+    public static org.qore.jni.Hash readGridDom(String path, int max_rows) throws Throwable {
+        return OdsGridReader.readGridDom(new java.io.FileInputStream(path), max_rows);
+    }
+
 
     /**
      * Creates a simple ODS file with headers and data.

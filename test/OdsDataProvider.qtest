@@ -66,6 +66,7 @@
 %module-cmd(jni) add-relative-classpath ../qlib/OdsDataProvider/jar/jena-iri-4.10.0.jar
 %module-cmd(jni) add-relative-classpath ../qlib/OdsDataProvider/jar/RoaringBitmap-1.0.0.jar
 %module-cmd(jni) import org.qore.dataprovider.ods.OdsTestHelper
+%module-cmd(jni) import org.qore.dataprovider.ods.OdsGridReader
 %module-cmd(jni) import org.qore.dataprovider.ods.OdsIterator
 %module-cmd(jni) import org.qore.dataprovider.ods.OdsWriter
 %module-cmd(jni) import org.odftoolkit.odfdom.doc.OdfTextDocument
@@ -266,6 +267,9 @@ public class OdsDataProviderTest inherits QUnit::Test {
         addTestCase("error cells", \testErrorCells());
         addTestCase("negative: error options", \testErrorOptionsNegative());
         addTestCase("typing and error options of the read actions", \testTypingActionOptions());
+        addTestCase("profile: the grid of a document read as it is streamed", \testProfileGridStreamed());
+        addTestCase("profile: row groups, header rows, repeated and covered cells", \testProfileStructured());
+        addTestCase("profile: a large document is profiled in bounded memory", \testProfileLargeDocument());
         set_return_value(main());
     }
 
@@ -1400,6 +1404,77 @@ printf(\"RESULT:%%s\\n\", make_json({\"count\": count, \"mismatches\": mismatche
         assertEq(LargeRows + 3, result.count);
         assertEq(0, result.mismatches);
         assertEq(3, result.repeated);
+    }
+
+    #! The grid of a document read as it is streamed is the grid that ODFDOM's document model gives, with every row
+    #! limit
+    testProfileGridStreamed() {
+        list<string> files = sort(glob(test_data_dir + "/*.ods"));
+        assertGt(10, files.size());
+        foreach string path in (files) {
+            # ODFDOM's document model fails on the cells of header rows and row groups; see testProfileStructured()
+            if (basename(path) == "structured.ods") {
+                continue;
+            }
+            foreach int max_rows in ((1, 2, 3, 5, 10000)) {
+                assertEq(OdsTestHelper::readGridDom(path, max_rows),
+                    OdsGridReader::readGrid(new FileInputStream(path), max_rows),
+                    sprintf("%s max_rows %d", basename(path), max_rows));
+            }
+        }
+    }
+
+    #! A document with header rows, row groups, repeated rows and cells, and covered (merged) cells is profiled; the
+    #! document model failed on the cells of header rows and row groups with a Java NullPointerException
+    testProfileStructured() {
+        string path = test_data_dir + "/structured.ods";
+        OdsTestHelper::createStructuredOds(path);
+        hash<TabularWorkbookGrid> grid = OdsProfileDataProvider::readWorkbookGrid(ReadOnlyFile::readBinaryFile(path),
+            1000);
+        hash<TabularSheetGrid> sheet = grid.sheets[0];
+        # the rows up to the last row with content; the repeated row is two rows, and the empty row 7 is empty
+        assertEq((
+            ("Sku", "Qty", "Note", "Day"),
+            ("A-1", 5.0, "x", 2025-03-01),
+            ("B-2", 6.0, "y", 2025-03-02),
+            ("C-3", 7.0, "z", 2025-03-03),
+            ("C-3", 7.0, "z", 2025-03-03),
+            ("D-4", 8.0, 8.0),
+            (),
+            ("E-5", 9.0, "a   b\tc\nd", 2025-03-08),
+        ), sheet.rows);
+        assertNothing(sheet.row_count);
+
+        grid = OdsProfileDataProvider::readWorkbookGrid(ReadOnlyFile::readBinaryFile(path), 3);
+        assertEq(3, grid.sheets[0].rows.size());
+        assertEq(8, grid.sheets[0].row_count);
+    }
+
+    #! A table with 200000 rows is profiled with a JVM heap far smaller than the document loaded in memory needs; a
+    #! child process has its own JVM with a 64 MB heap
+    testProfileLargeDocument() {
+        string path = test_data_dir + "/large-profile.ods";
+        on_exit unlink(path);
+        OdsTestHelper::createLargeOds(path, LargeRows);
+
+        string src = sprintf("%%modern
+%%prepend-module-path \"%s/../qlib\"
+%%requires DataProvider
+%%requires json
+%%requires OdsDataProvider
+
+OdsProfileDataProvider prov();
+hash<auto> profile = prov.doRequest({\"path\": ARGV[0], \"max_rows\": 1000});
+hash<auto> sheet = profile.sheets[0];
+printf(\"RESULT:%%s\\n\", make_json({\"format\": profile.format, \"row_count\": sheet.row_count,
+    \"header_row\": sheet.header_row, \"columns\": (map $1.header, sheet.columns)}));
+", get_script_dir() == "." ? getcwd() : get_script_dir());
+        hash<auto> result = runChild(src, path, "");
+        assertEq("ods", result.format);
+        # the header row, the data rows, and the 3 repeated rows; the empty rows after them are not counted
+        assertEq(LargeRows + 4, result.row_count);
+        assertEq(1, result.header_row);
+        assertEq(("Id", "Name", "Amount", "When", "Flag"), result.columns);
     }
 
     testEarlyClose() {

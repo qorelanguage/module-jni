@@ -461,6 +461,11 @@ module OdsDataProvider {
       own, and a provider created from its own input (a location, a stream, or data) copies it once to a temporary
       file, deleted with the provider
     - fixed a worksheet provider created without input failing with a Java exception; it has no records
+    - the \c profile action reads a document in one pass over its content as it is streamed, keeping the rows up
+      to \c max_rows and counting the others, so a document of any size is profiled in bounded memory; before, the
+      document was loaded in memory
+    - fixed the \c profile action failing with a Java \c NullPointerException for a document with header rows to
+      repeat on printed pages or with row groups
 */
 
 #! contains all public definitions in the OdsDataProvider module

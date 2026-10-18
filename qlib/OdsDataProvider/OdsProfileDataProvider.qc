@@ -28,6 +28,9 @@ public namespace OdsDataProvider {
 /** Reads every sheet of an OpenDocument spreadsheet (\c .ods) as raw cells, including hidden sheets, merged
     regions, formula text, and named ranges, and profiles it with @ref DataProvider::TabularProfiler "TabularProfiler".
 
+    The document is read in one pass over its content as it is streamed, so a document of any size is profiled in
+    bounded memory: the rows after \c max_rows are counted but not kept.
+
     @since OdsDataProvider 1.0
 */
 public class OdsProfileDataProvider inherits AbstractTabularProfileDataProvider {
@@ -69,6 +72,13 @@ public class OdsProfileDataProvider inherits AbstractTabularProfileDataProvider 
     #! Returns the content of the file at a location
     private binary readLocation(string location) {
         return FileLocationHandler::getBinaryFileFromLocation(location);
+    }
+
+    #! Reads the document at a location as a raw grid of cells, from a stream, so that its content is not held in
+    #! memory (with DataProvider 3.11 and later)
+    private hash<TabularWorkbookGrid> readLocationGrid(string location, int max_rows) {
+        return TabularProfiler::gridFromHash(OdsGridReader::readGrid(
+            FileLocationHandler::getBinaryStreamFromLocation(location), max_rows));
     }
 }
 }

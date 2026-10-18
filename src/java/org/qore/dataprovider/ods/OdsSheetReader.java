@@ -34,6 +34,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -702,13 +703,31 @@ final class OdsSheetReader implements Closeable {
      */
     final class RowPass implements Closeable {
         private Content content;
+        // true if the pass closes the content at the end of the table
+        private final boolean owns_content;
+        // the named ranges of the table (table:named-range elements in it), by name, if they are read
+        private final Hash named_ranges;
         // the 0-based number of the first row of the next run
         private int next_start = 0;
         // the depth of the reader in the table: in row groups, header rows, and other container elements
         private int depth = 0;
 
         private RowPass(Content content) {
+            this(content, true, null);
+        }
+
+        /**
+         * Creates a pass over the rows of the table at whose start the content is
+         *
+         * @param content the content
+         * @param owns_content true to close the content at the end of the table; if false, the content is at the end
+         * tag of the table at the end of the pass
+         * @param named_ranges if not null, the named ranges of the table are added to it by name
+         */
+        private RowPass(Content content, boolean owns_content, Hash named_ranges) {
             this.content = content;
+            this.owns_content = owns_content;
+            this.named_ranges = named_ranges;
         }
 
         /**
@@ -736,13 +755,20 @@ final class OdsSheetReader implements Closeable {
                                 skipElement(xr);
                                 continue;
                             }
+                            if (named_ranges != null && "named-range".equals(ln)) {
+                                addNamedRange(xr, named_ranges);
+                            }
                         }
                         // descend into row groups, header rows, and other elements of the table
                         ++depth;
                     } else if (ev == XMLStreamConstants.END_ELEMENT) {
                         if (depth == 0) {
                             // the end of the table
-                            close();
+                            if (owns_content) {
+                                close();
+                            } else {
+                                content = null;
+                            }
                             return null;
                         }
                         --depth;
@@ -810,8 +836,220 @@ final class OdsSheetReader implements Closeable {
             if (content != null) {
                 Content c = content;
                 content = null;
-                c.close();
+                if (owns_content) {
+                    c.close();
+                }
             }
+        }
+    }
+
+    /**
+     * Adds the named range of a table:named-range element, at whose start the reader is, to the named ranges: its
+     * table:cell-range-address by its table:name, if both are set
+     */
+    private static void addNamedRange(XMLStreamReader xr, Hash named_ranges) {
+        String name = xr.getAttributeValue(NS_TABLE, "name");
+        String address = xr.getAttributeValue(NS_TABLE, "cell-range-address");
+        if (name != null && !name.isEmpty() && address != null && !address.isEmpty()) {
+            named_ranges.put(name, address);
+        }
+    }
+
+    /**
+     * Reads every table of a spreadsheet in an input stream as a raw grid for profiling, in one pass over its
+     * content; the stream is read to its end
+     *
+     * The grid is that of OdsGridReader: the cell values of each table row by row up to the last row with content
+     * and at most the given number of rows, the rows after it being counted only; repeated rows and cells are
+     * expanded up to the last cell with content; merged ranges and formulas of the rows read; whether the table is
+     * hidden; and the named ranges of the document.
+     *
+     * @param in the document data
+     * @param max_rows the maximum number of rows read per table; a table with more rows reports its row count
+     * @param zone the zone that date and time cells are read in
+     */
+    static Hash readGrid(InputStream in, int max_rows, ZoneId zone) throws IOException, XMLStreamException {
+        try (OdsSheetReader reader = new OdsSheetReader(openZip(in))) {
+            reader.checkMediaType();
+            return reader.readGrid(max_rows, zone);
+        }
+    }
+
+    private Hash readGrid(int max_rows, ZoneId zone) throws IOException, XMLStreamException {
+        ArrayList<Hash> sheets = new ArrayList<Hash>();
+        Hash named_ranges = new Hash();
+        try (Content content = openContent(true)) {
+            if (content.xr != null) {
+                // the children of the spreadsheet content: tables and the named expressions of the document
+                while (content.toChildElement()) {
+                    XMLStreamReader xr = content.xr;
+                    if (NS_TABLE.equals(xr.getNamespaceURI()) && "table".equals(xr.getLocalName())) {
+                        sheets.add(readTableGrid(content, max_rows, zone, named_ranges));
+                    } else {
+                        readNamedRanges(xr, named_ranges);
+                    }
+                }
+            }
+        }
+
+        Hash rv = new Hash();
+        rv.put("format", "ods");
+        rv.put("sheets", sheets);
+        rv.put("named_ranges", named_ranges);
+        return rv;
+    }
+
+    /**
+     * Reads an element, at whose start the reader is, up to and including its end tag, adding the named ranges in it
+     */
+    private static void readNamedRanges(XMLStreamReader xr, Hash named_ranges) throws XMLStreamException {
+        if (NS_TABLE.equals(xr.getNamespaceURI()) && "named-range".equals(xr.getLocalName())) {
+            addNamedRange(xr, named_ranges);
+        }
+        int depth = 1;
+        while (depth > 0) {
+            int ev = xr.next();
+            if (ev == XMLStreamConstants.START_ELEMENT) {
+                ++depth;
+                if (NS_TABLE.equals(xr.getNamespaceURI()) && "named-range".equals(xr.getLocalName())) {
+                    addNamedRange(xr, named_ranges);
+                }
+            } else if (ev == XMLStreamConstants.END_ELEMENT) {
+                --depth;
+            }
+        }
+    }
+
+    /**
+     * Reads a table, at whose start the content is, to its end tag as a raw grid
+     */
+    private Hash readTableGrid(Content content, int max_rows, ZoneId zone, Hash named_ranges)
+            throws IOException, XMLStreamException {
+        XMLStreamReader xr = content.xr;
+        String name = xr.getAttributeValue(NS_TABLE, "name");
+        String style = xr.getAttributeValue(NS_TABLE, "style-name");
+        boolean hidden = style != null && !style.isEmpty() && content.hidden_table_styles.contains(style);
+
+        // the rows read, the merged ranges and formulas of the rows read by their 0-based row, and the 0-based index
+        // after the last row with content
+        ArrayList<ArrayList<Object>> rows = new ArrayList<ArrayList<Object>>();
+        ArrayList<Object[]> merged = new ArrayList<Object[]>();
+        ArrayList<Object[]> formulas = new ArrayList<Object[]>();
+        int row_count = 0;
+        try (RowPass pass = new RowPass(content, false, named_ranges)) {
+            for (RowRun run = pass.next(); run != null; run = pass.next()) {
+                if (run.has_content) {
+                    row_count = run.start + run.count;
+                }
+                if (run.start >= max_rows) {
+                    continue;
+                }
+                ArrayList<Object> values = readRowValues(run, merged, formulas, zone);
+                for (int r = run.start; r < run.start + run.count && r < max_rows; ++r) {
+                    rows.add(values);
+                }
+            }
+        }
+
+        // the rows up to the last row with content
+        int read_rows = Math.min(row_count, max_rows);
+        while (rows.size() > read_rows) {
+            rows.remove(rows.size() - 1);
+        }
+        ArrayList<Hash> merged_ranges = new ArrayList<Hash>();
+        for (Object[] m : merged) {
+            if ((Integer)m[0] < read_rows) {
+                merged_ranges.add((Hash)m[1]);
+            }
+        }
+        Hash formula_text = new Hash();
+        for (Object[] f : formulas) {
+            if ((Integer)f[0] < read_rows) {
+                formula_text.put((String)f[1], f[2]);
+            }
+        }
+
+        Hash rv = new Hash();
+        rv.put("name", name);
+        rv.put("hidden", hidden);
+        rv.put("rows", rows);
+        if (row_count > max_rows) {
+            rv.put("row_count", row_count);
+        }
+        rv.put("merged", merged_ranges);
+        rv.put("formulas", formula_text);
+        return rv;
+    }
+
+    /**
+     * Returns the cell values of the rows of a row run, and adds the merged ranges and formulas of its first row
+     *
+     * Empty cells are added only when a later cell has content.
+     */
+    private static ArrayList<Object> readRowValues(RowRun run, ArrayList<Object[]> merged,
+            ArrayList<Object[]> formulas, ZoneId zone) {
+        ArrayList<Object> values = new ArrayList<Object>();
+        int pending_empty = 0;
+        int row = run.start;
+        for (int i = 0, e = run.getCellRunCount(); i < e; ++i) {
+            OdsCell cell = run.getCellRunCell(i);
+            int n = run.getCellRunColumns(i);
+            if (cell == null) {
+                pending_empty += n;
+                continue;
+            }
+            for (; pending_empty > 0; --pending_empty) {
+                values.add(null);
+            }
+            Object value = gridValue(cell, zone);
+            for (int c = 0; c < n; ++c) {
+                values.add(value);
+            }
+            int col = run.getCellRunStart(i);
+            int rows_spanned = cell.getRowsSpanned();
+            int cols_spanned = cell.getColumnsSpanned();
+            if (rows_spanned > 1 || cols_spanned > 1) {
+                Hash range = new Hash();
+                range.put("first_row", row);
+                range.put("last_row", row + rows_spanned - 1);
+                range.put("first_col", col);
+                range.put("last_col", col + cols_spanned - 1);
+                merged.add(new Object[]{row, range});
+            }
+            String formula = cell.getFormula();
+            if (formula != null) {
+                formulas.add(new Object[]{row, OdsGridReader.formulaReference(row, col), OdsGridReader.toA1(formula)});
+            }
+        }
+        return values;
+    }
+
+    /**
+     * Returns the value of a cell with content in the grid, as OdfTableCell gives it: a cell without a value type is
+     * its text, a string cell its text, a float, currency, or percentage cell its number, a boolean cell its value,
+     * a date or time cell its clock time in the zone, and a cell of another value type its text
+     */
+    private static Object gridValue(OdsCell cell, ZoneId zone) {
+        String value_type = cell.getValueType();
+        if (value_type == null || value_type.isEmpty()) {
+            String text = cell.getDisplayText();
+            return text == null || text.isEmpty() ? null : text;
+        }
+        switch (value_type) {
+            case "string":
+                return cell.getStringValue();
+            case "float":
+            case "currency":
+            case "percentage":
+                return cell.getDoubleValue();
+            case "boolean":
+                return cell.getBooleanValue();
+            case "date":
+                return cell.getDateValue(zone);
+            case "time":
+                return cell.getTimeValue(zone);
+            default:
+                return cell.getDisplayText();
         }
     }
 }
