@@ -598,6 +598,11 @@ module ExcelDataProvider {
       value or as the error's text, and the new \c error_field option returns the errors of each record in a field of
       their own (see @ref ExcelDataProvider_reading_errors)
     - fixed the record type of a worksheet provider failing after a search of the worksheet
+    - fixed a worksheet provider (@ref ExcelDataProvider::ExcelWorksheetReadDataProvider "ExcelWorksheetReadDataProvider")
+      returning no records when searched a second time; each search now reads the worksheet with an iterator of its
+      own, and a provider created from its own input (a location, a stream, or data) copies it once to a temporary
+      file, deleted with the provider
+    - fixed a worksheet provider created without input failing with a Java exception; it has no records
 
     @subsection ExcelDataProvider_v1_0 ExcelDataProvider v1.0
     - initial release

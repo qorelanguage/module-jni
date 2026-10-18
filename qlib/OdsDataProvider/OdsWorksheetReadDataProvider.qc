@@ -38,14 +38,20 @@ public class OdsWorksheetReadDataProvider inherits DataProvider::AbstractDataPro
     }
 
     private {
-        #! the iterator object
-        OdsIterator i;
+        #! the spreadsheet file: the file of the parent provider or a copy of the input; no value without input
+        *OdsFile file;
 
-        #! the record type, kept once it is read: the iterator is released when a search ends
+        #! the configured iterator of the next search
+        /** It is created in advance so that an unknown worksheet or invalid options fail when the provider is
+            created; a search releases its iterator when it ends, so each search has an iterator of its own
+        */
+        *OdsIterator i;
+
+        #! the record type, kept once it is read
         *hash<string, AbstractDataField> record_type;
 
-        #! the workbook file of the parent provider, if the provider was created from it
-        *OdsFile file;
+        #! serializes access to the iterator of the next search and to the record type
+        Mutex lck();
 
         #! the name of the object
         string name;
@@ -57,31 +63,42 @@ public class OdsWorksheetReadDataProvider inherits DataProvider::AbstractDataPro
         *hash<auto> opts;
     }
 
-    #! Creates the OdsWorksheetReadDataProvider with the input stream, name, sheet name, and optionally an option hash
+    #! Creates the object with the input stream, name, sheet name, and optionally an option hash
+    /** @param i the input stream; it is copied to a temporary file, which is deleted with this object
+        @param name the name of the object
+        @param sheet the name of the current worksheet
+        @param opts a hash of optional options, must be already processed for validity
+    */
     constructor(InputStream i, string name, string sheet, *hash<auto> opts) {
-        self.i = new OdsIterator(i, sheet);
+        file = new OdsFile(i);
         setup(name, sheet, opts);
     }
 
-    #! Creates the OdsWorksheetReadDataProvider with the input data path, name, sheet name, and optionally an option hash
+    #! Creates the object with the input data path, name, sheet name, and optionally an option hash
+    /** @param path the location of the input file; resolved with a call to
+        @ref FileLocationHandler::FileLocationHandler::getBinaryStreamFromLocation() and copied to a temporary file,
+        which is deleted with this object
+        @param name the name of the object
+        @param sheet the name of the current worksheet
+        @param opts a hash of optional options, must be already processed for validity
+    */
     constructor(string path, string name, string sheet, *hash<auto> opts) {
-        self.i = new OdsIterator(FileLocationHandler::getBinaryStreamFromLocation(path), sheet);
+        file = new OdsFile(FileLocationHandler::getBinaryStreamFromLocation(path));
         setup(name, sheet, opts);
     }
 
-    #! Creates the OdsWorksheetReadDataProvider with the workbook file of a parent provider
+    #! Creates the object with the workbook file of a parent provider
     /** @param file the workbook file; it is retained until this object is destroyed
         @param name the name of the object
         @param sheet the name of the current worksheet
         @param opts a hash of optional options, must be already processed for validity
     */
     constructor(OdsFile file, string name, string sheet, *hash<auto> opts) {
-        self.i = new OdsIterator(file.getPath(), sheet);
         self.file = file.retain();
         setup(name, sheet, opts);
     }
 
-    #! Releases the workbook file of the parent provider, if any
+    #! Releases the workbook file, if any
     destructor() {
         if (file) {
             file.close();
@@ -89,39 +106,55 @@ public class OdsWorksheetReadDataProvider inherits DataProvider::AbstractDataPro
     }
 
     #! Creates the object from constructor options
+    /** Without input (\c path, \c stream, or \c data), the provider has no records
+    */
     constructor(*hash<auto> options) {
         *hash<auto> copts = OdsReadDataProvider::processCellOptions(checkOptions("ODS-READ-OPTION-ERROR",
             OdsReadDataProvider::ConstructorOptions, options));
-        sheet = copts.worksheet ?? "";
         if ((copts.path ? 1 : 0) + (copts.stream ? 1 : 0) + (copts.data ? 1 : 0) > 1) {
             error("ODS-READ-OPTION-ERROR", "only one of the \"path\", \"stream\", and \"data\" options can be "
                 "given");
         }
         if (copts.path) {
-            i = new OdsIterator(FileLocationHandler::getBinaryStreamFromLocation(copts.path), sheet);
+            file = new OdsFile(FileLocationHandler::getBinaryStreamFromLocation(copts.path));
         } else if (copts.stream) {
-            i = new OdsIterator(copts.stream, sheet);
+            file = new OdsFile(copts.stream);
         } else if (copts.data) {
-            i = new OdsIterator(new BinaryInputStream(copts.data), sheet);
+            file = new OdsFile(new BinaryInputStream(copts.data));
         }
-        self.opts = copts - ("stream", "path", "worksheet", "data");
-        if (!i) {
-            i = new OdsIterator(new StringInputStream(""), sheet);
-        }
-        setOptions();
+        setup(copts.worksheet ?? "", copts.worksheet ?? "", copts - ("stream", "path", "worksheet", "data"));
     }
 
     #! Common constructor code
+    /** Creates the iterator of the first search, which checks the worksheet and the options; the file is released
+        if this fails, as the destructor is not run when a constructor fails
+    */
     private setup(string name, string sheet, *hash<auto> opts) {
         self.name = name;
         self.sheet = sheet;
         self.opts = opts;
-        setOptions();
+        if (file) {
+            try {
+                i = getIterator();
+            } catch (hash<ExceptionInfo> ex) {
+                file.close();
+                remove file;
+                rethrow;
+            }
+        }
     }
 
-    #! Common setup code
-    private setOptions() {
-        OdsReadDataProvider::configureIterator(i, opts);
+    #! Returns a new iterator over the worksheet, configured with the options
+    private OdsIterator getIterator() {
+        OdsIterator rv(file.getPath(), sheet);
+        try {
+            OdsReadDataProvider::configureIterator(rv, opts);
+        } catch (hash<ExceptionInfo> ex) {
+            # release the document now rather than when the object is collected
+            rv.close();
+            rethrow;
+        }
+        return rv;
     }
 
     #! Returns the object name
@@ -130,14 +163,36 @@ public class OdsWorksheetReadDataProvider inherits DataProvider::AbstractDataPro
     }
 
     #! Returns an iterator for zero or more records matching the search options
-    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond,
-            *hash<auto> search_options) {
-        return new DefaultRecordIterator(i, where_cond, search_options, getRecordType());
+    /** Each search reads the worksheet with an iterator of its own, which the search releases when it ends
+
+        @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+    */
+    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+        *hash<string, AbstractDataField> rec_type = getRecordType();
+        if (!file) {
+            # a provider without input has no records
+            return new DefaultRecordIterator(new ListIterator(), where_cond, search_options, rec_type);
+        }
+        *OdsIterator it;
+        {
+            AutoLock al(lck);
+            it = remove i;
+        }
+        return new DefaultRecordIterator(it ?? getIterator(), where_cond, search_options, rec_type);
     }
 
     #! Returns the description of the record type, if any
     private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
+        if (!file) {
+            return {};
+        }
+        AutoLock al(lck);
         if (!record_type) {
+            # the iterator of the next search
+            if (!i) {
+                i = getIterator();
+            }
             record_type = OdsReadDataProvider::getIteratorRecordType(i, sheet, opts);
         }
         return record_type;

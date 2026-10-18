@@ -218,6 +218,8 @@ public class OdsDataProviderTest inherits QUnit::Test {
         addTestCase("cell ranges: columns past Z", \testColumnsPastZ());
         addTestCase("negative: headers + header_names in every constructor", \testHeaderOptionConflictAllCtors());
         addTestCase("worksheet provider: options constructor", \testWorksheetOptionsCtor());
+        addTestCase("worksheet provider: searched more than once", \testWorksheetRepeatedSearch());
+        addTestCase("worksheet provider: no input", \testWorksheetNoInput());
         addTestCase("write: headers from the first record", \testWriteHeadersFromFirstRecord());
 
         addTestCase("write-data action returns the generated data", \testWriteDataAction());
@@ -1030,6 +1032,71 @@ public class OdsDataProviderTest inherits QUnit::Test {
         assertThrows("ODS-READ-OPTION-ERROR", sub () {
             OdsWorksheetReadDataProvider dp({"path": test_data_dir + "/simple.ods"} + opts);
         });
+    }
+
+    #! A worksheet provider can be searched more than once, whatever its input
+    testWorksheetRepeatedSearch() {
+        foreach string file in (("multi-sheet.ods", "formula-rows.ods")) {
+            string path = test_data_dir + "/" + file;
+            binary data = ReadOnlyFile::readBinaryFile(path);
+            OdsReadDataProvider parent(path, {"header_names": True});
+            string sheet = parent.getChildProviderNames()[0];
+            list<hash<auto>> expected = map $1, (new OdsReadDataProvider(path, {"header_names": True, "worksheet": sheet}))
+                .searchRecords();
+            assertGt(1, expected.size(), file);
+            hash<string, AbstractDataProvider> providers = {
+                "child": parent.getChildProvider(sheet),
+                "stream": new OdsWorksheetReadDataProvider(new BinaryInputStream(data), "name", sheet, {"header_names": True}),
+                "path": new OdsWorksheetReadDataProvider(path, "name", sheet, {"header_names": True}),
+                "data option": new OdsWorksheetReadDataProvider({"data": data, "worksheet": sheet, "header_names": True}),
+                "stream option": new OdsWorksheetReadDataProvider({"stream": new BinaryInputStream(data), "worksheet": sheet,
+                    "header_names": True}),
+                "path option": new OdsWorksheetReadDataProvider({"path": path, "worksheet": sheet, "header_names": True}),
+            };
+            foreach hash<auto> i in (providers.pairIterator()) {
+                string label = sprintf("%s %s", file, i.key);
+                assertEq(expected, (map $1, i.value.searchRecords()), label + ": first search");
+                assertEq(expected, (map $1, i.value.searchRecords()), label + ": second search");
+                # a search that ends early, and one that ends at its limit
+                AbstractDataProviderRecordIterator it = i.value.searchRecords();
+                assertTrue(it.next(), label);
+                delete it;
+                assertEq(expected[0..0], (map $1, i.value.searchRecords(NOTHING, {"limit": 1})), label + ": limit");
+                assertEq(expected, (map $1, i.value.searchRecords()), label + ": after searches that ended early");
+                assertEq(keys expected[0], keys i.value.getRecordType(), label + ": record type after searches");
+            }
+        }
+        # the worksheet and the options are still checked when the provider is created
+        string path = test_data_dir + "/" + "multi-sheet.ods";
+        OdsReadDataProvider parent(path, {"header_names": True});
+        string sheet = parent.getChildProviderNames()[0];
+        string column = (keys parent.getChildProvider(sheet).getRecordType())[0];
+        # a provider created from its own input copies it to a temporary file, which is deleted with the provider,
+        # and is not left behind when the provider cannot be created
+        list<string> temp_files = getTempFiles("qore-odsfile-");
+        OdsWorksheetReadDataProvider dp(new BinaryInputStream(ReadOnlyFile::readBinaryFile(path)), "name", sheet,
+            {"header_names": True});
+        assertEq(elements temp_files + 1, elements getTempFiles("qore-odsfile-"), "the input is copied");
+        assertGt(0, elements (map $1, dp.searchRecords()));
+        delete dp;
+        assertEq(temp_files, getTempFiles("qore-odsfile-"), "the copy is deleted with the provider");
+        assertThrows("JNI-ERROR", sub () {
+            OdsWorksheetReadDataProvider wdp(path, "name", "no-such-sheet", {"header_names": True});
+        });
+        assertEq(temp_files, getTempFiles("qore-odsfile-"), "a provider that cannot be created leaves no file");
+        assertThrows("ODS-FORMULA-FIELD-ERROR", column, sub () {
+            OdsWorksheetReadDataProvider dp(path, "name", sheet, {"header_names": True, "formula_field": column});
+        });
+    }
+
+    #! A worksheet provider created without input has no records
+    testWorksheetNoInput() {
+        OdsWorksheetReadDataProvider dp();
+        assertEq({}, dp.getRecordType());
+        assertEq((), (map $1, dp.searchRecords()));
+        dp = new OdsWorksheetReadDataProvider({"header_names": True, "worksheet": "Sheet1"});
+        assertEq({}, dp.getRecordType());
+        assertEq((), (map $1, dp.searchRecords()));
     }
 
     testWorksheetOptionsCtor() {

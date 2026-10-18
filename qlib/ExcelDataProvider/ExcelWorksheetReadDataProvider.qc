@@ -38,14 +38,20 @@ public class ExcelWorksheetReadDataProvider inherits DataProvider::AbstractDataP
     }
 
     private {
-        #! the iterator object
-        ExcelIterator i;
+        #! the spreadsheet file: the file of the parent provider or a copy of the input; no value without input
+        *ExcelFile file;
 
-        #! the record type, kept once it is read: the iterator is released when a search ends
+        #! the configured iterator of the next search
+        /** It is created in advance so that an unknown worksheet or invalid options fail when the provider is
+            created; a search releases its iterator when it ends, so each search has an iterator of its own
+        */
+        *ExcelIterator i;
+
+        #! the record type, kept once it is read
         *hash<string, AbstractDataField> record_type;
 
-        #! the workbook file of the parent provider, if the provider was created from it
-        *ExcelFile file;
+        #! serializes access to the iterator of the next search and to the record type
+        Mutex lck();
 
         #! the name of the object
         string name;
@@ -57,42 +63,42 @@ public class ExcelWorksheetReadDataProvider inherits DataProvider::AbstractDataP
         *hash<auto> opts;
     }
 
-    #! Creates the ExcelReadDataProvider with the input stream, name, sheet name, and optionally an option hash
-    /** @param i the input stream
+    #! Creates the object with the input stream, name, sheet name, and optionally an option hash
+    /** @param i the input stream; it is copied to a temporary file, which is deleted with this object
         @param name the name of the object
         @param sheet the name of the current worksheet
         @param opts a hash of optional options, must be already processed for validity
     */
     constructor(InputStream i, string name, string sheet, *hash<auto> opts) {
-        self.i = new ExcelIterator(i, sheet);
+        file = new ExcelFile(i);
         setup(name, sheet, opts);
     }
 
-    #! Creates the ExcelReadDataProvider with the input data path, name, sheet name, and optionally an option hash
+    #! Creates the object with the input data path, name, sheet name, and optionally an option hash
     /** @param path the location of the input file; resolved with a call to
-        @ref FileLocationHandler::FileLocationHandler::getBinaryStreamFromLocation()
+        @ref FileLocationHandler::FileLocationHandler::getBinaryStreamFromLocation() and copied to a temporary file,
+        which is deleted with this object
         @param name the name of the object
         @param sheet the name of the current worksheet
         @param opts a hash of optional options, must be already processed for validity
     */
     constructor(string path, string name, string sheet, *hash<auto> opts) {
-        self.i = new ExcelIterator(FileLocationHandler::getBinaryStreamFromLocation(path), sheet);
+        file = new ExcelFile(FileLocationHandler::getBinaryStreamFromLocation(path));
         setup(name, sheet, opts);
     }
 
-    #! Creates the ExcelWorksheetReadDataProvider with the workbook file of a parent provider
+    #! Creates the object with the workbook file of a parent provider
     /** @param file the workbook file; it is retained until this object is destroyed
         @param name the name of the object
         @param sheet the name of the current worksheet
         @param opts a hash of optional options, must be already processed for validity
     */
     constructor(ExcelFile file, string name, string sheet, *hash<auto> opts) {
-        self.i = new ExcelIterator(file.getPath(), sheet);
         self.file = file.retain();
         setup(name, sheet, opts);
     }
 
-    #! Releases the workbook file of the parent provider, if any
+    #! Releases the workbook file, if any
     destructor() {
         if (file) {
             file.close();
@@ -100,40 +106,55 @@ public class ExcelWorksheetReadDataProvider inherits DataProvider::AbstractDataP
     }
 
     #! Creates the object from constructor options
+    /** Without input (\c path, \c stream, or \c data), the provider has no records
+    */
     constructor(*hash<auto> options) {
         *hash<auto> copts = ExcelReadDataProvider::processCellOptions(checkOptions("EXCEL-READ-OPTION-ERROR",
             ExcelReadDataProvider::ConstructorOptions, options));
-        sheet = copts.worksheet ?? "";
         if ((copts.path ? 1 : 0) + (copts.stream ? 1 : 0) + (copts.data ? 1 : 0) > 1) {
             error("EXCEL-READ-OPTION-ERROR", "only one of the \"path\", \"stream\", and \"data\" options can be "
                 "given");
         }
         if (copts.path) {
-            i = new ExcelIterator(FileLocationHandler::getBinaryStreamFromLocation(copts.path), sheet);
+            file = new ExcelFile(FileLocationHandler::getBinaryStreamFromLocation(copts.path));
         } else if (copts.stream) {
-            i = new ExcelIterator(copts.stream, sheet);
+            file = new ExcelFile(copts.stream);
         } else if (copts.data) {
-            i = new ExcelIterator(new BinaryInputStream(copts.data), sheet);
+            file = new ExcelFile(new BinaryInputStream(copts.data));
         }
-        self.opts = copts - ("stream", "path", "worksheet", "data");
-        if (!i) {
-            # create a dummy interator with no input
-            i = new ExcelIterator(new StringInputStream(""), sheet);
-        }
-        setOptions();
+        setup(copts.worksheet ?? "", copts.worksheet ?? "", copts - ("stream", "path", "worksheet", "data"));
     }
 
     #! Common constructor code
+    /** Creates the iterator of the first search, which checks the worksheet and the options; the file is released
+        if this fails, as the destructor is not run when a constructor fails
+    */
     private setup(string name, string sheet, *hash<auto> opts) {
         self.name = name;
         self.sheet = sheet;
         self.opts = opts;
-        setOptions();
+        if (file) {
+            try {
+                i = getIterator();
+            } catch (hash<ExceptionInfo> ex) {
+                file.close();
+                remove file;
+                rethrow;
+            }
+        }
     }
 
-    #! Common setup code
-    private setOptions() {
-        ExcelReadDataProvider::configureIterator(i, opts);
+    #! Returns a new iterator over the worksheet, configured with the options
+    private ExcelIterator getIterator() {
+        ExcelIterator rv(file.getPath(), sheet);
+        try {
+            ExcelReadDataProvider::configureIterator(rv, opts);
+        } catch (hash<ExceptionInfo> ex) {
+            # release the document now rather than when the object is collected
+            rv.close();
+            rethrow;
+        }
+        return rv;
     }
 
     #! Returns the object name
@@ -142,16 +163,36 @@ public class ExcelWorksheetReadDataProvider inherits DataProvider::AbstractDataP
     }
 
     #! Returns an iterator for zero or more records matching the search options
-    /** @param where_cond the search criteria
+    /** Each search reads the worksheet with an iterator of its own, which the search releases when it ends
+
+        @param where_cond the search criteria
         @param search_options the search options after processing by validateSearchOptions()
     */
     private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
-        return new DefaultRecordIterator(i, where_cond, search_options, getRecordType());
+        *hash<string, AbstractDataField> rec_type = getRecordType();
+        if (!file) {
+            # a provider without input has no records
+            return new DefaultRecordIterator(new ListIterator(), where_cond, search_options, rec_type);
+        }
+        *ExcelIterator it;
+        {
+            AutoLock al(lck);
+            it = remove i;
+        }
+        return new DefaultRecordIterator(it ?? getIterator(), where_cond, search_options, rec_type);
     }
 
     #! Returns the description of the record type, if any
     private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
+        if (!file) {
+            return {};
+        }
+        AutoLock al(lck);
         if (!record_type) {
+            # the iterator of the next search
+            if (!i) {
+                i = getIterator();
+            }
             record_type = ExcelReadDataProvider::getIteratorRecordType(i, sheet, opts);
         }
         return record_type;

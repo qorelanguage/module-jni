@@ -456,6 +456,11 @@ module OdsDataProvider {
       error cells as no value or as the error's text, and the new \c error_field option returns the errors of each
       record in a field of their own
     - fixed the record type of a worksheet provider failing after a search of the worksheet
+    - fixed a worksheet provider (@ref OdsDataProvider::OdsWorksheetReadDataProvider "OdsWorksheetReadDataProvider")
+      returning no records when searched a second time; each search now reads the worksheet with an iterator of its
+      own, and a provider created from its own input (a location, a stream, or data) copies it once to a temporary
+      file, deleted with the provider
+    - fixed a worksheet provider created without input failing with a Java exception; it has no records
 */
 
 #! contains all public definitions in the OdsDataProvider module

@@ -255,6 +255,8 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         addTestCase("cell ranges: columns past Z", \testColumnsPastZ());
         addTestCase("negative: headers + header_names in every constructor", \testHeaderOptionConflictAllCtors());
         addTestCase("worksheet provider: options constructor", \testWorksheetOptionsCtor());
+        addTestCase("worksheet provider: searched more than once", \testWorksheetRepeatedSearch());
+        addTestCase("worksheet provider: no input", \testWorksheetNoInput());
         addTestCase("write: streaming without headers", \testWriteStreamingNoHeaders());
         addTestCase("write: headers from the first record", \testWriteHeadersFromFirstRecord());
 
@@ -1685,6 +1687,71 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         assertThrows("EXCEL-READ-OPTION-ERROR", sub () {
             ExcelWorksheetReadDataProvider dp({"path": test_data_dir + "/simple.xlsx"} + opts);
         });
+    }
+
+    #! A worksheet provider can be searched more than once, whatever its input
+    testWorksheetRepeatedSearch() {
+        foreach string file in (("multi-sheet.xlsx", "formula-rows.xls")) {
+            string path = test_data_dir + "/" + file;
+            binary data = ReadOnlyFile::readBinaryFile(path);
+            ExcelReadDataProvider parent(path, {"header_names": True});
+            string sheet = parent.getChildProviderNames()[0];
+            list<hash<auto>> expected = map $1, (new ExcelReadDataProvider(path, {"header_names": True, "worksheet": sheet}))
+                .searchRecords();
+            assertGt(1, expected.size(), file);
+            hash<string, AbstractDataProvider> providers = {
+                "child": parent.getChildProvider(sheet),
+                "stream": new ExcelWorksheetReadDataProvider(new BinaryInputStream(data), "name", sheet, {"header_names": True}),
+                "path": new ExcelWorksheetReadDataProvider(path, "name", sheet, {"header_names": True}),
+                "data option": new ExcelWorksheetReadDataProvider({"data": data, "worksheet": sheet, "header_names": True}),
+                "stream option": new ExcelWorksheetReadDataProvider({"stream": new BinaryInputStream(data), "worksheet": sheet,
+                    "header_names": True}),
+                "path option": new ExcelWorksheetReadDataProvider({"path": path, "worksheet": sheet, "header_names": True}),
+            };
+            foreach hash<auto> i in (providers.pairIterator()) {
+                string label = sprintf("%s %s", file, i.key);
+                assertEq(expected, (map $1, i.value.searchRecords()), label + ": first search");
+                assertEq(expected, (map $1, i.value.searchRecords()), label + ": second search");
+                # a search that ends early, and one that ends at its limit
+                AbstractDataProviderRecordIterator it = i.value.searchRecords();
+                assertTrue(it.next(), label);
+                delete it;
+                assertEq(expected[0..0], (map $1, i.value.searchRecords(NOTHING, {"limit": 1})), label + ": limit");
+                assertEq(expected, (map $1, i.value.searchRecords()), label + ": after searches that ended early");
+                assertEq(keys expected[0], keys i.value.getRecordType(), label + ": record type after searches");
+            }
+        }
+        # the worksheet and the options are still checked when the provider is created
+        string path = test_data_dir + "/" + "multi-sheet.xlsx";
+        ExcelReadDataProvider parent(path, {"header_names": True});
+        string sheet = parent.getChildProviderNames()[0];
+        string column = (keys parent.getChildProvider(sheet).getRecordType())[0];
+        # a provider created from its own input copies it to a temporary file, which is deleted with the provider,
+        # and is not left behind when the provider cannot be created
+        list<string> temp_files = getTempFiles("qore-excelfile-");
+        ExcelWorksheetReadDataProvider dp(new BinaryInputStream(ReadOnlyFile::readBinaryFile(path)), "name", sheet,
+            {"header_names": True});
+        assertEq(elements temp_files + 1, elements getTempFiles("qore-excelfile-"), "the input is copied");
+        assertGt(0, elements (map $1, dp.searchRecords()));
+        delete dp;
+        assertEq(temp_files, getTempFiles("qore-excelfile-"), "the copy is deleted with the provider");
+        assertThrows("JNI-ERROR", sub () {
+            ExcelWorksheetReadDataProvider wdp(path, "name", "no-such-sheet", {"header_names": True});
+        });
+        assertEq(temp_files, getTempFiles("qore-excelfile-"), "a provider that cannot be created leaves no file");
+        assertThrows("EXCEL-FORMULA-FIELD-ERROR", column, sub () {
+            ExcelWorksheetReadDataProvider dp(path, "name", sheet, {"header_names": True, "formula_field": column});
+        });
+    }
+
+    #! A worksheet provider created without input has no records
+    testWorksheetNoInput() {
+        ExcelWorksheetReadDataProvider dp();
+        assertEq({}, dp.getRecordType());
+        assertEq((), (map $1, dp.searchRecords()));
+        dp = new ExcelWorksheetReadDataProvider({"header_names": True, "worksheet": "Sheet1"});
+        assertEq({}, dp.getRecordType());
+        assertEq((), (map $1, dp.searchRecords()));
     }
 
     testWorksheetOptionsCtor() {
