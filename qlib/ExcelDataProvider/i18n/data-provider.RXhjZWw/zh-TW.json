@@ -231,6 +231,42 @@
           "source": "If `True` (the default), sample values and counter-examples are redacted to their shape: letters become `x` or `X` and digits `9`, so a profile can be shared without the data",
           "message": "若為 `True`（預設），範例值與反例會遮蔽為其形狀：字母變為 `x` 或 `X`，數字變為 `9`，因此可以在不包含資料的情況下分享分析結果"
         },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.display_name": {
+          "source": "List Excel Worksheets",
+          "message": "列出 Excel 工作表"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.short_desc": {
+          "source": "List the worksheets of an Excel spreadsheet",
+          "message": "列出 Excel 試算表的工作表"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.desc": {
+          "source": "Lists the worksheets of an Excel spreadsheet (`.xlsx` or `.xls`) in workbook order, so the worksheet to read can be chosen.\n\nEach worksheet is listed with its name, its 0-based `index`, which the `worksheet` read option accepts as well as the name, and whether it is `hidden`; hidden and very hidden worksheets are listed where they are in the workbook.",
+          "message": "依活頁簿中的順序列出 Excel 試算表 (`.xlsx` 或 `.xls`) 的工作表，以便選擇要讀取的工作表。\n\n每個工作表會列出其名稱、從 0 起算的 `index`（讀取選項 `worksheet` 接受此值，也接受名稱），以及是否隱藏 (`hidden`)；隱藏與完全隱藏的工作表會列在其於活頁簿中的位置。"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.display_name": {
+          "source": "Spreadsheet Location",
+          "message": "試算表位置"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.short_desc": {
+          "source": "The location of the Excel spreadsheet",
+          "message": "Excel 試算表的位置"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.desc": {
+          "source": "The location of the Excel spreadsheet (`.xlsx` or `.xls`), for example `file:///data/stock.xlsx` or an `sftp://` location; conflicts with `data`",
+          "message": "Excel 試算表 (`.xlsx` 或 `.xls`) 的位置，例如 `file:///data/stock.xlsx` 或 `sftp://` 位置；不可與 `data` 同時使用"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.display_name": {
+          "source": "Spreadsheet Data",
+          "message": "試算表資料"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.short_desc": {
+          "source": "The Excel spreadsheet content",
+          "message": "Excel 試算表的內容"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.desc": {
+          "source": "The Excel spreadsheet content (`.xlsx` or `.xls`), as bytes or as a Base64 string; conflicts with `path`",
+          "message": "Excel 試算表 (`.xlsx` 或 `.xls`) 的內容，可為位元組或 Base64 字串；不可與 `path` 同時使用"
+        },
         "app.RXhjZWw.action.cmVhZC1kYXRh.display_name": {
           "source": "Read Excel Spreadsheet Inline Data",
           "message": "讀取 Excel 試算表內嵌資料"

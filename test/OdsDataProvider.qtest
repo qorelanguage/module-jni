@@ -68,6 +68,7 @@
 %module-cmd(jni) import org.qore.dataprovider.ods.OdsTestHelper
 %module-cmd(jni) import org.qore.dataprovider.ods.OdsIterator
 %module-cmd(jni) import org.qore.dataprovider.ods.OdsWriter
+%module-cmd(jni) import org.odftoolkit.odfdom.doc.OdfTextDocument
 %module-cmd(jni) import java.lang.System
 
 %requires OdsDataProvider
@@ -253,6 +254,9 @@ public class OdsDataProviderTest inherits QUnit::Test {
         addTestCase("negative: a file that cannot be read as a spreadsheet", \testUnreadableFiles());
         addTestCase("read: the formulas of each record", \testFormulaField());
         addTestCase("negative: formula field name", \testFormulaFieldNegative());
+        addTestCase("list-worksheets action", \testListWorksheetsAction());
+        addTestCase("list-worksheets: hidden tables", \testListWorksheetsVisibility());
+        addTestCase("negative: list-worksheets", \testListWorksheetsNegative());
         set_return_value(main());
     }
 
@@ -277,6 +281,7 @@ public class OdsDataProviderTest inherits QUnit::Test {
         OdsTestHelper::createProfileOds(test_data_dir + "/profile.ods");
         OdsTestHelper::createFormulaRowsOds(test_data_dir + "/formula-rows.ods", False);
         OdsTestHelper::createFormulaRowsOds(test_data_dir + "/formula-repeated.ods", True);
+        OdsTestHelper::createSheetVisibilityOds(test_data_dir + "/sheet-visibility.ods");
 
         assertTrue(is_file(test_data_dir + "/simple.ods"), "simple.ods created");
     }
@@ -1780,10 +1785,6 @@ printf(\"RESULT:%%s\\n\", make_json(rv));
         return map $1, new CsvFileIterator(csv, {"header_names": True});
     }
 
-    #! A file that is not a readable ODS spreadsheet fails the read with the reader's error (qorus#646)
-    /** A damaged file, another file type or an empty file fails before any record is returned; each raises
-        @c JNI-ERROR, its description naming the Java exception.
-    */
     #! Returns TabularProfiler::hasTotalsFormula() if the DataProvider module has it (DataProvider 3.9 with
     #! qore e2005d254), otherwise NOTHING
     private static *code<bool(*hash<auto>)> getHasTotalsFormula() {
@@ -1882,6 +1883,10 @@ printf(\"RESULT:%%s\\n\", make_json(rv));
         }
     }
 
+    #! A file that is not a readable ODS spreadsheet fails the read with the reader's error (qorus#646)
+    /** A damaged file, another file type or an empty file fails before any record is returned; each raises
+        @c JNI-ERROR, its description naming the Java exception.
+    */
     testUnreadableFiles() {
         binary spreadsheet = File::readBinaryFile(test_data_dir + "/simple.ods");
         # the input -> the start of the description of the error its read raises
@@ -1915,6 +1920,140 @@ printf(\"RESULT:%%s\\n\", make_json(rv));
         OdsReadDataProvider dp({"data": spreadsheet, "header_names": True});
         assertTrue((map $1, dp.searchRecords()).size() > 0, "the intact spreadsheet reads");
     }
+
+    #! Returns the list-worksheets action and its data provider
+    private hash<auto> getListWorksheetsAction(hash<auto> opts) {
+        hash<DataProviderActionInfo> action = DataProviderActionCatalog::getAppActionEx("ODS", "list-worksheets");
+        return {
+            "action": action,
+            "provider": DataProviderActionCatalog::getDataProviderForAction(action, \opts),
+        };
+    }
+
+    #! The list-worksheets action lists the tables of a spreadsheet in order, with their position and visibility
+    testListWorksheetsAction() {
+        hash<auto> opts = {"path": test_data_dir + "/multi-sheet.ods"};
+        hash<auto> a = getListWorksheetsAction(opts);
+        hash<DataProviderActionInfo> action = a.action;
+        AbstractDataProvider prov = a.provider;
+        assertEq(DPAT_API, action.action_code);
+        assertEq("OdsWorksheetList", action.output_type.getName());
+        assertEq(("data", "path"), sort(keys action.options));
+        assertTrue(action.options.path.preselected);
+        assertFalse(action.options.path.required, "path and data are alternatives");
+        assertFalse(action.options.data.required, "path and data are alternatives");
+        assertEq("OdsWorksheetListRequest", prov.getRequestType().getName());
+        assertEq("OdsWorksheetList", prov.getResponseType().getName());
+
+        hash<auto> rv = prov.doRequest(opts);
+        assertEq(rv, action.output_type.acceptsValue(rv));
+        assertEq({"worksheets": (
+            {"name": "Users", "index": 0, "hidden": False},
+            {"name": "Products", "index": 1, "hidden": False},
+            {"name": "Orders", "index": 2, "hidden": False},
+        )}, rv);
+
+        # the same tables as the read provider's child providers, from a location or inline data
+        foreach string file in ("multi-sheet.ods", "profile.ods", "sheet-visibility.ods", "simple.ods") {
+            string path = test_data_dir + "/" + file;
+            list<string> names = (new OdsReadDataProvider({"path": path})).getChildProviderNames();
+            hash<auto> by_path = prov.doRequest({"path": path});
+            hash<auto> by_data = prov.doRequest({"data": ReadOnlyFile::readBinaryFile(path)});
+            assertEq(by_path, by_data, file);
+            assertEq(names, (map $1.name, by_path.worksheets), file);
+            assertEq(range(names.size()), (map $1.index, by_path.worksheets), file);
+            assertEq(by_path, action.output_type.acceptsValue(by_path), file);
+        }
+
+        # a hidden table is listed where it is in the spreadsheet, as the profile gives it
+        string path = test_data_dir + "/profile.ods";
+        assertEq({"worksheets": (
+            {"name": "Confirmations", "index": 0, "hidden": False},
+            {"name": "Lookup", "index": 1, "hidden": True},
+        )}, prov.doRequest({"path": path}));
+        hash<TabularWorkbookGrid> grid = OdsProfileDataProvider::readWorkbookGrid(ReadOnlyFile::readBinaryFile(path),
+            10);
+        assertEq((map $1.hidden, grid.sheets), (map $1.hidden, prov.doRequest({"path": path}).worksheets));
+
+        # a data string in Base64 is accepted as the spreadsheet's bytes
+        assertEq(prov.doRequest({"path": test_data_dir + "/multi-sheet.ods"}),
+            prov.doRequest({"data": make_base64_string(ReadOnlyFile::readBinaryFile(test_data_dir
+                + "/multi-sheet.ods"))}));
+    }
+
+    #! A table is hidden only by a table style that does not display it; its index selects it for reading
+    testListWorksheetsVisibility() {
+        AbstractDataProvider prov = getListWorksheetsAction({}).provider;
+        string path = test_data_dir + "/sheet-visibility.ods";
+        hash<auto> rv = prov.doRequest({"path": path});
+        assertEq({"worksheets": (
+            {"name": "Visible", "index": 0, "hidden": False},
+            {"name": "Hidden", "index": 1, "hidden": True},
+            {"name": "Shown", "index": 2, "hidden": False},
+            {"name": "Last", "index": 3, "hidden": False},
+        )}, rv);
+        # the visibility is that of the profile
+        hash<TabularWorkbookGrid> grid = OdsProfileDataProvider::readWorkbookGrid(ReadOnlyFile::readBinaryFile(path),
+            10);
+        assertEq((map $1.hidden, grid.sheets), (map $1.hidden, rv.worksheets));
+        # each table is read by its index as by its name
+        foreach hash<auto> sheet in (rv.worksheets) {
+            list<hash<auto>> by_index = map $1, (new OdsReadDataProvider({"path": path,
+                "worksheet": string(sheet.index), "header_names": True})).searchRecords();
+            assertEq(({"Sheet": sheet.name},), by_index, sheet.name);
+        }
+    }
+
+    #! The list-worksheets action requires exactly one input, and fails for input that is not a spreadsheet
+    testListWorksheetsNegative() {
+        AbstractDataProvider prov = getListWorksheetsAction({}).provider;
+        string path = test_data_dir + "/multi-sheet.ods";
+        assertThrows("ODS-READ-OPTION-ERROR", "exactly one of the \"path\" and \"data\" options",
+            \prov.doRequest(), {});
+        assertThrows("ODS-READ-OPTION-ERROR", "exactly one of the \"path\" and \"data\" options",
+            \prov.doRequest(), {"path": path, "data": ReadOnlyFile::readBinaryFile(path)});
+        # input that is not a spreadsheet raises the Java exception of the read
+        binary ods = File::readBinaryFile(path);
+        # an ODF text document is a ZIP archive with an ODF media type, but not a spreadsheet
+        string odt = tmp_location() + "/ods-list-worksheets-" + get_random_string(8) + ".odt";
+        on_exit unlink(odt);
+        {
+            OdfTextDocument doc = OdfTextDocument::newTextDocument();
+            on_exit doc.close();
+            doc.save(new Jni::java::io::File(odt));
+        }
+        hash<string, hash<auto>> cases = {
+            "a text file": {
+                "data": binary("PO;SKU;Qty\n1;2;3\n"),
+                "exception": "java.util.zip.ZipException",
+            },
+            "an empty file": {
+                "data": binary(),
+                "exception": "java.util.zip.ZipException",
+            },
+            "damaged (truncated)": {
+                "data": ods.substr(0, ods.size() / 2),
+                "exception": "java.util.zip.ZipException",
+            },
+            "an ODF text document": {
+                "data": File::readBinaryFile(odt),
+                "exception": "java.lang.IllegalArgumentException: the document is not an ODF spreadsheet",
+            },
+        };
+        foreach hash<auto> i in (cases.pairIterator()) {
+            *hash<ExceptionInfo> ex;
+            try {
+                prov.doRequest({"data": i.value.data});
+            } catch (hash<ExceptionInfo> e) {
+                ex = e;
+            }
+            assertEq("JNI-ERROR", ex.err, i.key);
+            assertEq(0, ex.desc.find(i.value.exception), sprintf("%s: %s", i.key, ex.desc));
+        }
+        # a location that does not exist
+        assertThrows("FILE-OPEN2-ERROR", \prov.doRequest(), {"path": test_data_dir + "/no-such-file.ods"});
+    }
+
     testWriteColumnMasks() {
         string path = test_data_dir + "/column-masks.ods";
         on_exit unlink(path);
@@ -2007,7 +2146,7 @@ printf(\"RESULT:%%s\\n\", make_json(rv));
 
         assertThrows("ODS-WRITE-OPTION-ERROR", "invalid \"column_headers\" option: a header is given for "
             "column \"x\", which is not written", sub () {
-            OdsWriteDataProvider dp({"headers": ("id",), "column_headers": {"x": "X"}});
+            OdsWriteDataProvider bad({"headers": ("id",), "column_headers": {"x": "X"}});
         });
     }
 
@@ -2043,7 +2182,7 @@ printf(\"RESULT:%%s\\n\", make_json(rv));
         assertEq(("2026-11-02T15:05:00", "2026-07-02T16:05:00"), (OdsTestHelper::getDateValueAttribute(path, 1, 0),
             OdsTestHelper::getDateValueAttribute(path, 2, 0)));
         assertThrows("ODS-WRITE-OPTION-ERROR", "invalid \"timezone\" option \"Mars/Base\"", sub () {
-            OdsWriteDataProvider dp({"timezone": "Mars/Base"});
+            OdsWriteDataProvider bad({"timezone": "Mars/Base"});
         });
     }
 

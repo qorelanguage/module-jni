@@ -32,6 +32,7 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Name;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.SheetVisibility;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.usermodel.DataFormat;
@@ -161,6 +162,32 @@ public class ExcelTestHelper {
             order1.createCell(1).setCellValue(1);
             order1.createCell(2).setCellValue(99.99);
 
+            try (FileOutputStream out = new FileOutputStream(new File(path))) {
+                workbook.write(out);
+            }
+        }
+    }
+
+    /**
+     * Creates a workbook whose worksheets have each visibility state.
+     *
+     * The worksheets, in workbook order, are "Visible", "Hidden" (hidden: the user can unhide it), "Very Hidden"
+     * (very hidden: only a macro can unhide it), and "Last" (visible); each has a header row (Sheet) and one data row
+     * with the worksheet's name.
+     *
+     * @param path The path to create the file at
+     * @param xls true for the Excel 97-2003 (.xls) format, false for .xlsx
+     */
+    public static void createSheetVisibilityExcel(String path, boolean xls) throws IOException {
+        try (Workbook workbook = xls ? new HSSFWorkbook() : new XSSFWorkbook()) {
+            String[] names = {"Visible", "Hidden", "Very Hidden", "Last"};
+            for (String name : names) {
+                Sheet sheet = workbook.createSheet(name);
+                sheet.createRow(0).createCell(0).setCellValue("Sheet");
+                sheet.createRow(1).createCell(0).setCellValue(name);
+            }
+            workbook.setSheetVisibility(1, SheetVisibility.HIDDEN);
+            workbook.setSheetVisibility(2, SheetVisibility.VERY_HIDDEN);
             try (FileOutputStream out = new FileOutputStream(new File(path))) {
                 workbook.write(out);
             }

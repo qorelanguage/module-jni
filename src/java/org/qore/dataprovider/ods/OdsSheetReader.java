@@ -36,8 +36,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import org.qore.jni.Hash;
 
 /**
  * Streams the rows of a table (worksheet) of an ODF spreadsheet.
@@ -58,6 +61,7 @@ final class OdsSheetReader implements Closeable {
     static final String NS_TABLE = "urn:oasis:names:tc:opendocument:xmlns:table:1.0";
     static final String NS_TEXT = "urn:oasis:names:tc:opendocument:xmlns:text:1.0";
     static final String NS_MANIFEST = "urn:oasis:names:tc:opendocument:xmlns:manifest:1.0";
+    static final String NS_STYLE = "urn:oasis:names:tc:opendocument:xmlns:style:1.0";
 
     private static final String CONTENT = "content.xml";
     private static final String TEMP_PREFIX = "qore-ods-";
@@ -127,6 +131,17 @@ final class OdsSheetReader implements Closeable {
         try (OdsSheetReader reader = new OdsSheetReader(new ZipFile(file))) {
             reader.checkMediaType();
             return reader.getTableNames();
+        }
+    }
+
+    /**
+     * Returns the tables of a spreadsheet file in document order: a hash for each with its name, its 0-based index,
+     * and whether it is hidden: its table style does not display it (table:display="false"), as the profile reads it
+     */
+    static ArrayList<Hash> getWorksheetInfo(File file) throws IOException, XMLStreamException {
+        try (OdsSheetReader reader = new OdsSheetReader(new ZipFile(file))) {
+            reader.checkMediaType();
+            return reader.getTableInfo();
         }
     }
 
@@ -270,6 +285,24 @@ final class OdsSheetReader implements Closeable {
         return rv;
     }
 
+    private ArrayList<Hash> getTableInfo() throws IOException, XMLStreamException {
+        ArrayList<Hash> rv = new ArrayList<Hash>();
+        try (Content content = openContent(true)) {
+            if (content.xr != null) {
+                while (content.nextTable()) {
+                    String style = content.xr.getAttributeValue(NS_TABLE, "style-name");
+                    Hash h = new Hash();
+                    h.put("name", content.xr.getAttributeValue(NS_TABLE, "name"));
+                    h.put("index", rv.size());
+                    h.put("hidden", style != null && content.hidden_table_styles.contains(style));
+                    rv.add(h);
+                    skipElement(content.xr);
+                }
+            }
+        }
+        return rv;
+    }
+
     /**
      * Counts the columns of a table as OdfTable.getColumnCount() does, reading the table to its end tag: the column
      * elements before and in the first row that is a child of the table, at any depth
@@ -318,6 +351,15 @@ final class OdsSheetReader implements Closeable {
     }
 
     private Content openContent() throws IOException, XMLStreamException {
+        return openContent(false);
+    }
+
+    /**
+     * Opens a pass over content.xml
+     *
+     * @param table_styles true to read the names of the automatic styles that hide a table
+     */
+    private Content openContent(boolean table_styles) throws IOException, XMLStreamException {
         if (zip == null) {
             throw new IOException("the spreadsheet is closed");
         }
@@ -325,7 +367,7 @@ final class OdsSheetReader implements Closeable {
         if (entry == null) {
             throw new IOException("the spreadsheet has no content.xml");
         }
-        return new Content(zip.getInputStream(entry));
+        return new Content(zip.getInputStream(entry), table_styles);
     }
 
     /**
@@ -372,9 +414,19 @@ final class OdsSheetReader implements Closeable {
         private InputStream in;
         // null if the document has no spreadsheet content
         XMLStreamReader xr;
+        // the names of the automatic styles that hide a table, if requested, otherwise null
+        final HashSet<String> hidden_table_styles;
 
-        Content(InputStream in) throws XMLStreamException, IOException {
+        /**
+         * Opens a pass over content.xml
+         *
+         * @param in the content
+         * @param table_styles true to read the names of the automatic styles that hide a table: styles with a
+         * style:table-properties element whose table:display is "false"
+         */
+        Content(InputStream in, boolean table_styles) throws XMLStreamException, IOException {
             this.in = in;
+            hidden_table_styles = table_styles ? new HashSet<String>() : null;
             try {
                 xr = factory.createXMLStreamReader(in);
                 if (!toSpreadsheet()) {
@@ -407,8 +459,53 @@ final class OdsSheetReader implements Closeable {
                 if (NS_OFFICE.equals(xr.getNamespaceURI()) && "body".equals(xr.getLocalName())) {
                     return toChildElement();
                 }
+                if (hidden_table_styles != null && NS_OFFICE.equals(xr.getNamespaceURI())
+                    && "automatic-styles".equals(xr.getLocalName())) {
+                    readHiddenTableStyles();
+                    continue;
+                }
                 skipElement(xr);
             }
+        }
+
+        /**
+         * Reads office:automatic-styles to its end tag, adding the names of the styles that hide a table
+         */
+        private void readHiddenTableStyles() throws XMLStreamException {
+            while (toChildElement()) {
+                if (NS_STYLE.equals(xr.getNamespaceURI()) && "style".equals(xr.getLocalName())) {
+                    String name = xr.getAttributeValue(NS_STYLE, "name");
+                    // reads the style to its end tag
+                    boolean hides = hidesTable();
+                    if (hides && name != null) {
+                        hidden_table_styles.add(name);
+                    }
+                } else {
+                    skipElement(xr);
+                }
+            }
+        }
+
+        /**
+         * Reads a style:style element to its end tag; returns true if it has a style:table-properties element whose
+         * table:display is "false"
+         */
+        private boolean hidesTable() throws XMLStreamException {
+            boolean rv = false;
+            int depth = 1;
+            while (depth > 0) {
+                int ev = xr.next();
+                if (ev == XMLStreamConstants.START_ELEMENT) {
+                    ++depth;
+                    if (NS_STYLE.equals(xr.getNamespaceURI()) && "table-properties".equals(xr.getLocalName())
+                        && "false".equals(xr.getAttributeValue(NS_TABLE, "display"))) {
+                        rv = true;
+                    }
+                } else if (ev == XMLStreamConstants.END_ELEMENT) {
+                    --depth;
+                }
+            }
+            return rv;
         }
 
         /**

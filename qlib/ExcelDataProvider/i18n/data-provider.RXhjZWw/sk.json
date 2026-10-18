@@ -231,6 +231,42 @@
           "source": "If `True` (the default), sample values and counter-examples are redacted to their shape: letters become `x` or `X` and digits `9`, so a profile can be shared without the data",
           "message": "Ak je `True` (predvolené), ukážkové hodnoty a protipríklady sa redigujú na svoj tvar: písmená sa zmenia na `x` alebo `X` a číslice na `9`, takže profil možno zdieľať bez údajov"
         },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.display_name": {
+          "source": "List Excel Worksheets",
+          "message": "Vypísať hárky Excel"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.short_desc": {
+          "source": "List the worksheets of an Excel spreadsheet",
+          "message": "Vypísať hárky tabuľky Excel"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.desc": {
+          "source": "Lists the worksheets of an Excel spreadsheet (`.xlsx` or `.xls`) in workbook order, so the worksheet to read can be chosen.\n\nEach worksheet is listed with its name, its 0-based `index`, which the `worksheet` read option accepts as well as the name, and whether it is `hidden`; hidden and very hidden worksheets are listed where they are in the workbook.",
+          "message": "Vypíše hárky tabuľky Excel (`.xlsx` alebo `.xls`) v poradí zošita, aby bolo možné zvoliť hárok na čítanie.\n\nKaždý hárok je uvedený so svojím názvom, svojou pozíciou od 0 (`index`), ktorú voľba čítania `worksheet` prijíma rovnako ako názov, a s údajom, či je skrytý (`hidden`); skryté a veľmi skryté hárky sú uvedené tam, kde sa v zošite nachádzajú."
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.display_name": {
+          "source": "Spreadsheet Location",
+          "message": "Umiestnenie tabuľky"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.short_desc": {
+          "source": "The location of the Excel spreadsheet",
+          "message": "Umiestnenie tabuľky Excel"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.desc": {
+          "source": "The location of the Excel spreadsheet (`.xlsx` or `.xls`), for example `file:///data/stock.xlsx` or an `sftp://` location; conflicts with `data`",
+          "message": "Umiestnenie tabuľky Excel (`.xlsx` alebo `.xls`), napríklad `file:///data/stock.xlsx` alebo umiestnenie `sftp://`; nemožno kombinovať s `data`"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.display_name": {
+          "source": "Spreadsheet Data",
+          "message": "Údaje tabuľky"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.short_desc": {
+          "source": "The Excel spreadsheet content",
+          "message": "Obsah tabuľky Excel"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.desc": {
+          "source": "The Excel spreadsheet content (`.xlsx` or `.xls`), as bytes or as a Base64 string; conflicts with `path`",
+          "message": "Obsah tabuľky Excel (`.xlsx` alebo `.xls`) ako bajty alebo reťazec Base64; nemožno kombinovať s `path`"
+        },
         "app.RXhjZWw.action.cmVhZC1kYXRh.display_name": {
           "source": "Read Excel Spreadsheet Inline Data",
           "message": "Čítať priame dáta tabuľky Excel"

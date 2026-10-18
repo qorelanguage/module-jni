@@ -540,6 +540,19 @@ public class OdsIterator extends qore.Qore.AbstractIterator implements java.io.C
     }
 
     /**
+     * Returns the tables (worksheets) of a spreadsheet file in document order, without reading their rows
+     *
+     * @param path the path of the spreadsheet file
+     *
+     * @return a hash for each table with its \c name, its 0-based \c index, which the \c worksheet read option
+     * accepts, and \c hidden: true if its table style does not display it; an array, which the jni module declares
+     * as the Qore list it converts to
+     */
+    public static Hash[] getWorksheetInfo(String path) throws Exception {
+        return OdsSheetReader.getWorksheetInfo(new File(path)).toArray(new Hash[0]);
+    }
+
+    /**
      * Converts a column string (e.g., "A", "B", "AA") to a 0-based index.
      */
     private static int colStringToIndex(String col) {

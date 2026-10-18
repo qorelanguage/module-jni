@@ -289,6 +289,9 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         addTestCase("read: the formulas of a data range", \testFormulaFieldDataRange());
         addTestCase("read: shared, array and data table formulas", \testFormulaFieldShared());
         addTestCase("negative: formula field name", \testFormulaFieldNegative());
+        addTestCase("list-worksheets action", \testListWorksheetsAction());
+        addTestCase("list-worksheets: hidden and very hidden worksheets", \testListWorksheetsVisibility());
+        addTestCase("negative: list-worksheets", \testListWorksheetsNegative());
         set_return_value(main());
     }
 
@@ -314,6 +317,8 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         ExcelTestHelper::createFormulaRowsExcel(test_data_dir + "/formula-rows.xlsx", False);
         ExcelTestHelper::createFormulaRowsExcel(test_data_dir + "/formula-rows.xls", True);
         ExcelTestHelper::createSharedFormulaExcel(test_data_dir + "/shared-formulas.xlsx");
+        ExcelTestHelper::createSheetVisibilityExcel(test_data_dir + "/sheet-visibility.xlsx", False);
+        ExcelTestHelper::createSheetVisibilityExcel(test_data_dir + "/sheet-visibility.xls", True);
 
         assertTrue(is_file(test_data_dir + "/simple.xlsx"), "simple.xlsx created");
     }
@@ -671,6 +676,118 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         # the unencrypted workbook reads
         ExcelReadDataProvider dp({"data": workbook, "header_names": True});
         assertEq(3, (map $1, dp.searchRecords()).size());
+    }
+
+    #! Returns the list-worksheets action and its data provider
+    private hash<auto> getListWorksheetsAction(hash<auto> opts) {
+        hash<DataProviderActionInfo> action = DataProviderActionCatalog::getAppActionEx("Excel", "list-worksheets");
+        return {
+            "action": action,
+            "provider": DataProviderActionCatalog::getDataProviderForAction(action, \opts),
+        };
+    }
+
+    #! The list-worksheets action lists the worksheets of a workbook in order, with their position and visibility
+    testListWorksheetsAction() {
+        hash<auto> opts = {"path": test_data_dir + "/multi-sheet.xlsx"};
+        hash<auto> a = getListWorksheetsAction(opts);
+        hash<DataProviderActionInfo> action = a.action;
+        AbstractDataProvider prov = a.provider;
+        assertEq(DPAT_API, action.action_code);
+        assertEq("ExcelWorksheetList", action.output_type.getName());
+        assertEq(("data", "path"), sort(keys action.options));
+        assertTrue(action.options.path.preselected);
+        assertFalse(action.options.path.required, "path and data are alternatives");
+        assertFalse(action.options.data.required, "path and data are alternatives");
+        assertEq("ExcelWorksheetListRequest", prov.getRequestType().getName());
+        assertEq("ExcelWorksheetList", prov.getResponseType().getName());
+
+        hash<auto> rv = prov.doRequest(opts);
+        assertEq(rv, action.output_type.acceptsValue(rv));
+        assertEq({"worksheets": (
+            {"name": "Users", "index": 0, "hidden": False},
+            {"name": "Products", "index": 1, "hidden": False},
+            {"name": "Orders", "index": 2, "hidden": False},
+        )}, rv);
+
+        # the same worksheets as the read provider's child providers, from a location or inline data, for .xlsx and
+        # .xls workbooks
+        foreach string file in ("multi-sheet.xlsx", "profile.xlsx", "profile.xls", "sheet-visibility.xlsx",
+                "sheet-visibility.xls") {
+            string path = test_data_dir + "/" + file;
+            list<string> names = (new ExcelReadDataProvider({"path": path})).getChildProviderNames();
+            hash<auto> by_path = prov.doRequest({"path": path});
+            hash<auto> by_data = prov.doRequest({"data": ReadOnlyFile::readBinaryFile(path)});
+            assertEq(by_path, by_data, file);
+            assertEq(names, (map $1.name, by_path.worksheets), file);
+            assertEq(range(names.size()), (map $1.index, by_path.worksheets), file);
+            assertEq(by_path, action.output_type.acceptsValue(by_path), file);
+        }
+
+        # a hidden worksheet is listed where it is in the workbook
+        assertEq({"worksheets": (
+            {"name": "Confirmations", "index": 0, "hidden": False},
+            {"name": "Lookup", "index": 1, "hidden": True},
+        )}, prov.doRequest({"path": test_data_dir + "/profile.xls"}));
+
+        # a data string in Base64 is accepted as the workbook's bytes
+        assertEq(prov.doRequest({"path": test_data_dir + "/multi-sheet.xlsx"}),
+            prov.doRequest({"data": make_base64_string(ReadOnlyFile::readBinaryFile(test_data_dir
+                + "/multi-sheet.xlsx"))}));
+    }
+
+    #! A worksheet's index selects it with the worksheet option; hidden and very hidden worksheets are hidden
+    testListWorksheetsVisibility() {
+        AbstractDataProvider prov = getListWorksheetsAction({}).provider;
+        foreach string file in ("sheet-visibility.xlsx", "sheet-visibility.xls") {
+            string path = test_data_dir + "/" + file;
+            hash<auto> rv = prov.doRequest({"path": path});
+            assertEq({"worksheets": (
+                {"name": "Visible", "index": 0, "hidden": False},
+                {"name": "Hidden", "index": 1, "hidden": True},
+                {"name": "Very Hidden", "index": 2, "hidden": True},
+                {"name": "Last", "index": 3, "hidden": False},
+            )}, rv, file);
+            # each worksheet is read by its index as by its name
+            foreach hash<auto> sheet in (rv.worksheets) {
+                list<hash<auto>> by_index = map $1, (new ExcelReadDataProvider({"path": path,
+                    "worksheet": string(sheet.index), "header_names": True})).searchRecords();
+                assertEq(({"Sheet": sheet.name},), by_index, sprintf("%s: %s", file, sheet.name));
+            }
+        }
+    }
+
+    #! The list-worksheets action requires exactly one input, and fails for input that is not a workbook
+    testListWorksheetsNegative() {
+        AbstractDataProvider prov = getListWorksheetsAction({}).provider;
+        string path = test_data_dir + "/multi-sheet.xlsx";
+        assertThrows("EXCEL-READ-OPTION-ERROR", "exactly one of the \"path\" and \"data\" options",
+            \prov.doRequest(), {});
+        assertThrows("EXCEL-READ-OPTION-ERROR", "exactly one of the \"path\" and \"data\" options",
+            \prov.doRequest(), {"path": path, "data": ReadOnlyFile::readBinaryFile(path)});
+        # input that is not a workbook raises the Java exception of the read
+        hash<string, string> cases = {
+            "a text file": "java.io.IOException",
+            "a ZIP archive that is not a workbook": "org.apache.poi.openxml4j.exceptions.NotOfficeXmlFileException",
+            "an empty file": "org.apache.poi.EmptyFileException",
+        };
+        hash<string, binary> data = {
+            "a text file": binary("PO;SKU;Qty\n1;2;3\n"),
+            "a ZIP archive that is not a workbook": binary("PK\x03\x04not a workbook"),
+            "an empty file": binary(),
+        };
+        foreach hash<auto> i in (cases.pairIterator()) {
+            *hash<ExceptionInfo> ex;
+            try {
+                prov.doRequest({"data": data{i.key}});
+            } catch (hash<ExceptionInfo> e) {
+                ex = e;
+            }
+            assertEq("JNI-ERROR", ex.err, i.key);
+            assertEq(0, ex.desc.find(i.value), sprintf("%s: %s", i.key, ex.desc));
+        }
+        # a location that does not exist
+        assertThrows("FILE-OPEN2-ERROR", \prov.doRequest(), {"path": test_data_dir + "/no-such-file.xlsx"});
     }
 
     #! The formulas of the records of the order sheet: line totals in the data rows, a totals row of formulas only
@@ -2127,7 +2244,7 @@ printf(\"RESULT:%%s\\n\", make_json({\"count\": count, \"mismatches\": mismatche
         # a header for a column that is not written
         assertThrows("EXCEL-WRITE-OPTION-ERROR", "invalid \"column_headers\" option: a header is given for "
             "column \"x\", which is not written", sub () {
-            ExcelWriteDataProvider dp({"headers": ("id",), "column_headers": {"x": "X"}});
+            ExcelWriteDataProvider bad({"headers": ("id",), "column_headers": {"x": "X"}});
         });
     }
 

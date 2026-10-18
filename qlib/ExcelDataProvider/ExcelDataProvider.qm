@@ -139,6 +139,28 @@ module ExcelDataProvider {
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": ExcelDataProvider::AppName,
             "path": "/",
+            "action": "list-worksheets",
+            "display_name": "List Excel Worksheets",
+            "short_desc": "List the worksheets of an Excel spreadsheet",
+            "desc": "Lists the worksheets of an Excel spreadsheet (`.xlsx` or `.xls`) in workbook order, so the "
+                "worksheet to read can be chosen.\n\n"
+                "Each worksheet is listed with its name, its 0-based `index`, which the `worksheet` read option "
+                "accepts as well as the name, and whether it is `hidden`; hidden and very hidden worksheets are "
+                "listed where they are in the workbook.",
+            "action_code": DPAT_API,
+            "cls": "ExcelDataProvider::ExcelListWorksheetsDataProvider",
+            "output_type": ExcelListWorksheetsDataProvider::ResponseType,
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
+                ExcelWorksheetListRequestDataType::Fields{"path",}, {
+                    "preselected": True,
+                }
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
+                ExcelWorksheetListRequestDataType::Fields{"data",}
+            ),
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": ExcelDataProvider::AppName,
+            "path": "/",
             "action": "read-data",
             #"subtype": "excelread",
             "display_name": "Read Excel Spreadsheet Inline Data",
@@ -243,6 +265,8 @@ module ExcelDataProvider {
     - @ref ExcelDataProvider::ExcelWriteDataProvider "ExcelWriteDataProvider" - for writing Excel files
     - @ref ExcelDataProvider::ExcelWriteDataProviderFactory "ExcelWriteDataProviderFactory" - factory for write providers
     - @ref ExcelDataProvider::ExcelWorksheetReadDataProvider "ExcelWorksheetReadDataProvider" - for reading specific worksheets
+    - @ref ExcelDataProvider::ExcelListWorksheetsDataProvider "ExcelListWorksheetsDataProvider" - for listing the
+      worksheets of a workbook (the \c list-worksheets action)
 
     @section ExcelDataProvider_reading Reading Excel Files
 
@@ -297,6 +321,17 @@ module ExcelDataProvider {
     # Access specific worksheet
     AbstractDataProvider sheet = dp.getChildProvider("Sheet2");
     list<hash<auto>> records = map $1, sheet.searchRecords();
+    @endcode
+
+    The \c list-worksheets action lists the worksheets with their 0-based position, which the \c worksheet option
+    accepts as well as the name, and whether they are hidden (including very hidden worksheets, which only a macro
+    can show):
+
+    @code{.py}
+    ExcelListWorksheetsDataProvider lister();
+    hash<auto> rv = lister.doRequest({"path": "workbook.xlsx"});
+    # rv: {"worksheets": ({"name": "Orders", "index": 0, "hidden": False},
+    #                     {"name": "Lookup", "index": 1, "hidden": True})}
     @endcode
 
     @section ExcelDataProvider_writing Writing Excel Files
@@ -447,6 +482,10 @@ module ExcelDataProvider {
     @section ExcelDataProvider_relnotes Release Notes
 
     @subsection ExcelDataProvider_v1_1 ExcelDataProvider v1.1
+    - added the \c list-worksheets action and
+      @ref ExcelDataProvider::ExcelListWorksheetsDataProvider "ExcelListWorksheetsDataProvider": the worksheets of a
+      workbook in order, each with its 0-based index, which the \c worksheet read option accepts, and whether it is
+      hidden
     - added the \c column_masks write option: the display format of each column as a mask of the
       @ref valuemaskintro "ValueMask" module, such as \c DD.MM.YYYY or <tt>#.##0,00 €</tt>, the masks that CSV
       files and Qorus sheet contracts are read and written with (see @ref ExcelDataProvider_writing_column_masks)

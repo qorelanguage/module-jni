@@ -146,6 +146,55 @@ public class OdsTestHelper {
     }
 
     /**
+     * Creates a spreadsheet whose tables are shown or hidden by their table styles.
+     *
+     * The tables, in document order, are "Visible" (no table style), "Hidden" (an automatic table style with
+     * table:display="false"), "Shown" (an automatic table style with table:display="true"), and "Last" (no table
+     * style); each has a header row (Sheet) and one data row with the table's name.
+     *
+     * @param path The path to create the file at
+     */
+    public static void createSheetVisibilityOds(String path) throws Exception {
+        try (OdfSpreadsheetDocument doc = OdfSpreadsheetDocument.newSpreadsheetDocument()) {
+            String[] names = {"Visible", "Hidden", "Shown", "Last"};
+            OdfTable[] tables = new OdfTable[names.length];
+            for (int i = 0; i < names.length; ++i) {
+                tables[i] = i == 0 ? doc.getTableList().get(0) : OdfTable.newTable(doc, 2, 1);
+                tables[i].setTableName(names[i]);
+                tables[i].getCellByPosition(0, 0).setStringValue("Sheet");
+                tables[i].getCellByPosition(0, 1).setStringValue(names[i]);
+            }
+
+            OdfFileDom dom = doc.getContentDom();
+            String office_ns = OdfDocumentNamespace.OFFICE.getUri();
+            String style_ns = OdfDocumentNamespace.STYLE.getUri();
+            String table_ns = OdfDocumentNamespace.TABLE.getUri();
+            Element styles = (Element)dom.getElementsByTagNameNS(office_ns, "automatic-styles").item(0);
+            if (styles == null) {
+                styles = dom.createElementNS(office_ns, "office:automatic-styles");
+                dom.getDocumentElement().insertBefore(styles,
+                    dom.getElementsByTagNameNS(office_ns, "body").item(0));
+            }
+            String[][] table_styles = {{"hidden_table", "false"}, {"shown_table", "true"}};
+            for (String[] table_style : table_styles) {
+                Element style = dom.createElementNS(style_ns, "style:style");
+                style.setAttributeNS(style_ns, "style:name", table_style[0]);
+                style.setAttributeNS(style_ns, "style:family", "table");
+                Element props = dom.createElementNS(style_ns, "style:table-properties");
+                props.setAttributeNS(table_ns, "table:display", table_style[1]);
+                style.appendChild(props);
+                styles.appendChild(style);
+            }
+            tables[0].getOdfElement().removeAttributeNS(table_ns, "style-name");
+            tables[1].getOdfElement().setAttributeNS(table_ns, "table:style-name", "hidden_table");
+            tables[2].getOdfElement().setAttributeNS(table_ns, "table:style-name", "shown_table");
+            tables[3].getOdfElement().removeAttributeNS(table_ns, "style-name");
+
+            doc.save(path);
+        }
+    }
+
+    /**
      * Creates an ODS file with date values.
      */
     public static void createDatesOds(String path) throws Exception {

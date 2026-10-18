@@ -231,6 +231,42 @@
           "source": "If `True` (the default), sample values and counter-examples are redacted to their shape: letters become `x` or `X` and digits `9`, so a profile can be shared without the data",
           "message": "`True` (既定) の場合、サンプル値と反例はその形に置き換えて伏せられます。文字は `x` または `X`、数字は `9` になるため、データを含めずにプロファイルを共有できます"
         },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.display_name": {
+          "source": "List ODS Worksheets",
+          "message": "ODS ワークシートを一覧表示"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.short_desc": {
+          "source": "List the worksheets of an ODS spreadsheet",
+          "message": "ODS スプレッドシートのワークシートを一覧表示します"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.desc": {
+          "source": "Lists the worksheets of an OpenDocument spreadsheet (`.ods`) in spreadsheet order, so the worksheet to read can be chosen.\n\nEach worksheet is listed with its name, its 0-based `index`, which the `worksheet` read option accepts as well as the name, and whether it is `hidden`; hidden worksheets are listed where they are in the spreadsheet.",
+          "message": "OpenDocument スプレッドシート (`.ods`) のワークシートをスプレッドシート内の順序で一覧表示し、読み取るワークシートを選択できるようにします。\n\n各ワークシートは、名前、0 から始まる `index` (読み取りオプション `worksheet` は名前と同様にこれを受け付けます)、および非表示かどうか (`hidden`) とともに一覧表示されます。非表示のワークシートは、スプレッドシート内の位置に一覧表示されます。"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.display_name": {
+          "source": "Spreadsheet Location",
+          "message": "スプレッドシートの場所"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.short_desc": {
+          "source": "The location of the ODS spreadsheet",
+          "message": "ODS スプレッドシートの場所"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.desc": {
+          "source": "The location of the OpenDocument spreadsheet (`.ods`), for example `file:///data/stock.ods` or an `sftp://` location; conflicts with `data`",
+          "message": "OpenDocument スプレッドシート (`.ods`) の場所。例: `file:///data/stock.ods` や `sftp://` の場所。`data` とは併用できません"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.display_name": {
+          "source": "Spreadsheet Data",
+          "message": "スプレッドシートのデータ"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.short_desc": {
+          "source": "The ODS spreadsheet content",
+          "message": "ODS スプレッドシートの内容"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.desc": {
+          "source": "The OpenDocument spreadsheet content (`.ods`), as bytes or as a Base64 string; conflicts with `path`",
+          "message": "OpenDocument スプレッドシート (`.ods`) の内容 (バイトまたは Base64 文字列)。`path` とは併用できません"
+        },
         "app.T0RT.action.cmVhZC1kYXRh.display_name": {
           "source": "Read ODS Spreadsheet Inline Data",
           "message": "ODS スプレッドシートインラインデータの読み取り"

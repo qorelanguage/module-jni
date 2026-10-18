@@ -231,6 +231,42 @@
           "source": "If `True` (the default), sample values and counter-examples are redacted to their shape: letters become `x` or `X` and digits `9`, so a profile can be shared without the data",
           "message": "Pokud je `True` (výchozí), ukázkové hodnoty a protipříklady se redigují na svůj tvar: písmena se změní na `x` nebo `X` a číslice na `9`, takže profil lze sdílet bez dat"
         },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.display_name": {
+          "source": "List ODS Worksheets",
+          "message": "Vypsat listy ODS"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.short_desc": {
+          "source": "List the worksheets of an ODS spreadsheet",
+          "message": "Vypsat listy tabulky ODS"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.desc": {
+          "source": "Lists the worksheets of an OpenDocument spreadsheet (`.ods`) in spreadsheet order, so the worksheet to read can be chosen.\n\nEach worksheet is listed with its name, its 0-based `index`, which the `worksheet` read option accepts as well as the name, and whether it is `hidden`; hidden worksheets are listed where they are in the spreadsheet.",
+          "message": "Vypíše listy tabulky OpenDocument (`.ods`) v pořadí tabulky, aby bylo možné zvolit list ke čtení.\n\nKaždý list je uveden se svým názvem, svou pozicí od 0 (`index`), kterou volba čtení `worksheet` přijímá stejně jako název, a s údajem, zda je skrytý (`hidden`); skryté listy jsou uvedeny tam, kde se v tabulce nacházejí."
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.display_name": {
+          "source": "Spreadsheet Location",
+          "message": "Umístění tabulky"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.short_desc": {
+          "source": "The location of the ODS spreadsheet",
+          "message": "Umístění tabulky ODS"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.desc": {
+          "source": "The location of the OpenDocument spreadsheet (`.ods`), for example `file:///data/stock.ods` or an `sftp://` location; conflicts with `data`",
+          "message": "Umístění tabulky OpenDocument (`.ods`), například `file:///data/stock.ods` nebo umístění `sftp://`; nelze kombinovat s `data`"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.display_name": {
+          "source": "Spreadsheet Data",
+          "message": "Data tabulky"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.short_desc": {
+          "source": "The ODS spreadsheet content",
+          "message": "Obsah tabulky ODS"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.desc": {
+          "source": "The OpenDocument spreadsheet content (`.ods`), as bytes or as a Base64 string; conflicts with `path`",
+          "message": "Obsah tabulky OpenDocument (`.ods`) jako bajty nebo řetězec Base64; nelze kombinovat s `path`"
+        },
         "app.T0RT.action.cmVhZC1kYXRh.display_name": {
           "source": "Read ODS Spreadsheet Inline Data",
           "message": "Přečíst přímá data ODS tabulky"

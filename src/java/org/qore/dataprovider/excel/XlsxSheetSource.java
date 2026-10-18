@@ -49,6 +49,8 @@ import org.apache.poi.xssf.usermodel.XSSFRelation;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import org.qore.jni.Hash;
+
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -131,10 +133,13 @@ final class XlsxSheetSource implements SheetSource {
         final String name;
         // null for a chart sheet
         final PackagePart part;
+        // true if the sheet is hidden or very hidden
+        final boolean hidden;
 
-        SheetInfo(String name, PackagePart part) {
+        SheetInfo(String name, PackagePart part, boolean hidden) {
             this.name = name;
             this.part = part;
+            this.hidden = hidden;
         }
     }
 
@@ -219,6 +224,29 @@ final class XlsxSheetSource implements SheetSource {
             ArrayList<String> rv = new ArrayList<String>();
             for (SheetInfo sheet : info.sheets) {
                 rv.add(sheet.name);
+            }
+            return rv;
+        } finally {
+            pkg.revert();
+        }
+    }
+
+    /**
+     * Returns the worksheets of a workbook file in workbook order: a hash for each with its name, its 0-based index,
+     * and whether it is hidden (hidden or very hidden), as XSSFWorkbook.isSheetHidden() or isSheetVeryHidden() gives
+     * it
+     */
+    static ArrayList<Hash> getWorksheetInfo(File file) throws IOException, InvalidFormatException {
+        OPCPackage pkg = openPackage(file);
+        try {
+            WorkbookInfo info = readWorkbook(pkg, XMLHelper.newXMLInputFactory());
+            ArrayList<Hash> rv = new ArrayList<Hash>();
+            for (SheetInfo sheet : info.sheets) {
+                Hash h = new Hash();
+                h.put("name", sheet.name);
+                h.put("index", rv.size());
+                h.put("hidden", sheet.hidden);
+                rv.add(h);
             }
             return rv;
         } finally {
@@ -402,7 +430,7 @@ final class XlsxSheetSource implements SheetSource {
                             in_sheets = true;
                         } else if (depth == 3 && in_sheets && main && "sheet".equals(ln)) {
                             sheets.add(new String[]{xr.getAttributeValue(null, "name"),
-                                xr.getAttributeValue(NS_REL, "id")});
+                                xr.getAttributeValue(NS_REL, "id"), xr.getAttributeValue(null, "state")});
                         } else if (depth == 2 && main && "definedNames".equals(ln)) {
                             in_names = true;
                         } else if (depth == 3 && in_names && main && "definedName".equals(ln)) {
@@ -447,7 +475,10 @@ final class XlsxSheetSource implements SheetSource {
             if (part == null) {
                 continue;
             }
-            info.sheets.add(new SheetInfo(sheet[0], chart ? null : part));
+            // ST_SheetState: visible (the default), hidden, or veryHidden
+            String state = sheet[2] == null ? "" : sheet[2].trim();
+            info.sheets.add(new SheetInfo(sheet[0], chart ? null : part,
+                "hidden".equals(state) || "veryHidden".equals(state)));
         }
         return info;
     }

@@ -231,6 +231,42 @@
           "source": "If `True` (the default), sample values and counter-examples are redacted to their shape: letters become `x` or `X` and digits `9`, so a profile can be shared without the data",
           "message": "Si `True` (par défaut), les valeurs d'exemple et les contre-exemples sont masqués selon leur forme : les lettres deviennent `x` ou `X` et les chiffres `9`, afin qu'un profil puisse être partagé sans les données"
         },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.display_name": {
+          "source": "List Excel Worksheets",
+          "message": "Lister les feuilles de calcul Excel"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.short_desc": {
+          "source": "List the worksheets of an Excel spreadsheet",
+          "message": "Lister les feuilles d'un classeur Excel"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.desc": {
+          "source": "Lists the worksheets of an Excel spreadsheet (`.xlsx` or `.xls`) in workbook order, so the worksheet to read can be chosen.\n\nEach worksheet is listed with its name, its 0-based `index`, which the `worksheet` read option accepts as well as the name, and whether it is `hidden`; hidden and very hidden worksheets are listed where they are in the workbook.",
+          "message": "Liste les feuilles d'un classeur Excel (`.xlsx` ou `.xls`) dans l'ordre du classeur, afin de pouvoir choisir la feuille à lire.\n\nChaque feuille est listée avec son nom, sa position `index` à partir de 0, que l'option de lecture `worksheet` accepte comme le nom, et l'indication si elle est masquée (`hidden`) ; les feuilles masquées et très masquées sont listées à leur place dans le classeur."
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.display_name": {
+          "source": "Spreadsheet Location",
+          "message": "Emplacement de la feuille de calcul"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.short_desc": {
+          "source": "The location of the Excel spreadsheet",
+          "message": "L'emplacement du classeur Excel"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.desc": {
+          "source": "The location of the Excel spreadsheet (`.xlsx` or `.xls`), for example `file:///data/stock.xlsx` or an `sftp://` location; conflicts with `data`",
+          "message": "L'emplacement du classeur Excel (`.xlsx` ou `.xls`), par exemple `file:///data/stock.xlsx` ou un emplacement `sftp://` ; incompatible avec `data`"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.display_name": {
+          "source": "Spreadsheet Data",
+          "message": "Données de la feuille de calcul"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.short_desc": {
+          "source": "The Excel spreadsheet content",
+          "message": "Le contenu du classeur Excel"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.desc": {
+          "source": "The Excel spreadsheet content (`.xlsx` or `.xls`), as bytes or as a Base64 string; conflicts with `path`",
+          "message": "Le contenu du classeur Excel (`.xlsx` ou `.xls`), sous forme d'octets ou de chaîne Base64 ; incompatible avec `path`"
+        },
         "app.RXhjZWw.action.cmVhZC1kYXRh.display_name": {
           "source": "Read Excel Spreadsheet Inline Data",
           "message": "Lire les données en ligne de feuille de calcul Excel"

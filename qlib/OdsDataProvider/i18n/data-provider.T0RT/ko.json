@@ -231,6 +231,42 @@
           "source": "If `True` (the default), sample values and counter-examples are redacted to their shape: letters become `x` or `X` and digits `9`, so a profile can be shared without the data",
           "message": "`True`(기본값)이면 샘플 값과 반례를 형태만 남기고 가림: 문자는 `x` 또는 `X`, 숫자는 `9`가 되므로 데이터 없이 프로필을 공유할 수 있음"
         },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.display_name": {
+          "source": "List ODS Worksheets",
+          "message": "ODS 워크시트 나열"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.short_desc": {
+          "source": "List the worksheets of an ODS spreadsheet",
+          "message": "ODS 스프레드시트의 워크시트를 나열합니다"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.desc": {
+          "source": "Lists the worksheets of an OpenDocument spreadsheet (`.ods`) in spreadsheet order, so the worksheet to read can be chosen.\n\nEach worksheet is listed with its name, its 0-based `index`, which the `worksheet` read option accepts as well as the name, and whether it is `hidden`; hidden worksheets are listed where they are in the spreadsheet.",
+          "message": "OpenDocument 스프레드시트(`.ods`)의 워크시트를 스프레드시트 순서대로 나열하여 읽을 워크시트를 선택할 수 있도록 합니다.\n\n각 워크시트는 이름, 0부터 시작하는 `index`(읽기 옵션 `worksheet`는 이름과 마찬가지로 이를 허용함), 숨겨져 있는지 여부(`hidden`)와 함께 나열됩니다. 숨겨진 워크시트는 스프레드시트에서의 위치에 나열됩니다."
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.display_name": {
+          "source": "Spreadsheet Location",
+          "message": "스프레드시트 위치"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.short_desc": {
+          "source": "The location of the ODS spreadsheet",
+          "message": "ODS 스프레드시트의 위치"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.desc": {
+          "source": "The location of the OpenDocument spreadsheet (`.ods`), for example `file:///data/stock.ods` or an `sftp://` location; conflicts with `data`",
+          "message": "OpenDocument 스프레드시트(`.ods`)의 위치(예: `file:///data/stock.ods` 또는 `sftp://` 위치), `data`와 함께 사용할 수 없음"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.display_name": {
+          "source": "Spreadsheet Data",
+          "message": "스프레드시트 데이터"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.short_desc": {
+          "source": "The ODS spreadsheet content",
+          "message": "ODS 스프레드시트의 내용"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.desc": {
+          "source": "The OpenDocument spreadsheet content (`.ods`), as bytes or as a Base64 string; conflicts with `path`",
+          "message": "OpenDocument 스프레드시트(`.ods`)의 내용(바이트 또는 Base64 문자열), `path`와 함께 사용할 수 없음"
+        },
         "app.T0RT.action.cmVhZC1kYXRh.display_name": {
           "source": "Read ODS Spreadsheet Inline Data",
           "message": "ODS 스프레드시트 인라인 데이터 읽기"

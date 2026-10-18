@@ -231,6 +231,42 @@
           "source": "If `True` (the default), sample values and counter-examples are redacted to their shape: letters become `x` or `X` and digits `9`, so a profile can be shared without the data",
           "message": "`True` (既定) の場合、サンプル値と反例はその形に置き換えて伏せられます。文字は `x` または `X`、数字は `9` になるため、データを含めずにプロファイルを共有できます"
         },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.display_name": {
+          "source": "List Excel Worksheets",
+          "message": "Excel ワークシートを一覧表示"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.short_desc": {
+          "source": "List the worksheets of an Excel spreadsheet",
+          "message": "Excel スプレッドシートのワークシートを一覧表示します"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.desc": {
+          "source": "Lists the worksheets of an Excel spreadsheet (`.xlsx` or `.xls`) in workbook order, so the worksheet to read can be chosen.\n\nEach worksheet is listed with its name, its 0-based `index`, which the `worksheet` read option accepts as well as the name, and whether it is `hidden`; hidden and very hidden worksheets are listed where they are in the workbook.",
+          "message": "Excel スプレッドシート (`.xlsx` または `.xls`) のワークシートをブック内の順序で一覧表示し、読み取るワークシートを選択できるようにします。\n\n各ワークシートは、名前、0 から始まる `index` (読み取りオプション `worksheet` は名前と同様にこれを受け付けます)、および非表示かどうか (`hidden`) とともに一覧表示されます。非表示および完全に非表示のワークシートは、ブック内の位置に一覧表示されます。"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.display_name": {
+          "source": "Spreadsheet Location",
+          "message": "スプレッドシートの場所"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.short_desc": {
+          "source": "The location of the Excel spreadsheet",
+          "message": "Excel スプレッドシートの場所"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.desc": {
+          "source": "The location of the Excel spreadsheet (`.xlsx` or `.xls`), for example `file:///data/stock.xlsx` or an `sftp://` location; conflicts with `data`",
+          "message": "Excel スプレッドシート (`.xlsx` または `.xls`) の場所。例: `file:///data/stock.xlsx` や `sftp://` の場所。`data` とは併用できません"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.display_name": {
+          "source": "Spreadsheet Data",
+          "message": "スプレッドシートのデータ"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.short_desc": {
+          "source": "The Excel spreadsheet content",
+          "message": "Excel スプレッドシートの内容"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.desc": {
+          "source": "The Excel spreadsheet content (`.xlsx` or `.xls`), as bytes or as a Base64 string; conflicts with `path`",
+          "message": "Excel スプレッドシート (`.xlsx` または `.xls`) の内容 (バイトまたは Base64 文字列)。`path` とは併用できません"
+        },
         "app.RXhjZWw.action.cmVhZC1kYXRh.display_name": {
           "source": "Read Excel Spreadsheet Inline Data",
           "message": "インライン Excel スプレッドシートデータの読み込み"

@@ -231,6 +231,42 @@
           "source": "If `True` (the default), sample values and counter-examples are redacted to their shape: letters become `x` or `X` and digits `9`, so a profile can be shared without the data",
           "message": "Jeśli `True` (domyślnie), przykładowe wartości i kontrprzykłady są redagowane do swojego kształtu: litery stają się `x` lub `X`, a cyfry `9`, dzięki czemu profil można udostępnić bez danych"
         },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.display_name": {
+          "source": "List Excel Worksheets",
+          "message": "Wyświetl arkusze Excel"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.short_desc": {
+          "source": "List the worksheets of an Excel spreadsheet",
+          "message": "Wyświetl arkusze skoroszytu Excel"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.desc": {
+          "source": "Lists the worksheets of an Excel spreadsheet (`.xlsx` or `.xls`) in workbook order, so the worksheet to read can be chosen.\n\nEach worksheet is listed with its name, its 0-based `index`, which the `worksheet` read option accepts as well as the name, and whether it is `hidden`; hidden and very hidden worksheets are listed where they are in the workbook.",
+          "message": "Wyświetla arkusze skoroszytu Excel (`.xlsx` lub `.xls`) w kolejności skoroszytu, aby można było wybrać arkusz do odczytu.\n\nKażdy arkusz jest wymieniony ze swoją nazwą, swoją pozycją liczoną od 0 (`index`), którą opcja odczytu `worksheet` akceptuje tak samo jak nazwę, oraz informacją, czy jest ukryty (`hidden`); arkusze ukryte i bardzo ukryte są wymienione w miejscu, w którym znajdują się w skoroszycie."
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.display_name": {
+          "source": "Spreadsheet Location",
+          "message": "Lokalizacja arkusza"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.short_desc": {
+          "source": "The location of the Excel spreadsheet",
+          "message": "Lokalizacja skoroszytu Excel"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.desc": {
+          "source": "The location of the Excel spreadsheet (`.xlsx` or `.xls`), for example `file:///data/stock.xlsx` or an `sftp://` location; conflicts with `data`",
+          "message": "Lokalizacja skoroszytu Excel (`.xlsx` lub `.xls`), na przykład `file:///data/stock.xlsx` lub lokalizacja `sftp://`; wyklucza `data`"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.display_name": {
+          "source": "Spreadsheet Data",
+          "message": "Dane arkusza"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.short_desc": {
+          "source": "The Excel spreadsheet content",
+          "message": "Zawartość skoroszytu Excel"
+        },
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.desc": {
+          "source": "The Excel spreadsheet content (`.xlsx` or `.xls`), as bytes or as a Base64 string; conflicts with `path`",
+          "message": "Zawartość skoroszytu Excel (`.xlsx` lub `.xls`) jako bajty lub ciąg Base64; wyklucza `path`"
+        },
         "app.RXhjZWw.action.cmVhZC1kYXRh.display_name": {
           "source": "Read Excel Spreadsheet Inline Data",
           "message": "Odczytaj bezpośrednie dane arkusza kalkulacyjnego Excel"

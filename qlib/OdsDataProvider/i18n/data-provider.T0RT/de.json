@@ -231,6 +231,42 @@
           "source": "If `True` (the default), sample values and counter-examples are redacted to their shape: letters become `x` or `X` and digits `9`, so a profile can be shared without the data",
           "message": "Wenn `True` (Standard), werden Beispielwerte und Gegenbeispiele auf ihre Form reduziert: Buchstaben werden zu `x` oder `X` und Ziffern zu `9`, sodass ein Profil ohne die Daten weitergegeben werden kann"
         },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.display_name": {
+          "source": "List ODS Worksheets",
+          "message": "ODS-Arbeitsblätter auflisten"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.short_desc": {
+          "source": "List the worksheets of an ODS spreadsheet",
+          "message": "Die Arbeitsblätter einer ODS-Tabelle auflisten"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.desc": {
+          "source": "Lists the worksheets of an OpenDocument spreadsheet (`.ods`) in spreadsheet order, so the worksheet to read can be chosen.\n\nEach worksheet is listed with its name, its 0-based `index`, which the `worksheet` read option accepts as well as the name, and whether it is `hidden`; hidden worksheets are listed where they are in the spreadsheet.",
+          "message": "Listet die Arbeitsblätter einer OpenDocument-Tabelle (`.ods`) in der Reihenfolge der Tabelle auf, damit das zu lesende Arbeitsblatt ausgewählt werden kann.\n\nJedes Arbeitsblatt wird mit seinem Namen, seinem 0-basierten `index`, den die Leseoption `worksheet` ebenso wie den Namen akzeptiert, und der Angabe aufgeführt, ob es ausgeblendet ist (`hidden`); ausgeblendete Arbeitsblätter werden an ihrer Position in der Tabelle aufgeführt."
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.display_name": {
+          "source": "Spreadsheet Location",
+          "message": "Tabellenort"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.short_desc": {
+          "source": "The location of the ODS spreadsheet",
+          "message": "Der Ort der ODS-Tabelle"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.desc": {
+          "source": "The location of the OpenDocument spreadsheet (`.ods`), for example `file:///data/stock.ods` or an `sftp://` location; conflicts with `data`",
+          "message": "Der Ort der OpenDocument-Tabelle (`.ods`), zum Beispiel `file:///data/stock.ods` oder ein `sftp://`-Ort; schließt `data` aus"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.display_name": {
+          "source": "Spreadsheet Data",
+          "message": "Tabellendaten"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.short_desc": {
+          "source": "The ODS spreadsheet content",
+          "message": "Der Inhalt der ODS-Tabelle"
+        },
+        "app.T0RT.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.desc": {
+          "source": "The OpenDocument spreadsheet content (`.ods`), as bytes or as a Base64 string; conflicts with `path`",
+          "message": "Der Inhalt der OpenDocument-Tabelle (`.ods`), als Bytes oder als Base64-Zeichenkette; schließt `path` aus"
+        },
         "app.T0RT.action.cmVhZC1kYXRh.display_name": {
           "source": "Read ODS Spreadsheet Inline Data",
           "message": "ODS-Tabellenkalkulation aus Inline-Daten lesen"

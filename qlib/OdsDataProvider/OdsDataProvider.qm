@@ -178,6 +178,28 @@ module OdsDataProvider {
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": OdsDataProvider::AppName,
             "path": "/",
+            "action": "list-worksheets",
+            "display_name": "List ODS Worksheets",
+            "short_desc": "List the worksheets of an ODS spreadsheet",
+            "desc": "Lists the worksheets of an OpenDocument spreadsheet (`.ods`) in spreadsheet order, so the "
+                "worksheet to read can be chosen.\n\n"
+                "Each worksheet is listed with its name, its 0-based `index`, which the `worksheet` read option "
+                "accepts as well as the name, and whether it is `hidden`; hidden worksheets are listed where they "
+                "are in the spreadsheet.",
+            "action_code": DPAT_API,
+            "cls": "OdsDataProvider::OdsListWorksheetsDataProvider",
+            "output_type": OdsListWorksheetsDataProvider::ResponseType,
+            "options": DataProviderActionCatalog::getActionOptionFromFields(
+                OdsWorksheetListRequestDataType::Fields{"path",}, {
+                    "preselected": True,
+                }
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
+                OdsWorksheetListRequestDataType::Fields{"data",}
+            ),
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": OdsDataProvider::AppName,
+            "path": "/",
             "action": "read-data",
             "display_name": "Read ODS Spreadsheet Inline Data",
             "short_desc": "Read ODS spreadsheet inline data",
@@ -366,6 +388,8 @@ module OdsDataProvider {
     - @ref OdsDataProvider::OdsWriteDataProvider "OdsWriteDataProvider" - for writing ODS files
     - @ref OdsDataProvider::OdsWriteDataProviderFactory "OdsWriteDataProviderFactory" - factory for write providers
     - @ref OdsDataProvider::OdsWorksheetReadDataProvider "OdsWorksheetReadDataProvider" - for reading specific worksheets
+    - @ref OdsDataProvider::OdsListWorksheetsDataProvider "OdsListWorksheetsDataProvider" - for listing the
+      worksheets of a spreadsheet (the \c list-worksheets action)
 
     @section OdsDataProvider_relnotes Release Notes
 
@@ -390,6 +414,10 @@ module OdsDataProvider {
     - added the \c formula_field read option, which returns the formulas of each record's cells in a field of the
       record, as the \c profile action gives them, so a totals row made only of \c SUM formulas is recognized when
       the file is read as it is when the file is profiled
+    - added the \c list-worksheets action and
+      @ref OdsDataProvider::OdsListWorksheetsDataProvider "OdsListWorksheetsDataProvider": the worksheets of a
+      spreadsheet in order, each with its 0-based index, which the \c worksheet read option accepts, and whether it
+      is hidden
 */
 
 #! contains all public definitions in the OdsDataProvider module

@@ -547,6 +547,44 @@ public class ExcelIterator extends qore.Qore.AbstractIterator implements java.io
     }
 
     /**
+     * Returns the worksheets of a workbook file in workbook order
+     *
+     * An .xlsx workbook's worksheet list is read without loading its worksheets; an .xls workbook is loaded in
+     * memory, as its format holds at most 65536 rows.
+     *
+     * @param path the path of the workbook file
+     *
+     * @return a hash for each worksheet with its \c name, its 0-based \c index, which the \c worksheet read option
+     * accepts, and \c hidden: true if the worksheet is hidden or very hidden; an array, which the jni module declares
+     * as the Qore list it converts to
+     */
+    public static Hash[] getWorksheetInfo(String path) throws IOException {
+        File file = new File(path);
+        FileMagic magic;
+        try (FileInputStream fis = new FileInputStream(file)) {
+            magic = FileMagic.valueOf(FileMagic.prepareToCheckMagic(fis));
+        }
+        if (magic == FileMagic.OOXML) {
+            try {
+                return XlsxSheetSource.getWorksheetInfo(file).toArray(new Hash[0]);
+            } catch (InvalidFormatException e) {
+                throw new IOException(e.getMessage(), e);
+            }
+        }
+        try (FileInputStream fis = new FileInputStream(file); Workbook wb = WorkbookFactory.create(fis)) {
+            ArrayList<Hash> rv = new ArrayList<Hash>();
+            for (int i = 0; i < wb.getNumberOfSheets(); ++i) {
+                Hash h = new Hash();
+                h.put("name", wb.getSheetName(i));
+                h.put("index", i);
+                h.put("hidden", wb.isSheetHidden(i) || wb.isSheetVeryHidden(i));
+                rv.add(h);
+            }
+            return rv.toArray(new Hash[0]);
+        }
+    }
+
+    /**
      * Closes the workbook and releases resources.
      */
     @Override
