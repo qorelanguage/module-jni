@@ -50,11 +50,25 @@ public class OdsTestHelper {
      * Reads a spreadsheet document file into memory as a raw grid with ODFDOM's document model, as the profile read
      * every document before it was streamed; the grid read as it is streamed must be the same
      *
+     * ODFDOM logs a warning for each cell of a run of repeated cells or rows that its document model gives, as it
+     * cannot tell which of the repeated cells is meant; the warnings are not logged while the document is read, so
+     * that they do not fill the test output
+     *
      * @param path the path of the document file
      * @param max_rows the maximum number of rows read per sheet
      */
     public static org.qore.jni.Hash readGridDom(String path, int max_rows) throws Throwable {
-        return OdsGridReader.readGridDom(new java.io.FileInputStream(path), max_rows);
+        // the logger is held in a local variable while its level is changed, as an unreferenced logger can be
+        // garbage collected with its level
+        java.util.logging.Logger logger = java.util.logging.Logger.getLogger(
+            org.odftoolkit.odfdom.doc.table.OdfTableCell.class.getName());
+        java.util.logging.Level level = logger.getLevel();
+        logger.setLevel(java.util.logging.Level.SEVERE);
+        try {
+            return OdsGridReader.readGridDom(new java.io.FileInputStream(path), max_rows);
+        } finally {
+            logger.setLevel(level);
+        }
     }
 
 
