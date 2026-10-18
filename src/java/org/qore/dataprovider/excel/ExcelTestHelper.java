@@ -772,8 +772,20 @@ public class ExcelTestHelper {
      * @return the format code of each cell in the row, or null for a cell that does not exist
      */
     public static String[] getCellFormats(String path, int row) throws IOException {
+        return getCellFormats(path, 0, row);
+    }
+
+    /**
+     * Returns the display format code of each cell of a row of a sheet of a workbook, read with POI
+     *
+     * @param path the workbook file (.xlsx or .xls)
+     * @param sheet the 0-based sheet
+     * @param row the 0-based row
+     * @return the format code of each cell in the row, or null for a cell that does not exist
+     */
+    public static String[] getCellFormats(String path, int sheet, int row) throws IOException {
         try (Workbook wb = org.apache.poi.ss.usermodel.WorkbookFactory.create(new File(path), null, true)) {
-            Row r = wb.getSheetAt(0).getRow(row);
+            Row r = wb.getSheetAt(sheet).getRow(row);
             String[] formats = new String[r.getLastCellNum()];
             for (int i = 0; i < formats.length; ++i) {
                 Cell cell = r.getCell(i);

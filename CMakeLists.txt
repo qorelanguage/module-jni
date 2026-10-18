@@ -288,10 +288,12 @@ MACRO(MAKE_QJAR _output _classpath _root)
     )
 ENDMACRO(MAKE_QJAR)
 
-# Shared spreadsheet display format code parser (compiled into the Excel and ODS data provider jars)
+# Shared spreadsheet display format code parser, column types and worksheet name rules (compiled into the Excel
+# and ODS data provider jars)
 set(SPREADSHEET_FORMAT_SOURCES
     ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/format/SpreadsheetFormatCode.java
     ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/format/SpreadsheetColumnType.java
+    ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/format/SpreadsheetSheetName.java
 )
 
 # Shared Qore stream adapter sources (compiled into each data provider jar)

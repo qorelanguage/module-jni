@@ -687,6 +687,90 @@
           "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
           "message": "Oblast časového pásma (například `Europe/Prague` nebo `America/New_York`), v jehož místním čase se zapisují data, protože buňka obsahuje datum a čas bez časového pásma; pokud není zadána, datum se zapíše ve svém vlastním místním čase"
         },
+        "app.T0RT.action.d3JpdGU.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "Pracovní listy"
+        },
+        "app.T0RT.action.d3JpdGU.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "Pracovní listy k zápisu, každý s podmínkou svých záznamů"
+        },
+        "app.T0RT.action.d3JpdGU.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in document order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required), different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `ODS-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` and `write_headers` options are given for each worksheet instead; `timezone` applies to the document.  An invalid worksheet or condition raises `ODS-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "Pracovní listy k zápisu v pořadí dokumentu, pro zápis záznamů do několika pracovních listů: každý záznam se zapíše do pracovního listu, jehož podmínce odpovídá.  Každý pracovní list je hash s těmito klíči:\n- `worksheet`: název pracovního listu (povinný), od názvů ostatních pracovních listů se liší nejen velikostí písmen\n- `columns`: sloupce pracovního listu v daném pořadí; sloupec, pro který záznam nemá hodnotu, je prázdná buňka, a ostatní pole záznamu se do pracovního listu nezapíší; bez `columns` jsou sloupci pracovního listu pole prvního záznamu, který se do něj zapíše\n- `when`: podmínka záznamů zapisovaných do pracovního listu v DPQL s poli záznamu, například `@kind == \"order\"`; pracovní list bez podmínky převezme každý záznam\n- `column_headers`, `column_formats`, `column_masks` a `write_headers`: jako stejnojmenné volby, pro pracovní list\n\n**Směrování**: záznam se zapíše do prvního pracovního listu, jehož podmínce odpovídá, nebo s `route` nastaveným na `all` do každého pracovního listu, kterému odpovídá; záznam, který neodpovídá žádnému pracovnímu listu, vyvolá `ODS-WRITE-ROUTE-ERROR`, pokud `unmatched` není `skip`.  Vytvoří se každý pracovní list, i ten bez záznamů, který má řádek záhlaví, pokud jsou zadány jeho sloupce.  Akce `write-data` vrací počet záznamů zapsaných do každého pracovního listu v `sheet_counts`.\n\n**Ostatní volby**: s touto volbou se volby `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` a `write_headers` zadávají místo toho pro každý pracovní list; `timezone` platí pro dokument.  Neplatný pracovní list nebo podmínka vyvolá `ODS-WRITE-OPTION-ERROR` s uvedením pracovního listu"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "Pracovní listy záznamu"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "Zda se záznam zapíše do prvního pracovního listu, jehož podmínce odpovídá, nebo do každého"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "Pracovní listy volby `sheets`, do kterých se záznam zapíše: `first` (výchozí), první pracovní list, jehož podmínce odpovídá, takže pracovní list bez podmínky převezme každý záznam, který nepřevezme žádný pracovní list před ním; nebo `all`, každý pracovní list, jehož podmínce odpovídá, takže záznam se může zapsat do několika, například do pracovního listu se všemi záznamy a do listu s vratkami"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "První shoda"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "První pracovní list, jehož podmínce záznam odpovídá"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "Záznam se zapíše do prvního pracovního listu, jehož podmínce odpovídá"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "Každá shoda"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "Každý pracovní list, jehož podmínce záznam odpovídá"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "Záznam se zapíše do každého pracovního listu, jehož podmínce odpovídá"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "Záznamy bez pracovního listu"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "Zda záznam, který neodpovídá žádnému pracovnímu listu, způsobí selhání zápisu, nebo se přeskočí"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `ODS-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "Co se stane se záznamem, který neodpovídá podmínce žádného pracovního listu volby `sheets`: `fail` (výchozí) vyvolá `ODS-WRITE-ROUTE-ERROR` s uvedením záznamu a podmínek pracovních listů; `skip` záznam nezapíše do žádného pracovního listu a nezapočítá ho"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Selhat"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "Zápis selže"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `ODS-WRITE-ROUTE-ERROR`",
+          "message": "Záznam, který neodpovídá žádnému pracovnímu listu, vyvolá `ODS-WRITE-ROUTE-ERROR`"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "Přeskočit"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "Záznam se nezapíše"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "Záznam, který neodpovídá žádnému pracovnímu listu, se nezapíše a nezapočítá"
+        },
         "app.T0RT.action.d3JpdGUtZGF0YQ.display_name": {
           "source": "Create ODS Spreadsheet Data",
           "message": "Vytvořit data tabulky ODS"
@@ -782,6 +866,90 @@
         "app.T0RT.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.desc": {
           "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
           "message": "Oblast časového pásma (například `Europe/Prague` nebo `America/New_York`), v jehož místním čase se zapisují data, protože buňka obsahuje datum a čas bez časového pásma; pokud není zadána, datum se zapíše ve svém vlastním místním čase"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "Pracovní listy"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "Pracovní listy k zápisu, každý s podmínkou svých záznamů"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in document order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required), different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `ODS-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` and `write_headers` options are given for each worksheet instead; `timezone` applies to the document.  An invalid worksheet or condition raises `ODS-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "Pracovní listy k zápisu v pořadí dokumentu, pro zápis záznamů do několika pracovních listů: každý záznam se zapíše do pracovního listu, jehož podmínce odpovídá.  Každý pracovní list je hash s těmito klíči:\n- `worksheet`: název pracovního listu (povinný), od názvů ostatních pracovních listů se liší nejen velikostí písmen\n- `columns`: sloupce pracovního listu v daném pořadí; sloupec, pro který záznam nemá hodnotu, je prázdná buňka, a ostatní pole záznamu se do pracovního listu nezapíší; bez `columns` jsou sloupci pracovního listu pole prvního záznamu, který se do něj zapíše\n- `when`: podmínka záznamů zapisovaných do pracovního listu v DPQL s poli záznamu, například `@kind == \"order\"`; pracovní list bez podmínky převezme každý záznam\n- `column_headers`, `column_formats`, `column_masks` a `write_headers`: jako stejnojmenné volby, pro pracovní list\n\n**Směrování**: záznam se zapíše do prvního pracovního listu, jehož podmínce odpovídá, nebo s `route` nastaveným na `all` do každého pracovního listu, kterému odpovídá; záznam, který neodpovídá žádnému pracovnímu listu, vyvolá `ODS-WRITE-ROUTE-ERROR`, pokud `unmatched` není `skip`.  Vytvoří se každý pracovní list, i ten bez záznamů, který má řádek záhlaví, pokud jsou zadány jeho sloupce.  Akce `write-data` vrací počet záznamů zapsaných do každého pracovního listu v `sheet_counts`.\n\n**Ostatní volby**: s touto volbou se volby `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` a `write_headers` zadávají místo toho pro každý pracovní list; `timezone` platí pro dokument.  Neplatný pracovní list nebo podmínka vyvolá `ODS-WRITE-OPTION-ERROR` s uvedením pracovního listu"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "Pracovní listy záznamu"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "Zda se záznam zapíše do prvního pracovního listu, jehož podmínce odpovídá, nebo do každého"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "Pracovní listy volby `sheets`, do kterých se záznam zapíše: `first` (výchozí), první pracovní list, jehož podmínce odpovídá, takže pracovní list bez podmínky převezme každý záznam, který nepřevezme žádný pracovní list před ním; nebo `all`, každý pracovní list, jehož podmínce odpovídá, takže záznam se může zapsat do několika, například do pracovního listu se všemi záznamy a do listu s vratkami"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "První shoda"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "První pracovní list, jehož podmínce záznam odpovídá"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "Záznam se zapíše do prvního pracovního listu, jehož podmínce odpovídá"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "Každá shoda"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "Každý pracovní list, jehož podmínce záznam odpovídá"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "Záznam se zapíše do každého pracovního listu, jehož podmínce odpovídá"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "Záznamy bez pracovního listu"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "Zda záznam, který neodpovídá žádnému pracovnímu listu, způsobí selhání zápisu, nebo se přeskočí"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `ODS-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "Co se stane se záznamem, který neodpovídá podmínce žádného pracovního listu volby `sheets`: `fail` (výchozí) vyvolá `ODS-WRITE-ROUTE-ERROR` s uvedením záznamu a podmínek pracovních listů; `skip` záznam nezapíše do žádného pracovního listu a nezapočítá ho"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Selhat"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "Zápis selže"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `ODS-WRITE-ROUTE-ERROR`",
+          "message": "Záznam, který neodpovídá žádnému pracovnímu listu, vyvolá `ODS-WRITE-ROUTE-ERROR`"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "Přeskočit"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "Záznam se nezapíše"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "Záznam, který neodpovídá žádnému pracovnímu listu, se nezapíše a nezapočítá"
         }
       }
     }

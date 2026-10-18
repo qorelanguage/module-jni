@@ -735,6 +735,90 @@
           "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
           "message": "日期以其當地時間寫入的時區區域（例如 `Europe/Prague` 或 `America/New_York`），因為儲存格保存的是不含時區的日期與時間；若未指定，日期以其自身的當地時間寫入"
         },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "要寫入的工作表，每個工作表都有其記錄的條件"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in workbook order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required): up to 31 characters, none of them `: \\ / ? * [ ]`, not beginning or ending with an apostrophe, and different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` and `write_headers` options are given for each worksheet instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "要寫入的工作表，依活頁簿順序排列，用於將記錄寫入多個工作表：每筆記錄寫入其符合條件的工作表。每個工作表都是具有下列鍵的雜湊：\n- `worksheet`：工作表的名稱（必要）：最多 31 個字元，不含 `: \\ / ? * [ ]` 中的任何字元，不以單引號開頭或結尾，且與其他工作表的名稱不只是大小寫不同\n- `columns`：工作表的欄，依順序排列；記錄沒有值的欄為空白儲存格，記錄的其他欄位不會寫入工作表；沒有 `columns` 時，寫入工作表的第一筆記錄的欄位即為其欄\n- `when`：寫入工作表之記錄的條件，以記錄欄位撰寫的 DPQL，例如 `@kind == \"order\"`；沒有條件的工作表會接收每筆記錄\n- `column_headers`、`column_formats`、`column_masks` 與 `write_headers`：與同名選項相同，套用於該工作表\n\n**分派**：記錄寫入其符合條件的第一個工作表，若 `route` 設為 `all`，則寫入其符合的每個工作表；不符合任何工作表的記錄會引發 `EXCEL-WRITE-ROUTE-ERROR`，除非 `unmatched` 為 `skip`。每個工作表都會建立，包括沒有記錄的工作表，若指定了其欄，則具有標頭列。`write-data` 動作會在 `sheet_counts` 中傳回寫入每個工作表的記錄數。\n\n**其他選項**：使用此選項時，`worksheet`、`headers`、`column_headers`、`column_formats`、`column_masks` 與 `write_headers` 選項改為針對每個工作表指定；`format`、`streaming` 與 `timezone` 套用於活頁簿。無效的工作表或條件會引發 `EXCEL-WRITE-OPTION-ERROR`，並指出該工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "記錄的工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "記錄寫入其符合的第一個工作表，還是寫入每個符合的工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "記錄寫入的 `sheets` 選項工作表：`first`（預設值）為記錄符合其條件的第一個工作表，因此沒有條件的工作表會接收其前面任何工作表都未接收的每筆記錄；`all` 為記錄符合其條件的每個工作表，因此一筆記錄可以寫入多個工作表，例如寫入包含所有記錄的工作表和包含退貨的工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "第一個符合項"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "記錄符合其條件的第一個工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "記錄寫入其符合條件的第一個工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "每個符合項"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "記錄符合其條件的每個工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "記錄寫入其符合條件的每個工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "沒有工作表的記錄"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "不符合任何工作表的記錄會使寫入失敗，還是會被略過"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `EXCEL-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "不符合 `sheets` 選項任何工作表條件的記錄的處理方式：`fail`（預設值）會引發 `EXCEL-WRITE-ROUTE-ERROR`，並指出該記錄與各工作表的條件；`skip` 不會將記錄寫入任何工作表，也不會計入"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "失敗"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "寫入失敗"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`",
+          "message": "不符合任何工作表的記錄會引發 `EXCEL-WRITE-ROUTE-ERROR`"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "略過"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "不寫入記錄"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "不符合任何工作表的記錄不會寫入，也不會計入"
+        },
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.display_name": {
           "source": "Create Excel Spreadsheet Data",
           "message": "建立 Excel 試算表資料"
@@ -878,6 +962,90 @@
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.desc": {
           "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
           "message": "日期以其當地時間寫入的時區區域（例如 `Europe/Prague` 或 `America/New_York`），因為儲存格保存的是不含時區的日期與時間；若未指定，日期以其自身的當地時間寫入"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "要寫入的工作表，每個工作表都有其記錄的條件"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in workbook order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required): up to 31 characters, none of them `: \\ / ? * [ ]`, not beginning or ending with an apostrophe, and different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` and `write_headers` options are given for each worksheet instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "要寫入的工作表，依活頁簿順序排列，用於將記錄寫入多個工作表：每筆記錄寫入其符合條件的工作表。每個工作表都是具有下列鍵的雜湊：\n- `worksheet`：工作表的名稱（必要）：最多 31 個字元，不含 `: \\ / ? * [ ]` 中的任何字元，不以單引號開頭或結尾，且與其他工作表的名稱不只是大小寫不同\n- `columns`：工作表的欄，依順序排列；記錄沒有值的欄為空白儲存格，記錄的其他欄位不會寫入工作表；沒有 `columns` 時，寫入工作表的第一筆記錄的欄位即為其欄\n- `when`：寫入工作表之記錄的條件，以記錄欄位撰寫的 DPQL，例如 `@kind == \"order\"`；沒有條件的工作表會接收每筆記錄\n- `column_headers`、`column_formats`、`column_masks` 與 `write_headers`：與同名選項相同，套用於該工作表\n\n**分派**：記錄寫入其符合條件的第一個工作表，若 `route` 設為 `all`，則寫入其符合的每個工作表；不符合任何工作表的記錄會引發 `EXCEL-WRITE-ROUTE-ERROR`，除非 `unmatched` 為 `skip`。每個工作表都會建立，包括沒有記錄的工作表，若指定了其欄，則具有標頭列。`write-data` 動作會在 `sheet_counts` 中傳回寫入每個工作表的記錄數。\n\n**其他選項**：使用此選項時，`worksheet`、`headers`、`column_headers`、`column_formats`、`column_masks` 與 `write_headers` 選項改為針對每個工作表指定；`format`、`streaming` 與 `timezone` 套用於活頁簿。無效的工作表或條件會引發 `EXCEL-WRITE-OPTION-ERROR`，並指出該工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "記錄的工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "記錄寫入其符合的第一個工作表，還是寫入每個符合的工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "記錄寫入的 `sheets` 選項工作表：`first`（預設值）為記錄符合其條件的第一個工作表，因此沒有條件的工作表會接收其前面任何工作表都未接收的每筆記錄；`all` 為記錄符合其條件的每個工作表，因此一筆記錄可以寫入多個工作表，例如寫入包含所有記錄的工作表和包含退貨的工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "第一個符合項"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "記錄符合其條件的第一個工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "記錄寫入其符合條件的第一個工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "每個符合項"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "記錄符合其條件的每個工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "記錄寫入其符合條件的每個工作表"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "沒有工作表的記錄"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "不符合任何工作表的記錄會使寫入失敗，還是會被略過"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `EXCEL-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "不符合 `sheets` 選項任何工作表條件的記錄的處理方式：`fail`（預設值）會引發 `EXCEL-WRITE-ROUTE-ERROR`，並指出該記錄與各工作表的條件；`skip` 不會將記錄寫入任何工作表，也不會計入"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "失敗"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "寫入失敗"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`",
+          "message": "不符合任何工作表的記錄會引發 `EXCEL-WRITE-ROUTE-ERROR`"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "略過"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "不寫入記錄"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "不符合任何工作表的記錄不會寫入，也不會計入"
         }
       }
     }

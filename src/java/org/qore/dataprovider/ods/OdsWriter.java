@@ -40,6 +40,7 @@ import org.odftoolkit.odfdom.dom.element.number.NumberTextContentElement;
 import org.odftoolkit.odfdom.dom.element.number.NumberTextElement;
 import org.odftoolkit.odfdom.dom.element.number.NumberYearElement;
 import org.odftoolkit.odfdom.dom.element.style.StyleMapElement;
+import org.odftoolkit.odfdom.dom.element.table.TableTableElement;
 import org.odftoolkit.odfdom.dom.element.style.StyleTextPropertiesElement;
 import org.odftoolkit.odfdom.dom.style.OdfStyleFamily;
 import org.odftoolkit.odfdom.incubator.doc.office.OdfOfficeAutomaticStyles;
@@ -65,39 +66,55 @@ import java.util.Map;
 
 import org.qore.jni.Hash;
 import org.qore.dataprovider.format.SpreadsheetFormatCode;
+import org.qore.dataprovider.format.SpreadsheetSheetName;
 
 /**
  * Helper class for writing ODS (OpenDocument Spreadsheet) files from Qore.
+ *
+ * A document has one or more sheets, each with its own columns, column formats, header text, header row setting and
+ * rows; the methods without a sheet index write the first sheet.
  */
 public class OdsWriter implements Closeable {
+    /** The state of a sheet being written */
+    private static class SheetState {
+        final OdfTable table;
+        ArrayList<String> headers = new ArrayList<String>();
+        int currentRow = 0;
+        boolean headersWritten = false;
+        // the header text of columns whose header is not their name, by column name
+        HashMap<String, String> columnHeaders = new HashMap<String, String>();
+        // false if no header row is written
+        boolean writeHeaderRow = true;
+        // the display format of each column by header name
+        LinkedHashMap<String, SpreadsheetFormatCode> columnFormats = new LinkedHashMap<String, SpreadsheetFormatCode>();
+        // the format code and cell style name of each column by position, set when the columns are known
+        SpreadsheetFormatCode[] columnCodes;
+        String[] columnStyles;
+
+        SheetState(OdfTable table) {
+            this.table = table;
+        }
+    }
+
     private OdfSpreadsheetDocument document;
-    private OdfTable table;
-    private ArrayList<String> headers = new ArrayList<String>();
-    private int currentRow = 0;
-    private boolean headersWritten = false;
-    // the header text of columns whose header is not their name, by column name
-    private HashMap<String, String> columnHeaders = new HashMap<String, String>();
-    // false if no header row is written
-    private boolean writeHeaderRow = true;
-    private String sheetName;
-    // the display format of each column by header name
-    private LinkedHashMap<String, SpreadsheetFormatCode> columnFormats =
-        new LinkedHashMap<String, SpreadsheetFormatCode>();
-    // the name of the cell style of each distinct format code, so each data style is written once
+    // an empty copy of the first table of a new document, which each added sheet is a copy of, so every sheet has the
+    // layout of the first
+    private TableTableElement tableTemplate;
+    // the sheets in document order
+    private ArrayList<SheetState> sheets = new ArrayList<SheetState>();
+    // the name of the cell style of each distinct format code, so each data style is written once in the document
     private HashMap<String, String> formatStyles = new HashMap<String, String>();
     // the number of format codes written as data styles, for unique data style names
     private int dataStyleCount = 0;
-    // the format code and cell style name of each column by position, set when the columns are known
-    private SpreadsheetFormatCode[] columnCodes;
-    private String[] columnStyles;
 
     /**
      * Creates a new OdsWriter.
      *
-     * @param sheet_name The name of the worksheet to create
+     * @param sheet_name The name of the first sheet
      */
     public OdsWriter(String sheet_name) {
-        this.sheetName = sheet_name != null && !sheet_name.isEmpty() ? sheet_name : "Sheet1";
+        String name = sheet_name != null && !sheet_name.isEmpty() ? sheet_name : "Sheet1";
+        OdfTable table;
         try {
             document = OdfSpreadsheetDocument.newSpreadsheetDocument();
             // Remove the default empty table and create our own
@@ -105,14 +122,23 @@ public class OdsWriter implements Closeable {
             if (tables != null && !tables.isEmpty()) {
                 // Rename the first table
                 table = tables.get(0);
-                table.setTableName(this.sheetName);
+                table.setTableName(name);
             } else {
                 table = OdfTable.newTable(document);
-                table.setTableName(this.sheetName);
+                table.setTableName(name);
             }
+            tableTemplate = (TableTableElement) table.getOdfElement().cloneNode(true);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to create ODS document: " + e.getMessage(), e);
+            // the document is released, as the caller gets no writer to close
+            RuntimeException rv = new RuntimeException("Failed to create ODS document: " + e.getMessage(), e);
+            try {
+                close();
+            } catch (IOException ce) {
+                rv.addSuppressed(ce);
+            }
+            throw rv;
         }
+        sheets.add(new SheetState(table));
     }
 
     /**
@@ -123,30 +149,124 @@ public class OdsWriter implements Closeable {
     }
 
     /**
-     * Sets the headers for the worksheet.
+     * Returns why a sheet name is not accepted, or null if it is: a sheet name cannot be empty
+     *
+     * @param name the sheet name
+     * @return the reason the name is not accepted, or null if it is valid; see {@link SpreadsheetSheetName}
+     */
+    public static String sheetNameIssue(String name) {
+        return SpreadsheetSheetName.issue(name, false);
+    }
+
+    /**
+     * Returns the key of a sheet name that two names that differ only in case share
+     *
+     * @param name the sheet name
+     * @return the key of the name; two sheets of a document cannot have names with the same key
+     */
+    public static String sheetNameKey(String name) {
+        return SpreadsheetSheetName.key(name);
+    }
+
+    /**
+     * Adds a sheet after the others
+     *
+     * @param name the name of the sheet; see {@link #sheetNameIssue(String)}
+     * @return the 0-based index of the sheet
+     * @throws IllegalArgumentException the name is not valid, or the document already has a sheet with the name
+     */
+    public int addSheet(String name) {
+        String issue = sheetNameIssue(name);
+        if (issue != null) {
+            throw new IllegalArgumentException(String.format("invalid worksheet name \"%s\": %s", name, issue));
+        }
+        String key = sheetNameKey(name);
+        for (SheetState state : sheets) {
+            if (sheetNameKey(state.table.getTableName()).equals(key)) {
+                throw new IllegalArgumentException(String.format("the document already has a sheet named \"%s\"",
+                    state.table.getTableName()));
+            }
+        }
+        TableTableElement element = (TableTableElement) tableTemplate.cloneNode(true);
+        sheets.get(sheets.size() - 1).table.getOdfElement().getParentNode().appendChild(element);
+        OdfTable table = OdfTable.getInstance(element);
+        table.setTableName(name);
+        sheets.add(new SheetState(table));
+        return sheets.size() - 1;
+    }
+
+    /**
+     * Returns the number of sheets
+     */
+    public int getSheetCount() {
+        return sheets.size();
+    }
+
+    /**
+     * Returns the state of a sheet
+     *
+     * @throws IllegalArgumentException there is no sheet with the index
+     */
+    private SheetState getSheet(int sheet) {
+        if (sheet < 0 || sheet >= sheets.size()) {
+            throw new IllegalArgumentException(String.format("there is no sheet %d; the document has %d", sheet,
+                sheets.size()));
+        }
+        return sheets.get(sheet);
+    }
+
+    /**
+     * Sets the headers for the first sheet.
      */
     public void setHeaders(String[] headers) {
-        this.headers.clear();
+        ArrayList<String> list = new ArrayList<String>();
         for (String h : headers) {
-            this.headers.add(h);
+            list.add(h);
         }
+        setHeaders(0, list);
     }
 
     /**
-     * Sets the headers for the worksheet.
+     * Sets the headers for the first sheet.
      */
     public void setHeaders(ArrayList<String> headers) {
-        this.headers = new ArrayList<String>(headers);
+        setHeaders(0, headers);
     }
 
     /**
-     * Sets the header text of columns whose header is not their name
+     * Sets the headers (the columns) of a sheet
      *
+     * @param sheet the 0-based index of the sheet
+     * @param headers the names of the columns, in order
+     * @throws IllegalArgumentException rows have already been written
+     */
+    public void setHeaders(int sheet, ArrayList<String> headers) {
+        SheetState state = getSheet(sheet);
+        if (state.currentRow > 0) {
+            throw new IllegalArgumentException("the columns must be set before any row is written");
+        }
+        state.headers = new ArrayList<String>(headers);
+    }
+
+    /**
+     * Sets the header text of the columns of the first sheet whose header is not their name
+     *
+     * @see #setColumnHeaders(int, Hash)
+     */
+    public void setColumnHeaders(Hash headers) {
+        setColumnHeaders(0, headers);
+    }
+
+    /**
+     * Sets the header text of the columns of a sheet whose header is not their name
+     *
+     * @param sheet the 0-based index of the sheet
      * @param headers the header text of each column by its name; the records are written by column name
      * @throws IllegalArgumentException a header text is not a string, or rows have already been written
      */
-    public void setColumnHeaders(Hash headers) {
-        if (currentRow > 0) {
+    public void setColumnHeaders(int sheet, Hash headers) {
+        SheetState state = getSheet(sheet);
+        if (state.currentRow > 0) {
             throw new IllegalArgumentException("column headers must be set before any row is written");
         }
         HashMap<String, String> names = new HashMap<String, String>();
@@ -158,66 +278,108 @@ public class OdsWriter implements Closeable {
             }
             names.put(e.getKey(), (String) value);
         }
-        columnHeaders = names;
+        state.columnHeaders = names;
     }
 
     /**
-     * Sets whether a header row is written
+     * Sets whether a header row is written in the first sheet
      *
+     * @see #setWriteHeaders(int, boolean)
+     */
+    public void setWriteHeaders(boolean write) {
+        setWriteHeaders(0, write);
+    }
+
+    /**
+     * Sets whether a header row is written in a sheet
+     *
+     * @param sheet the 0-based index of the sheet
      * @param write false to write no header row: the first record is written in the first row
      * @throws IllegalArgumentException rows have already been written
      */
-    public void setWriteHeaders(boolean write) {
-        if (currentRow > 0) {
+    public void setWriteHeaders(int sheet, boolean write) {
+        SheetState state = getSheet(sheet);
+        if (state.currentRow > 0) {
             throw new IllegalArgumentException("the header row must be set before any row is written");
         }
-        writeHeaderRow = write;
+        state.writeHeaderRow = write;
     }
 
     /**
-     * Writes the header row, unless it is disabled with {@link #setWriteHeaders(boolean)}
+     * Writes the header row of the first sheet, unless it is disabled with {@link #setWriteHeaders(boolean)}
      */
     public void writeHeaders() {
-        if (headersWritten || headers.isEmpty()) {
-            return;
-        }
-        if (!writeHeaderRow) {
-            headersWritten = true;
-            return;
-        }
-        for (int i = 0; i < headers.size(); i++) {
-            OdfTableCell cell = table.getCellByPosition(i, currentRow);
-            cell.setStringValue(columnHeaders.getOrDefault(headers.get(i), headers.get(i)));
-        }
-        currentRow++;
-        headersWritten = true;
+        writeHeaders(getSheet(0));
     }
 
     /**
-     * Writes a data row from a hash.
+     * Writes the header row of a sheet whose columns are known, unless it is disabled
+     */
+    private void writeHeaders(SheetState state) {
+        if (state.headersWritten || state.headers.isEmpty()) {
+            return;
+        }
+        if (!state.writeHeaderRow) {
+            state.headersWritten = true;
+            return;
+        }
+        for (int i = 0; i < state.headers.size(); i++) {
+            OdfTableCell cell = state.table.getCellByPosition(i, state.currentRow);
+            cell.setStringValue(state.columnHeaders.getOrDefault(state.headers.get(i), state.headers.get(i)));
+        }
+        state.currentRow++;
+        state.headersWritten = true;
+    }
+
+    /**
+     * Writes a data row to the first sheet
      */
     public void writeRow(Hash data) {
+        writeRow(0, data);
+    }
+
+    /**
+     * Writes a data row to a sheet
+     *
+     * Without columns, the keys of the first row written to the sheet are its columns; a column that the row has no
+     * value for is an empty cell, and values that are not in a column are not written.
+     *
+     * @param sheet the 0-based index of the sheet
+     * @param data the values of the row by column name
+     */
+    public void writeRow(int sheet, Hash data) {
+        SheetState state = getSheet(sheet);
         // With no predefined headers, the first record's keys define the columns; they are taken before any row is
         // written, so the header row is always written first and the first record never has to be copied down a row
         // (copying lost the value types of the first record, e.g. dates became strings)
-        if (headers.isEmpty()) {
+        if (state.headers.isEmpty()) {
             for (Object key : data.keySet()) {
-                headers.add(key.toString());
+                state.headers.add(key.toString());
             }
         }
-        resolveColumnStyles();
-        writeHeaders();
+        resolveColumnStyles(state);
+        writeHeaders(state);
 
-        for (int i = 0; i < headers.size(); i++) {
-            Object value = data.get(headers.get(i));
-            OdfTableCell cell = table.getCellByPosition(i, currentRow);
-            SpreadsheetFormatCode code = columnCodes[i] != null && columnCodes[i].shows(value) ? columnCodes[i] : null;
+        for (int i = 0; i < state.headers.size(); i++) {
+            Object value = data.get(state.headers.get(i));
+            OdfTableCell cell = state.table.getCellByPosition(i, state.currentRow);
+            SpreadsheetFormatCode code = state.columnCodes[i] != null && state.columnCodes[i].shows(value)
+                ? state.columnCodes[i] : null;
             setCellValue(cell, value, code);
             if (code != null) {
-                cell.getOdfElement().setTableStyleNameAttribute(columnStyles[i]);
+                cell.getOdfElement().setTableStyleNameAttribute(state.columnStyles[i]);
             }
         }
-        currentRow++;
+        state.currentRow++;
+    }
+
+    /**
+     * Writes the header rows of sheets without rows whose columns are known, before the document is written
+     */
+    private void finish() {
+        for (SheetState state : sheets) {
+            writeHeaders(state);
+        }
     }
 
     /**
@@ -231,7 +393,16 @@ public class OdsWriter implements Closeable {
     }
 
     /**
-     * Sets the display format of columns
+     * Sets the display format of the columns of the first sheet
+     *
+     * @see #setColumnFormats(int, Hash)
+     */
+    public void setColumnFormats(Hash formats) {
+        setColumnFormats(0, formats);
+    }
+
+    /**
+     * Sets the display format of the columns of a sheet
      *
      * Each value in a column is written as its type (a number stays a number, a date a date) and shown with the
      * column's format code, which is written as an OpenDocument data style; a value that the code does not show (a
@@ -239,12 +410,14 @@ public class OdsWriter implements Closeable {
      * percent code is written as a percentage cell, which holds the fraction and is read back as a number.  A
      * column without a format code is written as before.
      *
+     * @param sheet the 0-based index of the sheet
      * @param formats the format code of each column by its header name; see {@link SpreadsheetFormatCode}
      * @throws IllegalArgumentException a format code is not valid, or rows have already been written; the message
      * names the column
      */
-    public void setColumnFormats(Hash formats) {
-        if (currentRow > 0) {
+    public void setColumnFormats(int sheet, Hash formats) {
+        SheetState state = getSheet(sheet);
+        if (state.currentRow > 0) {
             throw new IllegalArgumentException("column formats must be set before any row is written");
         }
         LinkedHashMap<String, SpreadsheetFormatCode> codes = new LinkedHashMap<String, SpreadsheetFormatCode>();
@@ -261,28 +434,28 @@ public class OdsWriter implements Closeable {
                     ex);
             }
         }
-        columnFormats = codes;
+        state.columnFormats = codes;
     }
 
     /**
-     * Resolves the format code and cell style of each column once the columns are known
+     * Resolves the format code and cell style of each column of a sheet once its columns are known
      *
      * @throws IllegalArgumentException a column format names a column that is not written
      */
-    private void resolveColumnStyles() {
-        if (columnStyles != null) {
+    private void resolveColumnStyles(SheetState state) {
+        if (state.columnStyles != null) {
             return;
         }
-        for (String column : columnFormats.keySet()) {
-            if (!headers.contains(column)) {
+        for (String column : state.columnFormats.keySet()) {
+            if (!state.headers.contains(column)) {
                 throw new IllegalArgumentException(String.format("a format is given for column \"%s\", which is not "
-                    + "one of the columns written: %s", column, headers));
+                    + "one of the columns written: %s", column, state.headers));
             }
         }
-        SpreadsheetFormatCode[] codes = new SpreadsheetFormatCode[headers.size()];
-        String[] styles = new String[headers.size()];
-        for (int i = 0; i < headers.size(); ++i) {
-            SpreadsheetFormatCode code = columnFormats.get(headers.get(i));
+        SpreadsheetFormatCode[] codes = new SpreadsheetFormatCode[state.headers.size()];
+        String[] styles = new String[state.headers.size()];
+        for (int i = 0; i < state.headers.size(); ++i) {
+            SpreadsheetFormatCode code = state.columnFormats.get(state.headers.get(i));
             if (code == null) {
                 continue;
             }
@@ -294,8 +467,8 @@ public class OdsWriter implements Closeable {
             codes[i] = code;
             styles[i] = style;
         }
-        columnCodes = codes;
-        columnStyles = styles;
+        state.columnCodes = codes;
+        state.columnStyles = styles;
     }
 
     /**
@@ -501,6 +674,7 @@ public class OdsWriter implements Closeable {
      * Writes the document to a file.
      */
     public void writeToFile(String path) throws Exception {
+        finish();
         document.save(path);
     }
 
@@ -508,6 +682,7 @@ public class OdsWriter implements Closeable {
      * Writes the document to an output stream.
      */
     public void writeToStream(OutputStream stream) throws Exception {
+        finish();
         document.save(stream);
     }
 
@@ -522,6 +697,7 @@ public class OdsWriter implements Closeable {
      * Returns the document contents as bytes.
      */
     public byte[] getBytes() throws Exception {
+        finish();
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             document.save(out);
             return out.toByteArray();
@@ -529,10 +705,19 @@ public class OdsWriter implements Closeable {
     }
 
     /**
-     * Gets the current row count (including header if written).
+     * Gets the current row count of the first sheet (including header if written).
      */
     public int getRowCount() {
-        return currentRow;
+        return getRowCount(0);
+    }
+
+    /**
+     * Gets the current row count of a sheet (including header if written).
+     *
+     * @param sheet the 0-based index of the sheet
+     */
+    public int getRowCount(int sheet) {
+        return getSheet(sheet).currentRow;
     }
 
     @Override

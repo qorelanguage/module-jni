@@ -223,7 +223,7 @@ module ExcelDataProvider {
                 "Excel files without writing to disk",
             "action_code": DPAT_CREATE,
             "output_data_type": DPAD_CREATE_OUTPUT,
-            "output_type": GeneratedDataOutputDataType,
+            "output_type": ExcelGeneratedDataOutputDataType,
             "cls": "ExcelDataProvider::ExcelWriteDataProvider",
             "options": DataProviderActionCatalog::getActionOptionFromFields(
                 ExcelWriteDataProvider::ConstructorOptions{"worksheet", "headers", "format"}, {
@@ -410,6 +410,12 @@ module ExcelDataProvider {
     - \c write_headers: Set to \c False to write no header row
     - \c timezone: The time zone whose wall-clock time dates are written in; if not given, a date is written as
       its own wall-clock time
+    - \c sheets: The worksheets to write, each with the condition of its records (see
+      @ref ExcelDataProvider_writing_sheets)
+    - \c route: With \c sheets, \c "first" (the default) to write a record to the first worksheet whose condition it
+      matches, or \c "all" to write it to every one
+    - \c unmatched: With \c sheets, \c "fail" (the default) to fail the write with a record that matches no
+      worksheet, or \c "skip" to skip it
 
     @subsection ExcelDataProvider_writing_column_formats Column Display Formats
 
@@ -492,6 +498,56 @@ module ExcelDataProvider {
     A cell holds a date and time without a time zone: a date is written as its own wall-clock time, or with the
     \c timezone option as the wall-clock time in that time zone.
 
+    @subsection ExcelDataProvider_writing_sheets Writing Several Worksheets
+
+    The \c sheets option writes the records to several worksheets: each worksheet is a hash with its name in
+    \c worksheet, its columns in \c columns, and in \c when the condition of its records in DPQL with the fields
+    of the record, such as <tt>\@kind == "order"</tt>.  A record is written to the first worksheet whose condition it
+    matches, so a worksheet without a condition, listed last, takes every other record:
+
+    @code{.py}
+    ExcelWriteDataProvider dp("orders.xlsx", {"sheets": (
+        {"worksheet": "Orders", "columns": ("Id", "Amount"), "when": "@kind == \"order\"",
+            "column_formats": {"Amount": "#,##0.00"}},
+        {"worksheet": "Returns", "columns": ("Id", "Reason"), "when": "@kind == \"return\""},
+        {"worksheet": "Other"},
+    )});
+    dp.createRecord({"kind": "order", "Id": 1, "Amount": 1234.5});
+    dp.createRecord({"kind": "return", "Id": 2, "Reason": "damaged"});
+    dp.createRecord({"kind": "note", "Id": 3, "Text": "call back"});
+    dp.finishCreate();
+    @endcode
+
+    - the worksheets are written in the order given, and each one is created, also without records; a worksheet
+      whose columns are given has its header row
+    - a column that a record has no value for is an empty cell, and the other fields of the record, such as the
+      \c kind field above, are not written to the worksheet; a worksheet without \c columns has the fields of the
+      first record written to it
+    - each worksheet can have its own \c column_headers, \c column_formats, \c column_masks and \c write_headers,
+      which mean what the options of the same name mean; these options and \c worksheet and \c headers are then given
+      for each worksheet only, while \c format, \c streaming and \c timezone apply to the workbook
+    - a worksheet name has at most 31 characters, none of <tt>: \\ / ? * [ ]</tt>, does not begin or end with an
+      apostrophe, and differs from the names of the other worksheets in more than case
+    - with \c route set to \c "all", a record is written to every worksheet whose condition it matches, so a
+      workbook can have a worksheet with every record and another with the returns
+    - a record that matches no worksheet raises \c EXCEL-WRITE-ROUTE-ERROR, naming the record (its number among the
+      records written) and the conditions of the worksheets, unless \c unmatched is \c "skip"; a skipped record is
+      not counted; a condition that cannot be evaluated for a record, such as one with a field that the record does
+      not have, raises \c EXCEL-WRITE-ROUTE-ERROR naming the record and the worksheet
+    - the \c write-data action returns the number of records written to each worksheet in \c sheet_counts, by
+      worksheet name in workbook order (see @ref ExcelDataProvider::ExcelGeneratedDataInfo "ExcelGeneratedDataInfo");
+      with \c route \c "all", a record written to two worksheets is counted in each, while \c record_count counts
+      it once
+
+    @code{.py}
+    hash<ExcelGeneratedDataInfo> output = dp.finishCreate();
+    # {"data": <xlsx>, "record_count": 120, "sheet_counts": {"Orders": 100, "Returns": 15, "Other": 5}}
+    @endcode
+
+    An invalid worksheet, an invalid condition, or a worksheet option for a column that is not written raises
+    \c EXCEL-WRITE-OPTION-ERROR naming the worksheet.  As the conditions can use fields that are not written, the
+    record type of the provider is open with \c sheets.
+
     @subsection ExcelDataProvider_writing_formats Output Formats
 
     The write provider supports two formats:
@@ -517,6 +573,8 @@ module ExcelDataProvider {
     Common exceptions:
     - \c EXCEL-READ-OPTION-ERROR: Invalid read options or option conflicts
     - \c EXCEL-WRITE-OPTION-ERROR: Invalid write options or option conflicts
+    - \c EXCEL-WRITE-ROUTE-ERROR: With the \c sheets write option, a record matches no worksheet, or the condition
+      of a worksheet cannot be evaluated for a record (see @ref ExcelDataProvider_writing_sheets)
     - \c EXCEL-INVALID-LOCATION: Invalid cell range format
     - \c EXCEL-FORMULA-FIELD-ERROR: The \c formula_field option is empty or the name of a column
     - \c EXCEL-COLUMN-TYPE-ERROR: A value is not a value of its column's type
@@ -607,6 +665,14 @@ module ExcelDataProvider {
     - the \c profile action reads an .xlsx workbook one sheet at a time as it is streamed, keeping the rows up to
       \c max_rows and counting the others, so a workbook of any size is profiled in bounded memory; before, the
       workbook was loaded in memory; .xls workbooks are still read in memory
+    - added the \c sheets write option, to write records to several worksheets, each with its own columns and
+      column options, chosen for each record by a DPQL condition, and the \c route and \c unmatched options, for
+      records that match several worksheets or none; the \c write-data action returns the number of records written
+      to each worksheet (see @ref ExcelDataProvider_writing_sheets)
+    - a worksheet written with its columns and no records has its header row; before, it was empty
+    - an invalid \c worksheet write option raises \c EXCEL-WRITE-OPTION-ERROR; before, a name of more than 31
+      characters was cut short to its first 31, and a name with a character that worksheet names cannot have raised
+      a Java exception
 
     @subsection ExcelDataProvider_v1_0 ExcelDataProvider v1.0
     - initial release

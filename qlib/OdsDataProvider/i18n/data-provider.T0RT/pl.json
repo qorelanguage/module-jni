@@ -687,6 +687,90 @@
           "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
           "message": "Region strefy czasowej (np. `Europe/Prague` lub `America/New_York`), w której czasie lokalnym zapisywane są daty, ponieważ komórka zawiera datę i godzinę bez strefy czasowej; jeśli nie jest podany, data jest zapisywana we własnym czasie lokalnym"
         },
+        "app.T0RT.action.d3JpdGU.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "Arkusze"
+        },
+        "app.T0RT.action.d3JpdGU.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "Arkusze do zapisania, każdy z warunkiem swoich rekordów"
+        },
+        "app.T0RT.action.d3JpdGU.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in document order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required), different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `ODS-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` and `write_headers` options are given for each worksheet instead; `timezone` applies to the document.  An invalid worksheet or condition raises `ODS-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "Arkusze do zapisania, w kolejności dokumentu, aby zapisać rekordy w kilku arkuszach: każdy rekord jest zapisywany w arkuszu, którego warunek spełnia.  Każdy arkusz jest hashem z tymi kluczami:\n- `worksheet`: nazwa arkusza (wymagana), różniąca się od nazw pozostałych arkuszy nie tylko wielkością liter\n- `columns`: kolumny arkusza w kolejności; kolumna, dla której rekord nie ma wartości, jest pustą komórką, a pozostałe pola rekordu nie są zapisywane w arkuszu; bez `columns` kolumnami arkusza są pola pierwszego zapisanego w nim rekordu\n- `when`: warunek rekordów zapisywanych w arkuszu, w DPQL z polami rekordu, na przykład `@kind == \"order\"`; arkusz bez warunku przyjmuje każdy rekord\n- `column_headers`, `column_formats`, `column_masks` i `write_headers`: jak opcje o tej samej nazwie, dla arkusza\n\n**Kierowanie**: rekord jest zapisywany w pierwszym arkuszu, którego warunek spełnia, lub przy `route` ustawionym na `all` w każdym arkuszu, do którego pasuje; rekord, który nie pasuje do żadnego arkusza, zgłasza `ODS-WRITE-ROUTE-ERROR`, chyba że `unmatched` ma wartość `skip`.  Tworzony jest każdy arkusz, także arkusz bez rekordów, który ma wiersz nagłówka, jeśli podano jego kolumny.  Akcja `write-data` zwraca liczbę rekordów zapisanych w każdym arkuszu w `sheet_counts`.\n\n**Pozostałe opcje**: przy tej opcji opcje `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` i `write_headers` podaje się zamiast tego dla każdego arkusza; `timezone` dotyczy dokumentu.  Nieprawidłowy arkusz lub warunek zgłasza `ODS-WRITE-OPTION-ERROR`, podając arkusz"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "Arkusze rekordu"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "Czy rekord jest zapisywany w pierwszym pasującym arkuszu, czy w każdym"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "Arkusze opcji `sheets`, w których zapisywany jest rekord: `first` (domyślnie), pierwszy arkusz, którego warunek spełnia, więc arkusz bez warunku przyjmuje każdy rekord, którego nie przyjmuje żaden arkusz przed nim; albo `all`, każdy arkusz, którego warunek spełnia, więc rekord może zostać zapisany w kilku, na przykład w arkuszu ze wszystkimi rekordami i w arkuszu ze zwrotami"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "Pierwsze dopasowanie"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "Pierwszy arkusz, którego warunek spełnia rekord"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "Rekord jest zapisywany w pierwszym arkuszu, którego warunek spełnia"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "Każde dopasowanie"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "Każdy arkusz, którego warunek spełnia rekord"
+        },
+        "app.T0RT.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "Rekord jest zapisywany w każdym arkuszu, którego warunek spełnia"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "Rekordy bez arkusza"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "Czy rekord, który nie pasuje do żadnego arkusza, powoduje niepowodzenie zapisu, czy jest pomijany"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `ODS-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "Co dzieje się z rekordem, który nie spełnia warunku żadnego arkusza opcji `sheets`: `fail` (domyślnie) zgłasza `ODS-WRITE-ROUTE-ERROR`, podając rekord i warunki arkuszy; `skip` nie zapisuje rekordu w żadnym arkuszu i go nie liczy"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Niepowodzenie"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "Zapis kończy się niepowodzeniem"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `ODS-WRITE-ROUTE-ERROR`",
+          "message": "Rekord, który nie pasuje do żadnego arkusza, zgłasza `ODS-WRITE-ROUTE-ERROR`"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "Pomiń"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "Rekord nie jest zapisywany"
+        },
+        "app.T0RT.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "Rekord, który nie pasuje do żadnego arkusza, nie jest zapisywany ani liczony"
+        },
         "app.T0RT.action.d3JpdGUtZGF0YQ.display_name": {
           "source": "Create ODS Spreadsheet Data",
           "message": "Utwórz dane arkusza kalkulacyjnego ODS"
@@ -782,6 +866,90 @@
         "app.T0RT.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.desc": {
           "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
           "message": "Region strefy czasowej (np. `Europe/Prague` lub `America/New_York`), w której czasie lokalnym zapisywane są daty, ponieważ komórka zawiera datę i godzinę bez strefy czasowej; jeśli nie jest podany, data jest zapisywana we własnym czasie lokalnym"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "Arkusze"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "Arkusze do zapisania, każdy z warunkiem swoich rekordów"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in document order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required), different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `ODS-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` and `write_headers` options are given for each worksheet instead; `timezone` applies to the document.  An invalid worksheet or condition raises `ODS-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "Arkusze do zapisania, w kolejności dokumentu, aby zapisać rekordy w kilku arkuszach: każdy rekord jest zapisywany w arkuszu, którego warunek spełnia.  Każdy arkusz jest hashem z tymi kluczami:\n- `worksheet`: nazwa arkusza (wymagana), różniąca się od nazw pozostałych arkuszy nie tylko wielkością liter\n- `columns`: kolumny arkusza w kolejności; kolumna, dla której rekord nie ma wartości, jest pustą komórką, a pozostałe pola rekordu nie są zapisywane w arkuszu; bez `columns` kolumnami arkusza są pola pierwszego zapisanego w nim rekordu\n- `when`: warunek rekordów zapisywanych w arkuszu, w DPQL z polami rekordu, na przykład `@kind == \"order\"`; arkusz bez warunku przyjmuje każdy rekord\n- `column_headers`, `column_formats`, `column_masks` i `write_headers`: jak opcje o tej samej nazwie, dla arkusza\n\n**Kierowanie**: rekord jest zapisywany w pierwszym arkuszu, którego warunek spełnia, lub przy `route` ustawionym na `all` w każdym arkuszu, do którego pasuje; rekord, który nie pasuje do żadnego arkusza, zgłasza `ODS-WRITE-ROUTE-ERROR`, chyba że `unmatched` ma wartość `skip`.  Tworzony jest każdy arkusz, także arkusz bez rekordów, który ma wiersz nagłówka, jeśli podano jego kolumny.  Akcja `write-data` zwraca liczbę rekordów zapisanych w każdym arkuszu w `sheet_counts`.\n\n**Pozostałe opcje**: przy tej opcji opcje `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` i `write_headers` podaje się zamiast tego dla każdego arkusza; `timezone` dotyczy dokumentu.  Nieprawidłowy arkusz lub warunek zgłasza `ODS-WRITE-OPTION-ERROR`, podając arkusz"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "Arkusze rekordu"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "Czy rekord jest zapisywany w pierwszym pasującym arkuszu, czy w każdym"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "Arkusze opcji `sheets`, w których zapisywany jest rekord: `first` (domyślnie), pierwszy arkusz, którego warunek spełnia, więc arkusz bez warunku przyjmuje każdy rekord, którego nie przyjmuje żaden arkusz przed nim; albo `all`, każdy arkusz, którego warunek spełnia, więc rekord może zostać zapisany w kilku, na przykład w arkuszu ze wszystkimi rekordami i w arkuszu ze zwrotami"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "Pierwsze dopasowanie"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "Pierwszy arkusz, którego warunek spełnia rekord"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "Rekord jest zapisywany w pierwszym arkuszu, którego warunek spełnia"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "Każde dopasowanie"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "Każdy arkusz, którego warunek spełnia rekord"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "Rekord jest zapisywany w każdym arkuszu, którego warunek spełnia"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "Rekordy bez arkusza"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "Czy rekord, który nie pasuje do żadnego arkusza, powoduje niepowodzenie zapisu, czy jest pomijany"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `ODS-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "Co dzieje się z rekordem, który nie spełnia warunku żadnego arkusza opcji `sheets`: `fail` (domyślnie) zgłasza `ODS-WRITE-ROUTE-ERROR`, podając rekord i warunki arkuszy; `skip` nie zapisuje rekordu w żadnym arkuszu i go nie liczy"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Niepowodzenie"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "Zapis kończy się niepowodzeniem"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `ODS-WRITE-ROUTE-ERROR`",
+          "message": "Rekord, który nie pasuje do żadnego arkusza, zgłasza `ODS-WRITE-ROUTE-ERROR`"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "Pomiń"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "Rekord nie jest zapisywany"
+        },
+        "app.T0RT.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "Rekord, który nie pasuje do żadnego arkusza, nie jest zapisywany ani liczony"
         }
       }
     }

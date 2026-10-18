@@ -735,6 +735,90 @@
           "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
           "message": "Die Zeitzonenregion (z. B. `Europe/Prague` oder `America/New_York`), in deren Ortszeit Datumswerte geschrieben werden, da eine Zelle Datum und Uhrzeit ohne Zeitzone enthält; ohne Angabe wird ein Datum in seiner eigenen Ortszeit geschrieben"
         },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "Arbeitsblätter"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "Die zu schreibenden Arbeitsblätter, jedes mit der Bedingung seiner Datensätze"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in workbook order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required): up to 31 characters, none of them `: \\ / ? * [ ]`, not beginning or ending with an apostrophe, and different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` and `write_headers` options are given for each worksheet instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "Die zu schreibenden Arbeitsblätter in der Reihenfolge der Arbeitsmappe, um die Datensätze in mehrere Arbeitsblätter zu schreiben: Jeder Datensatz wird in das Arbeitsblatt geschrieben, dessen Bedingung er erfüllt.  Jedes Arbeitsblatt ist ein Hash mit diesen Schlüsseln:\n- `worksheet`: der Name des Arbeitsblatts (erforderlich): bis zu 31 Zeichen, keines davon `: \\ / ? * [ ]`, nicht mit einem Apostroph beginnend oder endend und von den Namen der anderen Arbeitsblätter nicht nur in der Groß- und Kleinschreibung verschieden\n- `columns`: die Spalten des Arbeitsblatts in ihrer Reihenfolge; eine Spalte, für die ein Datensatz keinen Wert hat, ist eine leere Zelle, und die anderen Felder eines Datensatzes werden nicht in das Arbeitsblatt geschrieben; ohne `columns` sind die Felder des ersten in das Arbeitsblatt geschriebenen Datensatzes seine Spalten\n- `when`: die Bedingung der in das Arbeitsblatt geschriebenen Datensätze, in DPQL mit den Feldern des Datensatzes, etwa `@kind == \"order\"`; ein Arbeitsblatt ohne Bedingung übernimmt jeden Datensatz\n- `column_headers`, `column_formats`, `column_masks` und `write_headers`: wie die gleichnamigen Optionen, für das Arbeitsblatt\n\n**Zuordnung**: Ein Datensatz wird in das erste Arbeitsblatt geschrieben, dessen Bedingung er erfüllt, oder mit `route` auf `all` in jedes Arbeitsblatt, zu dem er passt; ein Datensatz, der zu keinem Arbeitsblatt passt, löst `EXCEL-WRITE-ROUTE-ERROR` aus, sofern `unmatched` nicht `skip` ist.  Jedes Arbeitsblatt wird erstellt, auch eines ohne Datensätze, das seine Kopfzeile hat, wenn seine Spalten angegeben sind.  Die Aktion `write-data` gibt die Anzahl der in jedes Arbeitsblatt geschriebenen Datensätze in `sheet_counts` zurück.\n\n**Weitere Optionen**: Mit dieser Option werden die Optionen `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` und `write_headers` stattdessen für jedes Arbeitsblatt angegeben; `format`, `streaming` und `timezone` gelten für die Arbeitsmappe.  Ein ungültiges Arbeitsblatt oder eine ungültige Bedingung löst `EXCEL-WRITE-OPTION-ERROR` aus und nennt das Arbeitsblatt"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "Arbeitsblätter eines Datensatzes"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "Ob ein Datensatz in das erste Arbeitsblatt geschrieben wird, zu dem er passt, oder in jedes"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "Die Arbeitsblätter der Option `sheets`, in die ein Datensatz geschrieben wird: `first` (der Standard), das erste Arbeitsblatt, dessen Bedingung er erfüllt, sodass ein Arbeitsblatt ohne Bedingung jeden Datensatz übernimmt, den kein Arbeitsblatt davor übernimmt; oder `all`, jedes Arbeitsblatt, dessen Bedingung er erfüllt, sodass ein Datensatz in mehrere geschrieben werden kann, etwa in ein Arbeitsblatt mit allen Datensätzen und in eines mit den Retouren"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "Erster Treffer"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "Das erste Arbeitsblatt, dessen Bedingung der Datensatz erfüllt"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "Ein Datensatz wird in das erste Arbeitsblatt geschrieben, dessen Bedingung er erfüllt"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "Jeder Treffer"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "Jedes Arbeitsblatt, dessen Bedingung der Datensatz erfüllt"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "Ein Datensatz wird in jedes Arbeitsblatt geschrieben, dessen Bedingung er erfüllt"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "Datensätze ohne Arbeitsblatt"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "Ob ein Datensatz, der zu keinem Arbeitsblatt passt, das Schreiben fehlschlagen lässt oder übersprungen wird"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `EXCEL-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "Was mit einem Datensatz geschieht, der die Bedingung keines Arbeitsblatts der Option `sheets` erfüllt: `fail` (der Standard) löst `EXCEL-WRITE-ROUTE-ERROR` aus und nennt den Datensatz und die Bedingungen der Arbeitsblätter; `skip` schreibt den Datensatz in kein Arbeitsblatt und zählt ihn nicht"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Fehlschlagen"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "Das Schreiben schlägt fehl"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`",
+          "message": "Ein Datensatz, der zu keinem Arbeitsblatt passt, löst `EXCEL-WRITE-ROUTE-ERROR` aus"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "Überspringen"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "Der Datensatz wird nicht geschrieben"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "Ein Datensatz, der zu keinem Arbeitsblatt passt, wird weder geschrieben noch gezählt"
+        },
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.display_name": {
           "source": "Create Excel Spreadsheet Data",
           "message": "Excel-Tabellendaten erstellen"
@@ -878,6 +962,90 @@
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.desc": {
           "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
           "message": "Die Zeitzonenregion (z. B. `Europe/Prague` oder `America/New_York`), in deren Ortszeit Datumswerte geschrieben werden, da eine Zelle Datum und Uhrzeit ohne Zeitzone enthält; ohne Angabe wird ein Datum in seiner eigenen Ortszeit geschrieben"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "Arbeitsblätter"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "Die zu schreibenden Arbeitsblätter, jedes mit der Bedingung seiner Datensätze"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in workbook order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required): up to 31 characters, none of them `: \\ / ? * [ ]`, not beginning or ending with an apostrophe, and different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` and `write_headers` options are given for each worksheet instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "Die zu schreibenden Arbeitsblätter in der Reihenfolge der Arbeitsmappe, um die Datensätze in mehrere Arbeitsblätter zu schreiben: Jeder Datensatz wird in das Arbeitsblatt geschrieben, dessen Bedingung er erfüllt.  Jedes Arbeitsblatt ist ein Hash mit diesen Schlüsseln:\n- `worksheet`: der Name des Arbeitsblatts (erforderlich): bis zu 31 Zeichen, keines davon `: \\ / ? * [ ]`, nicht mit einem Apostroph beginnend oder endend und von den Namen der anderen Arbeitsblätter nicht nur in der Groß- und Kleinschreibung verschieden\n- `columns`: die Spalten des Arbeitsblatts in ihrer Reihenfolge; eine Spalte, für die ein Datensatz keinen Wert hat, ist eine leere Zelle, und die anderen Felder eines Datensatzes werden nicht in das Arbeitsblatt geschrieben; ohne `columns` sind die Felder des ersten in das Arbeitsblatt geschriebenen Datensatzes seine Spalten\n- `when`: die Bedingung der in das Arbeitsblatt geschriebenen Datensätze, in DPQL mit den Feldern des Datensatzes, etwa `@kind == \"order\"`; ein Arbeitsblatt ohne Bedingung übernimmt jeden Datensatz\n- `column_headers`, `column_formats`, `column_masks` und `write_headers`: wie die gleichnamigen Optionen, für das Arbeitsblatt\n\n**Zuordnung**: Ein Datensatz wird in das erste Arbeitsblatt geschrieben, dessen Bedingung er erfüllt, oder mit `route` auf `all` in jedes Arbeitsblatt, zu dem er passt; ein Datensatz, der zu keinem Arbeitsblatt passt, löst `EXCEL-WRITE-ROUTE-ERROR` aus, sofern `unmatched` nicht `skip` ist.  Jedes Arbeitsblatt wird erstellt, auch eines ohne Datensätze, das seine Kopfzeile hat, wenn seine Spalten angegeben sind.  Die Aktion `write-data` gibt die Anzahl der in jedes Arbeitsblatt geschriebenen Datensätze in `sheet_counts` zurück.\n\n**Weitere Optionen**: Mit dieser Option werden die Optionen `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` und `write_headers` stattdessen für jedes Arbeitsblatt angegeben; `format`, `streaming` und `timezone` gelten für die Arbeitsmappe.  Ein ungültiges Arbeitsblatt oder eine ungültige Bedingung löst `EXCEL-WRITE-OPTION-ERROR` aus und nennt das Arbeitsblatt"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "Arbeitsblätter eines Datensatzes"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "Ob ein Datensatz in das erste Arbeitsblatt geschrieben wird, zu dem er passt, oder in jedes"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "Die Arbeitsblätter der Option `sheets`, in die ein Datensatz geschrieben wird: `first` (der Standard), das erste Arbeitsblatt, dessen Bedingung er erfüllt, sodass ein Arbeitsblatt ohne Bedingung jeden Datensatz übernimmt, den kein Arbeitsblatt davor übernimmt; oder `all`, jedes Arbeitsblatt, dessen Bedingung er erfüllt, sodass ein Datensatz in mehrere geschrieben werden kann, etwa in ein Arbeitsblatt mit allen Datensätzen und in eines mit den Retouren"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "Erster Treffer"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "Das erste Arbeitsblatt, dessen Bedingung der Datensatz erfüllt"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "Ein Datensatz wird in das erste Arbeitsblatt geschrieben, dessen Bedingung er erfüllt"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "Jeder Treffer"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "Jedes Arbeitsblatt, dessen Bedingung der Datensatz erfüllt"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "Ein Datensatz wird in jedes Arbeitsblatt geschrieben, dessen Bedingung er erfüllt"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "Datensätze ohne Arbeitsblatt"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "Ob ein Datensatz, der zu keinem Arbeitsblatt passt, das Schreiben fehlschlagen lässt oder übersprungen wird"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `EXCEL-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "Was mit einem Datensatz geschieht, der die Bedingung keines Arbeitsblatts der Option `sheets` erfüllt: `fail` (der Standard) löst `EXCEL-WRITE-ROUTE-ERROR` aus und nennt den Datensatz und die Bedingungen der Arbeitsblätter; `skip` schreibt den Datensatz in kein Arbeitsblatt und zählt ihn nicht"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Fehlschlagen"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "Das Schreiben schlägt fehl"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`",
+          "message": "Ein Datensatz, der zu keinem Arbeitsblatt passt, löst `EXCEL-WRITE-ROUTE-ERROR` aus"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "Überspringen"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "Der Datensatz wird nicht geschrieben"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "Ein Datensatz, der zu keinem Arbeitsblatt passt, wird weder geschrieben noch gezählt"
         }
       }
     }

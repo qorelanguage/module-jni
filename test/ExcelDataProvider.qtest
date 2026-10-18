@@ -128,6 +128,22 @@ public class ExcelDataProviderTest inherits QUnit::Test {
             "Count": "#,##0",
         };
 
+        #! the records of the worksheet routing tests
+        const SheetRecords = (
+            {"kind": "order", "Id": 1, "Customer": "ACME", "Amount": 10.5},
+            {"kind": "return", "Id": 2, "Reason": "damaged", "Amount": 3.0},
+            {"kind": "order", "Id": 3, "Amount": 7.25, "Note": "not written"},
+            {"kind": "note", "Id": 4, "Text": "hello"},
+            {"kind": "memo", "Id": 5, "Text": "bye", "Extra": True},
+        );
+
+        #! the worksheets of the worksheet routing tests: two chosen by condition and one for every other record
+        const RoutedSheets = (
+            {"worksheet": "Orders", "columns": ("Id", "Customer", "Amount"), "when": "@kind == \"order\""},
+            {"worksheet": "Returns", "columns": ("Id", "Reason"), "when": "@kind == \"return\""},
+            {"worksheet": "Other"},
+        );
+
         #! a record of the column format tests
         const FormatRecord = {
             "Name": "a",
@@ -303,6 +319,14 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         addTestCase("typing and error options of the read actions", \testTypingActionOptions());
         addTestCase("profile: the grid of a workbook read as it is streamed", \testProfileGridStreamed());
         addTestCase("profile: a large workbook is profiled in bounded memory", \testProfileLargeWorkbook());
+        addTestCase("write: worksheets chosen by condition", \testWriteSheets());
+        addTestCase("write: worksheets to a file and a stream", \testWriteSheetsOutput());
+        addTestCase("write: a record in every worksheet it matches", \testWriteSheetsRouteAll());
+        addTestCase("write: records that match no worksheet", \testWriteSheetsUnmatched());
+        addTestCase("write: every worksheet is created, with or without records", \testWriteSheetsEmpty());
+        addTestCase("write: the column options of each worksheet", \testWriteSheetsColumnOptions());
+        addTestCase("write: negative - invalid worksheets", \testWriteSheetsNegative());
+        addTestCase("write: the write actions offer the worksheet options", \testWriteSheetsActionOptions());
         set_return_value(main());
     }
 
@@ -1743,7 +1767,7 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         });
         assertEq(temp_files, getTempFiles("qore-excelfile-"), "a provider that cannot be created leaves no file");
         assertThrows("EXCEL-FORMULA-FIELD-ERROR", column, sub () {
-            ExcelWorksheetReadDataProvider dp(path, "name", sheet, {"header_names": True, "formula_field": column});
+            ExcelWorksheetReadDataProvider fdp(path, "name", sheet, {"header_names": True, "formula_field": column});
         });
     }
 
@@ -2634,5 +2658,366 @@ printf(\"RESULT:%%s\\n\", make_json({\"count\": count, \"mismatches\": mismatche
             }, RenderMasks.pairIterator();
             assertEq((expected,), renderWithLibreOffice(soffice, path), format);
         }
+    }
+
+    #! Returns the records of each worksheet of a workbook, in workbook order, read with their header row
+    private hash<auto> readWorksheets(binary data) {
+        hash<auto> rv = {};
+        foreach hash<TabularSheetGrid> sheet in (ExcelProfileDataProvider::readWorkbookGrid(data, 1).sheets) {
+            if (!sheet.rows) {
+                rv{sheet.name} = ();
+                continue;
+            }
+            ExcelReadDataProvider rdp({"data": data, "worksheet": sheet.name, "header_names": True});
+            rv{sheet.name} = map $1, rdp.searchRecords();
+        }
+        return rv;
+    }
+
+    #! Returns the rows of each worksheet of a workbook as they are stored, in workbook order
+    private hash<auto> readWorksheetRows(binary data) {
+        return map {$1.name: $1.rows}, ExcelProfileDataProvider::readWorkbookGrid(data, 1000).sheets;
+    }
+
+    #! Returns the description of the exception that the code raises, which must have the given error code
+    /** The \c "data provider class ...: " prefix of option errors is removed
+    */
+    private string getErrorDesc(string err, code c) {
+        try {
+            c();
+        } catch (hash<ExceptionInfo> ex) {
+            assertEq(err, ex.err, ex.desc);
+            string desc = ex.desc ?? "";
+            desc =~ s/^data provider (class "[^"]+"|"[^"]*" \("[^"]+"\)): //;
+            return desc;
+        }
+        throw "TEST-ERROR", sprintf("no %s exception was raised", err);
+    }
+
+    #! Returns the description of the exception that the code raises when it creates a record
+    /** An exception raised by a data provider when a record is created is raised as \c CREATE-RECORD-ERROR, whose
+        description begins with the error code of the exception; the error code and the \c "data provider ...: "
+        prefix are removed
+    */
+    private string getCreateErrorDesc(string err, code c) {
+        string desc = getErrorDesc("CREATE-RECORD-ERROR", c);
+        assertEq(err + ": ", desc.substr(0, err.size() + 2), desc);
+        desc = desc.substr(err.size() + 2);
+        desc =~ s/^data provider (class "[^"]+"|"[^"]*" \("[^"]+"\)): //;
+        return desc;
+    }
+
+    testWriteSheets() {
+        hash<DataProviderActionInfo> action = DataProviderActionCatalog::getAppActionEx("Excel", "write-data");
+        foreach hash<auto> output_opts in ({"format": "xlsx"}, {"format": "xlsx", "streaming": True},
+                {"format": "xls"}) {
+            string label = output_opts.format + (output_opts.streaming ? " streaming" : "");
+            AbstractDataProvider prov = Class::forName(action.cls).newObject(output_opts + {"sheets": RoutedSheets});
+            map prov.createRecord($1), SheetRecords;
+            hash<auto> output = prov.finishCreate();
+            assertEq(output, action.output_type.acceptsValue(output), label);
+            assertEq(5, output.record_count, label);
+            # the records of each worksheet, in workbook order
+            assertEq(("Orders", "Returns", "Other"), keys output.sheet_counts, label);
+            assertEq({"Orders": 2, "Returns": 1, "Other": 2}, output.sheet_counts, label);
+            # each worksheet has its own columns: a missing field is an empty cell and other fields are not written;
+            # a worksheet without columns has the fields of the first record written to it
+            assertEq({
+                "Orders": (
+                    {"Id": 1, "Customer": "ACME", "Amount": 10.5},
+                    {"Id": 3, "Customer": NOTHING, "Amount": 7.25},
+                ),
+                "Returns": ({"Id": 2, "Reason": "damaged"},),
+                "Other": (
+                    {"kind": "note", "Id": 4, "Text": "hello"},
+                    {"kind": "memo", "Id": 5, "Text": "bye"},
+                ),
+            }, readWorksheets(output.data), label);
+        }
+
+        # more rows than the 100-row window of a streamed workbook, in alternating worksheets
+        ExcelWriteDataProvider dp({"streaming": True, "sheets": RoutedSheets});
+        for (int n = 1; n <= 300; ++n) {
+            dp.createRecord({"kind": n % 2 ? "order" : "return", "Id": n, "Amount": n * 1.5, "Reason": "r" + n});
+        }
+        hash<auto> output = dp.finishCreate();
+        assertEq(300, output.record_count);
+        assertEq({"Orders": 150, "Returns": 150, "Other": 0}, output.sheet_counts);
+        hash<auto> written = readWorksheets(output.data);
+        assertEq((150, 150, 0), (map $1.size(), written.values()));
+        assertEq({"Id": 1, "Customer": NOTHING, "Amount": 1.5}, written.Orders[0]);
+        assertEq({"Id": 299, "Customer": NOTHING, "Amount": 448.5}, written.Orders[149]);
+        assertEq({"Id": 300, "Reason": "r300"}, written.Returns[149]);
+    }
+
+    testWriteSheetsOutput() {
+        string path = test_data_dir + "/sheets.xlsx";
+        on_exit unlink(path);
+        hash<DataProviderActionInfo> action = DataProviderActionCatalog::getAppActionEx("Excel", "write");
+        AbstractDataProvider prov = Class::forName(action.cls).newObject({"path": path, "sheets": RoutedSheets});
+        map prov.createRecord($1), SheetRecords;
+        # the workbook is written to the file, and there is no output
+        assertNothing(prov.finishCreate());
+        hash<auto> written = readWorksheets(ReadOnlyFile::readBinaryFile(path));
+        assertEq(("Orders", "Returns", "Other"), keys written);
+        assertEq((2, 1, 2), (map $1.size(), written.values()));
+
+        BinaryOutputStream stream();
+        ExcelWriteDataProvider dp(stream, {"sheets": RoutedSheets});
+        map dp.createRecord($1), SheetRecords;
+        assertNothing(dp.finishCreate());
+        assertEq(written, readWorksheets(stream.getData()));
+    }
+
+    testWriteSheetsRouteAll() {
+        list<hash<auto>> sheets = (
+            {"worksheet": "All", "columns": ("kind", "Id")},
+            {"worksheet": "Returns", "columns": ("Id", "Reason"), "when": "@kind == \"return\""},
+        );
+        # with "all", a record is written in every worksheet it matches; the record count counts each record once
+        ExcelWriteDataProvider dp({"sheets": sheets, "route": "all"});
+        map dp.createRecord($1), SheetRecords;
+        hash<auto> output = dp.finishCreate();
+        assertEq(5, output.record_count);
+        assertEq({"All": 5, "Returns": 1}, output.sheet_counts);
+        hash<auto> written = readWorksheets(output.data);
+        assertEq((1, 2, 3, 4, 5), (map $1.Id, written.All));
+        assertEq(({"Id": 2, "Reason": "damaged"},), written.Returns);
+
+        # with "first", the default, a record is written in the first worksheet it matches, so a worksheet without a
+        # condition takes every record that no worksheet before it takes
+        dp = new ExcelWriteDataProvider({"sheets": sheets});
+        map dp.createRecord($1), SheetRecords;
+        output = dp.finishCreate();
+        assertEq(5, output.record_count);
+        assertEq({"All": 5, "Returns": 0}, output.sheet_counts);
+        written = readWorksheets(output.data);
+        assertEq(5, written.All.size());
+        assertEq((), written.Returns);
+
+        # with "all", records matching several conditions
+        dp = new ExcelWriteDataProvider({"route": "all", "sheets": (
+            {"worksheet": "Large", "columns": ("Id",), "when": "@Amount > 5"},
+            {"worksheet": "Orders", "columns": ("Id",), "when": "@kind == \"order\""},
+        ), "unmatched": "skip"});
+        map dp.createRecord($1), SheetRecords[0..2];
+        output = dp.finishCreate();
+        assertEq(2, output.record_count);
+        assertEq({"Large": 2, "Orders": 2}, output.sheet_counts);
+    }
+
+    testWriteSheetsUnmatched() {
+        list<hash<auto>> sheets = RoutedSheets[0..1];
+        # by default, a record that matches no worksheet fails the write, naming the record and the conditions
+        foreach string route in ("first", "all") {
+            ExcelWriteDataProvider dp({"sheets": sheets, "route": route});
+            dp.createRecord(SheetRecords[0]);
+            dp.createRecord(SheetRecords[1]);
+            assertEq("record 3 matches no worksheet; the conditions of the worksheets are: \"Orders\": "
+                "@kind == \"order\"; \"Returns\": @kind == \"return\"; with \"unmatched\": \"skip\", records that "
+                "match no worksheet are skipped",
+                getCreateErrorDesc("EXCEL-WRITE-ROUTE-ERROR", sub () { dp.createRecord(SheetRecords[3]); }), route);
+        }
+
+        # with "skip", a record that matches no worksheet is neither written nor counted
+        ExcelWriteDataProvider dp({"sheets": sheets, "unmatched": "skip"});
+        map dp.createRecord($1), SheetRecords;
+        hash<auto> output = dp.finishCreate();
+        assertEq(3, output.record_count);
+        assertEq({"Orders": 2, "Returns": 1}, output.sheet_counts);
+        assertEq((2, 1), (map $1.size(), readWorksheets(output.data).values()));
+
+        # a condition that cannot be evaluated for a record fails the write, naming the record and the worksheet
+        dp = new ExcelWriteDataProvider({"sheets": sheets});
+        dp.createRecord(SheetRecords[0]);
+        assertRegex("^record 2: the condition of worksheet \"Orders\" \\(@kind == \"order\"\\) cannot be evaluated: "
+            "INVALID-OPERATION: ", getCreateErrorDesc("EXCEL-WRITE-ROUTE-ERROR", sub () {
+                dp.createRecord({"Id": 1});
+            }));
+    }
+
+    testWriteSheetsEmpty() {
+        foreach string format in ("xlsx", "xls") {
+            # every worksheet is created in order, even without records; one with columns has its header row,
+            # unless it is written without one
+            ExcelWriteDataProvider dp({"format": format, "sheets": (
+                {"worksheet": "Orders", "columns": ("Id", "Amount"), "column_headers": {"Amount": "Amount (EUR)"}},
+                {"worksheet": "Returns", "columns": ("Id", "Reason"), "write_headers": False},
+                {"worksheet": "Other"},
+            )});
+            hash<auto> output = dp.finishCreate();
+            assertEq(0, output.record_count, format);
+            assertEq({"Orders": 0, "Returns": 0, "Other": 0}, output.sheet_counts, format);
+            assertEq({"Orders": (("Id", "Amount (EUR)"),), "Returns": (), "Other": ()},
+                readWorksheetRows(output.data), format);
+
+            # a single worksheet with columns and no records has its header row
+            dp = new ExcelWriteDataProvider({"format": format, "headers": ("Id", "Amount")});
+            output = dp.finishCreate();
+            assertEq({"Sheet1": (("Id", "Amount"),)}, readWorksheetRows(output.data), format);
+            assertFalse(output.hasKey("sheet_counts"), format);
+        }
+    }
+
+    testWriteSheetsColumnOptions() {
+        foreach string format in ("xlsx", "xls") {
+            string path = sprintf("%s/sheet-columns.%s", test_data_dir, format);
+            on_exit unlink(path);
+            ExcelWriteDataProvider dp(path, {"format": format, "timezone": "Europe/Berlin", "sheets": (
+                {"worksheet": "Orders", "columns": ("Id", "Date", "Amount"), "when": "@kind == \"order\"",
+                    "column_formats": {"Amount": "#,##0.00"}, "column_masks": {"Date": "DD.MM.YYYY"},
+                    "column_headers": {"Amount": "Amount (EUR)"}},
+                {"worksheet": "Returns", "columns": ("Id", "Date", "Amount"), "write_headers": False,
+                    "column_formats": {"Date": "yyyy-mm-dd", "Amount": "0.0"}},
+            )});
+            dp.createRecord({"kind": "order", "Id": 1, "Date": 2026-11-02T23:30:00Z, "Amount": 1234.5});
+            dp.createRecord({"kind": "return", "Id": 2, "Date": 2026-11-03T12:00:00Z, "Amount": 2.25});
+            dp.finishCreate();
+            # each worksheet has its own formats
+            assertEq(("General", "dd\\.mm\\.yyyy", "#,##0.00"), ExcelTestHelper::getCellFormats(path, 0, 1), format);
+            assertEq(("General", "yyyy-mm-dd", "0.0"), ExcelTestHelper::getCellFormats(path, 1, 0), format);
+            # and its own header row: the Returns worksheet has none, so its record is in the first row; dates are
+            # written in the time zone of the workbook
+            ExcelReadDataProvider rdp(path, {"worksheet": "Orders", "header_names": True});
+            assertEq(({"Id": 1, "Date": 2026-11-03T00:30:00, "Amount (EUR)": 1234.5},), (map $1, rdp.searchRecords()),
+                format);
+            rdp = new ExcelReadDataProvider(path, {"worksheet": "Returns", "headers": ("Id", "Date", "Amount")});
+            assertEq(({"Id": 2, "Date": 2026-11-03T13:00:00, "Amount": 2.25},), (map $1, rdp.searchRecords()),
+                format);
+        }
+
+        # a worksheet without columns has the columns of the first record written to it, which its column options
+        # must name
+        ExcelWriteDataProvider dp({"sheets": (
+            {"worksheet": "Orders", "when": "@kind == \"order\"", "column_formats": {"Amount": "0.00"}},
+            {"worksheet": "Other", "column_headers": {"Text": "Message"}},
+        )});
+        dp.createRecord(SheetRecords[0]);
+        assertEq("invalid \"sheets\" option: worksheet \"Other\": invalid \"column_headers\": a header is given for "
+            "column \"Text\", which is not written; the columns written are: [\"kind\", \"Id\", \"Reason\", "
+            "\"Amount\"]",
+            getCreateErrorDesc("EXCEL-WRITE-OPTION-ERROR", sub () { dp.createRecord(SheetRecords[1]); }));
+    }
+
+    testWriteSheetsNegative() {
+        # the options of a single worksheet are given for each worksheet instead
+        foreach hash<auto> i in ({
+                "worksheet": "worksheet",
+                "headers": "columns",
+                "column_formats": "column_formats",
+                "column_masks": "column_masks",
+                "column_headers": "column_headers",
+                "write_headers": "write_headers",
+            }.pairIterator()) {
+            auto value = {
+                "worksheet": "Data",
+                "headers": ("Id",),
+                "column_formats": {"Id": "0"},
+                "column_masks": {"Id": "#"},
+                "column_headers": {"Id": "No."},
+                "write_headers": False,
+            }{i.key};
+            assertEq(sprintf("cannot use the \"%s\" option with the \"sheets\" option; give each worksheet its \"%s\" "
+                "instead", i.key, i.value), getErrorDesc("EXCEL-WRITE-OPTION-ERROR", sub () {
+                    ExcelWriteDataProvider bad({"sheets": RoutedSheets, i.key: value});
+                }), i.key);
+        }
+        # the default of write_headers is the default of each worksheet
+        ExcelWriteDataProvider dp({"sheets": RoutedSheets, "write_headers": True});
+
+        # route and unmatched are options of worksheets
+        assertEq("the \"route\" option is used only with the \"sheets\" option", getErrorDesc(
+            "EXCEL-WRITE-OPTION-ERROR", sub () { ExcelWriteDataProvider bad({"route": "all"}); }));
+        assertEq("the \"unmatched\" option is used only with the \"sheets\" option", getErrorDesc(
+            "EXCEL-WRITE-OPTION-ERROR", sub () { ExcelWriteDataProvider bad({"unmatched": "skip"}); }));
+        assertThrows("OPTION-VALUE-ERROR", sub () { ExcelWriteDataProvider bad({"sheets": RoutedSheets,
+            "route": "any"}); });
+        assertThrows("OPTION-VALUE-ERROR", sub () { ExcelWriteDataProvider bad({"sheets": RoutedSheets,
+            "unmatched": "ignore"}); });
+
+        # invalid worksheets
+        string max_name = strmul("x", 31);
+        dp = new ExcelWriteDataProvider({"sheets": ({"worksheet": max_name}, {"worksheet": "it's"})});
+        assertEq((max_name, "it's"), keys dp.finishCreate().sheet_counts);
+        foreach hash<auto> i in ((
+                {"sheets": (), "error": "no worksheets are given"},
+                {"sheets": ({"columns": ("Id",)},), "error": "worksheet 1 has no \"worksheet\" name"},
+                {"sheets": ({"worksheet": 1},), "error": "worksheet 1: \"worksheet\" must be a value of type "
+                    "\"string\", not \"integer\""},
+                {"sheets": ({"worksheet": "Data", "headers": ("Id",), "where": "x"},), "error":
+                    "worksheet \"Data\": unknown keys \"headers\", \"where\"; the keys of a worksheet are: worksheet, "
+                    "columns, when, column_headers, column_formats, column_masks, write_headers"},
+                {"sheets": ({"worksheet": "Data", "columns": ("Id", 2)},), "error": "worksheet \"Data\": \"columns\" "
+                    "must be a value of type \"softlist<string>\", not \"list<auto>\""},
+                {"sheets": ({"worksheet": "Data", "columns": ()},), "error": "worksheet \"Data\": \"columns\" is "
+                    "empty; leave it out to take the columns from the first record written to the worksheet"},
+                {"sheets": ({"worksheet": "Data", "column_headers": {"Id": 1}},), "error": "worksheet \"Data\": "
+                    "\"column_headers\" must be a value of type \"hash<string, string>\", not \"hash<string, int>\""},
+                {"sheets": ({"worksheet": ""},), "error": "worksheet 1: invalid worksheet name \"\": a worksheet name "
+                    "cannot be empty"},
+                {"sheets": ({"worksheet": max_name + "y"},), "error": sprintf("worksheet 1: invalid worksheet name "
+                    "%y: a worksheet name can have at most 31 characters; this one has 32", max_name + "y")},
+                {"sheets": ({"worksheet": "Q1/Q2"},), "error": "worksheet 1: invalid worksheet name \"Q1/Q2\": it "
+                    "contains \"/\"; a worksheet name cannot contain any of : \\ / ? * [ ]"},
+                {"sheets": ({"worksheet": "'Data"},), "error": "worksheet 1: invalid worksheet name \"'Data\": a "
+                    "worksheet name cannot begin or end with an apostrophe (')"},
+                {"sheets": ({"worksheet": "Orders"}, {"worksheet": "Data"}, {"worksheet": "ORDERS"}), "error":
+                    "worksheet 3: the worksheet name \"ORDERS\" is already the name of worksheet 1 (\"Orders\"); "
+                    "worksheet names must be unique, regardless of case"},
+                {"sheets": ({"worksheet": "Data", "columns": ("Id",), "column_headers": {"x": "X"}},), "error":
+                    "worksheet \"Data\": invalid \"column_headers\": a header is given for column \"x\", which is not "
+                    "written; the columns written are: [\"Id\"]"},
+                {"sheets": ({"worksheet": "Data", "column_formats": {"Id": "0"}, "column_masks": {"Id": "#"}},),
+                    "error": "worksheet \"Data\": invalid \"column_masks\": column \"Id\" also has a format code in "
+                    "\"column_formats\"; a column can have one or the other"},
+            )) {
+            assertEq("invalid \"sheets\" option: " + i.error, getErrorDesc("EXCEL-WRITE-OPTION-ERROR", sub () {
+                ExcelWriteDataProvider bad({"sheets": i.sheets});
+            }), i.error);
+        }
+        assertRegex("^invalid \"sheets\" option: worksheet \"Data\": invalid \"column_formats\": column \"Id\": ",
+            getErrorDesc("EXCEL-WRITE-OPTION-ERROR", sub () {
+                ExcelWriteDataProvider bad({"sheets": ({"worksheet": "Data", "column_formats": {"Id": "General"}},)});
+            }));
+        assertRegex("^invalid \"sheets\" option: worksheet \"Data\": invalid \"column_masks\": column \"Id\": ",
+            getErrorDesc("EXCEL-WRITE-OPTION-ERROR", sub () {
+                ExcelWriteDataProvider bad({"sheets": ({"worksheet": "Data", "column_masks": {"Id": "ZZ"}},)});
+            }));
+        assertRegex("^invalid \"sheets\" option: worksheet \"Data\": invalid \"when\" condition \"@kind ==\": "
+            "DPQL-PARSE-ERROR: ", getErrorDesc("EXCEL-WRITE-OPTION-ERROR", sub () {
+                ExcelWriteDataProvider bad({"sheets": ({"worksheet": "Data", "when": "@kind =="},)});
+            }));
+        # the name of a single worksheet follows the same rules
+        assertEq("invalid \"worksheet\" option \"Q1/Q2\": it contains \"/\"; a worksheet name cannot contain any "
+            "of : \\ / ? * [ ]", getErrorDesc("EXCEL-WRITE-OPTION-ERROR", sub () {
+                ExcelWriteDataProvider bad({"worksheet": "Q1/Q2"});
+            }));
+    }
+
+    testWriteSheetsActionOptions() {
+        foreach string action in ("write", "write-data") {
+            hash<DataProviderActionInfo> info = DataProviderActionCatalog::getAppActionEx("Excel", action);
+            foreach string opt in ("sheets", "route", "unmatched") {
+                assertTrue(exists info.options{opt}, action + ": " + opt);
+            }
+        }
+        # the generated data gives the records of each worksheet
+        hash<DataProviderActionInfo> info = DataProviderActionCatalog::getAppActionEx("Excel", "write-data");
+        assertEq("SpreadsheetGeneratedDataOutput", info.output_type.getName());
+        assertEq(("data", "record_count", "sheet_counts"), keys info.output_type.getFields());
+        # the example of the sheets option is a valid value
+        hash<auto> opts = ExcelWriteDataProvider::ConstructorOptions;
+        ExcelWriteDataProvider dp({"sheets": opts.sheets.example_value});
+        dp.createRecord({"kind": "order", "Id": 1, "Amount": 1.5});
+        dp.createRecord({"kind": "return", "Id": 2, "Reason": "late"});
+        dp.createRecord({"kind": "other", "Id": 3});
+        assertEq({"Orders": 1, "Returns": 1, "Other": 1}, dp.finishCreate().sheet_counts);
+        assertEq("first", opts.route.default_value);
+        assertEq(("first", "all"), (map $1.value, opts.route.allowed_values));
+        assertEq("fail", opts.unmatched.default_value);
+        assertEq(("fail", "skip"), (map $1.value, opts.unmatched.allowed_values));
+        # a worksheet provider writes open records, since a condition can use fields that are not written
+        dp = new ExcelWriteDataProvider({"sheets": RoutedSheets});
+        assertNothing(dp.getRecordType());
     }
 }

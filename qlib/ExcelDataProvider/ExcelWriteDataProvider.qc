@@ -24,6 +24,33 @@
 
 #! the ExcelDataProvider namespace. All classes used in the ExcelDataProvider module should be inside this namespace
 public namespace ExcelDataProvider {
+#! A worksheet of the \c sheets option of ExcelWriteDataProvider
+hashdecl ExcelWriteSheetInfo {
+    #! The name of the worksheet
+    string name;
+
+    #! The columns of the worksheet, if known: given, or the fields of the first record written to it
+    *list<string> columns;
+
+    #! The DPQL condition of the records written to the worksheet, as given, if any
+    *string when;
+
+    #! The parsed condition, if any
+    *hash<DataProviderExpression> condition;
+
+    #! The \c column_headers, \c column_formats and \c column_masks of the worksheet, as given
+    hash<auto> column_opts = {};
+
+    #! The display format code of each column with a format code or a mask
+    hash<string, string> formats = {};
+
+    #! False if no header row is written
+    bool write_headers = True;
+
+    #! The number of records written to the worksheet
+    int count = 0;
+}
+
 #! Provides a data provider for writing EXCEL files
 public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider {
     public {
@@ -171,6 +198,96 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
                     "a date is written as its own wall-clock time",
                 "example_value": "Europe/Prague",
             },
+            "sheets": <DataProviderOptionInfo>{
+                "display_name": "Worksheets",
+                "short_desc": "The worksheets to write, each with the condition of its records",
+                "type": AbstractDataProviderType::get(new Type("list<hash<auto>>")),
+                "desc": "The worksheets to write, in workbook order, to write the records to several worksheets: "
+                    "each record is written to the worksheet whose condition it matches.  Each worksheet is a hash "
+                    "with these keys:\n"
+                    "- `worksheet`: the name of the worksheet (required): up to 31 characters, none of them "
+                    "`: \\ / ? * [ ]`, not beginning or ending with an apostrophe, and different from the names of "
+                    "the other worksheets in more than case\n"
+                    "- `columns`: the columns of the worksheet, in order; a column that a record has no value for is "
+                    "an empty cell, and the other fields of a record are not written to the worksheet; without "
+                    "`columns`, the fields of the first record written to the worksheet are its columns\n"
+                    "- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the "
+                    "record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n"
+                    "- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the "
+                    "same name, for the worksheet\n\n"
+                    "**Routing**: a record is written to the first worksheet whose condition it matches, or with "
+                    "`route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises "
+                    "`EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one "
+                    "without records, which has its header row if its columns are given.  The `write-data` action "
+                    "returns the number of records written to each worksheet in `sheet_counts`.\n\n"
+                    "**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, "
+                    "`column_formats`, `column_masks` and `write_headers` options are given for each worksheet "
+                    "instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or "
+                    "condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
+                "example_value": (
+                    {"worksheet": "Orders", "columns": ("Id", "Amount"), "when": "@kind == \"order\""},
+                    {"worksheet": "Returns", "columns": ("Id", "Reason"), "when": "@kind == \"return\""},
+                    {"worksheet": "Other"},
+                ),
+            },
+            "route": <DataProviderOptionInfo>{
+                "display_name": "Worksheets of a Record",
+                "short_desc": "Whether a record is written to the first worksheet it matches or to every one",
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "The worksheets of the `sheets` option that a record is written to: `first` (the default), "
+                    "the first worksheet whose condition it matches, so a worksheet without a condition takes every "
+                    "record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, "
+                    "so a record can be written to several, such as to a worksheet with every record and to one "
+                    "with the returns",
+                "default_value": "first",
+                "allowed_values": (
+                    <AllowedValueInfo>{"value": "first", "display_name": "First Match",
+                        "short_desc": "The first worksheet whose condition the record matches",
+                        "desc": "A record is written to the first worksheet whose condition it matches"},
+                    <AllowedValueInfo>{"value": "all", "display_name": "Every Match",
+                        "short_desc": "Every worksheet whose condition the record matches",
+                        "desc": "A record is written to every worksheet whose condition it matches"},
+                ),
+            },
+            "unmatched": <DataProviderOptionInfo>{
+                "display_name": "Records Without a Worksheet",
+                "short_desc": "Whether a record that matches no worksheet fails the write or is skipped",
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "What happens to a record that matches the condition of no worksheet of the `sheets` "
+                    "option: `fail` (the default) raises `EXCEL-WRITE-ROUTE-ERROR`, naming the record and the "
+                    "conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+                "default_value": "fail",
+                "allowed_values": (
+                    <AllowedValueInfo>{"value": "fail", "display_name": "Fail",
+                        "short_desc": "The write fails",
+                        "desc": "A record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`"},
+                    <AllowedValueInfo>{"value": "skip", "display_name": "Skip",
+                        "short_desc": "The record is not written",
+                        "desc": "A record that matches no worksheet is not written and not counted"},
+                ),
+            },
+        };
+
+        #! The options of a single worksheet, which are given for each worksheet with \c sheets, and the key that
+        #! each one is given with
+        const SingleSheetOptions = {
+            "worksheet": "worksheet",
+            "headers": "columns",
+            "column_formats": "column_formats",
+            "column_masks": "column_masks",
+            "column_headers": "column_headers",
+            "write_headers": "write_headers",
+        };
+
+        #! The type of each key of a worksheet of the \c sheets option, in the order they are listed in messages
+        const SheetKeys = {
+            "worksheet": AbstractDataProviderType::get(StringType),
+            "columns": AbstractDataProviderType::get(new Type("softlist<string>")),
+            "when": AbstractDataProviderType::get(StringType),
+            "column_headers": AbstractDataProviderType::get(new Type("hash<string, string>")),
+            "column_formats": AbstractDataProviderType::get(new Type("hash<string, string>")),
+            "column_masks": AbstractDataProviderType::get(new Type("hash<string, string>")),
+            "write_headers": AbstractDataProviderType::get(SoftBoolType),
         };
     }
 
@@ -195,6 +312,12 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
 
         #! The time zone whose wall-clock time dates are written in, if any
         *TimeZone timezone;
+
+        #! The worksheets of the \c sheets option, in workbook order, if given
+        list<hash<ExcelWriteSheetInfo>> sheets = ();
+
+        #! The number of records given to be written with \c sheets, including skipped records
+        int record_no = 0;
     }
 
     #! Creates the ExcelWriteDataProvider with the output path and optionally an option hash
@@ -269,18 +392,11 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
 
     #! Sets up the writer
     /** @throw EXCEL-WRITE-OPTION-ERROR an invalid format code in \c column_formats, a mask without a display format
-        in \c column_masks, a column with both, an invalid time zone, or with \c headers, a column option for a
-        column that is not written
+        in \c column_masks, a column with both, an invalid time zone, an invalid worksheet name, an invalid worksheet
+        in \c sheets or an option that cannot be used with it, or with \c headers, a column option for a column that
+        is not written
     */
     private setupWriter() {
-        hash<string, string> formats = {};
-        if (opts.column_formats) {
-            checkColumnFormats();
-            formats = opts.column_formats;
-        }
-        if (opts.column_masks) {
-            formats += getMaskFormats();
-        }
         if (opts.timezone) {
             try {
                 timezone = new TimeZone(opts.timezone);
@@ -289,10 +405,37 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
                     ex.desc);
             }
         }
+        if (exists opts.sheets) {
+            setupSheets();
+            return;
+        }
+        foreach string opt in ("route", "unmatched") {
+            if (opts{opt} != ConstructorOptions{opt}.default_value) {
+                error("EXCEL-WRITE-OPTION-ERROR", "the %y option is used only with the \"sheets\" option", opt);
+            }
+        }
+        if (opts.worksheet) {
+            if (*string issue = ExcelWriter::sheetNameIssue(opts.worksheet)) {
+                error("EXCEL-WRITE-OPTION-ERROR", "invalid \"worksheet\" option %y: %s", opts.worksheet, issue);
+            }
+        }
+        hash<string, string> formats = {};
+        if (opts.column_formats) {
+            checkColumnFormats(opts.column_formats);
+            formats = opts.column_formats;
+        }
+        if (opts.column_masks) {
+            formats += getMaskFormats(opts.column_masks, opts.column_formats);
+        }
         if (opts.headers) {
-            checkColumns(opts.headers);
+            checkColumns(opts{"column_formats", "column_masks", "column_headers"}, opts.headers);
         }
         writer = new ExcelWriter(opts.worksheet ?? "Sheet1", opts.format ?? "xlsx", opts.streaming ?? False);
+        # the writer is released if it cannot be set up, as the destructor does not run when a constructor fails
+        on_error {
+            writer.close();
+            delete writer;
+        }
         if (opts.headers) {
             writer.setHeaders(opts.headers);
         }
@@ -307,31 +450,191 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
         }
     }
 
-    #! Checks the \c column_formats option: each format code is valid
-    /** @throw EXCEL-WRITE-OPTION-ERROR an invalid format code
+    #! Sets up the writer for the worksheets of the \c sheets option
+    /** @throw EXCEL-WRITE-OPTION-ERROR an invalid worksheet or condition, or an option of a single worksheet
     */
-    private checkColumnFormats() {
-        foreach hash<auto> i in (opts.column_formats.pairIterator()) {
-            *string issue = ExcelWriter::formatCodeIssue(i.value);
-            if (issue) {
-                error("EXCEL-WRITE-OPTION-ERROR", "invalid \"column_formats\" option: column %y: %s", i.key, issue);
+    private setupSheets() {
+        # the options of a single worksheet are given for each worksheet instead; write_headers is true by default
+        foreach hash<auto> i in (SingleSheetOptions.pairIterator()) {
+            if (i.key == "write_headers" ? (exists opts.write_headers && !opts.write_headers) : exists opts{i.key}) {
+                error("EXCEL-WRITE-OPTION-ERROR", "cannot use the %y option with the \"sheets\" option; give each "
+                    "worksheet its %y instead", i.key, i.value);
+            }
+        }
+        if (!opts.sheets) {
+            error("EXCEL-WRITE-OPTION-ERROR", "invalid \"sheets\" option: no worksheets are given");
+        }
+        # the index of each worksheet by the key of its name
+        hash<string, int> names = {};
+        foreach hash<auto> sheet in (opts.sheets) {
+            sheets += getSheet(sheet, $#, \names);
+        }
+        writer = new ExcelWriter(sheets[0].name, opts.format ?? "xlsx", opts.streaming ?? False);
+        # the writer is released if it cannot be set up, as the destructor does not run when a constructor fails
+        on_error {
+            writer.close();
+            delete writer;
+        }
+        foreach hash<ExcelWriteSheetInfo> sheet in (sheets) {
+            int i = $# ? writer.addSheet(sheet.name) : 0;
+            if (sheet.columns) {
+                writer.setHeaders(i, sheet.columns);
+            }
+            if (sheet.formats) {
+                writer.setColumnFormats(i, sheet.formats);
+            }
+            if (sheet.column_opts.column_headers) {
+                writer.setColumnHeaders(i, sheet.column_opts.column_headers);
+            }
+            if (!sheet.write_headers) {
+                writer.setWriteHeaders(i, False);
             }
         }
     }
 
-    #! Returns the display format codes of the \c column_masks option
-    /** @throw EXCEL-WRITE-OPTION-ERROR a mask without a display format, or a column with both a mask and a format
+    #! Returns a worksheet of the \c sheets option
+    /** @param sheet the worksheet as given
+        @param i the 0-based position of the worksheet
+        @param names the index of each worksheet so far by the key of its name; the worksheet is added
+
+        @return the worksheet
+
+        @throw EXCEL-WRITE-OPTION-ERROR an invalid worksheet or condition
+    */
+    private hash<ExcelWriteSheetInfo> getSheet(hash<auto> sheet, int i, reference<hash<string, int>> names) {
+        if (!exists sheet.worksheet) {
+            error("EXCEL-WRITE-OPTION-ERROR", "invalid \"sheets\" option: worksheet %d has no \"worksheet\" name",
+                i + 1);
+        }
+        hash<auto> values = getSheetValues(sheet, sprintf("worksheet %d", i + 1), ("worksheet",));
+        string name = values.worksheet;
+        if (*string issue = ExcelWriter::sheetNameIssue(name)) {
+            error("EXCEL-WRITE-OPTION-ERROR", "invalid \"sheets\" option: worksheet %d: invalid worksheet name %y: %s",
+                i + 1, name, issue);
+        }
+        string key = ExcelWriter::sheetNameKey(name);
+        if (exists names{key}) {
+            error("EXCEL-WRITE-OPTION-ERROR", "invalid \"sheets\" option: worksheet %d: the worksheet name %y is "
+                "already the name of worksheet %d (%y); worksheet names must be unique, regardless of case", i + 1,
+                name, names{key} + 1, sheets[names{key}].name);
+        }
+        names{key} = i;
+
+        string label = sprintf("worksheet %y", name);
+        if (*list<string> unknown = keys (sheet - keys SheetKeys)) {
+            error("EXCEL-WRITE-OPTION-ERROR", "invalid \"sheets\" option: %s: unknown %s %s; the keys of a worksheet "
+                "are: %s", label, unknown.size() == 1 ? "key" : "keys", (foldl $1 + ", " + $2,
+                (map sprintf("%y", $1), unknown)), (foldl $1 + ", " + $2, keys SheetKeys));
+        }
+        values += getSheetValues(sheet, label, keys (SheetKeys - "worksheet"));
+        if (exists values.columns && !values.columns) {
+            error("EXCEL-WRITE-OPTION-ERROR", "invalid \"sheets\" option: %s: \"columns\" is empty; leave it out to "
+                "take the columns from the first record written to the worksheet", label);
+        }
+
+        hash<ExcelWriteSheetInfo> rv = <ExcelWriteSheetInfo>{
+            "name": name,
+            "columns": values.columns,
+            "when": values.when,
+            "column_opts": values{"column_headers", "column_formats", "column_masks"},
+            "write_headers": values.write_headers ?? True,
+        };
+        if (exists values.when) {
+            try {
+                rv.condition = DataProvider::parseDpqlExpression(values.when);
+            } catch (hash<ExceptionInfo> ex) {
+                error("EXCEL-WRITE-OPTION-ERROR", "invalid \"sheets\" option: %s: invalid \"when\" condition %y: %s: "
+                    "%s", label, values.when, ex.err, ex.desc);
+            }
+        }
+        if (values.column_formats) {
+            checkColumnFormats(values.column_formats, label);
+            rv.formats = values.column_formats;
+        }
+        if (values.column_masks) {
+            rv.formats += getMaskFormats(values.column_masks, values.column_formats, label);
+        }
+        if (values.columns) {
+            checkColumns(rv.column_opts, values.columns, label);
+        }
+        return rv;
+    }
+
+    #! Returns the values of keys of a worksheet of the \c sheets option, with their types
+    /** @param sheet the worksheet as given
+        @param label the worksheet in messages
+        @param key_list the keys to return
+
+        @return the values of the keys that have a value
+
+        @throw EXCEL-WRITE-OPTION-ERROR a value of the wrong type
+    */
+    private hash<auto> getSheetValues(hash<auto> sheet, string label, list<string> key_list) {
+        hash<auto> rv = {};
+        foreach string key in (key_list) {
+            if (!exists sheet{key}) {
+                continue;
+            }
+            AbstractDataProviderType type = SheetKeys{key};
+            try {
+                rv{key} = type.acceptsValue(sheet{key});
+            } catch (hash<ExceptionInfo> ex) {
+                if (ex.err != "RUNTIME-TYPE-ERROR") {
+                    rethrow;
+                }
+                error("EXCEL-WRITE-OPTION-ERROR", "invalid \"sheets\" option: %s: %y must be a value of type %y, not "
+                    "%y", label, key, type.getName(), sheet{key}.fullType());
+            }
+        }
+        return rv;
+    }
+
+    #! Returns the beginning of the message of an invalid column option
+    /** @param opt the column option
+        @param label the worksheet of the \c sheets option the option is given for, if any
+    */
+    private static string getColumnOptionError(string opt, *string label) {
+        return label
+            ? sprintf("invalid \"sheets\" option: %s: invalid %y", label, opt)
+            : sprintf("invalid %y option", opt);
+    }
+
+    #! Checks column format codes: each format code is valid
+    /** @param formats the format code of each column
+        @param label the worksheet of the \c sheets option the formats are given for, if any
+
+        @throw EXCEL-WRITE-OPTION-ERROR an invalid format code
+    */
+    private checkColumnFormats(hash<string, string> formats, *string label) {
+        foreach hash<auto> i in (formats.pairIterator()) {
+            *string issue = ExcelWriter::formatCodeIssue(i.value);
+            if (issue) {
+                error("EXCEL-WRITE-OPTION-ERROR", "%s: column %y: %s", getColumnOptionError("column_formats", label),
+                    i.key, issue);
+            }
+        }
+    }
+
+    #! Returns the display format codes of column masks
+    /** @param masks the mask of each column
+        @param formats the format code of each column, if any
+        @param label the worksheet of the \c sheets option the masks are given for, if any
+
+        @throw EXCEL-WRITE-OPTION-ERROR a mask without a display format, or a column with both a mask and a format
         code
     */
-    private hash<string, string> getMaskFormats() {
+    private hash<string, string> getMaskFormats(hash<string, string> masks, *hash<string, string> formats,
+            *string label) {
         hash<string, string> rv = {};
-        foreach hash<auto> i in (opts.column_masks.pairIterator()) {
-            if (exists opts.column_formats{i.key}) {
-                error("EXCEL-WRITE-OPTION-ERROR", "invalid \"column_masks\" option: column %y also has a format code "
-                    "in the \"column_formats\" option; a column can have one or the other", i.key);
+        foreach hash<auto> i in (masks.pairIterator()) {
+            if (exists formats{i.key}) {
+                error("EXCEL-WRITE-OPTION-ERROR", "%s: column %y also has a format code in %s; a column can have one "
+                    "or the other", getColumnOptionError("column_masks", label), i.key,
+                    label ? "\"column_formats\"" : "the \"column_formats\" option");
             }
             if (*string issue = ValueMask::spreadsheetFormatIssue(i.value)) {
-                error("EXCEL-WRITE-OPTION-ERROR", "invalid \"column_masks\" option: column %y: %s", i.key, issue);
+                error("EXCEL-WRITE-OPTION-ERROR", "%s: column %y: %s", getColumnOptionError("column_masks", label),
+                    i.key, issue);
             }
             rv{i.key} = ValueMask::toSpreadsheetFormat(i.value);
         }
@@ -339,21 +642,25 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
     }
 
     #! Checks that each column in the \c column_formats, \c column_masks and \c column_headers options is written
-    /** @param columns the columns written
+    /** @param column_opts the column options
+        @param columns the columns written
+        @param label the worksheet of the \c sheets option the options are given for, if any
+
         @throw EXCEL-WRITE-OPTION-ERROR a column option for a column that is not written
     */
-    private checkColumns(*list<string> columns) {
+    private checkColumns(*hash<auto> column_opts, list<string> columns, *string label) {
         hash<string, bool> written = map {$1: True}, columns;
         foreach hash<auto> i in ({
                 "column_formats": "a format",
                 "column_masks": "a mask",
                 "column_headers": "a header",
             }.pairIterator()) {
-            *list<string> unknown = select keys opts{i.key}, !written{$1};
+            *list<string> unknown = select keys column_opts{i.key}, !written{$1};
             if (unknown) {
-                error("EXCEL-WRITE-OPTION-ERROR", "invalid \"%s\" option: %s is given for %s %y, which %s not "
-                    "written; the columns written are: %y", i.key, i.value, unknown.size() == 1 ? "column" : "columns",
-                    unknown.size() == 1 ? unknown[0] : unknown, unknown.size() == 1 ? "is" : "are", columns);
+                error("EXCEL-WRITE-OPTION-ERROR", "%s: %s is given for %s %y, which %s not written; the columns "
+                    "written are: %y", getColumnOptionError(i.key, label), i.value,
+                    unknown.size() == 1 ? "column" : "columns", unknown.size() == 1 ? unknown[0] : unknown,
+                    unknown.size() == 1 ? "is" : "are", columns);
             }
         }
     }
@@ -375,22 +682,97 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
         @return the record created (echoes back the input)
 
         @throw EXCEL-WRITE-OPTION-ERROR without \c headers, the first record has no key for a column in
-        \c column_formats
+        \c column_formats, \c column_masks or \c column_headers; with \c sheets, the same for the first record written
+        to a worksheet without \c columns
+        @throw EXCEL-WRITE-ROUTE-ERROR with \c sheets, the record matches no worksheet and \c unmatched is \c "fail",
+        or the condition of a worksheet cannot be evaluated for the record
     */
     private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
+        if (sheets) {
+            return createSheetRecord(rec);
+        }
         # without headers, the first record's keys are the columns
         if (!created && !opts.headers && (opts.column_formats || opts.column_masks || opts.column_headers)) {
-            checkColumns(keys rec);
+            checkColumns(opts{"column_formats", "column_masks", "column_headers"}, keys rec);
         }
-        hash<auto> row = rec;
-        # dates as the wall-clock time in the time zone
-        if (timezone) {
-            row = map {$1.key: $1.value.typeCode() == NT_DATE ? timezone.date($1.value) : $1.value},
-                rec.pairIterator();
-        }
-        writer.writeRow(row);
+        writer.writeRow(getRow(rec));
         ++created;
         return rec;
+    }
+
+    #! Writes a record to the worksheets of the \c sheets option whose conditions it matches
+    /** @param rec the record to write
+
+        @return the record
+
+        @throw EXCEL-WRITE-OPTION-ERROR the first record written to a worksheet without \c columns has no key for a
+        column in its \c column_formats, \c column_masks or \c column_headers
+        @throw EXCEL-WRITE-ROUTE-ERROR the record matches no worksheet and \c unmatched is \c "fail", or the
+        condition of a worksheet cannot be evaluated for the record
+    */
+    private hash<auto> createSheetRecord(hash<auto> rec) {
+        ++record_no;
+        list<int> targets = getRecordSheets(rec);
+        if (!targets) {
+            if (opts.unmatched == "skip") {
+                return rec;
+            }
+            error("EXCEL-WRITE-ROUTE-ERROR", "record %d matches no worksheet; the conditions of the worksheets are: "
+                "%s; with \"unmatched\": \"skip\", records that match no worksheet are skipped", record_no,
+                (foldl $1 + "; " + $2, (map sprintf("%y: %s", $1.name, $1.when), sheets)));
+        }
+        hash<auto> row = getRow(rec);
+        foreach int i in (targets) {
+            # the first record written to a worksheet without columns: its keys are the columns
+            if (!sheets[i].columns) {
+                list<string> columns = keys rec;
+                checkColumns(sheets[i].column_opts, columns, sprintf("worksheet %y", sheets[i].name));
+                sheets[i].columns = columns;
+            }
+            writer.writeRow(i, row);
+            ++sheets[i].count;
+        }
+        ++created;
+        return rec;
+    }
+
+    #! Returns the index of each worksheet of the \c sheets option that a record is written to
+    /** @param rec the record
+
+        @return the index of the first worksheet whose condition the record matches, or with \c route \c "all", of
+        each one; no value if it matches none
+
+        @throw EXCEL-WRITE-ROUTE-ERROR the condition of a worksheet cannot be evaluated for the record
+    */
+    private list<int> getRecordSheets(hash<auto> rec) {
+        list<int> rv = ();
+        foreach hash<ExcelWriteSheetInfo> sheet in (sheets) {
+            if (sheet.condition) {
+                bool match;
+                try {
+                    match = boolean(AbstractDataProvider::evalGenericExpression(rec, sheet.condition));
+                } catch (hash<ExceptionInfo> ex) {
+                    error("EXCEL-WRITE-ROUTE-ERROR", "record %d: the condition of worksheet %y (%s) cannot be "
+                        "evaluated: %s: %s", record_no, sheet.name, sheet.when, ex.err, ex.desc);
+                }
+                if (!match) {
+                    continue;
+                }
+            }
+            rv += $#;
+            if (opts.route != "all") {
+                break;
+            }
+        }
+        return rv;
+    }
+
+    #! Returns the row written for a record: its dates as the wall-clock time in the \c timezone, if given
+    private hash<auto> getRow(hash<auto> rec) {
+        if (!timezone) {
+            return rec;
+        }
+        return map {$1.key: $1.value.typeCode() == NT_DATE ? timezone.date($1.value) : $1.value}, rec.pairIterator();
     }
 
     #! Commits (writes) the Excel file
@@ -419,7 +801,9 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
 
     #! Completes the create operations: writes the Excel data to its path or stream, if any
     /** @return the generated Excel data and the number of records in it, if there is no output path or stream;
-        otherwise no value is returned
+        otherwise no value is returned; with \c sheets, an @ref ExcelGeneratedDataInfo hash that also gives the
+        number of records written to each worksheet, and \c record_count counts the records written to one worksheet
+        or more
     */
     private *hash<GeneratedDataInfo> finishCreateImpl() {
         if (path || stream) {
@@ -428,6 +812,17 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
         }
         # the data must be read before commit() closes the writer
         on_exit commit();
+        if (sheets) {
+            hash<string, int> sheet_counts = {};
+            foreach hash<ExcelWriteSheetInfo> sheet in (sheets) {
+                sheet_counts{sheet.name} = sheet.count;
+            }
+            return <ExcelGeneratedDataInfo>{
+                "data": getData(),
+                "record_count": created,
+                "sheet_counts": sheet_counts,
+            };
+        }
         return <GeneratedDataInfo>{
             "data": getData(),
             "record_count": created,
@@ -455,7 +850,8 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
     /** @param search_options ignored
 
         @return a field for each column in the \c headers option, or @ref NOTHING (an open record shape) if no
-        headers are given, in which case the first record's keys are used as the columns
+        headers are given, in which case the first record's keys are used as the columns, or with \c sheets, as the
+        conditions of the worksheets can use fields that are not written
     */
     private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
         return map {

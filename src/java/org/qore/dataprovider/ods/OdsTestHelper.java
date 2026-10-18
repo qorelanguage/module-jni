@@ -864,8 +864,22 @@ public class OdsTestHelper {
      * @return the value type and data style of each cell
      */
     public static String[] getCellDataStyles(String path, int row, int cells) throws Exception {
+        return getCellDataStyles(path, 0, row, cells);
+    }
+
+    /**
+     * Returns the value type and data style of each cell of a row of a sheet of a document, read with odfdom
+     *
+     * @param path the document file
+     * @param sheet the 0-based sheet
+     * @param row the 0-based row
+     * @param cells the number of cells to describe
+     * @return the value type and data style of each cell, as {@link #getCellDataStyles(String, int, int)} gives
+     * them
+     */
+    public static String[] getCellDataStyles(String path, int sheet, int row, int cells) throws Exception {
         try (OdfSpreadsheetDocument doc = OdfSpreadsheetDocument.loadDocument(path)) {
-            OdfTable table = doc.getTableList().get(0);
+            OdfTable table = doc.getTableList().get(sheet);
             org.odftoolkit.odfdom.incubator.doc.office.OdfOfficeAutomaticStyles styles =
                 doc.getContentDom().getAutomaticStyles();
             String[] result = new String[cells];

@@ -735,6 +735,90 @@
           "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
           "message": "Oblasť časového pásma (napríklad `Europe/Prague` alebo `America/New_York`), v ktorého miestnom čase sa zapisujú dátumy, pretože bunka obsahuje dátum a čas bez časového pásma; ak nie je zadaná, dátum sa zapíše vo svojom vlastnom miestnom čase"
         },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "Pracovné hárky"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "Pracovné hárky na zápis, každý s podmienkou svojich záznamov"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in workbook order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required): up to 31 characters, none of them `: \\ / ? * [ ]`, not beginning or ending with an apostrophe, and different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` and `write_headers` options are given for each worksheet instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "Pracovné hárky na zápis v poradí zošita, na zápis záznamov do viacerých pracovných hárkov: každý záznam sa zapíše do pracovného hárka, ktorého podmienke zodpovedá.  Každý pracovný hárok je hash s týmito kľúčmi:\n- `worksheet`: názov pracovného hárka (povinný): najviac 31 znakov, žiadny z nich `: \\ / ? * [ ]`, nezačína ani nekončí apostrofom a od názvov ostatných pracovných hárkov sa líši nielen veľkosťou písmen\n- `columns`: stĺpce pracovného hárka v danom poradí; stĺpec, pre ktorý záznam nemá hodnotu, je prázdna bunka, a ostatné polia záznamu sa do pracovného hárka nezapíšu; bez `columns` sú stĺpcami pracovného hárka polia prvého záznamu, ktorý sa doň zapíše\n- `when`: podmienka záznamov zapisovaných do pracovného hárka v DPQL s poľami záznamu, napríklad `@kind == \"order\"`; pracovný hárok bez podmienky prevezme každý záznam\n- `column_headers`, `column_formats`, `column_masks` a `write_headers`: ako rovnomenné voľby, pre pracovný hárok\n\n**Smerovanie**: záznam sa zapíše do prvého pracovného hárka, ktorého podmienke zodpovedá, alebo s `route` nastaveným na `all` do každého pracovného hárka, ktorému zodpovedá; záznam, ktorý nezodpovedá žiadnemu pracovnému hárku, vyvolá `EXCEL-WRITE-ROUTE-ERROR`, ak `unmatched` nie je `skip`.  Vytvorí sa každý pracovný hárok, aj ten bez záznamov, ktorý má riadok hlavičky, ak sú zadané jeho stĺpce.  Akcia `write-data` vracia počet záznamov zapísaných do každého pracovného hárka v `sheet_counts`.\n\n**Ostatné voľby**: s touto voľbou sa voľby `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` a `write_headers` zadávajú namiesto toho pre každý pracovný hárok; `format`, `streaming` a `timezone` platia pre zošit.  Neplatný pracovný hárok alebo podmienka vyvolá `EXCEL-WRITE-OPTION-ERROR` s uvedením pracovného hárka"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "Pracovné hárky záznamu"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "Či sa záznam zapíše do prvého pracovného hárka, ktorého podmienke zodpovedá, alebo do každého"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "Pracovné hárky voľby `sheets`, do ktorých sa záznam zapíše: `first` (predvolené), prvý pracovný hárok, ktorého podmienke zodpovedá, takže pracovný hárok bez podmienky prevezme každý záznam, ktorý neprevezme žiadny pracovný hárok pred ním; alebo `all`, každý pracovný hárok, ktorého podmienke zodpovedá, takže záznam sa môže zapísať do viacerých, napríklad do pracovného hárka so všetkými záznamami a do hárka s vratkami"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "Prvá zhoda"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "Prvý pracovný hárok, ktorého podmienke záznam zodpovedá"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "Záznam sa zapíše do prvého pracovného hárka, ktorého podmienke zodpovedá"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "Každá zhoda"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "Každý pracovný hárok, ktorého podmienke záznam zodpovedá"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "Záznam sa zapíše do každého pracovného hárka, ktorého podmienke zodpovedá"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "Záznamy bez pracovného hárka"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "Či záznam, ktorý nezodpovedá žiadnemu pracovnému hárku, spôsobí zlyhanie zápisu, alebo sa preskočí"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `EXCEL-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "Čo sa stane so záznamom, ktorý nezodpovedá podmienke žiadneho pracovného hárka voľby `sheets`: `fail` (predvolené) vyvolá `EXCEL-WRITE-ROUTE-ERROR` s uvedením záznamu a podmienok pracovných hárkov; `skip` záznam nezapíše do žiadneho pracovného hárka a nezapočíta ho"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Zlyhať"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "Zápis zlyhá"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`",
+          "message": "Záznam, ktorý nezodpovedá žiadnemu pracovnému hárku, vyvolá `EXCEL-WRITE-ROUTE-ERROR`"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "Preskočiť"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "Záznam sa nezapíše"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "Záznam, ktorý nezodpovedá žiadnemu pracovnému hárku, sa nezapíše a nezapočíta"
+        },
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.display_name": {
           "source": "Create Excel Spreadsheet Data",
           "message": "Vytvoriť tabuľkové údaje Excel"
@@ -878,6 +962,90 @@
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.desc": {
           "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
           "message": "Oblasť časového pásma (napríklad `Europe/Prague` alebo `America/New_York`), v ktorého miestnom čase sa zapisujú dátumy, pretože bunka obsahuje dátum a čas bez časového pásma; ak nie je zadaná, dátum sa zapíše vo svojom vlastnom miestnom čase"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "Pracovné hárky"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "Pracovné hárky na zápis, každý s podmienkou svojich záznamov"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in workbook order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required): up to 31 characters, none of them `: \\ / ? * [ ]`, not beginning or ending with an apostrophe, and different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` and `write_headers` options are given for each worksheet instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "Pracovné hárky na zápis v poradí zošita, na zápis záznamov do viacerých pracovných hárkov: každý záznam sa zapíše do pracovného hárka, ktorého podmienke zodpovedá.  Každý pracovný hárok je hash s týmito kľúčmi:\n- `worksheet`: názov pracovného hárka (povinný): najviac 31 znakov, žiadny z nich `: \\ / ? * [ ]`, nezačína ani nekončí apostrofom a od názvov ostatných pracovných hárkov sa líši nielen veľkosťou písmen\n- `columns`: stĺpce pracovného hárka v danom poradí; stĺpec, pre ktorý záznam nemá hodnotu, je prázdna bunka, a ostatné polia záznamu sa do pracovného hárka nezapíšu; bez `columns` sú stĺpcami pracovného hárka polia prvého záznamu, ktorý sa doň zapíše\n- `when`: podmienka záznamov zapisovaných do pracovného hárka v DPQL s poľami záznamu, napríklad `@kind == \"order\"`; pracovný hárok bez podmienky prevezme každý záznam\n- `column_headers`, `column_formats`, `column_masks` a `write_headers`: ako rovnomenné voľby, pre pracovný hárok\n\n**Smerovanie**: záznam sa zapíše do prvého pracovného hárka, ktorého podmienke zodpovedá, alebo s `route` nastaveným na `all` do každého pracovného hárka, ktorému zodpovedá; záznam, ktorý nezodpovedá žiadnemu pracovnému hárku, vyvolá `EXCEL-WRITE-ROUTE-ERROR`, ak `unmatched` nie je `skip`.  Vytvorí sa každý pracovný hárok, aj ten bez záznamov, ktorý má riadok hlavičky, ak sú zadané jeho stĺpce.  Akcia `write-data` vracia počet záznamov zapísaných do každého pracovného hárka v `sheet_counts`.\n\n**Ostatné voľby**: s touto voľbou sa voľby `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` a `write_headers` zadávajú namiesto toho pre každý pracovný hárok; `format`, `streaming` a `timezone` platia pre zošit.  Neplatný pracovný hárok alebo podmienka vyvolá `EXCEL-WRITE-OPTION-ERROR` s uvedením pracovného hárka"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "Pracovné hárky záznamu"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "Či sa záznam zapíše do prvého pracovného hárka, ktorého podmienke zodpovedá, alebo do každého"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "Pracovné hárky voľby `sheets`, do ktorých sa záznam zapíše: `first` (predvolené), prvý pracovný hárok, ktorého podmienke zodpovedá, takže pracovný hárok bez podmienky prevezme každý záznam, ktorý neprevezme žiadny pracovný hárok pred ním; alebo `all`, každý pracovný hárok, ktorého podmienke zodpovedá, takže záznam sa môže zapísať do viacerých, napríklad do pracovného hárka so všetkými záznamami a do hárka s vratkami"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "Prvá zhoda"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "Prvý pracovný hárok, ktorého podmienke záznam zodpovedá"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "Záznam sa zapíše do prvého pracovného hárka, ktorého podmienke zodpovedá"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "Každá zhoda"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "Každý pracovný hárok, ktorého podmienke záznam zodpovedá"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "Záznam sa zapíše do každého pracovného hárka, ktorého podmienke zodpovedá"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "Záznamy bez pracovného hárka"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "Či záznam, ktorý nezodpovedá žiadnemu pracovnému hárku, spôsobí zlyhanie zápisu, alebo sa preskočí"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `EXCEL-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "Čo sa stane so záznamom, ktorý nezodpovedá podmienke žiadneho pracovného hárka voľby `sheets`: `fail` (predvolené) vyvolá `EXCEL-WRITE-ROUTE-ERROR` s uvedením záznamu a podmienok pracovných hárkov; `skip` záznam nezapíše do žiadneho pracovného hárka a nezapočíta ho"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Zlyhať"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "Zápis zlyhá"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`",
+          "message": "Záznam, ktorý nezodpovedá žiadnemu pracovnému hárku, vyvolá `EXCEL-WRITE-ROUTE-ERROR`"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "Preskočiť"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "Záznam sa nezapíše"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "Záznam, ktorý nezodpovedá žiadnemu pracovnému hárku, sa nezapíše a nezapočíta"
         }
       }
     }

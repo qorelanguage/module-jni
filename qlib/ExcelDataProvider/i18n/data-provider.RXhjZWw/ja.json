@@ -735,6 +735,90 @@
           "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
           "message": "日付をその現地時刻で書き込むタイムゾーンの地域 (`Europe/Prague`、`America/New_York` など)。セルはタイムゾーンのない日付と時刻を保持するためです。指定しない場合、日付はそれ自身の現地時刻で書き込まれます"
         },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "ワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "書き込むワークシート。それぞれにそのレコードの条件があります"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in workbook order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required): up to 31 characters, none of them `: \\ / ? * [ ]`, not beginning or ending with an apostrophe, and different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` and `write_headers` options are given for each worksheet instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "レコードを複数のワークシートに書き込むための、ブックの順に書き込むワークシート。各レコードは条件に一致するワークシートに書き込まれます。各ワークシートは次のキーを持つハッシュです。\n- `worksheet`: ワークシートの名前（必須）。31 文字以内で、`: \\ / ? * [ ]` を含まず、アポストロフィで始まったり終わったりせず、大文字と小文字の違いだけでなく他のワークシートの名前と異なる必要があります\n- `columns`: ワークシートの列（順序どおり）。レコードに値がない列は空のセルになり、レコードのその他のフィールドはワークシートに書き込まれません。`columns` がない場合は、ワークシートに最初に書き込まれるレコードのフィールドがその列になります\n- `when`: ワークシートに書き込まれるレコードの条件。レコードのフィールドを使った DPQL で、たとえば `@kind == \"order\"` のように指定します。条件のないワークシートはすべてのレコードを受け取ります\n- `column_headers`、`column_formats`、`column_masks`、`write_headers`: 同じ名前のオプションと同じで、ワークシートに適用されます\n\n**振り分け**: レコードは条件に一致する最初のワークシートに書き込まれます。`route` を `all` に設定すると、一致するすべてのワークシートに書き込まれます。どのワークシートにも一致しないレコードは、`unmatched` が `skip` でない限り `EXCEL-WRITE-ROUTE-ERROR` を発生させます。レコードのないワークシートも含め、すべてのワークシートが作成され、列が指定されていれば見出し行があります。`write-data` アクションは、各ワークシートに書き込まれたレコード数を `sheet_counts` で返します。\n\n**その他のオプション**: このオプションを使う場合、`worksheet`、`headers`、`column_headers`、`column_formats`、`column_masks`、`write_headers` オプションは代わりにワークシートごとに指定します。`format`、`streaming`、`timezone` はブックに適用されます。無効なワークシートまたは条件は、そのワークシートを示して `EXCEL-WRITE-OPTION-ERROR` を発生させます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "レコードのワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "レコードを一致する最初のワークシートに書き込むか、一致するすべてのワークシートに書き込むか"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "レコードを書き込む `sheets` オプションのワークシート。`first`（既定値）は条件に一致する最初のワークシートで、条件のないワークシートはそれより前のどのワークシートにも書き込まれないすべてのレコードを受け取ります。`all` は条件に一致するすべてのワークシートで、レコードを複数のワークシートに書き込めます。たとえば、すべてのレコードを含むワークシートと返品を含むワークシートに書き込めます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "最初の一致"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "レコードが条件に一致する最初のワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "レコードは条件に一致する最初のワークシートに書き込まれます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "すべての一致"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "レコードが条件に一致するすべてのワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "レコードは条件に一致するすべてのワークシートに書き込まれます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "ワークシートのないレコード"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "どのワークシートにも一致しないレコードで書き込みを失敗させるか、スキップするか"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `EXCEL-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "`sheets` オプションのどのワークシートの条件にも一致しないレコードの扱い。`fail`（既定値）はレコードとワークシートの条件を示して `EXCEL-WRITE-ROUTE-ERROR` を発生させます。`skip` はレコードをどのワークシートにも書き込まず、数えません"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "失敗"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "書き込みが失敗します"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`",
+          "message": "どのワークシートにも一致しないレコードは `EXCEL-WRITE-ROUTE-ERROR` を発生させます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "スキップ"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "レコードは書き込まれません"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "どのワークシートにも一致しないレコードは書き込まれず、数えられません"
+        },
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.display_name": {
           "source": "Create Excel Spreadsheet Data",
           "message": "Excel スプレッドシートデータの作成"
@@ -878,6 +962,90 @@
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.desc": {
           "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
           "message": "日付をその現地時刻で書き込むタイムゾーンの地域 (`Europe/Prague`、`America/New_York` など)。セルはタイムゾーンのない日付と時刻を保持するためです。指定しない場合、日付はそれ自身の現地時刻で書き込まれます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "ワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "書き込むワークシート。それぞれにそのレコードの条件があります"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in workbook order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required): up to 31 characters, none of them `: \\ / ? * [ ]`, not beginning or ending with an apostrophe, and different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` and `write_headers` options are given for each worksheet instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "レコードを複数のワークシートに書き込むための、ブックの順に書き込むワークシート。各レコードは条件に一致するワークシートに書き込まれます。各ワークシートは次のキーを持つハッシュです。\n- `worksheet`: ワークシートの名前（必須）。31 文字以内で、`: \\ / ? * [ ]` を含まず、アポストロフィで始まったり終わったりせず、大文字と小文字の違いだけでなく他のワークシートの名前と異なる必要があります\n- `columns`: ワークシートの列（順序どおり）。レコードに値がない列は空のセルになり、レコードのその他のフィールドはワークシートに書き込まれません。`columns` がない場合は、ワークシートに最初に書き込まれるレコードのフィールドがその列になります\n- `when`: ワークシートに書き込まれるレコードの条件。レコードのフィールドを使った DPQL で、たとえば `@kind == \"order\"` のように指定します。条件のないワークシートはすべてのレコードを受け取ります\n- `column_headers`、`column_formats`、`column_masks`、`write_headers`: 同じ名前のオプションと同じで、ワークシートに適用されます\n\n**振り分け**: レコードは条件に一致する最初のワークシートに書き込まれます。`route` を `all` に設定すると、一致するすべてのワークシートに書き込まれます。どのワークシートにも一致しないレコードは、`unmatched` が `skip` でない限り `EXCEL-WRITE-ROUTE-ERROR` を発生させます。レコードのないワークシートも含め、すべてのワークシートが作成され、列が指定されていれば見出し行があります。`write-data` アクションは、各ワークシートに書き込まれたレコード数を `sheet_counts` で返します。\n\n**その他のオプション**: このオプションを使う場合、`worksheet`、`headers`、`column_headers`、`column_formats`、`column_masks`、`write_headers` オプションは代わりにワークシートごとに指定します。`format`、`streaming`、`timezone` はブックに適用されます。無効なワークシートまたは条件は、そのワークシートを示して `EXCEL-WRITE-OPTION-ERROR` を発生させます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "レコードのワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "レコードを一致する最初のワークシートに書き込むか、一致するすべてのワークシートに書き込むか"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "レコードを書き込む `sheets` オプションのワークシート。`first`（既定値）は条件に一致する最初のワークシートで、条件のないワークシートはそれより前のどのワークシートにも書き込まれないすべてのレコードを受け取ります。`all` は条件に一致するすべてのワークシートで、レコードを複数のワークシートに書き込めます。たとえば、すべてのレコードを含むワークシートと返品を含むワークシートに書き込めます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "最初の一致"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "レコードが条件に一致する最初のワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "レコードは条件に一致する最初のワークシートに書き込まれます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "すべての一致"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "レコードが条件に一致するすべてのワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "レコードは条件に一致するすべてのワークシートに書き込まれます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "ワークシートのないレコード"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "どのワークシートにも一致しないレコードで書き込みを失敗させるか、スキップするか"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `EXCEL-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "`sheets` オプションのどのワークシートの条件にも一致しないレコードの扱い。`fail`（既定値）はレコードとワークシートの条件を示して `EXCEL-WRITE-ROUTE-ERROR` を発生させます。`skip` はレコードをどのワークシートにも書き込まず、数えません"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "失敗"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "書き込みが失敗します"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`",
+          "message": "どのワークシートにも一致しないレコードは `EXCEL-WRITE-ROUTE-ERROR` を発生させます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "スキップ"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "レコードは書き込まれません"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "どのワークシートにも一致しないレコードは書き込まれず、数えられません"
         }
       }
     }

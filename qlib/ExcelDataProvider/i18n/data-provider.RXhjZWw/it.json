@@ -735,6 +735,90 @@
           "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
           "message": "La regione del fuso orario (ad esempio `Europe/Prague` o `America/New_York`) nella cui ora locale vengono scritte le date, perché una cella contiene una data e un'ora senza fuso orario; se non è indicata, una data viene scritta nella propria ora locale"
         },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "Fogli di lavoro"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "I fogli di lavoro da scrivere, ciascuno con la condizione dei suoi record"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in workbook order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required): up to 31 characters, none of them `: \\ / ? * [ ]`, not beginning or ending with an apostrophe, and different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` and `write_headers` options are given for each worksheet instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "I fogli di lavoro da scrivere, nell'ordine della cartella di lavoro, per scrivere i record in più fogli: ogni record viene scritto nel foglio di cui soddisfa la condizione.  Ogni foglio è un hash con queste chiavi:\n- `worksheet`: il nome del foglio (obbligatorio): fino a 31 caratteri, nessuno dei quali `: \\ / ? * [ ]`, senza iniziare o terminare con un apostrofo e diverso dai nomi degli altri fogli non solo per maiuscole e minuscole\n- `columns`: le colonne del foglio, in ordine; una colonna per cui un record non ha un valore è una cella vuota, e gli altri campi di un record non vengono scritti nel foglio; senza `columns`, i campi del primo record scritto nel foglio sono le sue colonne\n- `when`: la condizione dei record scritti nel foglio, in DPQL con i campi del record, ad esempio `@kind == \"order\"`; un foglio senza condizione riceve ogni record\n- `column_headers`, `column_formats`, `column_masks` e `write_headers`: come le opzioni con lo stesso nome, per il foglio\n\n**Instradamento**: un record viene scritto nel primo foglio di cui soddisfa la condizione oppure, con `route` impostato su `all`, in ogni foglio a cui corrisponde; un record che non corrisponde ad alcun foglio genera `EXCEL-WRITE-ROUTE-ERROR`, a meno che `unmatched` sia `skip`.  Viene creato ogni foglio, anche uno senza record, che ha la sua riga di intestazione se le sue colonne sono indicate.  L'azione `write-data` restituisce il numero di record scritti in ogni foglio in `sheet_counts`.\n\n**Altre opzioni**: con questa opzione, le opzioni `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` e `write_headers` vengono invece indicate per ogni foglio; `format`, `streaming` e `timezone` si applicano alla cartella di lavoro.  Un foglio o una condizione non validi generano `EXCEL-WRITE-OPTION-ERROR` indicando il foglio"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "Fogli di un record"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "Se un record viene scritto nel primo foglio a cui corrisponde o in ognuno"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "I fogli dell'opzione `sheets` in cui viene scritto un record: `first` (il valore predefinito), il primo foglio di cui soddisfa la condizione, quindi un foglio senza condizione riceve ogni record che nessun foglio precedente riceve; oppure `all`, ogni foglio di cui soddisfa la condizione, quindi un record può essere scritto in più fogli, ad esempio in un foglio con tutti i record e in uno con i resi"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "Prima corrispondenza"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "Il primo foglio la cui condizione è soddisfatta dal record"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "Un record viene scritto nel primo foglio di cui soddisfa la condizione"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "Ogni corrispondenza"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "Ogni foglio la cui condizione è soddisfatta dal record"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "Un record viene scritto in ogni foglio di cui soddisfa la condizione"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "Record senza foglio"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "Se un record che non corrisponde ad alcun foglio fa fallire la scrittura o viene saltato"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `EXCEL-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "Cosa succede a un record che non soddisfa la condizione di alcun foglio dell'opzione `sheets`: `fail` (il valore predefinito) genera `EXCEL-WRITE-ROUTE-ERROR`, indicando il record e le condizioni dei fogli; `skip` non scrive il record in alcun foglio e non lo conta"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Fallire"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "La scrittura fallisce"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`",
+          "message": "Un record che non corrisponde ad alcun foglio genera `EXCEL-WRITE-ROUTE-ERROR`"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "Saltare"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "Il record non viene scritto"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "Un record che non corrisponde ad alcun foglio non viene né scritto né contato"
+        },
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.display_name": {
           "source": "Create Excel Spreadsheet Data",
           "message": "Crea dati foglio di calcolo Excel"
@@ -878,6 +962,90 @@
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.desc": {
           "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
           "message": "La regione del fuso orario (ad esempio `Europe/Prague` o `America/New_York`) nella cui ora locale vengono scritte le date, perché una cella contiene una data e un'ora senza fuso orario; se non è indicata, una data viene scritta nella propria ora locale"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "Fogli di lavoro"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "I fogli di lavoro da scrivere, ciascuno con la condizione dei suoi record"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in workbook order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required): up to 31 characters, none of them `: \\ / ? * [ ]`, not beginning or ending with an apostrophe, and different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` and `write_headers` options are given for each worksheet instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "I fogli di lavoro da scrivere, nell'ordine della cartella di lavoro, per scrivere i record in più fogli: ogni record viene scritto nel foglio di cui soddisfa la condizione.  Ogni foglio è un hash con queste chiavi:\n- `worksheet`: il nome del foglio (obbligatorio): fino a 31 caratteri, nessuno dei quali `: \\ / ? * [ ]`, senza iniziare o terminare con un apostrofo e diverso dai nomi degli altri fogli non solo per maiuscole e minuscole\n- `columns`: le colonne del foglio, in ordine; una colonna per cui un record non ha un valore è una cella vuota, e gli altri campi di un record non vengono scritti nel foglio; senza `columns`, i campi del primo record scritto nel foglio sono le sue colonne\n- `when`: la condizione dei record scritti nel foglio, in DPQL con i campi del record, ad esempio `@kind == \"order\"`; un foglio senza condizione riceve ogni record\n- `column_headers`, `column_formats`, `column_masks` e `write_headers`: come le opzioni con lo stesso nome, per il foglio\n\n**Instradamento**: un record viene scritto nel primo foglio di cui soddisfa la condizione oppure, con `route` impostato su `all`, in ogni foglio a cui corrisponde; un record che non corrisponde ad alcun foglio genera `EXCEL-WRITE-ROUTE-ERROR`, a meno che `unmatched` sia `skip`.  Viene creato ogni foglio, anche uno senza record, che ha la sua riga di intestazione se le sue colonne sono indicate.  L'azione `write-data` restituisce il numero di record scritti in ogni foglio in `sheet_counts`.\n\n**Altre opzioni**: con questa opzione, le opzioni `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks` e `write_headers` vengono invece indicate per ogni foglio; `format`, `streaming` e `timezone` si applicano alla cartella di lavoro.  Un foglio o una condizione non validi generano `EXCEL-WRITE-OPTION-ERROR` indicando il foglio"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "Fogli di un record"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "Se un record viene scritto nel primo foglio a cui corrisponde o in ognuno"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "I fogli dell'opzione `sheets` in cui viene scritto un record: `first` (il valore predefinito), il primo foglio di cui soddisfa la condizione, quindi un foglio senza condizione riceve ogni record che nessun foglio precedente riceve; oppure `all`, ogni foglio di cui soddisfa la condizione, quindi un record può essere scritto in più fogli, ad esempio in un foglio con tutti i record e in uno con i resi"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "Prima corrispondenza"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "Il primo foglio la cui condizione è soddisfatta dal record"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "Un record viene scritto nel primo foglio di cui soddisfa la condizione"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "Ogni corrispondenza"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "Ogni foglio la cui condizione è soddisfatta dal record"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "Un record viene scritto in ogni foglio di cui soddisfa la condizione"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "Record senza foglio"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "Se un record che non corrisponde ad alcun foglio fa fallire la scrittura o viene saltato"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `EXCEL-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "Cosa succede a un record che non soddisfa la condizione di alcun foglio dell'opzione `sheets`: `fail` (il valore predefinito) genera `EXCEL-WRITE-ROUTE-ERROR`, indicando il record e le condizioni dei fogli; `skip` non scrive il record in alcun foglio e non lo conta"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Fallire"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "La scrittura fallisce"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`",
+          "message": "Un record che non corrisponde ad alcun foglio genera `EXCEL-WRITE-ROUTE-ERROR`"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "Saltare"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "Il record non viene scritto"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "Un record che non corrisponde ad alcun foglio non viene né scritto né contato"
         }
       }
     }
