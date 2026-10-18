@@ -450,12 +450,15 @@ int BaseMethod::getParamTypes(Env& env, type_vec_t& paramTypeInfo, type_vec_t& a
 }
 
 const QoreTypeInfo* BaseMethod::getReturnTypeInfo(QoreJniClassMap& clsmap, QoreProgram* pgm) {
-    return clsmap.getQoreType(retValClass, pgm);
+    // the generic return type of the method gives the key type of a map
+    return clsmap.getQoreType(retValClass, pgm, false, QoreJniClassMap::JavaTypeUse::Value,
+        kind == Kind::Method ? (jobject)method : nullptr);
 }
 
 void BaseMethod::getSignature(QoreString& str) const {
     Env env;
-    LocalReference<jstring> sig = env.callObjectMethod(method, Globals::methodMethodToGenericString, nullptr).as<jstring>();
+    // Object.toString() is valid for both java.lang.reflect.Method and java.lang.reflect.Constructor
+    LocalReference<jstring> sig = env.callObjectMethod(method, Globals::methodObjectToString, nullptr).as<jstring>();
     Env::GetStringUtfChars msig(env, sig);
     str.concat(msig.c_str());
 }

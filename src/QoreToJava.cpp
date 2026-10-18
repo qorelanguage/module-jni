@@ -313,24 +313,50 @@ jobject QoreToJava::toObject(Env& env, const QoreValue& value, jclass cls, JniEx
     return javaObjectRef.release();
 }
 
+//! Throws an exception if a Java collection created for a parameter is not an instance of the parameter's class
+/** A list or a hash is converted to an object of the parameter's class when that class has a constructor without
+    arguments, otherwise to a java.util.ArrayList or org.qore.jni.Hash; the result must be an instance of the class, as
+    a JNI call does not check its arguments
+*/
+static void jni_check_collection_class(Env& env, jobject obj, jclass cls, const char* what) {
+    // no class: any object is accepted
+    if (!cls || env.isInstanceOf(obj, cls)) {
+        return;
+    }
+    LocalReference<jstring> clsName = env.callObjectMethod(cls, Globals::methodClassGetName, nullptr).as<jstring>();
+    Env::GetStringUtfChars cname(env, clsName);
+    QoreStringMaker desc("a Qore %s cannot be converted to Java class '%s', as the class has no public constructor "
+        "without arguments; pass an object of the class instead", what, cname.c_str());
+    throw BasicException(desc.c_str());
+}
+
 jobject QoreToJava::makeMap(const QoreHashNode& h, jclass cls, JniExternalProgramData* jpc) {
     Env env;
+    jclass target_cls = cls;
 
     // get constructor for class
     jmethodID ctor;
     jmethodID put;
-    try {
-        ctor = env.getMethod(cls, "<init>", "()V");
-        put = env.getMethod(cls, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
-    } catch (jni::Exception& e) {
-        e.ignore();
-        // try Hash
+    if (!cls) {
+        // no target class (ex: the return value of a Java interface method implemented in Qore): use Hash
         cls = Globals::classHash;
         ctor = Globals::ctorHash;
         put = Globals::methodHashPut;
+    } else {
+        try {
+            ctor = env.getMethod(cls, "<init>", "()V");
+            put = env.getMethod(cls, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+        } catch (jni::Exception& e) {
+            e.ignore();
+            // try Hash
+            cls = Globals::classHash;
+            ctor = Globals::ctorHash;
+            put = Globals::methodHashPut;
+        }
     }
 
     LocalReference<jobject> hm = env.newObject(cls, ctor, nullptr);
+    jni_check_collection_class(env, hm, target_cls, "hash");
 
     ConstHashIterator i(h);
     while (i.next()) {
@@ -350,6 +376,7 @@ jobject QoreToJava::makeMap(const QoreHashNode& h, jclass cls, JniExternalProgra
 
 jobject QoreToJava::makeList(const QoreListNode& l, jclass cls, JniExternalProgramData* jpc) {
     Env env;
+    jclass target_cls = cls;
 
     // get constructor for class
     jmethodID ctor;
@@ -366,6 +393,7 @@ jobject QoreToJava::makeList(const QoreListNode& l, jclass cls, JniExternalProgr
     }
 
     LocalReference<jobject> al = env.newObject(cls, ctor, nullptr);
+    jni_check_collection_class(env, al, target_cls, "list");
 
     ConstListIterator i(l);
     while (i.next()) {

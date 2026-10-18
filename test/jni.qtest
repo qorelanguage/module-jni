@@ -2536,16 +2536,16 @@ string sub javaName() {
     }
 
     #! a Java container field holds either the converted Qore container or the Java object, so it declares both
-    /** a map is converted to a hash only when all its keys are strings and compatibility types are not in effect
+    /** a map is converted to a hash only when all its keys are strings and compatibility types are not in effect; a
+        map whose key type is not String is a hash or a Java object depending on its keys, so it is declared as auto
     */
     testContainerFieldTypes() {
         # the Java class must be loaded into this Program before its Qore class can be found
         load_class("org/qore/jni/test/StaticFields");
         Reflection::Class cls = Reflection::Class::forName("Jni::org::qore::jni::test::StaticFields");
-        foreach string name in (("stringKeyMap", "otherKeyMap")) {
-            string type_name = cls.getStaticMember(name).getType().getName();
-            assertEq("union<*hash<auto>, *object<Map>>", type_name, name + " declared type");
-        }
+        assertEq("union<*hash<auto>, *object<Map>>", cls.getStaticMember("stringKeyMap").getType().getName(),
+            "stringKeyMap declared type");
+        assertEq("auto", cls.getStaticMember("otherKeyMap").getType().getName(), "otherKeyMap declared type");
         # both forms the conversion can produce are accepted by the declared type
         hash<string, bool> accepted = cls.getStaticMember("stringKeyMap").getType().getAcceptTypeHash(True);
         assertTrue(accepted{"hash"} ?? False, "the converted hash is accepted");

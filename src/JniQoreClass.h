@@ -46,7 +46,8 @@ public:
         setRelaxedAbstractMatch();
     }
 
-    DLLLOCAL JniQoreClass(const JniQoreClass& old) : QoreBuiltinClass(old), jname(old.jname) {
+    DLLLOCAL JniQoreClass(const JniQoreClass& old) : QoreBuiltinClass(old), jname(old.jname),
+            bin_name(old.bin_name) {
     }
 
     DLLLOCAL virtual ~JniQoreClass() {
@@ -55,6 +56,7 @@ public:
     DLLLOCAL virtual QoreClass* copyImport() {
         JniQoreClass* rv = new JniQoreClass;
         rv->jname = jname;
+        rv->bin_name = bin_name;
         rv->setPublicMemberFlag();
         rv->setGateAccessFlag();
         rv->setLanguage("Java");
@@ -70,12 +72,31 @@ public:
         return jname;
     }
 
+    //! Returns the binary name of the Java class (ex: "java.util.Map$Entry"), or an empty string if not known
+    /** Unlike getJavaName(), the name of a nested class has its '$' separator
+    */
+    DLLLOCAL const std::string& getJavaBinaryName() const {
+        return bin_name;
+    }
+
+    //! Sets the binary name of the Java class from its internal name (ex: "java/util/Map$Entry")
+    DLLLOCAL void setJavaInternalName(const char* jpath) {
+        bin_name = jpath;
+        for (char& c : bin_name) {
+            if (c == '/') {
+                c = '.';
+            }
+        }
+    }
+
     static QoreValue memberGate(const QoreMethod& meth, void* m, QoreObject* self, QoreJniPrivateData* jd,
         const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 
 private:
-    // java dot name for the class; ex: "java.lang.Object"
+    // java dot name for the class; ex: "java.lang.Object"; a nested class has "__" instead of '$'
     std::string jname;
+    // the binary name of the Java class; ex: "java.util.Map$Entry"
+    std::string bin_name;
 
     static type_vec_t paramTypeInfo;
 

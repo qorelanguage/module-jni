@@ -1,0 +1,246 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+%modern
+
+%requires QUnit
+%requires reflection
+%requires jni
+%module-cmd(jni) add-relative-classpath qore-jni-test.jar
+%module-cmd(jni) import org.qore.jni.test.CollectionTypes
+%module-cmd(jni) import org.qore.jni.test.CollectionTypes$FixedList
+%module-cmd(jni) import org.qore.jni.test.CollectionTypes$Source
+%module-cmd(jni) import java.util.ArrayList
+%module-cmd(jni) import java.util.HashMap
+%module-cmd(jni) import java.util.LinkedList
+%module-cmd(jni) import java.util.Properties
+%module-cmd(jni) import java.util.TreeMap
+%module-cmd(jni) import java.lang.Integer
+%module-cmd(jni) import java.lang.reflect.Method
+%module-cmd(jni) import java.util.Optional
+%module-cmd(jni) import java.util.OptionalLong
+%module-cmd(jni) import java.util.function.LongSupplier
+%module-cmd(jni) import java.util.function.Supplier
+
+%exec-class JniCollectionTypesTest
+
+#! A Qore class implementing Java interface methods that return a list, maps, and an int; Java calls them
+class QoreSource inherits CollectionTypes__Source {
+    *list<auto> getList() {
+        return ("q1", "q2");
+    }
+
+    *hash<auto> getStringMap() {
+        return {"q": 1};
+    }
+
+    auto getIntegerMap() {
+        return NOTHING;
+    }
+
+    int getCount() {
+        return 3;
+    }
+}
+
+#! A Qore class implementing a Java interface of the JDK
+class QoreLongSupplier inherits LongSupplier {
+    int getAsLong() {
+        return 42;
+    }
+}
+
+#! Tests the declared Qore types of Java lists and maps and the Java methods called for Qore lists and hashes
+/** Every Java list is converted to a Qore list, so a list is declared as a list; a Java map is converted to a hash
+    when all its keys are strings, so a map value is declared as a hash only when its key type is String, and as
+    auto otherwise
+*/
+class JniCollectionTypesTest inherits QUnit::Test {
+    constructor() : QUnit::Test("JNI collection types", "1.0") {
+        addTestCase("declared types of return values", \returnTypes());
+        addTestCase("declared types of fields", \fieldTypes());
+        addTestCase("declared types of parameters", \paramTypes());
+        addTestCase("return values", \returnValues());
+        addTestCase("field values", \fieldValues());
+        addTestCase("Qore values as list and map arguments", \arguments());
+        addTestCase("overloaded methods", \overloads());
+        addTestCase("a Qore class implementing Java methods", \qoreOverride());
+        addTestCase("a Qore class implementing a JDK interface", \qoreJdkInterface());
+        addTestCase("a Qore callback returning a list or hash to Java", \callbackValues());
+        set_return_value(main());
+    }
+
+    #! Returns the type names of the variants of a static method of the test class
+    private static list<string> getVariantTypes(string name, bool params = False) {
+        Class cls = Class::forName("::Jni::org::qore::jni::test::CollectionTypes");
+        list<string> rv = ();
+        foreach AbstractMethodVariant v in (cls.getMethod(name).getVariants()) {
+            push rv, params
+                ? (foldl $1 + ", " + $2, (map $1.getName(), v.getParamTypes())) ?? ""
+                : v.getReturnType().getName();
+        }
+        return sort(rv);
+    }
+
+    #! Returns the declared type of a return value
+    private static string getReturnType(string name) {
+        list<string> types = JniCollectionTypesTest::getVariantTypes(name);
+        return types[0];
+    }
+
+    returnTypes() {
+        # every Java list is a Qore list
+        foreach string m in ("arrayList", "linkedList", "list", "stringList", "fixedList") {
+            assertEq("*list<auto>", getReturnType(m), m);
+        }
+        # a map whose key type is String is a hash
+        foreach string m in ("stringTreeMap", "concurrentMap", "wildcardMap", "boundedKeyMap", "stringMap",
+                "keyedStringMap") {
+            assertEq("*hash<auto>", getReturnType(m), m);
+        }
+        # any other map is a hash or a Java object, as its keys are
+        foreach string m in ("integerTreeMap", "emptyIntegerTreeMap", "properties", "rawHashMap", "objectKeyMap",
+                "genericKeyMap", "keyedIntegerMap") {
+            assertEq("auto", getReturnType(m), m);
+        }
+        # a class that lists implement is a list or a Java object, as the value is
+        assertEq("auto", getReturnType("collection"));
+    }
+
+    fieldTypes() {
+        Class cls = Class::forName("::Jni::org::qore::jni::test::CollectionTypes");
+        hash<string, string> types = map {$1.getName(): $1.getType().getName()}, cls.getMembers();
+        # a field also accepts the Java object it holds
+        assertEq("union<*list<auto>, *object<ArrayList>>", types.list);
+        assertEq("union<*hash<auto>, *object<TreeMap>>", types.stringKeyed);
+        assertEq("auto", types.integerKeyed);
+        assertEq("union<*list<auto>, *object<ArrayList>>", types.staticList);
+        assertEq("union<*hash<auto>, *object<TreeMap>>", types.staticStringMap);
+        assertEq("auto", types.staticIntegerMap);
+    }
+
+    paramTypes() {
+        # a list or map parameter takes a Qore list or hash, or the Java object
+        assertEq(("*list<auto>", "*object<ArrayList>"), getVariantTypes("describeArrayList", True));
+        assertEq(("*list<auto>", "*object<LinkedList>"), getVariantTypes("describeLinkedList", True));
+        assertEq(("*list<auto>", "*object<CollectionTypes__StringList>"), getVariantTypes("describeStringList", True));
+        assertEq(("*hash<auto>", "*object<TreeMap>"), getVariantTypes("describeTreeMap", True));
+        assertEq(("*hash<auto>", "*object<Properties>"), getVariantTypes("describeProperties", True));
+        assertEq(("*hash<auto>", "*object<CollectionTypes__StringMap>"), getVariantTypes("describeStringMap", True));
+    }
+
+    returnValues() {
+        list<auto> l = CollectionTypes::arrayList();
+        assertEq(("a", "b"), l);
+        assertEq((1, 2, 3), CollectionTypes::linkedList());
+        assertEq(("x",), CollectionTypes::list());
+        assertEq(("s",), CollectionTypes::stringList());
+        assertEq(("f1", "f2"), CollectionTypes::fixedList());
+        assertEq(("c",), CollectionTypes::collection());
+
+        hash<auto> h = CollectionTypes::stringTreeMap();
+        assertEq({"one": 1, "two": 2}, h);
+        assertEq({"k": "v"}, CollectionTypes::concurrentMap());
+        assertEq({"one": 1, "two": 2}, CollectionTypes::wildcardMap());
+        assertEq({"sm": 1}, CollectionTypes::stringMap());
+        assertEq({"ks": "v"}, CollectionTypes::keyedStringMap());
+
+        # a map with keys that are not strings is a Java object, one with string keys a hash
+        auto v = CollectionTypes::integerTreeMap();
+        assertEq("object<TreeMap>", v.fullType());
+        assertEq("one", v.get(new Integer(1)));
+        assertEq("object<HashMap>", CollectionTypes::objectKeyMap().fullType());
+        assertEq("object<CollectionTypes__KeyedMap>", CollectionTypes::keyedIntegerMap().fullType());
+        assertEq({}, CollectionTypes::emptyIntegerTreeMap());
+        assertEq({"p": "v"}, CollectionTypes::properties());
+        assertEq({"raw": "v"}, CollectionTypes::rawHashMap());
+        assertEq({"k": "v"}, CollectionTypes::genericKeyMap("k"));
+        assertEq("object<HashMap>", CollectionTypes::genericKeyMap(1).fullType());
+
+        # an auto value is checked when it is assigned
+        assertThrows("RUNTIME-TYPE-ERROR", sub () { *hash<auto> h0 = CollectionTypes::integerTreeMap(); });
+    }
+
+    fieldValues() {
+        CollectionTypes c();
+        assertEq(("a", "b"), c.list);
+        assertEq({"one": 1, "two": 2}, c.stringKeyed);
+        assertEq("object<TreeMap>", c.integerKeyed.fullType());
+        assertEq(("a", "b"), CollectionTypes::staticList);
+        assertEq({"one": 1, "two": 2}, CollectionTypes::staticStringMap);
+        assertEq("object<TreeMap>", CollectionTypes::staticIntegerMap.fullType());
+
+        # a field takes a Qore value or the Java object
+        c.list = ("n",);
+        assertEq(("n",), c.list);
+        c.stringKeyed = {"z": 26, "a": 1};
+        assertEq({"a": 1, "z": 26}, c.stringKeyed);
+        java::util::TreeMap tm();
+        tm.put(new Integer(5), "five");
+        c.integerKeyed = tm;
+        assertEq("five", c.integerKeyed.get(new Integer(5)));
+    }
+
+    arguments() {
+        # a Qore list or hash is converted to the class of the parameter
+        assertEq("ArrayList[x, y]", CollectionTypes::describeArrayList(("x", "y")));
+        assertEq("LinkedList[1, 2]", CollectionTypes::describeLinkedList((1, 2)));
+        assertEq("StringList[x]", CollectionTypes::describeStringList(("x",)));
+        assertEq("TreeMap{a=2, b=1}", CollectionTypes::describeTreeMap({"b": 1, "a": 2}));
+        assertEq("Properties{k=v}", CollectionTypes::describeProperties({"k": "v"}));
+        assertEq("ConcurrentHashMap{k=v}", CollectionTypes::describeConcurrentMap({"k": "v"}));
+        assertEq("StringMap{x=1}", CollectionTypes::describeStringMap({"x": 1}));
+        assertEq("null", CollectionTypes::describeArrayList());
+
+        # the Java object is passed as it is
+        LinkedList ll();
+        ll.add("j");
+        assertEq("LinkedList[j]", CollectionTypes::describeLinkedList(ll));
+        assertEq("FixedList[p, q]", CollectionTypes::describeFixedList(new CollectionTypes__FixedList(("p", "q"))));
+
+        # a class without a constructor without arguments cannot be created for a Qore list
+        assertThrows("JNI-ERROR", "cannot be converted to Java class.*FixedList.*no public constructor",
+            \CollectionTypes::describeFixedList(), (("x",),));
+    }
+
+    overloads() {
+        # the method called for a Qore list or hash is the one Java calls for the object that it is converted to by
+        # default: a list to an ArrayList, a hash to an org.qore.jni.Hash, a LinkedHashMap
+        assertEq("ArrayList", CollectionTypes::overloadA((1, 2)));
+        assertEq("ArrayList", CollectionTypes::overloadB((1, 2)));
+        assertEq("Map", CollectionTypes::overloadD({"a": 1}));
+        # a Java object is passed to the method of its class, or of the nearest superclass or interface
+        assertEq("List", CollectionTypes::overloadA(new LinkedList()));
+        assertEq("ArrayList", CollectionTypes::overloadA(new ArrayList()));
+        assertEq("LinkedList", CollectionTypes::overloadB(new LinkedList()));
+        assertEq("TreeMap", CollectionTypes::overloadD(new java::util::TreeMap()));
+        assertEq("Map", CollectionTypes::overloadD(new HashMap()));
+        # a list is passed as an array rather than a Java list when both are possible, as before Java list
+        # parameters took Qore lists
+        assertEq("Object[]", CollectionTypes::overloadC((1, 2)));
+        assertEq("CollectionTypes[]", CollectionTypes::overloadE(()));
+        assertEq("ArrayList", CollectionTypes::overloadC(new ArrayList()));
+    }
+
+    qoreOverride() {
+        # Java calls the Qore methods, whose return values are converted to the declared Java classes
+        assertEq("ArrayList[q1, q2]|TreeMap{q=1}|null|3", CollectionTypes::describeSource(new QoreSource()));
+    }
+
+    #! The generated Java class for a Qore class implementing a Java interface extends the Qore base class and
+    #! implements the interface itself, not a class generated from the interface's Qore class
+    qoreJdkInterface() {
+        assertEq(42, OptionalLong::empty().orElseGet(new QoreLongSupplier()));
+    }
+
+    #! A value returned by a Qore callback through a Java interface has no declared Java class
+    callbackValues() {
+        object s = cast<Supplier>(implement_interface(new QoreInvocationHandler(
+            auto sub (Method m, *list<auto> args) { return {"a": 1}; }), Jni::java::lang::Class::forName("java.util.function.Supplier")));
+        assertEq({"a": 1}, Optional::empty().orElseGet(s));
+        s = cast<Supplier>(implement_interface(new QoreInvocationHandler(
+            auto sub (Method m, *list<auto> args) { return ("x", "y"); }), Jni::java::lang::Class::forName("java.util.function.Supplier")));
+        assertEq(("x", "y"), Optional::empty().orElseGet(s));
+    }
+}

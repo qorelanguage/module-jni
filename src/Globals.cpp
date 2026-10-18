@@ -153,6 +153,10 @@ jmethodID Globals::methodQoreInvocationHandlerDestroy;
 
 GlobalReference<jclass> Globals::classQoreJavaApi;
 jmethodID Globals::methodQoreJavaApiGetStackTrace;
+GlobalReference<jclass> Globals::classJavaCollectionTypes;
+jmethodID Globals::methodJavaCollectionTypesIsStringKeyMap;
+jmethodID Globals::methodJavaCollectionTypesMayBeListOrMap;
+jmethodID Globals::methodJavaCollectionTypesGetDepth;
 
 GlobalReference<jclass> Globals::classQoreExceptionWrapper;
 jmethodID Globals::ctorQoreExceptionWrapper;
@@ -225,6 +229,8 @@ jmethodID Globals::methodJavaClassBuilderGetTypeDescriptionGenericStr;
 jmethodID Globals::methodJavaClassBuilderGetTypeVariable;
 jmethodID Globals::methodJavaClassBuilderGetParameterizedType;
 jmethodID Globals::methodJavaClassBuilderFindBaseClassMethodConflict;
+jmethodID Globals::methodJavaClassBuilderGetOverridableMethods;
+jmethodID Globals::methodJavaClassBuilderAddOverridingMethod;
 jmethodID Globals::methodJavaClassBuilderIsFinalBaseClassMethod;
 
 GlobalReference<jclass> Globals::classKotlinMetadataHelper;
@@ -2399,6 +2405,7 @@ static GlobalReference<jclass> getPrimitiveClass(Env& env, const char* wrapperNa
 #include "JavaClassStaticEntry.inc"
 #include "JavaClassQoreClassFileLocator.inc"
 #include "JavaClassQoreJavaApi.inc"
+#include "JavaClassJavaCollectionTypes.inc"
 #include "JavaClassQoreRelativeTime.inc"
 #include "JavaClassJdbcColumnarBatch.inc"
 #include "JavaClassQoreJavaDynamicApi.inc"
@@ -2470,6 +2477,8 @@ static ucmap_t ucmap = {
     {"org.qore.jni.NativeCleanup", {java_org_qore_jni_NativeCleanup_class_len, java_org_qore_jni_NativeCleanup_class}},
     {"org.qore.jni.NativeCleanup$Ref", {java_org_qore_jni_NativeCleanup_Ref_class_len, java_org_qore_jni_NativeCleanup_Ref_class}},
     {"org.qore.jni.QoreJavaApi", {java_org_qore_jni_QoreJavaApi_class_len, java_org_qore_jni_QoreJavaApi_class}},
+    {"org.qore.jni.JavaCollectionTypes", {java_org_qore_jni_JavaCollectionTypes_class_len,
+        java_org_qore_jni_JavaCollectionTypes_class}},
     {"org.qore.jni.QoreJavaClassBase", {java_org_qore_jni_QoreJavaClassBase_class_len, java_org_qore_jni_QoreJavaClassBase_class}},
     {"org.qore.jni.QoreJavaDynamicApi", {java_org_qore_jni_QoreJavaDynamicApi_class_len, java_org_qore_jni_QoreJavaDynamicApi_class}},
     {"org.qore.jni.QoreJavaDynamicApi$AccessibleMethods", {java_org_qore_jni_QoreJavaDynamicApi_AccessibleMethods_class_len, java_org_qore_jni_QoreJavaDynamicApi_AccessibleMethods_class}},
@@ -3496,6 +3505,15 @@ bool Globals::init() {
     methodQoreJavaApiGetStackTrace = env.getStaticMethod(classQoreJavaApi, "getStackTrace",
         "()[Ljava/lang/StackTraceElement;");
 
+    classJavaCollectionTypes = findDefineClass(env, "org.qore.jni.JavaCollectionTypes", nullptr,
+        java_org_qore_jni_JavaCollectionTypes_class, java_org_qore_jni_JavaCollectionTypes_class_len).makeGlobal();
+    methodJavaCollectionTypesIsStringKeyMap = env.getStaticMethod(classJavaCollectionTypes, "isStringKeyMap",
+        "(Ljava/lang/Object;)Z");
+    methodJavaCollectionTypesMayBeListOrMap = env.getStaticMethod(classJavaCollectionTypes, "mayBeListOrMap",
+        "(Ljava/lang/Class;)Z");
+    methodJavaCollectionTypesGetDepth = env.getStaticMethod(classJavaCollectionTypes, "getDepth",
+        "(Ljava/lang/reflect/Executable;)I");
+
     classProxy = env.findClass("java/lang/reflect/Proxy").makeGlobal();
     methodProxyNewProxyInstance = env.getStaticMethod(classProxy, "newProxyInstance",
         "(Ljava/lang/ClassLoader;[Ljava/lang/Class;Ljava/lang/reflect/InvocationHandler;)Ljava/lang/Object;");
@@ -3923,6 +3941,11 @@ bool Globals::init() {
         "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JJI" \
         "Lnet/bytebuddy/description/type/TypeDefinition;Ljava/util/List;ZZ)" \
         "Lnet/bytebuddy/dynamic/DynamicType$Builder;");
+    methodJavaClassBuilderGetOverridableMethods = env.getStaticMethod(classJavaClassBuilder, "getOverridableMethods",
+        "(Ljava/lang/Class;Ljava/lang/String;I)[Ljava/lang/reflect/Method;");
+    methodJavaClassBuilderAddOverridingMethod = env.getStaticMethod(classJavaClassBuilder, "addOverridingMethod",
+        "(Lnet/bytebuddy/dynamic/DynamicType$Builder;JJILjava/lang/reflect/Method;)" \
+        "Lnet/bytebuddy/dynamic/DynamicType$Builder;");
     methodJavaClassBuilderAddStaticMethod = env.getStaticMethod(classJavaClassBuilder, "addStaticMethod",
         "(Lnet/bytebuddy/dynamic/DynamicType$Builder;Ljava/lang/String;JJJI" \
         "Lnet/bytebuddy/description/type/TypeDefinition;Ljava/util/List;Z)" \
@@ -4322,6 +4345,7 @@ void Globals::cleanup() {
     classQoreClosureMarker = nullptr;
     classQoreClosureMarkerImpl = nullptr;
     classQoreJavaApi = nullptr;
+    classJavaCollectionTypes = nullptr;
     classProxy = nullptr;
     classClassLoader = nullptr;
     classQoreURLClassLoader = nullptr;

@@ -25,7 +25,10 @@
 
 #include <string.h>
 
+#include <functional>
 #include <memory>
+#include <tuple>
+#include <algorithm>
 #include <set>
 #include <atomic>
 #include <stdexcept>
@@ -123,12 +126,7 @@ QoreJniClassMap::jtmap_t QoreJniClassMap::jtmap = {
     {"java.time.ZonedDateTime", dateOrNothingTypeInfo},
     {"org.qore.jni.QoreRelativeTime", dateOrNothingTypeInfo},
     {"java.math.BigDecimal", numberOrNothingTypeInfo},
-    {"java.util.Map", autoHashOrNothingTypeInfo},
-    {"java.util.AbstractMap", autoHashOrNothingTypeInfo},
-    {"java.util.HashMap", autoHashOrNothingTypeInfo},
-    {"java.util.LinkedHashMap", autoHashOrNothingTypeInfo},
-    {"org.qore.jni.Hash", autoHashOrNothingTypeInfo},
-    {"java.util.List", autoListOrNothingTypeInfo},
+    // Java lists and maps are not mapped here; see jni_get_collection_type()
     {"org.qore.jni.QoreObject", objectOrNothingTypeInfo},
     {"org.qore.jni.QoreClosureMarker", codeOrNothingTypeInfo},
     {"org.qore.jni.QoreClosure", codeOrNothingTypeInfo},
@@ -326,6 +324,7 @@ void QoreJniClassMap::initIntern(QoreProgram* pgm) {
     QoreNamespace* ns = jni_find_create_namespace(*default_jns, "java.lang.Object", sn);
 
     QC_OBJECT = new JniQoreClass(pgm, "Object", "Jni::java::lang::Object", "java.lang.Object");
+    QC_OBJECT->setJavaInternalName("java/lang/Object");
     CID_OBJECT = QC_OBJECT->getID();
     createClassInNamespace(ns, *default_jns, "java/lang/Object",
         Functions::loadClass(env, "java/lang/Object"), QC_OBJECT, *this, pgm);
@@ -708,6 +707,7 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInProgram(QoreString& name, co
     path.replaceAll(".", "::");
     path.insert("::Jni::", 0);
     qc = new JniQoreClass(pgm, sn, path.c_str(), name.c_str());
+    qc->setJavaInternalName(jpath);
     assert(qc->isSystem());
     // use the return value: createClassInNamespace() may delete qc and return a pre-existing class
     // on a name collision — using the freed qc afterwards would be a use-after-free
@@ -880,6 +880,7 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClassInBase(Env& env, QoreString& n
             path.replaceAll(".", "::");
             path.insert("::Jni::", 0);
             qc = new JniQoreClass(pgm, sn, path.c_str(), name.c_str());
+            qc->setJavaInternalName(jpath);
             assert(qc->isSystem());
         }
     }
@@ -1370,57 +1371,265 @@ void QoreJniClassMap::populateQoreClass(JniQoreClass& qc, jni::Class* jc, QorePr
     doFields(qc, jc, pgm);
 }
 
+namespace {
+//! A Java method or constructor whose variants are added to a %Qore class
+struct JniMethodEntry {
+    //! the method, until the Java class tracks it when a variant of it is added
+    SimpleRefHolder<BaseMethod> holder;
+    //! the method
+    BaseMethod* meth;
+    //! the name of the %Qore method
+    std::string name;
+    //! the %Qore parameter types of the variant converting %Qore values, and of the variant taking Java objects
+    type_vec_t params, alt_params;
+    //! the %Qore return type
+    const QoreTypeInfo* return_type = nullptr;
+    //! the Java signature, for a deterministic choice between methods with the same %Qore signature
+    std::string signature;
+    //! the depth of the Java parameter classes in the type hierarchy, for overloaded methods; see getDepth()
+    int depth = 0;
+
+    DLLLOCAL JniMethodEntry(BaseMethod* meth) : holder(meth), meth(meth) {
+    }
+
+    //! Called when a variant of the method is added to the class: the Java class keeps the method
+    DLLLOCAL void setUsed(jni::Class* jc) {
+        if (*holder) {
+            jc->trackMethod(holder.release());
+        }
+    }
+};
+
+//! A variant to add for a Java method or constructor
+struct JniVariant {
+    JniMethodEntry* entry;
+    //! true for the variant taking Java objects for list and map parameters
+    bool alt;
+
+    DLLLOCAL const type_vec_t& getParams() const {
+        return alt ? entry->alt_params : entry->params;
+    }
+};
+}
+
+//! Returns true if every Java parameter class of \a a is the class, or a subclass, of the parameter of \a b
+static bool jni_is_more_specific(Env& env, const BaseMethod& a, const BaseMethod& b) {
+    const auto& ap = a.getParamClasses();
+    const auto& bp = b.getParamClasses();
+    if (ap.size() != bp.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < ap.size(); ++i) {
+        jvalue jarg;
+        jarg.l = ap[i].second;
+        if (!env.callBooleanMethod(bp[i].second, Globals::methodClassIsAssignableFrom, &jarg)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+//! Returns true if the Java parameter classes of a variant take the Java objects that %Qore lists and hashes are
+//! converted to by default: java.util.ArrayList and org.qore.jni.Hash
+static bool jni_takes_default_conversions(Env& env, const JniVariant& v) {
+    const type_vec_t& params = v.getParams();
+    const auto& classes = v.entry->meth->getParamClasses();
+    for (size_t i = 0; i < params.size() && i < classes.size(); ++i) {
+        jclass target;
+        if (params[i] == autoListTypeInfo || params[i] == autoListOrNothingTypeInfo) {
+            target = Globals::classArrayList;
+        } else if (params[i] == autoHashTypeInfo || params[i] == autoHashOrNothingTypeInfo) {
+            target = Globals::classHash;
+        } else {
+            continue;
+        }
+        jvalue jarg;
+        jarg.l = target;
+        if (!env.callBooleanMethod(classes[i].second, Globals::methodClassIsAssignableFrom, &jarg)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+//! Chooses the Java method or constructor called for a %Qore signature that several of them have
+/** Java methods with different Java parameter types can have the same %Qore signature, as every Java list
+    parameter is a %Qore list and every Java map parameter a %Qore hash (ex: \c f(List) and \c f(ArrayList)).  The
+    method called for a %Qore value is the one Java would call for the Java object that the value is converted to by
+    default (a list to a \c java.util.ArrayList, a hash to an \c org.qore.jni.Hash, which is a
+    \c java.util.LinkedHashMap):
+    - a method that is not a bridge method is preferred
+    - then a method whose parameters take those objects (ex: \c f(ArrayList) rather than \c f(LinkedList), and
+      \c f(Map) rather than \c f(TreeMap))
+    - then the most specific of them, as in Java (ex: \c f(ArrayList) rather than \c f(List))
+    - then, if no method is more specific than the others, the first by Java signature
+
+    @return the index of the chosen variant in \a group
+*/
+static size_t jni_choose_variant(Env& env, const std::vector<JniVariant>& group) {
+    std::vector<size_t> pool;
+    for (size_t i = 0; i < group.size(); ++i) {
+        pool.push_back(i);
+    }
+    auto filter = [&pool](std::function<bool(size_t)> pred) {
+        std::vector<size_t> rv;
+        for (size_t i : pool) {
+            if (pred(i)) {
+                rv.push_back(i);
+            }
+        }
+        if (!rv.empty()) {
+            pool.swap(rv);
+        }
+    };
+    if (pool.size() > 1) {
+        filter([&group](size_t i) { return !group[i].entry->meth->isBridge(); });
+    }
+    if (pool.size() > 1) {
+        filter([&env, &group](size_t i) { return jni_takes_default_conversions(env, group[i]); });
+    }
+    if (pool.size() > 1) {
+        for (size_t i : pool) {
+            bool most_specific = true;
+            for (size_t j : pool) {
+                if (i != j && !jni_is_more_specific(env, *group[i].entry->meth, *group[j].entry->meth)) {
+                    most_specific = false;
+                    break;
+                }
+            }
+            if (most_specific) {
+                return i;
+            }
+        }
+    }
+    size_t rv = pool[0];
+    for (size_t i : pool) {
+        if (group[i].entry->signature < group[rv].entry->signature) {
+            rv = i;
+        }
+    }
+    return rv;
+}
+
+//! Returns the number of parameters taking a %Qore list for a Java list
+static size_t jni_count_list_params(const type_vec_t& params) {
+    size_t rv = 0;
+    for (const QoreTypeInfo* ti : params) {
+        if (ti == autoListTypeInfo || ti == autoListOrNothingTypeInfo) {
+            ++rv;
+        }
+    }
+    return rv;
+}
+
+//! Returns the variants to add for Java methods or constructors: for each %Qore name and signature, the variant of
+//! the Java method chosen by jni_choose_variant(), in the order in which they are added (see below)
+/** @param env the JNI environment
+    @param entries the methods or constructors
+    @param is_static for each entry: true if it is a static method (static methods and normal methods with the same
+    name are added separately)
+    @param has_alt for each entry: true if its variant taking Java objects for list and map parameters is added
+*/
+static std::vector<JniVariant> jni_get_variants(Env& env, std::vector<std::unique_ptr<JniMethodEntry>>& entries,
+        std::function<bool(const JniMethodEntry&)> is_static, std::function<bool(const JniMethodEntry&)> has_alt) {
+    // the depth of the parameter classes of overloaded methods, so that a Java object argument is passed to the
+    // method of its class rather than of a superclass or interface when both variants match it
+    std::map<std::string, size_t> name_count;
+    for (auto& e : entries) {
+        ++name_count[e->name];
+    }
+    for (auto& e : entries) {
+        if (name_count[e->name] > 1) {
+            jvalue jarg;
+            jarg.l = e->meth->getJavaObject();
+            e->depth = env.callStaticIntMethod(Globals::classJavaCollectionTypes,
+                Globals::methodJavaCollectionTypesGetDepth, &jarg);
+        }
+    }
+
+    // the variants for each name and signature, in the order of the methods
+    typedef std::tuple<std::string, bool, type_vec_t> key_t;
+    std::map<key_t, std::vector<JniVariant>> groups;
+    for (auto& e : entries) {
+        groups[key_t(e->name, is_static(*e), e->params)].push_back(JniVariant{e.get(), false});
+        if (!e->alt_params.empty() && has_alt(*e)) {
+            groups[key_t(e->name, is_static(*e), e->alt_params)].push_back(JniVariant{e.get(), true});
+        }
+    }
+    std::vector<JniVariant> rv;
+    for (auto& i : groups) {
+        rv.push_back(i.second.size() == 1 ? i.second[0] : i.second[jni_choose_variant(env, i.second)]);
+    }
+    // the variants are added in an order that does not depend on the addresses of their types; when variants match
+    // an argument equally, the first one added is called, so:
+    // - a variant converting a list to a Java array is added before a variant converting it to a Java list: a list
+    //   argument is passed as an array, as before Java list parameters took Qore lists (ex: f(Object[]) rather than
+    //   f(ArrayList))
+    // - a variant whose Java parameter classes are subclasses of those of another variant is added before it: a Java
+    //   object is passed to the method of its class, as in Java (ex: f(TreeMap) rather than f(Map))
+    std::stable_sort(rv.begin(), rv.end(), [](const JniVariant& a, const JniVariant& b) {
+        if (a.entry->name != b.entry->name) {
+            return a.entry->name < b.entry->name;
+        }
+        size_t al = jni_count_list_params(a.getParams());
+        size_t bl = jni_count_list_params(b.getParams());
+        if (al != bl) {
+            return al < bl;
+        }
+        // a variant whose parameters are subclasses of another's is added first
+        if (a.entry->depth != b.entry->depth) {
+            return a.entry->depth > b.entry->depth;
+        }
+        if (a.entry->signature != b.entry->signature) {
+            return a.entry->signature < b.entry->signature;
+        }
+        return !a.alt && b.alt;
+    });
+    return rv;
+}
+
 void QoreJniClassMap::doConstructors(JniQoreClass& qc, jni::Class* jc, QoreProgram* pgm) {
     Env env;
 
     // get constructor methods
     LocalReference<jobjectArray> conArray = jc->getDeclaredConstructors();
 
+    std::vector<std::unique_ptr<JniMethodEntry>> entries;
     for (jsize i = 0, e = env.getArrayLength(conArray); i < e; ++i) {
         // get Constructor object
         LocalReference<jobject> c = env.getObjectArrayElement(conArray, i);
 
-        SimpleRefHolder<BaseMethod> meth(new BaseMethod(env, c, jc, BaseMethod::Kind::Constructor));
-
-#ifdef DEBUG
-        LocalReference<jstring> conStr = env.callObjectMethod(c,
-            Globals::methodConstructorToString, nullptr).as<jstring>();
-        Env::GetStringUtfChars chars(env, conStr);
-        QoreString mstr(chars.c_str());
-#endif
+        std::unique_ptr<JniMethodEntry> entry(new JniMethodEntry(new BaseMethod(env, c, jc,
+            BaseMethod::Kind::Constructor)));
+        BaseMethod* meth = entry->meth;
 
         // get method's parameter types
-        type_vec_t paramTypeInfo;
-        type_vec_t altParamTypeInfo;
-        if (meth->getParamTypes(env, paramTypeInfo, altParamTypeInfo, *this, pgm)) {
-            printd(LogLevel, "+ skipping %s.constructor() (%s); unsupported parameter type for variant %d\n",
-                qc.getName(), mstr.c_str(), i + 1);
+        if (meth->getParamTypes(env, entry->params, entry->alt_params, *this, pgm)) {
+            printd(LogLevel, "+ skipping %s.constructor(); unsupported parameter type for variant %d\n",
+                qc.getName(), i + 1);
             continue;
         }
+        entry->name = "constructor";
+        QoreString sig;
+        meth->getSignature(sig);
+        entry->signature = sig.c_str();
+        entries.push_back(std::move(entry));
+    }
 
+    for (const JniVariant& v : jni_get_variants(env, entries, [](const JniMethodEntry&) { return false; },
+            [](const JniMethodEntry&) { return true; })) {
+        BaseMethod* meth = v.entry->meth;
         // check for duplicate signature
         const QoreMethod* qm = qc.getConstructor();
-        if (qm && qm->existsVariant(paramTypeInfo)) {
+        if (qm && qm->existsVariant(v.getParams())) {
             printd(LogLevel, "QoreJniClassMap::doConstructors() skipping already-created variant %s::constructor()\n",
                 qc.getName());
             continue;
         }
-
-        qc.addConstructor((void*)*meth, (q_external_constructor_t)exec_java_constructor, meth->getAccess(),
-            meth->getFlags(), QDOM_UNCONTROLLED_API, paramTypeInfo);
-
-        // add native alternatives for hash and list arg types, if any
-        if (!altParamTypeInfo.empty()) {
-            if (qm && qm->existsVariant(altParamTypeInfo)) {
-                printd(LogLevel, "QoreJniClassMap::doConstructors() skipping already-created variant " \
-                    "%s::constructor()\n", qc.getName());
-                continue;
-            }
-            qc.addConstructor((void*)*meth, (q_external_constructor_t)exec_java_constructor, meth->getAccess(),
-                meth->getFlags(), QDOM_UNCONTROLLED_API, altParamTypeInfo);
-        }
-
-        jc->trackMethod(meth.release());
+        // the variant taking Java objects is an alternative for list and map arguments
+        qc.addConstructor((void*)meth, (q_external_constructor_t)exec_java_constructor, meth->getAccess(),
+            meth->getFlags(), QDOM_UNCONTROLLED_API, v.getParams());
+        v.entry->setUsed(jc);
     }
 }
 
@@ -1452,7 +1661,41 @@ static void reportClassLoadRelaxation(const char* jpath, const char* err, const 
         "avoid type errors.\n", name.c_str(), err, desc);
 }
 
-const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls, const QoreTypeInfo*& altType, QoreProgram* pgm, bool literal) {
+//! Returns the declared %Qore type of a Java list or map, or nullptr if the class is neither
+/** @see QoreJniClassMap::getQoreType()
+*/
+static const QoreTypeInfo* jni_get_collection_type(Env& env, jclass cls, JniQoreClass* qc,
+        const QoreTypeInfo*& altType, bool literal, QoreJniClassMap::JavaTypeUse use, jobject member) {
+    jvalue jarg;
+    jarg.l = cls;
+    if (env.callBooleanMethod(Globals::classList, Globals::methodClassIsAssignableFrom, &jarg)) {
+        // every Java list is converted to a Qore list
+        altType = literal ? qc->getTypeInfo() : qc->getOrNothingTypeInfo();
+        return literal ? autoListTypeInfo : autoListOrNothingTypeInfo;
+    }
+    if (!env.callBooleanMethod(Globals::classMap, Globals::methodClassIsAssignableFrom, &jarg)) {
+        // a value of a class that lists or maps implement or extend (ex: Collection, Iterable, Serializable) is a
+        // Qore list or hash when it is a list or a map
+        if (use == QoreJniClassMap::JavaTypeUse::Value && env.callStaticBooleanMethod(Globals::classJavaCollectionTypes,
+                Globals::methodJavaCollectionTypesMayBeListOrMap, &jarg)) {
+            return autoTypeInfo;
+        }
+        return nullptr;
+    }
+    if (use == QoreJniClassMap::JavaTypeUse::Value) {
+        // a map is converted to a hash when all its keys are strings
+        jarg.l = member ? member : cls;
+        if (!env.callStaticBooleanMethod(Globals::classJavaCollectionTypes,
+                Globals::methodJavaCollectionTypesIsStringKeyMap, &jarg)) {
+            return autoTypeInfo;
+        }
+    }
+    altType = literal ? qc->getTypeInfo() : qc->getOrNothingTypeInfo();
+    return literal ? autoHashTypeInfo : autoHashOrNothingTypeInfo;
+}
+
+const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls, const QoreTypeInfo*& altType, QoreProgram* pgm,
+        bool literal, JavaTypeUse use, jobject member) {
     assert(!altType);
     Env env;
 
@@ -1481,7 +1724,7 @@ const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls, const QoreTypeInfo*
             return softAutoListTypeInfo;
         }
         const QoreTypeInfo* elemAltType = nullptr;
-        const QoreTypeInfo* elem_type = getQoreType(elem_cls, elemAltType, pgm, literal);
+        const QoreTypeInfo* elem_type = getQoreType(elem_cls, elemAltType, pgm, literal, use);
 
         if (elem_type == objectTypeInfo) {
             return softAutoListTypeInfo;
@@ -1571,6 +1814,11 @@ const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls, const QoreTypeInfo*
         }
     }
 
+    // Java lists and maps
+    if (const QoreTypeInfo* ti = jni_get_collection_type(env, cls, qc, altType, literal, use, member)) {
+        return ti;
+    }
+
     // find static mapping
     jtmap_t::const_iterator i = jtmap.find(tname.c_str());
     if (i != jtmap.end()) {
@@ -1626,32 +1874,25 @@ const QoreTypeInfo* QoreJniClassMap::getQoreType(jclass cls, const QoreTypeInfo*
 }
 
 void QoreJniClassMap::doMethodsIntern(JniQoreClass& qc, jni::Class* jc, QoreProgram* pgm, Env& env,
-        jobjectArray mArray, bool bridge_pass) {
+        jobjectArray mArray) {
     bool abstract_class = jc->getModifiers() & JVM_ACC_ABSTRACT;
 
+    std::vector<std::unique_ptr<JniMethodEntry>> entries;
     for (jsize i = 0, e = env.getArrayLength(mArray); i < e; ++i) {
         // get Method object
         LocalReference<jobject> m = env.getObjectArrayElement(mArray, i);
 
-        SimpleRefHolder<BaseMethod> meth(new BaseMethod(m, jc));
+        std::unique_ptr<JniMethodEntry> entry(new JniMethodEntry(new BaseMethod(m, jc)));
+        BaseMethod* meth = entry->meth;
 
         QoreString mname;
         meth->getName(mname);
 
-        bool is_bridge = meth->isBridge();
-
-        // First pass: skip bridge methods; second pass: only process bridge methods
-        if (!bridge_pass && is_bridge) {
-            continue;
-        }
-        if (bridge_pass && !is_bridge) {
-            continue;
-        }
-
         // Skip synthetic methods that are not bridge methods; bridge methods are typically
         // also marked synthetic but are needed to satisfy interface contracts (e.g.
-        // Float.compareTo(Object) implementing Comparable.compareTo)
-        if (meth->isSynthetic() && !is_bridge) {
+        // Float.compareTo(Object) implementing Comparable.compareTo); a bridge method is added only for a %Qore
+        // signature that no other method has (see jni_choose_variant())
+        if (meth->isSynthetic() && !meth->isBridge()) {
             printd(LogLevel, "+ skipping synthetic method %s.%s()\n", qc.getName(), mname.c_str());
             continue;
         }
@@ -1662,74 +1903,67 @@ void QoreJniClassMap::doMethodsIntern(JniQoreClass& qc, jni::Class* jc, QoreProg
             continue;
         }
 
-        printd(LogLevel, "+ adding %smethod %s.%s()\n", bridge_pass ? "bridge " : "", qc.getName(), mname.c_str());
+        printd(LogLevel, "+ adding %smethod %s.%s()\n", meth->isBridge() ? "bridge " : "", qc.getName(),
+            mname.c_str());
 
         // get method's parameter types
-        type_vec_t paramTypeInfo;
-        type_vec_t altParamTypeInfo;
-        if (meth->getParamTypes(env, paramTypeInfo, altParamTypeInfo, *this, pgm)) {
+        if (meth->getParamTypes(env, entry->params, entry->alt_params, *this, pgm)) {
             printd(LogLevel, "+ skipping %s.%s(); unsupported parameter type for variant %d\n", qc.getName(),
                 mname.c_str(), i + 1);
             continue;
         }
 
         // get method's return type
-        const QoreTypeInfo* returnTypeInfo = meth->getReturnTypeInfo(*this, pgm);
+        entry->return_type = meth->getReturnTypeInfo(*this, pgm);
+
+        if (!meth->isStatic() && (mname == "copy" || mname == "constructor" || mname == "destructor"
+            || mname == "methodGate" || mname == "memberNotification" || mname == "memberGate")) {
+            mname.prepend("java_");
+        }
+        entry->name = mname.c_str();
+        QoreString sig;
+        meth->getSignature(sig);
+        entry->signature = sig.c_str();
+        entries.push_back(std::move(entry));
+    }
+
+    for (const JniVariant& v : jni_get_variants(env, entries,
+            [](const JniMethodEntry& e) { return (bool)e.meth->isStatic(); },
+            // do not add additional abstract variants for alternate parameter types
+            [abstract_class](const JniMethodEntry& e) { return !(abstract_class && e.meth->isAbstract()); })) {
+        BaseMethod* meth = v.entry->meth;
+        const char* mname = v.entry->name.c_str();
+        const type_vec_t& params = v.getParams();
+        // the variant taking Java objects for list and map arguments has no flags
+        int64 flags = v.alt ? QCF_NO_FLAGS : meth->getFlags();
 
         if (meth->isStatic()) {
             // check for duplicate signature
-            const QoreMethod* qm = qc.findLocalStaticMethod(mname.c_str());
-            if (qm && qm->existsVariant(paramTypeInfo)) {
+            const QoreMethod* qm = qc.findLocalStaticMethod(mname);
+            if (qm && qm->existsVariant(params)) {
                 printd(LogLevel, "QoreJniClassMap::doMethods() skipping already-created static variant %s::%s()\n",
-                    qc.getName(), mname.c_str());
+                    qc.getName(), mname);
                 continue;
             }
-            qc.addStaticMethod((void*)*meth, mname.c_str(), (q_external_static_method_t)exec_java_static_method,
-                meth->getAccess(), meth->getFlags(), QDOM_UNCONTROLLED_API, returnTypeInfo, paramTypeInfo);
-
-            if (!altParamTypeInfo.empty()) {
-                if (qm && qm->existsVariant(altParamTypeInfo)) {
-                    printd(LogLevel, "QoreJniClassMap::doMethods() skipping already-created static variant " \
-                        "%s::%s()\n", qc.getName(), mname.c_str());
-                    continue;
-                }
-                qc.addStaticMethod((void*)*meth, mname.c_str(), (q_external_static_method_t)exec_java_static_method,
-                    meth->getAccess(), QCF_NO_FLAGS, QDOM_UNCONTROLLED_API, returnTypeInfo, altParamTypeInfo);
-            }
+            qc.addStaticMethod((void*)meth, mname, (q_external_static_method_t)exec_java_static_method,
+                meth->getAccess(), flags, QDOM_UNCONTROLLED_API, v.entry->return_type, params);
         } else {
-            if (mname == "copy" || mname == "constructor" || mname == "destructor" || mname == "methodGate"
-                || mname == "memberNotification" || mname == "memberGate") {
-                mname.prepend("java_");
-            }
-
             // check for duplicate signature
-            const QoreMethod* qm = qc.findLocalMethod(mname.c_str());
-            if (qm && qm->existsVariant(paramTypeInfo)) {
+            const QoreMethod* qm = qc.findLocalMethod(mname);
+            if (qm && qm->existsVariant(params)) {
                 printd(LogLevel, "QoreJniClassMap::doMethods() skipping already-created variant %s::%s()\n",
-                    qc.getName(), mname.c_str());
+                    qc.getName(), mname);
                 continue;
             }
 
             if (abstract_class && meth->isAbstract()) {
-                qc.addAbstractMethod(mname.c_str(), meth->getAccess(), meth->getFlags(), returnTypeInfo,
-                    paramTypeInfo);
-                // do not add additional abstract variants for alternate parameter types
+                qc.addAbstractMethod(mname, meth->getAccess(), flags, v.entry->return_type, params);
             } else {
-                qc.addMethod((void*)*meth, mname.c_str(), (q_external_method_t)exec_java_method, meth->getAccess(),
-                    meth->getFlags(), QDOM_UNCONTROLLED_API, returnTypeInfo, paramTypeInfo);
-
-                if (!altParamTypeInfo.empty()) {
-                    if (qm && qm->existsVariant(altParamTypeInfo)) {
-                        printd(LogLevel, "QoreJniClassMap::doMethods() skipping already-created variant %s::%s()\n",
-                            qc.getName(), mname.c_str());
-                        continue;
-                    }
-                    qc.addMethod((void*)*meth, mname.c_str(), (q_external_method_t)exec_java_method,
-                        meth->getAccess(), QCF_NO_FLAGS, QDOM_UNCONTROLLED_API, returnTypeInfo, altParamTypeInfo);
-                }
+                qc.addMethod((void*)meth, mname, (q_external_method_t)exec_java_method, meth->getAccess(), flags,
+                    QDOM_UNCONTROLLED_API, v.entry->return_type, params);
             }
         }
-        jc->trackMethod(meth.release());
+        v.entry->setUsed(jc);
     }
 }
 
@@ -1737,14 +1971,7 @@ void QoreJniClassMap::doMethods(JniQoreClass& qc, jni::Class* jc, QoreProgram* p
     Env env;
 
     LocalReference<jobjectArray> mArray = jc->getDeclaredMethods();
-
-    // Pass 1: process non-bridge methods first so they take priority
-    doMethodsIntern(qc, jc, pgm, env, mArray, false);
-    // Pass 2: process bridge methods; the duplicate-signature check will skip bridges that
-    // have the same Qore parameter types as an already-added non-bridge method, while bridges
-    // that provide unique signatures (e.g. Comparable.compareTo(auto) on concrete classes like
-    // Float) will be added — preventing spurious ABSTRACT-CLASS-ERROR
-    doMethodsIntern(qc, jc, pgm, env, mArray, true);
+    doMethodsIntern(qc, jc, pgm, env, mArray);
 }
 
 static int qore_jni_get_acc_visibility(ClassAccess access) {
@@ -1755,6 +1982,21 @@ static int qore_jni_get_acc_visibility(ClassAccess access) {
             break;
     }
     return ACC_PUBLIC;
+}
+
+//! Returns the Java class of a Qore class created for a Java class, or no value if the class is not one
+/** The class is loaded with the class loader, which finds it through its parent loaders; it must not be generated from
+    the Qore class, as is done for classes defined in Qore
+*/
+static LocalReference<jclass> jni_get_java_class_for_jni_class(Env& env, jobject class_loader, const QoreClass& qc) {
+    const JniQoreClass* jqc = dynamic_cast<const JniQoreClass*>(&qc);
+    if (!jqc || jqc->getJavaBinaryName().empty()) {
+        return LocalReference<jclass>();
+    }
+    LocalReference<jstring> jname = env.newString(jqc->getJavaBinaryName().c_str());
+    jvalue jarg;
+    jarg.l = jname;
+    return env.callObjectMethod(class_loader, Globals::methodClassLoaderLoadClass, &jarg).as<jclass>();
 }
 
 static LocalReference<jobject> get_type_def_from_class(Env& env, jclass jcls) {
@@ -2086,6 +2328,60 @@ int QoreJavaParamHelper::checkVariant(LocalReference<jobject>& params, qore_meth
     return 0;
 }
 
+LocalReference<jobject> QoreJavaParamHelper::findOverriddenMethod(const char* name,
+        const QoreExternalMethodVariant& v, QoreProgram* pgm, jobject class_loader, const QoreClass& qcls) {
+    // the Java classes and interfaces of the class's parents; the base class of the generated class is not searched,
+    // as it is a jni class (ex: QoreJavaClassBase) or a class generated for a Qore parent class, whose methods are not
+    // Java methods that a Qore method overrides
+    std::vector<LocalReference<jclass>> loaded;
+    std::vector<jclass> classes;
+    {
+        QoreParentClassIterator ci(qcls);
+        while (ci.next()) {
+            LocalReference<jclass> jcls = jni_get_java_class_for_jni_class(env, class_loader, ci.getParentClass());
+            if (jcls) {
+                classes.push_back(jcls);
+                loaded.push_back(std::move(jcls));
+            }
+        }
+    }
+
+    const type_vec_t& vtypes = v.getParamTypeList();
+    LocalReference<jstring> jname = env.newString(name);
+    for (jclass jcls : classes) {
+        jvalue jargs[3];
+        jargs[0].l = jcls;
+        jargs[1].l = jname;
+        jargs[2].i = (jint)vtypes.size();
+        LocalReference<jobjectArray> methods = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
+            Globals::methodJavaClassBuilderGetOverridableMethods, &jargs[0]).as<jobjectArray>();
+        for (jsize i = 0, e = methods ? env.getArrayLength(methods) : 0; i < e; ++i) {
+            LocalReference<jobject> jm = env.getObjectArrayElement(methods, i);
+            LocalReference<jobjectArray> pclasses = env.callObjectMethod(jm, Globals::methodMethodGetParameterTypes,
+                nullptr).as<jobjectArray>();
+            // the variant must have the types of the variant converting Qore values, or of the variant taking Java
+            // objects for list and map parameters
+            bool primary = true;
+            bool alt = true;
+            for (size_t j = 0; j < vtypes.size() && (primary || alt); ++j) {
+                LocalReference<jclass> pcls = env.getObjectArrayElement(pclasses, (jsize)j).as<jclass>();
+                const QoreTypeInfo* alt_type = nullptr;
+                const QoreTypeInfo* ti = qjcm.getQoreType(pcls, alt_type, pgm);
+                if (!qore_type_equal(ti, vtypes[j])) {
+                    primary = false;
+                }
+                if (!qore_type_equal(alt_type ? alt_type : ti, vtypes[j])) {
+                    alt = false;
+                }
+            }
+            if (primary || alt) {
+                return jm;
+            }
+        }
+    }
+    return LocalReference<jobject>();
+}
+
 bool QoreJavaParamHelper::isFinalMethod(const char* name, LocalReference<jobject>& params) {
     if (!parent_class) {
         return false;
@@ -2180,6 +2476,44 @@ int JniExternalProgramData::addNormalMethodVariant(Env& env, jobject class_loade
             "method\n", qore_type_get_name(v.getReturnTypeInfo()), qcls.getName(), m.getName(),
             v.getSignatureText());
         return 0;
+    }
+
+    // a variant overriding a method of the Java parent class is added with the signature of the overridden method,
+    // so that Java calls it: its Qore types do not give the Java classes (ex: a Qore list for java.util.ArrayList)
+    if (!is_abstract && jname.empty()) {
+        LocalReference<jobject> overridden = jph.findOverriddenMethod(m.getName(), v, getProgram(), class_loader,
+            qcls);
+        if (overridden) {
+            // the overridden method's parameter types, to skip variants with the same Java parameters below
+            LocalReference<jobjectArray> pclasses = env.callObjectMethod(overridden,
+                Globals::methodMethodGetParameterTypes, nullptr).as<jobjectArray>();
+            LocalReference<jobject> oparams = env.newObject(Globals::classArrayList, Globals::ctorArrayList, nullptr);
+            for (jsize i = 0, e = env.getArrayLength(pclasses); i < e; ++i) {
+                LocalReference<jclass> pcls = env.getObjectArrayElement(pclasses, i).as<jclass>();
+                LocalReference<jobject> pdef = get_type_def_from_class(env, pcls);
+                jvalue jarg;
+                jarg.l = pdef;
+                env.callBooleanMethod(oparams, Globals::methodArrayListAdd, &jarg);
+            }
+            if (!jph.checkVariant(oparams, QMT_NORMAL)) {
+                auto binding = std::make_shared<GeneratedBinding>(getProgram(), GeneratedBindingKind::Method,
+                    qcls.getProgram());
+                binding->cls = &qcls;
+                binding->method = &m;
+                binding->variant = &v;
+                std::vector<jvalue> jargs(5);
+                jargs[0].l = bb;
+                jargs[1].j = register_generated_binding(std::move(binding));
+                jargs[2].j = 0;
+                jargs[3].i = qore_jni_get_acc_visibility(v.getAccess());
+                jargs[4].l = overridden;
+                printd(5, "JniExternalProgramData::addNormalMethodVariant() %s::%s(%s): overriding the Java method\n",
+                    qcls.getName(), m.getName(), v.getSignatureText());
+                bb = env.callStaticObjectMethod(Globals::classJavaClassBuilder,
+                    Globals::methodJavaClassBuilderAddOverridingMethod, &jargs[0]);
+                jph.add(oparams);
+            }
+        }
     }
 
     while (true) {
@@ -3114,14 +3448,25 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
                 continue;
             }
 
-            // get internal name for Qore class
-            LocalReference<jstring> jname = getJavaNameForClass(env, ci.getParentClass());
+            // a Java class is loaded through the class loader's parents; a class defined in Qore is generated
+            parent_class = jni_get_java_class_for_jni_class(env, class_loader, ci.getParentClass());
+            if (!parent_class) {
+                // get internal name for Qore class
+                LocalReference<jstring> jname = getJavaNameForClass(env, ci.getParentClass());
 
-            jvalue jargs[2];
-            jargs[0].l = jname;
-            jargs[1].j = (jlong)&ci.getParentClass();
-            parent_class = env.callObjectMethod(class_loader, Globals::methodQoreURLClassLoaderLoadClassWithPtr,
-                &jargs[0]).as<jclass>();
+                jvalue jargs[2];
+                jargs[0].l = jname;
+                jargs[1].j = (jlong)&ci.getParentClass();
+                parent_class = env.callObjectMethod(class_loader, Globals::methodQoreURLClassLoaderLoadClassWithPtr,
+                    &jargs[0]).as<jclass>();
+            }
+
+            // java.lang.Object, the parent of the Qore classes of Java interfaces, is not a base class: the class
+            // extends QoreJavaClassBase, which has the constructors that the generated class calls
+            if (env.isSameObject(parent_class, Globals::classObject)) {
+                parent_class = nullptr;
+                continue;
+            }
 
             // check if parent class is actually a Java interface
             if (env.callBooleanMethod(parent_class, Globals::methodClassIsInterface, nullptr)) {
@@ -3304,6 +3649,14 @@ LocalReference<jbyteArray> JniExternalProgramData::generateByteCodeIntern(Env& e
 LocalReference<jobject> JniExternalProgramData::getJavaRawClassTypeDefinition(Env& env, jobject class_loader,
         const QoreClass* cls) {
     assert(cls);
+
+    // a Java class
+    {
+        LocalReference<jclass> jcls = jni_get_java_class_for_jni_class(env, class_loader, *cls);
+        if (jcls) {
+            return get_type_def_from_class(env, jcls);
+        }
+    }
 
     // get internal name for Qore class
     LocalReference<jstring> jname = getJavaNameForClass(env, *cls);

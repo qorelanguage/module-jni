@@ -159,6 +159,10 @@ public:
 
     DLLLOCAL static GlobalReference<jclass> classQoreJavaApi;                     // org.qore.jni.QoreJavaApi
     DLLLOCAL static jmethodID methodQoreJavaApiGetStackTrace;                     // StackTraceElement[] getStackTrace()
+    DLLLOCAL static GlobalReference<jclass> classJavaCollectionTypes;             // org.qore.jni.JavaCollectionTypes
+    DLLLOCAL static jmethodID methodJavaCollectionTypesIsStringKeyMap;            // boolean isStringKeyMap(Object)
+    DLLLOCAL static jmethodID methodJavaCollectionTypesMayBeListOrMap;            // boolean mayBeListOrMap(Class)
+    DLLLOCAL static jmethodID methodJavaCollectionTypesGetDepth;                  // int getDepth(Executable)
 
     DLLLOCAL static GlobalReference<jclass> classQoreExceptionWrapper;            // org.qore.jni.QoreExceptionWrapper
     DLLLOCAL static jmethodID ctorQoreExceptionWrapper;                           // QoreExceptionWrapper(long)
@@ -231,6 +235,8 @@ public:
     DLLLOCAL static jmethodID methodJavaClassBuilderGetTypeVariable;              // static TypeDefinition getTypeVariable(String)
     DLLLOCAL static jmethodID methodJavaClassBuilderGetParameterizedType;         // static TypeDefinition getParameterizedType(TypeDescription, List<TypeDefinition>)
     DLLLOCAL static jmethodID methodJavaClassBuilderFindBaseClassMethodConflict;  // static boolean findBaseClassMethodConflict(Class<?>, String, List<TypeDescription>, boolean)
+    DLLLOCAL static jmethodID methodJavaClassBuilderGetOverridableMethods;        // static Method[] getOverridableMethods(Class<?>, String, int)
+    DLLLOCAL static jmethodID methodJavaClassBuilderAddOverridingMethod;          // static DynamicType.Builder<?> addOverridingMethod(DynamicType.Builder<?>, long, long, int, Method)
     DLLLOCAL static jmethodID methodJavaClassBuilderIsFinalBaseClassMethod;       // static boolean isFinalBaseClassMethod(Class<?>, String, List<TypeDescription>)
 
     // Kotlin metadata helper class

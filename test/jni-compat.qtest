@@ -13,6 +13,7 @@
 %module-cmd(jni) import java.lang.invoke.*
 %module-cmd(jni) import org.qore.jni.test.Fields
 %module-cmd(jni) import org.qore.jni.test.QoreJavaApiTest
+%module-cmd(jni) import org.qore.jni.test.CollectionTypes
 
 %exec-class Main
 
@@ -21,6 +22,7 @@ public class Main inherits QUnit::Test {
         addTestCase("jni compat test case 1", \jniCompatTest1());
         addTestCase("jni compat test case 2", \jniCompatTest2());
         addTestCase("jni compat HashMap test case", \jniCompatHashMapTest());
+        addTestCase("jni compat declared collection types", \jniCompatCollectionTypes());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -95,5 +97,14 @@ public class Main inherits QUnit::Test {
 
         auto hm = QoreJavaApiTest::callFunctionTest();
         assertEq("object<Hash>", hm.fullType());
+    }
+
+    #! The declared types of Java lists and maps do not depend on compat-types: a map with String keys is declared as a
+    #! hash, but compat-types leaves it a Java object, so it must not be assigned to a hash; lists are converted
+    jniCompatCollectionTypes() {
+        auto m = CollectionTypes::stringTreeMap();
+        assertEq("object<TreeMap>", m.fullType());
+        assertThrows("RUNTIME-TYPE-ERROR", sub () { *hash<auto> h = CollectionTypes::stringTreeMap(); });
+        assertEq(("a", "b"), CollectionTypes::arrayList());
     }
 }

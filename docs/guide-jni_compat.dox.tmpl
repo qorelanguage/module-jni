@@ -9,6 +9,11 @@
     - Java \c byte[] to \c binary; instead this will converted to \c list<int>
     - Java \c java.util.Map to \c hash; instead this will be converted directly
 
+    The %Qore types declared for Java methods and fields do not depend on this option: a Java map whose key type is
+    \c String is declared as a hash (see @ref jni_collection_types), but with \c "compat-types" the value is a Java
+    object, which must not be assigned to a variable or member declared as a hash; Java lists are converted to %Qore
+    lists in either case.
+
     This option can be set globally for all Program objects with
     <tt>set_module_option("jni", "compat-types", True)</tt> or
     locally for the current Program container with the \c set-compat-types module parse option like:

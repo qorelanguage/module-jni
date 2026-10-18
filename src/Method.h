@@ -219,7 +219,13 @@ public:
 
     DLLLOCAL const QoreTypeInfo* getReturnTypeInfo(QoreJniClassMap& clsmap, QoreProgram* pgm = nullptr);
 
+    //! Returns the Java signature of the method or constructor, as its toString() method gives it
     DLLLOCAL void getSignature(QoreString& str) const;
+
+    //! Returns the Java types and classes of the parameters
+    DLLLOCAL const std::vector<std::pair<Type, GlobalReference<jclass>>>& getParamClasses() const {
+        return paramTypes;
+    }
 
 protected:
     DLLLOCAL BaseMethod() {

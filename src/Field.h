@@ -117,14 +117,12 @@ public:
 
     DLLLOCAL void getName(QoreString& str);
 
-    DLLLOCAL const QoreTypeInfo* getQoreTypeInfo(QoreJniClassMap& clsmap, QoreProgram* pgm = nullptr) {
-        return clsmap.getQoreType(typeClass, pgm);
-    }
-
-    //! as above; \a altType is set to the Java class type when the field's value is not always converted to it
+    //! Returns the declared %Qore type of the field's value; the field's generic type gives the key type of a map
+    /** \a altType is set to the Java class type when the field's value is not always converted to the %Qore type
+    */
     DLLLOCAL const QoreTypeInfo* getQoreTypeInfo(QoreJniClassMap& clsmap, const QoreTypeInfo*& altType,
             QoreProgram* pgm) {
-        return clsmap.getQoreType(typeClass, altType, pgm);
+        return clsmap.getQoreType(typeClass, altType, pgm, false, QoreJniClassMap::JavaTypeUse::Value, field);
     }
 
     DLLLOCAL int isStatic() const {

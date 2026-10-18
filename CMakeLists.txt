@@ -1007,6 +1007,7 @@ set (JNI_BIN_FILES
 
 # Java sources built in to the binary module with an indication of inner classes, if any
 generate_java(org/qore/jni/QoreJavaApi.java)
+generate_java(org/qore/jni/JavaCollectionTypes.java)
 generate_java(org/qore/jni/QoreExceptionWrapper.java)
 generate_java(org/qore/jni/QoreException.java)
 generate_java(org/qore/jni/QoreObjectBase.java)
@@ -1208,6 +1209,7 @@ set(JAVA_TEST_JAR_SRC
     test/java/src/org/qore/jni/test/Fields.java
     test/java/src/org/qore/jni/test/FloatConversions.java
     test/java/src/org/qore/jni/test/ListConversions.java
+    test/java/src/org/qore/jni/test/CollectionTypes.java
     test/java/src/org/qore/jni/test/Methods.java
     test/java/src/org/qore/jni/test/A.java
     test/java/src/org/qore/jni/test/B.java

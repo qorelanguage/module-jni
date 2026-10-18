@@ -196,12 +196,41 @@ public:
 
     DLLLOCAL QoreValue getValue(LocalReference<jobject>& jobj, QoreProgram* pgm, bool compat_types);
 
-    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls, const QoreTypeInfo*& altType,
-            QoreProgram* pgm = nullptr, bool literal = false);
+    //! How a Java type is used, which decides the declared %Qore type of a Java map; see getQoreType()
+    enum class JavaTypeUse {
+        //! the type of a parameter: a %Qore value is converted to the Java type
+        Param,
+        //! the type of a return value or of a field: a value of the Java type is converted to %Qore
+        Value,
+    };
 
-    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls, QoreProgram* pgm = nullptr, bool literal = false) {
+    //! Returns the %Qore type declared for a Java type
+    /** A Java list (a class implementing \c java.util.List) is declared as a %Qore list, as every Java list is
+        converted to one.  A Java map (a class implementing \c java.util.Map) is converted to a %Qore hash when all its
+        keys are strings, so a parameter that takes a map is declared as a hash, and a return value or field is
+        declared as a hash only if its declared key type is \c String (see org.qore.jni.JavaCollectionTypes),
+        otherwise as \c auto, as it is a hash or a Java object depending on its keys.  A return value or field of a
+        class that lists or maps implement or extend (ex: \c java.util.Collection, \c java.io.Serializable) is
+        declared as \c auto, as it is a %Qore list or hash when it is a list or a map.  For a list or a map parameter,
+        \a altType is set to the type of the Java class, so that a Java object is accepted as well.
+
+        @param cls the Java class
+        @param altType set to the type of the Java class when a variant taking the Java object is needed
+        @param pgm the program the type is resolved in
+        @param literal true for types without "or nothing"
+        @param use how the type is used
+        @param member for a value: the java.lang.reflect.Method returning it or the java.lang.reflect.Field holding
+        it, whose generic type gives the key type of a map; if null, the class gives it
+    */
+    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls, const QoreTypeInfo*& altType,
+            QoreProgram* pgm = nullptr, bool literal = false, JavaTypeUse use = JavaTypeUse::Param,
+            jobject member = nullptr);
+
+    //! Returns the %Qore type declared for a Java value; see getQoreType(jclass, const QoreTypeInfo*&, ...)
+    DLLLOCAL const QoreTypeInfo* getQoreType(jclass cls, QoreProgram* pgm = nullptr, bool literal = false,
+            JavaTypeUse use = JavaTypeUse::Value, jobject member = nullptr) {
         const QoreTypeInfo* altType = nullptr;
-        return getQoreType(cls, altType, pgm, literal);
+        return getQoreType(cls, altType, pgm, literal, use, member);
     }
 
     DLLLOCAL QoreNamespace& getJniNs() {
@@ -278,7 +307,7 @@ protected:
 
     DLLLOCAL void doMethods(JniQoreClass& qc, Class* jc, QoreProgram* pgm = nullptr);
     DLLLOCAL void doMethodsIntern(JniQoreClass& qc, Class* jc, QoreProgram* pgm, Env& env,
-        jobjectArray mArray, bool bridge_pass);
+        jobjectArray mArray);
 
     DLLLOCAL void doFields(JniQoreClass& qc, Class* jc, QoreProgram* pgm = nullptr);
 
@@ -362,6 +391,22 @@ public:
 
     // returns true if the parent class has a final method with matching name and params
     DLLLOCAL bool isFinalMethod(const char* name, LocalReference<jobject>& params);
+
+    //! Returns the method of a Java parent class or interface that a %Qore method variant overrides, if any
+    /** A %Qore variant overrides a Java method with the same name, declared in a Java class or interface that the
+        %Qore class inherits, other than \c java.lang.Object, if its parameter types are those of a variant that the jni
+        module declares for the Java method (see QoreJniClassMap::getQoreType())
+
+        @param name the name of the method
+        @param v the variant
+        @param pgm the program
+        @param class_loader the class loader of the class being generated
+        @param qcls the %Qore class being generated, whose Java parent classes and interfaces are searched
+
+        @return the java.lang.reflect.Method object, or no value
+    */
+    DLLLOCAL LocalReference<jobject> findOverriddenMethod(const char* name, const QoreExternalMethodVariant& v,
+            QoreProgram* pgm, jobject class_loader, const QoreClass& qcls);
 
 private:
     Env& env;

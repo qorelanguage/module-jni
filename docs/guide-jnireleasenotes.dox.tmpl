@@ -26,6 +26,15 @@
       <tt>hash&lt;auto&gt;</tt> parameters now use \c java.util.Map. Java and Kotlin collections convert
       to the most specific %Qore list or hash type, which can restrict later insertion of values with
       other types. See @ref jni_java_to_qore "Java to Qore type conversions".
+    - <b>Review code using Java lists and maps as Java objects.</b> The %Qore types declared for Java methods and
+      fields now match the values they return: every Java list, such as \c ArrayList or \c LinkedList, is declared
+      as \c *list<auto>, and a Java map as \c *hash<auto> only when its key type is \c String; any other map is
+      declared as \c auto, as it is a hash or a Java object depending on its keys (a method returning
+      <tt>TreeMap&lt;Integer, String&gt;</tt> still returns a Java object, and is now declared as \c auto).  Code
+      that assigns a returned \c ArrayList to a variable declared as the Java class, or that overrides such a method
+      with a Java object return type, now fails when it is parsed; use a list instead.  A raw \c java.util.Map return
+      value, declared as \c *hash<auto> before, is declared as \c auto; this only changes parse-time type checks.
+      See @ref jni_collection_types "declared types of Java lists and maps".
     - <b>Use explicit lifecycle APIs where deterministic cleanup matters.</b> Native wrappers use
       automatic native-reference cleanup instead of Java finalizers; explicit release remains available. See
       @ref jni_qore_object_lifecycle_managementguide "object lifecycle management" and
@@ -109,6 +118,14 @@
     - Module-owned classes share one Java class identity across consuming Programs. Applications can
       also opt a non-module API class into shared identity with \c register-shared-class before loading
       it in sibling Program classloaders. See @ref jni_classloader "classloader identity and registration".
+    - A %Qore method overriding or implementing a Java method is generated with the Java method's signature, and
+      its return value is converted to the Java method's return type, so that Java calls it for methods with list,
+      map, or numeric types that differ from the %Qore types (for example a Java \c ArrayList or \c int return
+      type). See @ref jni_collection_overrides.
+    - The Java method called for overloads with the same %Qore signature is chosen deterministically, as Java
+      would choose it for the Java object that a %Qore list or hash is converted to; a Java object argument is
+      passed to the method of its class rather than of a superclass or interface. See
+      @ref jni_collection_overloads.
     - Missing Java signature types are reported once per class with the underlying Java exception;
       unavailable optional types still fall back to \c auto. See @ref jni_use_java_in_qoreguide.
     - The bundled Byte Buddy library is updated from 1.14.19 to 1.18.10, adding support for newer Java
@@ -148,12 +165,19 @@
       @ref org.qore.jni.QoreURLClassLoader.clearCompilationCache().
     - Fixed Java compiler diagnostics being written only to standard error instead of being included
       in the exception; see @ref org.qore.jni.compiler.QoreJavaCompiler.
+    - Fixed a %Qore class implementing a Java interface imported from the JDK or a JAR failing when its Java class
+      was generated, because \c java.lang.Object was taken as its Java base class, or because a class was generated
+      for the interface itself instead of using it (for nested interfaces and JDK packages).
 
     @par Type conversions and fields
 
     - Mutable Java static fields now stay synchronized with their %Qore static-variable mappings.
       Map and list fields accept both the Java object and its compatible %Qore representation;
       see @ref jni_class_fields "Java field mappings".
+    - Fixed the JVM crashing when a callback implementing a Java interface method with
+      @ref Jni::org::qore::jni::QoreInvocationHandler "QoreInvocationHandler" returned a hash.
+    - A %Qore list or hash given for a list or map parameter whose class has no public constructor without
+      arguments raises an exception instead of passing an object of another class to Java.
     - Fixed %Qore lists being rejected for Java collection parameters and fields. Empty lists remain
       empty arrays rather than becoming \c null, and empty trailing varargs are accepted in Debug
       builds. See @ref jni_typesguide and @ref jni_array_varargs.

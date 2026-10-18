@@ -102,6 +102,69 @@
 
     @note see @ref jni_arrays for more information about conversions between %Qore lists and Java arrays
 
+    @section jni_collection_types Declared Types of Java Lists and Maps
+
+    The %Qore types declared for Java methods and fields match the values that the conversions above produce, so
+    that %Qore code can be type-checked when it is parsed:
+    - every Java list (a class implementing \c java.util.List, such as \c ArrayList, \c LinkedList, or a list class
+      of its own) is converted to a %Qore list, so a list return value or field is declared as \c *list<auto>
+    - a Java map is converted to a %Qore hash only when all its keys are strings, so a map return value or field is
+      declared as \c *hash<auto> only when its key type is \c String, as given by the Java generic signature (for
+      example <tt>Map&lt;String, V&gt;</tt>, <tt>TreeMap&lt;String, V&gt;</tt>, or a class declared as
+      <tt>StringMap extends HashMap&lt;String, Object&gt;</tt>); any other map (a raw \c Map, a key type variable,
+      \c Properties, or <tt>TreeMap&lt;Integer, V&gt;</tt>) is declared as \c auto, as it is a hash or a Java
+      object depending on its keys
+    - a return value or field of a class that lists and maps implement or extend (such as \c java.util.Collection,
+      \c java.lang.Iterable, \c java.util.Queue, or \c java.io.Serializable) is declared as \c auto, as it is a
+      %Qore list or hash when the object is a list or a map
+    - a list or map parameter takes a %Qore list or hash, which is converted to an object of the parameter's class
+      created with its public constructor without arguments (an interface takes an \c ArrayList or an
+      @ref org.qore.jni.Hash "Hash"), or the Java object itself; a class without such a constructor raises an
+      exception for a %Qore value, and takes only Java objects
+    - a field accepts both the %Qore value and the Java object
+
+    For example, a Java method returning <tt>TreeMap&lt;Integer, String&gt;</tt> returns a Java object, as its keys
+    are not strings, and is declared as \c auto:
+    @code{.py}
+    # Java: public static TreeMap<Integer, String> ids();
+    auto ids = Example::ids();
+    # Java: public static TreeMap<String, Integer> counts();
+    hash<auto> counts = Example::counts();
+    # Java: public static ArrayList<String> names();
+    list<auto> names = Example::names();
+    @endcode
+
+    @subsection jni_collection_overloads Overloaded Java Methods with List and Map Parameters
+
+    Java methods with different list or map parameter classes can have the same %Qore signature (for example
+    \c f(List) and \c f(ArrayList), which both take a %Qore list).  The method called for a %Qore value is the one
+    Java calls for the Java object that the value is converted to by default: a list to an \c ArrayList, a hash to an
+    @ref org.qore.jni.Hash "Hash" (a \c LinkedHashMap):
+    - \c f(ArrayList) rather than \c f(List), and \c f(ArrayList) rather than \c f(LinkedList)
+    - \c f(Map) rather than \c f(TreeMap), as an @ref org.qore.jni.Hash "Hash" is not a \c TreeMap
+    - a method that takes an array rather than a list, as before Java list parameters took %Qore lists: \c f(Object[])
+      rather than \c f(ArrayList)
+
+    A Java object is passed to the method of its class, or of its nearest superclass or interface, as in Java: a
+    \c TreeMap object to \c f(TreeMap) rather than \c f(Map).
+
+    @subsection jni_collection_overrides Qore Classes Implementing Java Methods with Lists and Maps
+
+    A %Qore method that overrides or implements a Java method declares the %Qore types that the \c jni module
+    declares for the Java method; the Java class generated for the %Qore class has the Java method's own signature, and
+    the %Qore method's return value is converted to the Java method's return type:
+    @code{.py}
+    # Java: public interface Source { ArrayList<String> getNames(); int getCount(); }
+    class MySource inherits Source {
+        *list<auto> getNames() {
+            return ("a", "b");
+        }
+        int getCount() {
+            return 2;
+        }
+    }
+    @endcode
+
     @section jni_arrays Java Arrays
 
     Arrays are mapped directly to and from Qore lists.  When converting from a Qore list to a Java array, the list is
