@@ -64,6 +64,12 @@ interface SheetSource extends Closeable {
          * Formula text is only available after formulas are enabled with SheetSource.enableFormulas()
          */
         String getCellFormula();
+
+        /**
+         * Returns the text of the error of an error cell, or of a formula cell whose cached result is an error, as
+         * Excel shows it (ex: "#DIV/0!", "#N/A")
+         */
+        String getErrorCellString();
     }
 
     /**
@@ -98,4 +104,9 @@ interface SheetSource extends Closeable {
      * source that streams its rows reads formula text only when it is enabled
      */
     void enableFormulas();
+
+    /**
+     * Returns the name of the sheet
+     */
+    String getSheetName();
 }

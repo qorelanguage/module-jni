@@ -87,6 +87,78 @@
           "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
           "message": "`True` の場合、オブジェクトは最初のヘッダー行からヘッダー名を解析します。この場合、`header_cells` が明示的に設定されていないと、最初の行であるとみなされます"
         },
+        "app.RXhjZWw.action.cmVhZA.option.Y29sdW1uX3R5cGVz.display_name": {
+          "source": "Column Types",
+          "message": "列の型"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.Y29sdW1uX3R5cGVz.short_desc": {
+          "source": "The type of columns whose type is not inferred from their values",
+          "message": "値から型を推論しない列の型"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.Y29sdW1uX3R5cGVz.desc": {
+          "source": "The type of each column whose type is given rather than inferred from the first rows (see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or `any`.\n\nValues are converted to the column's type: `string` converts numbers, booleans and dates to text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; `float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates; `any` returns every value as stored.  A value that the type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`.  A column that is not a column of the worksheet, or an unknown type, raises `EXCEL-READ-OPTION-ERROR`.  Columns are only typed when the worksheet has headers.",
+          "message": "最初の行から推論する代わりに型を指定する各列の型を列名ごとに指定します (`type_sample_rows` を参照): `string`、`int`、`float`、`number`、`bool`、`date`、または `any`。\n\n値は列の型に変換されます。`string` は数値、ブール値、日付をテキストに変換します (数値として格納された識別子など)。`int` は小数部のない数値を受け入れます。`float` と `number` は数値を受け入れます。`bool` はブール値を受け入れます。`date` は日付を受け入れます。`any` は各値を格納されたとおりに返します。  型が受け入れない値は `EXCEL-COLUMN-TYPE-ERROR` を発生させます。  ワークシートの列ではない列、または不明な型は `EXCEL-READ-OPTION-ERROR` を発生させます。  列に型が付くのは、ワークシートにヘッダーがある場合のみです。"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.display_name": {
+          "source": "Error Cells",
+          "message": "エラー セル"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.short_desc": {
+          "source": "How cells with an error such as #DIV/0! or #N/A are read",
+          "message": "#DIV/0! や #N/A などのエラーがあるセルの読み取り方法"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.desc": {
+          "source": "How cells with an error, such as `#DIV/0!`, `#N/A` or `#VALUE!`, and formulas whose result is an error are read:\n\n- `fail` (the default): the read fails with `EXCEL-CELL-ERROR`, naming the worksheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.",
+          "message": "`#DIV/0!`、`#N/A`、`#VALUE!` などのエラーがあるセル、および結果がエラーになる数式の読み取り方法:\n\n- `fail` (既定値): `error_field` が設定されていない限り、ワークシート、セル、列、エラーを示す `EXCEL-CELL-ERROR` で読み取りが失敗します\n- `null`: セルには値がありません\n- `text`: どの列でも、セルの値は `#DIV/0!` などのエラーのテキストです\n\n`error_field` を指定すると、各レコードのエラーも専用のフィールドで返され、このオプションが `text` でない限り、エラー セルは値なしとして読み取られます。"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "失敗"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The read fails at the first error cell",
+          "message": "最初のエラー セルで読み取りが失敗します"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "The read fails with `EXCEL-CELL-ERROR` at the first error cell, unless `error_field` is set",
+          "message": "`error_field` が設定されていない限り、最初のエラー セルで `EXCEL-CELL-ERROR` により読み取りが失敗します"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
+          "source": "No Value",
+          "message": "値なし"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
+          "source": "Error cells have no value",
+          "message": "エラー セルには値がありません"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
+          "source": "Error cells are read as no value",
+          "message": "エラー セルは値なしとして読み取られます"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Error Text",
+          "message": "エラー テキスト"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Error cells are read as the error's text",
+          "message": "エラー セルはエラーのテキストとして読み取られます"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
+          "message": "エラー セルは、どの列でも `#DIV/0!` などのエラーのテキストとして読み取られます"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfZmllbGQ.display_name": {
+          "source": "Error Field",
+          "message": "エラー フィールド"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfZmllbGQ.short_desc": {
+          "source": "Return the errors of each row's cells in a field with this name",
+          "message": "各行のセルのエラーをこの名前のフィールドで返します"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfZmllbGQ.desc": {
+          "source": "The name of an extra field added to every record with the errors of the row's cells: a hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the record's cells is an error.  Error cells are then accepted: they are read as no value, or as their text if `error_cells` is `text`.  The name must not be the name of a column of the worksheet or of the `formula_field`; a name that is raises `EXCEL-READ-OPTION-ERROR`.",
+          "message": "行のセルのエラーを含む、すべてのレコードに追加されるフィールドの名前です。値は列名をキーとするエラー テキスト (`#DIV/0!` など) のハッシュで、レコードのどのセルもエラーでない場合は `NOTHING` です。  このときエラー セルは受け入れられ、値なしとして、または `error_cells` が `text` の場合はそのテキストとして読み取られます。  名前をワークシートの列の名前や `formula_field` にすることはできません。その場合は `EXCEL-READ-OPTION-ERROR` が発生します。"
+        },
         "app.RXhjZWw.action.cmVhZA.option.Zm9ybXVsYV9maWVsZA.display_name": {
           "source": "Formula Field",
           "message": "数式フィールド"
@@ -146,6 +218,18 @@
         "app.RXhjZWw.action.cmVhZA.option.dG9sd3I.desc": {
           "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
           "message": "`True` の場合 (デフォルト: `False`)、自動検出されたすべてのヘッダー名が小文字に変換されます"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
+          "source": "Type Sample Rows",
+          "message": "型のサンプル行数"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
+          "source": "The number of rows read to infer the type of each column",
+          "message": "各列の型を推論するために読み取る行数"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
+          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the worksheet has headers.",
+          "message": "値から各列の型を推論するために読み取るデータ行の数です。`0` は、すべての値を格納されたとおりに読み取り、列は任意の型になります。\n\nこれらの行の値がすべて整数の列は `int` 列、数値の列は `float` 列、ブール値の列は `bool` 列、日付の列は `date` 列、テキストの列は `string` 列になります。異なる種類の値がある列、または値のない列は、格納されたとおりに返されます (`any`)。  空のセルとエラー セルは数えられません。  型はスプレッドシート プロファイルの型です。  列の型が受け入れない後続の値は `EXCEL-COLUMN-TYPE-ERROR` を発生させ、対処方法として `column_types` で列の型を指定するか、より多くの行をサンプリングすることを示します。  列に型が付くのは、ワークシートにヘッダーがある場合のみです。"
         },
         "app.RXhjZWw.action.cmVhZA.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
           "source": "Worksheet Name Pattern",
@@ -339,6 +423,78 @@
           "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
           "message": "`True` の場合、オブジェクトは最初のヘッダー行からヘッダー名を解析します。この場合、`header_cells` が明示的に設定されていないと、最初の行であるとみなされます"
         },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.display_name": {
+          "source": "Column Types",
+          "message": "列の型"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.short_desc": {
+          "source": "The type of columns whose type is not inferred from their values",
+          "message": "値から型を推論しない列の型"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.desc": {
+          "source": "The type of each column whose type is given rather than inferred from the first rows (see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or `any`.\n\nValues are converted to the column's type: `string` converts numbers, booleans and dates to text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; `float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates; `any` returns every value as stored.  A value that the type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`.  A column that is not a column of the worksheet, or an unknown type, raises `EXCEL-READ-OPTION-ERROR`.  Columns are only typed when the worksheet has headers.",
+          "message": "最初の行から推論する代わりに型を指定する各列の型を列名ごとに指定します (`type_sample_rows` を参照): `string`、`int`、`float`、`number`、`bool`、`date`、または `any`。\n\n値は列の型に変換されます。`string` は数値、ブール値、日付をテキストに変換します (数値として格納された識別子など)。`int` は小数部のない数値を受け入れます。`float` と `number` は数値を受け入れます。`bool` はブール値を受け入れます。`date` は日付を受け入れます。`any` は各値を格納されたとおりに返します。  型が受け入れない値は `EXCEL-COLUMN-TYPE-ERROR` を発生させます。  ワークシートの列ではない列、または不明な型は `EXCEL-READ-OPTION-ERROR` を発生させます。  列に型が付くのは、ワークシートにヘッダーがある場合のみです。"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.display_name": {
+          "source": "Error Cells",
+          "message": "エラー セル"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.short_desc": {
+          "source": "How cells with an error such as #DIV/0! or #N/A are read",
+          "message": "#DIV/0! や #N/A などのエラーがあるセルの読み取り方法"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.desc": {
+          "source": "How cells with an error, such as `#DIV/0!`, `#N/A` or `#VALUE!`, and formulas whose result is an error are read:\n\n- `fail` (the default): the read fails with `EXCEL-CELL-ERROR`, naming the worksheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.",
+          "message": "`#DIV/0!`、`#N/A`、`#VALUE!` などのエラーがあるセル、および結果がエラーになる数式の読み取り方法:\n\n- `fail` (既定値): `error_field` が設定されていない限り、ワークシート、セル、列、エラーを示す `EXCEL-CELL-ERROR` で読み取りが失敗します\n- `null`: セルには値がありません\n- `text`: どの列でも、セルの値は `#DIV/0!` などのエラーのテキストです\n\n`error_field` を指定すると、各レコードのエラーも専用のフィールドで返され、このオプションが `text` でない限り、エラー セルは値なしとして読み取られます。"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "失敗"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The read fails at the first error cell",
+          "message": "最初のエラー セルで読み取りが失敗します"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "The read fails with `EXCEL-CELL-ERROR` at the first error cell, unless `error_field` is set",
+          "message": "`error_field` が設定されていない限り、最初のエラー セルで `EXCEL-CELL-ERROR` により読み取りが失敗します"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
+          "source": "No Value",
+          "message": "値なし"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
+          "source": "Error cells have no value",
+          "message": "エラー セルには値がありません"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
+          "source": "Error cells are read as no value",
+          "message": "エラー セルは値なしとして読み取られます"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Error Text",
+          "message": "エラー テキスト"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Error cells are read as the error's text",
+          "message": "エラー セルはエラーのテキストとして読み取られます"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
+          "message": "エラー セルは、どの列でも `#DIV/0!` などのエラーのテキストとして読み取られます"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.display_name": {
+          "source": "Error Field",
+          "message": "エラー フィールド"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.short_desc": {
+          "source": "Return the errors of each row's cells in a field with this name",
+          "message": "各行のセルのエラーをこの名前のフィールドで返します"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.desc": {
+          "source": "The name of an extra field added to every record with the errors of the row's cells: a hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the record's cells is an error.  Error cells are then accepted: they are read as no value, or as their text if `error_cells` is `text`.  The name must not be the name of a column of the worksheet or of the `formula_field`; a name that is raises `EXCEL-READ-OPTION-ERROR`.",
+          "message": "行のセルのエラーを含む、すべてのレコードに追加されるフィールドの名前です。値は列名をキーとするエラー テキスト (`#DIV/0!` など) のハッシュで、レコードのどのセルもエラーでない場合は `NOTHING` です。  このときエラー セルは受け入れられ、値なしとして、または `error_cells` が `text` の場合はそのテキストとして読み取られます。  名前をワークシートの列の名前や `formula_field` にすることはできません。その場合は `EXCEL-READ-OPTION-ERROR` が発生します。"
+        },
         "app.RXhjZWw.action.cmVhZC1kYXRh.option.Zm9ybXVsYV9maWVsZA.display_name": {
           "source": "Formula Field",
           "message": "数式フィールド"
@@ -398,6 +554,18 @@
         "app.RXhjZWw.action.cmVhZC1kYXRh.option.dG9sd3I.desc": {
           "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
           "message": "`True` の場合 (デフォルト: `False`)、自動検出されたすべてのヘッダー名が小文字に変換されます"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
+          "source": "Type Sample Rows",
+          "message": "型のサンプル行数"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
+          "source": "The number of rows read to infer the type of each column",
+          "message": "各列の型を推論するために読み取る行数"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
+          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the worksheet has headers.",
+          "message": "値から各列の型を推論するために読み取るデータ行の数です。`0` は、すべての値を格納されたとおりに読み取り、列は任意の型になります。\n\nこれらの行の値がすべて整数の列は `int` 列、数値の列は `float` 列、ブール値の列は `bool` 列、日付の列は `date` 列、テキストの列は `string` 列になります。異なる種類の値がある列、または値のない列は、格納されたとおりに返されます (`any`)。  空のセルとエラー セルは数えられません。  型はスプレッドシート プロファイルの型です。  列の型が受け入れない後続の値は `EXCEL-COLUMN-TYPE-ERROR` を発生させ、対処方法として `column_types` で列の型を指定するか、より多くの行をサンプリングすることを示します。  列に型が付くのは、ワークシートにヘッダーがある場合のみです。"
         },
         "app.RXhjZWw.action.cmVhZC1kYXRh.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
           "source": "Worksheet Name Pattern",

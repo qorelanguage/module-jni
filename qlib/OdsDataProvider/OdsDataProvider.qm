@@ -348,6 +348,33 @@ module OdsDataProvider {
     row made of \c SUM formulas as the profile does.  A name that is a column of the sheet raises
     \c ODS-FORMULA-FIELD-ERROR.
 
+    When the sheet has headers, the type of each column is inferred from its values in the first data rows
+    (\c type_sample_rows, 100 by default; \c 0 reads every value as stored), as the spreadsheet profile classifies
+    them: a column of whole numbers is an \c int column, of numbers a \c float column, of booleans a \c bool column,
+    of dates and times a \c date column, and of text a \c string column; a column with values of different kinds, or
+    with no values, is returned as stored.  The record type has the column types, and the values are converted to
+    them: a whole number in an \c int column is an integer rather than a float.  The \c column_types option gives the
+    type of columns by name: \c string, \c int, \c float, \c number, \c bool, \c date, or \c any; \c string
+    converts numbers, booleans and dates to text, for example identifiers stored as numbers.  A later value that its
+    column's type does not accept fails the read with \c ODS-COLUMN-TYPE-ERROR, which names the sheet, row, column,
+    value and type, and the remedies:
+
+    @code{.py}
+    # an order number column that has text after the first 100 rows, and amounts as arbitrary-precision numbers
+    OdsReadDataProvider dp("orders.ods", {
+        "header_names": True,
+        "column_types": {"Order No": "string", "Amount": "number"},
+    });
+    @endcode
+
+    A formula whose result is an error, such as \c \#DIV/0!, \c \#N/A or \c Err:502, fails the read with
+    \c ODS-CELL-ERROR by default, naming the sheet, cell, column and error.  With \c error_cells set to \c null,
+    error cells have no value; with \c text, their value is the error's text in any column.  The \c error_field
+    option returns the errors of each record in a field of their own, a hash of the error text by column, and accepts
+    error cells, which are then read as no value unless \c error_cells is \c text.  Error cells are recognized as
+    LibreOffice marks them (\c calcext:value-type="error"); OpenDocument itself has no error value type, so a file
+    saved by a program that writes errors without this mark has text cells instead.
+
     The write provider writes numbers as float cells, booleans as boolean cells, dates as date cells with their date
     and clock time (with no time zone, as read above), no value as an empty cell, and other values as text.  Its
     \c column_formats option gives columns a display format code, as LibreOffice and Excel write them, which is
@@ -418,6 +445,17 @@ module OdsDataProvider {
       @ref OdsDataProvider::OdsListWorksheetsDataProvider "OdsListWorksheetsDataProvider": the worksheets of a
       spreadsheet in order, each with its 0-based index, which the \c worksheet read option accepts, and whether it
       is hidden
+    - <b>columns are typed</b>: when a sheet has headers, the type of each column is inferred from its first 100 data
+      rows, as the spreadsheet profile infers it, and the record type and the values have it, so a whole number in a
+      column of whole numbers is read as an integer instead of a float; a later value of another type fails the read
+      with \c ODS-COLUMN-TYPE-ERROR, naming the remedies; the new \c type_sample_rows read option sets the number of
+      rows sampled (\c 0 reads every value as stored, as before), and the new \c column_types option gives the type
+      of columns
+    - <b>error cells fail the read</b>: a formula whose result is an error, such as \c \#DIV/0!, raises
+      \c ODS-CELL-ERROR instead of being read silently as the error's text; the new \c error_cells read option reads
+      error cells as no value or as the error's text, and the new \c error_field option returns the errors of each
+      record in a field of their own
+    - fixed the record type of a worksheet provider failing after a search of the worksheet
 */
 
 #! contains all public definitions in the OdsDataProvider module

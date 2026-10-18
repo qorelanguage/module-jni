@@ -87,6 +87,78 @@
           "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
           "message": "Якщо `True`, то об'єкт проаналізує назви заголовків із першого рядка заголовка; у цьому випадку, якщо `header_cells` не вказано явно, вважатиметься, що це перший рядок"
         },
+        "app.RXhjZWw.action.cmVhZA.option.Y29sdW1uX3R5cGVz.display_name": {
+          "source": "Column Types",
+          "message": "Типи стовпців"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.Y29sdW1uX3R5cGVz.short_desc": {
+          "source": "The type of columns whose type is not inferred from their values",
+          "message": "Тип стовпців, тип яких не визначається з їхніх значень"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.Y29sdW1uX3R5cGVz.desc": {
+          "source": "The type of each column whose type is given rather than inferred from the first rows (see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or `any`.\n\nValues are converted to the column's type: `string` converts numbers, booleans and dates to text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; `float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates; `any` returns every value as stored.  A value that the type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`.  A column that is not a column of the worksheet, or an unknown type, raises `EXCEL-READ-OPTION-ERROR`.  Columns are only typed when the worksheet has headers.",
+          "message": "Тип кожного стовпця, тип якого задано, а не визначено з перших рядків (див. `type_sample_rows`), за назвою стовпця: `string`, `int`, `float`, `number`, `bool`, `date` або `any`.\n\nЗначення перетворюються на тип стовпця: `string` перетворює числа, логічні значення й дати на текст (наприклад, ідентифікатори, збережені як числа); `int` приймає числа без дробової частини; `float` і `number` приймають числа; `bool` приймає логічні значення; `date` приймає дати; `any` повертає кожне значення так, як його збережено.  Значення, якого тип не приймає, викликає `EXCEL-COLUMN-TYPE-ERROR`.  Стовпець, що не є стовпцем аркуша, або невідомий тип викликає `EXCEL-READ-OPTION-ERROR`.  Стовпці мають тип, лише коли аркуш має заголовки."
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.display_name": {
+          "source": "Error Cells",
+          "message": "Клітинки з помилками"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.short_desc": {
+          "source": "How cells with an error such as #DIV/0! or #N/A are read",
+          "message": "Як читаються клітинки з помилкою, наприклад #DIV/0! або #N/A"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.desc": {
+          "source": "How cells with an error, such as `#DIV/0!`, `#N/A` or `#VALUE!`, and formulas whose result is an error are read:\n\n- `fail` (the default): the read fails with `EXCEL-CELL-ERROR`, naming the worksheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.",
+          "message": "Як читаються клітинки з помилкою, наприклад `#DIV/0!`, `#N/A` або `#VALUE!`, і формули, результатом яких є помилка:\n\n- `fail` (типово): читання завершується помилкою `EXCEL-CELL-ERROR`, що називає аркуш, клітинку, стовпець і помилку, якщо не задано `error_field`\n- `null`: клітинка не має значення\n- `text`: значенням клітинки є текст помилки, наприклад `#DIV/0!`, у будь-якому стовпці\n\nЗ `error_field` помилки кожного запису також повертаються в окремому полі, а клітинки з помилками читаються як відсутнє значення, якщо цей параметр не дорівнює `text`."
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Помилка"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The read fails at the first error cell",
+          "message": "Читання завершується помилкою на першій клітинці з помилкою"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "The read fails with `EXCEL-CELL-ERROR` at the first error cell, unless `error_field` is set",
+          "message": "Читання завершується помилкою `EXCEL-CELL-ERROR` на першій клітинці з помилкою, якщо не задано `error_field`"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
+          "source": "No Value",
+          "message": "Без значення"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
+          "source": "Error cells have no value",
+          "message": "Клітинки з помилками не мають значення"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
+          "source": "Error cells are read as no value",
+          "message": "Клітинки з помилками читаються як відсутнє значення"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Error Text",
+          "message": "Текст помилки"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Error cells are read as the error's text",
+          "message": "Клітинки з помилками читаються як текст помилки"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
+          "message": "Клітинки з помилками в будь-якому стовпці читаються як текст помилки, наприклад `#DIV/0!`"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfZmllbGQ.display_name": {
+          "source": "Error Field",
+          "message": "Поле помилок"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfZmllbGQ.short_desc": {
+          "source": "Return the errors of each row's cells in a field with this name",
+          "message": "Повертати помилки клітинок кожного рядка в полі з цією назвою"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfZmllbGQ.desc": {
+          "source": "The name of an extra field added to every record with the errors of the row's cells: a hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the record's cells is an error.  Error cells are then accepted: they are read as no value, or as their text if `error_cells` is `text`.  The name must not be the name of a column of the worksheet or of the `formula_field`; a name that is raises `EXCEL-READ-OPTION-ERROR`.",
+          "message": "Назва додаткового поля, що додається до кожного запису з помилками клітинок рядка: хеш тексту помилки (наприклад `#DIV/0!`) за назвою стовпця або `NOTHING`, якщо жодна клітинка запису не є помилкою.  Тоді клітинки з помилками приймаються: вони читаються як відсутнє значення або як їхній текст, якщо `error_cells` дорівнює `text`.  Назва не може бути назвою стовпця аркуша чи `formula_field`; така назва викликає `EXCEL-READ-OPTION-ERROR`."
+        },
         "app.RXhjZWw.action.cmVhZA.option.Zm9ybXVsYV9maWVsZA.display_name": {
           "source": "Formula Field",
           "message": "Поле формул"
@@ -146,6 +218,18 @@
         "app.RXhjZWw.action.cmVhZA.option.dG9sd3I.desc": {
           "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
           "message": "Якщо `True` (за замовчуванням `False`), усі автоматично виявлені назви заголовків будуть перетворені на нижній регістр"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
+          "source": "Type Sample Rows",
+          "message": "Рядки вибірки типів"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
+          "source": "The number of rows read to infer the type of each column",
+          "message": "Кількість рядків, що читаються для визначення типу кожного стовпця"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
+          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the worksheet has headers.",
+          "message": "Кількість рядків даних, що читаються для визначення типу кожного стовпця з його значень; `0` читає кожне значення так, як його збережено, зі стовпцями будь-якого типу.\n\nСтовпець, усі значення якого в цих рядках є цілими числами, є стовпцем `int`, числами — стовпцем `float`, логічними значеннями — стовпцем `bool`, датами — стовпцем `date`, а текстом — стовпцем `string`; стовпець зі значеннями різних видів або без значень повертається так, як його збережено (`any`).  Порожні клітинки та клітинки з помилками не враховуються.  Типи — це типи профілю електронної таблиці.  Пізніше значення, якого тип його стовпця не приймає, викликає `EXCEL-COLUMN-TYPE-ERROR`, що називає способи виправлення: задати тип стовпця в `column_types` або взяти більше рядків у вибірку.  Стовпці мають тип, лише коли аркуш має заголовки."
         },
         "app.RXhjZWw.action.cmVhZA.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
           "source": "Worksheet Name Pattern",
@@ -339,6 +423,78 @@
           "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
           "message": "Якщо `True`, то об'єкт проаналізує назви заголовків із першого рядка заголовка; у цьому випадку, якщо `header_cells` не вказано явно, вважатиметься, що це перший рядок"
         },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.display_name": {
+          "source": "Column Types",
+          "message": "Типи стовпців"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.short_desc": {
+          "source": "The type of columns whose type is not inferred from their values",
+          "message": "Тип стовпців, тип яких не визначається з їхніх значень"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.desc": {
+          "source": "The type of each column whose type is given rather than inferred from the first rows (see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or `any`.\n\nValues are converted to the column's type: `string` converts numbers, booleans and dates to text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; `float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates; `any` returns every value as stored.  A value that the type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`.  A column that is not a column of the worksheet, or an unknown type, raises `EXCEL-READ-OPTION-ERROR`.  Columns are only typed when the worksheet has headers.",
+          "message": "Тип кожного стовпця, тип якого задано, а не визначено з перших рядків (див. `type_sample_rows`), за назвою стовпця: `string`, `int`, `float`, `number`, `bool`, `date` або `any`.\n\nЗначення перетворюються на тип стовпця: `string` перетворює числа, логічні значення й дати на текст (наприклад, ідентифікатори, збережені як числа); `int` приймає числа без дробової частини; `float` і `number` приймають числа; `bool` приймає логічні значення; `date` приймає дати; `any` повертає кожне значення так, як його збережено.  Значення, якого тип не приймає, викликає `EXCEL-COLUMN-TYPE-ERROR`.  Стовпець, що не є стовпцем аркуша, або невідомий тип викликає `EXCEL-READ-OPTION-ERROR`.  Стовпці мають тип, лише коли аркуш має заголовки."
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.display_name": {
+          "source": "Error Cells",
+          "message": "Клітинки з помилками"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.short_desc": {
+          "source": "How cells with an error such as #DIV/0! or #N/A are read",
+          "message": "Як читаються клітинки з помилкою, наприклад #DIV/0! або #N/A"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.desc": {
+          "source": "How cells with an error, such as `#DIV/0!`, `#N/A` or `#VALUE!`, and formulas whose result is an error are read:\n\n- `fail` (the default): the read fails with `EXCEL-CELL-ERROR`, naming the worksheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.",
+          "message": "Як читаються клітинки з помилкою, наприклад `#DIV/0!`, `#N/A` або `#VALUE!`, і формули, результатом яких є помилка:\n\n- `fail` (типово): читання завершується помилкою `EXCEL-CELL-ERROR`, що називає аркуш, клітинку, стовпець і помилку, якщо не задано `error_field`\n- `null`: клітинка не має значення\n- `text`: значенням клітинки є текст помилки, наприклад `#DIV/0!`, у будь-якому стовпці\n\nЗ `error_field` помилки кожного запису також повертаються в окремому полі, а клітинки з помилками читаються як відсутнє значення, якщо цей параметр не дорівнює `text`."
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Помилка"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The read fails at the first error cell",
+          "message": "Читання завершується помилкою на першій клітинці з помилкою"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "The read fails with `EXCEL-CELL-ERROR` at the first error cell, unless `error_field` is set",
+          "message": "Читання завершується помилкою `EXCEL-CELL-ERROR` на першій клітинці з помилкою, якщо не задано `error_field`"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
+          "source": "No Value",
+          "message": "Без значення"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
+          "source": "Error cells have no value",
+          "message": "Клітинки з помилками не мають значення"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
+          "source": "Error cells are read as no value",
+          "message": "Клітинки з помилками читаються як відсутнє значення"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Error Text",
+          "message": "Текст помилки"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Error cells are read as the error's text",
+          "message": "Клітинки з помилками читаються як текст помилки"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
+          "message": "Клітинки з помилками в будь-якому стовпці читаються як текст помилки, наприклад `#DIV/0!`"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.display_name": {
+          "source": "Error Field",
+          "message": "Поле помилок"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.short_desc": {
+          "source": "Return the errors of each row's cells in a field with this name",
+          "message": "Повертати помилки клітинок кожного рядка в полі з цією назвою"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.desc": {
+          "source": "The name of an extra field added to every record with the errors of the row's cells: a hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the record's cells is an error.  Error cells are then accepted: they are read as no value, or as their text if `error_cells` is `text`.  The name must not be the name of a column of the worksheet or of the `formula_field`; a name that is raises `EXCEL-READ-OPTION-ERROR`.",
+          "message": "Назва додаткового поля, що додається до кожного запису з помилками клітинок рядка: хеш тексту помилки (наприклад `#DIV/0!`) за назвою стовпця або `NOTHING`, якщо жодна клітинка запису не є помилкою.  Тоді клітинки з помилками приймаються: вони читаються як відсутнє значення або як їхній текст, якщо `error_cells` дорівнює `text`.  Назва не може бути назвою стовпця аркуша чи `formula_field`; така назва викликає `EXCEL-READ-OPTION-ERROR`."
+        },
         "app.RXhjZWw.action.cmVhZC1kYXRh.option.Zm9ybXVsYV9maWVsZA.display_name": {
           "source": "Formula Field",
           "message": "Поле формул"
@@ -398,6 +554,18 @@
         "app.RXhjZWw.action.cmVhZC1kYXRh.option.dG9sd3I.desc": {
           "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
           "message": "Якщо `True` (за замовчуванням `False`), усі автоматично виявлені назви заголовків будуть перетворені на нижній регістр"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
+          "source": "Type Sample Rows",
+          "message": "Рядки вибірки типів"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
+          "source": "The number of rows read to infer the type of each column",
+          "message": "Кількість рядків, що читаються для визначення типу кожного стовпця"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
+          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the worksheet has headers.",
+          "message": "Кількість рядків даних, що читаються для визначення типу кожного стовпця з його значень; `0` читає кожне значення так, як його збережено, зі стовпцями будь-якого типу.\n\nСтовпець, усі значення якого в цих рядках є цілими числами, є стовпцем `int`, числами — стовпцем `float`, логічними значеннями — стовпцем `bool`, датами — стовпцем `date`, а текстом — стовпцем `string`; стовпець зі значеннями різних видів або без значень повертається так, як його збережено (`any`).  Порожні клітинки та клітинки з помилками не враховуються.  Типи — це типи профілю електронної таблиці.  Пізніше значення, якого тип його стовпця не приймає, викликає `EXCEL-COLUMN-TYPE-ERROR`, що називає способи виправлення: задати тип стовпця в `column_types` або взяти більше рядків у вибірку.  Стовпці мають тип, лише коли аркуш має заголовки."
         },
         "app.RXhjZWw.action.cmVhZC1kYXRh.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
           "source": "Worksheet Name Pattern",

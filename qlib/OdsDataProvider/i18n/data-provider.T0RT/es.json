@@ -87,6 +87,78 @@
           "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
           "message": "Si `True`, el objeto analizará los nombres de encabezado de la primera fila de encabezado; en este caso, si `header_cells` no se establece explícitamente, se asumirá que es la primera fila"
         },
+        "app.T0RT.action.cmVhZA.option.Y29sdW1uX3R5cGVz.display_name": {
+          "source": "Column Types",
+          "message": "Tipos de columna"
+        },
+        "app.T0RT.action.cmVhZA.option.Y29sdW1uX3R5cGVz.short_desc": {
+          "source": "The type of columns whose type is not inferred from their values",
+          "message": "El tipo de las columnas cuyo tipo no se infiere de sus valores"
+        },
+        "app.T0RT.action.cmVhZA.option.Y29sdW1uX3R5cGVz.desc": {
+          "source": "The type of each column whose type is given rather than inferred from the first rows (see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or `any`.\n\nValues are converted to the column's type: `string` converts numbers, booleans and dates to text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; `float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates and times; `any` returns every value as stored.  A value that the type does not accept raises `ODS-COLUMN-TYPE-ERROR`.  A column that is not a column of the sheet, or an unknown type, raises `ODS-READ-OPTION-ERROR`.  Columns are only typed when the sheet has headers.",
+          "message": "El tipo de cada columna cuyo tipo se indica en lugar de inferirse de las primeras filas (véase `type_sample_rows`), por nombre de columna: `string`, `int`, `float`, `number`, `bool`, `date` o `any`.\n\nLos valores se convierten al tipo de la columna: `string` convierte números, booleanos y fechas en texto (por ejemplo, identificadores almacenados como números); `int` acepta números sin parte fraccionaria; `float` y `number` aceptan números; `bool` acepta booleanos; `date` acepta fechas y horas; `any` devuelve cada valor tal como está almacenado.  Un valor que el tipo no acepta genera `ODS-COLUMN-TYPE-ERROR`.  Una columna que no es una columna de la hoja, o un tipo desconocido, genera `ODS-READ-OPTION-ERROR`.  Las columnas solo tienen tipo cuando la hoja tiene encabezados."
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.display_name": {
+          "source": "Error Cells",
+          "message": "Celdas con error"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.short_desc": {
+          "source": "How cells with an error such as #DIV/0! or #N/A are read",
+          "message": "Cómo se leen las celdas con un error como #DIV/0! o #N/A"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.desc": {
+          "source": "How formula cells whose result is an error, such as `#DIV/0!`, `#N/A` or `Err:502`, are read:\n\n- `fail` (the default): the read fails with `ODS-CELL-ERROR`, naming the sheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.\n\nError cells are recognized as LibreOffice marks them; a file saved by a program that stores errors as plain text has text cells instead.",
+          "message": "Cómo se leen las celdas de fórmula cuyo resultado es un error, como `#DIV/0!`, `#N/A` o `Err:502`:\n\n- `fail` (predeterminado): la lectura falla con `ODS-CELL-ERROR`, que indica la hoja, la celda, la columna y el error, a menos que se establezca `error_field`\n- `null`: la celda no tiene valor\n- `text`: el valor de la celda es el texto del error, como `#DIV/0!`, en cualquier columna\n\nCon `error_field`, los errores de cada registro también se devuelven en un campo propio, y las celdas con error se leen sin valor a menos que esta opción sea `text`.\n\nLas celdas con error se reconocen tal como las marca LibreOffice; un archivo guardado por un programa que almacena los errores como texto sin formato tiene celdas de texto en su lugar."
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Fallar"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The read fails at the first error cell",
+          "message": "La lectura falla en la primera celda con error"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "The read fails with `ODS-CELL-ERROR` at the first error cell, unless `error_field` is set",
+          "message": "La lectura falla con `ODS-CELL-ERROR` en la primera celda con error, a menos que se establezca `error_field`"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
+          "source": "No Value",
+          "message": "Sin valor"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
+          "source": "Error cells have no value",
+          "message": "Las celdas con error no tienen valor"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
+          "source": "Error cells are read as no value",
+          "message": "Las celdas con error se leen sin valor"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Error Text",
+          "message": "Texto del error"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Error cells are read as the error's text",
+          "message": "Las celdas con error se leen como el texto del error"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
+          "message": "Las celdas con error se leen como el texto del error, como `#DIV/0!`, en cualquier columna"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfZmllbGQ.display_name": {
+          "source": "Error Field",
+          "message": "Campo de errores"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfZmllbGQ.short_desc": {
+          "source": "Return the errors of each row's cells in a field with this name",
+          "message": "Devolver los errores de las celdas de cada fila en un campo con este nombre"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfZmllbGQ.desc": {
+          "source": "The name of an extra field added to every record with the errors of the row's cells: a hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the record's cells is an error.  Error cells are then accepted: they are read as no value, or as their text if `error_cells` is `text`.  The name must not be the name of a column of the sheet or of the `formula_field`; a name that is raises `ODS-READ-OPTION-ERROR`.",
+          "message": "El nombre de un campo adicional que se añade a cada registro con los errores de las celdas de la fila: un hash del texto del error (como `#DIV/0!`) por nombre de columna, o `NOTHING` si ninguna celda del registro es un error.  Las celdas con error se aceptan entonces: se leen sin valor, o como su texto si `error_cells` es `text`.  El nombre no debe ser el nombre de una columna de la hoja ni el de `formula_field`; un nombre así genera `ODS-READ-OPTION-ERROR`."
+        },
         "app.T0RT.action.cmVhZA.option.Zm9ybXVsYV9maWVsZA.display_name": {
           "source": "Formula Field",
           "message": "Campo de fórmulas"
@@ -146,6 +218,18 @@
         "app.T0RT.action.cmVhZA.option.dG9sd3I.desc": {
           "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
           "message": "Si `True` (por defecto `False`), todos los nombres de encabezado detectados automáticamente se convertirán a minúsculas"
+        },
+        "app.T0RT.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
+          "source": "Type Sample Rows",
+          "message": "Filas de muestra de tipos"
+        },
+        "app.T0RT.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
+          "source": "The number of rows read to infer the type of each column",
+          "message": "El número de filas leídas para inferir el tipo de cada columna"
+        },
+        "app.T0RT.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
+          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates and times a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `ODS-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the sheet has headers.",
+          "message": "El número de filas de datos leídas para inferir el tipo de cada columna a partir de sus valores; `0` lee cada valor tal como está almacenado, con columnas de cualquier tipo.\n\nUna columna cuyos valores en estas filas son todos números enteros es una columna `int`; números, una columna `float`; booleanos, una columna `bool`; fechas y horas, una columna `date`; y texto, una columna `string`; una columna con valores de distintos tipos, o sin valores, se devuelve tal como está almacenada (`any`).  Las celdas vacías y las celdas con error no se cuentan.  Los tipos son los del perfil de la hoja de cálculo.  Un valor posterior que el tipo de su columna no acepta genera `ODS-COLUMN-TYPE-ERROR`, que indica las soluciones: dar el tipo de la columna con `column_types` o muestrear más filas.  Las columnas solo tienen tipo cuando la hoja tiene encabezados."
         },
         "app.T0RT.action.cmVhZA.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
           "source": "Worksheet Name Pattern",
@@ -339,6 +423,78 @@
           "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
           "message": "Si `True`, el objeto analizará los nombres de encabezado de la primera fila de encabezado; en este caso, si `header_cells` no se establece explícitamente, se asumirá que es la primera fila"
         },
+        "app.T0RT.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.display_name": {
+          "source": "Column Types",
+          "message": "Tipos de columna"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.short_desc": {
+          "source": "The type of columns whose type is not inferred from their values",
+          "message": "El tipo de las columnas cuyo tipo no se infiere de sus valores"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.desc": {
+          "source": "The type of each column whose type is given rather than inferred from the first rows (see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or `any`.\n\nValues are converted to the column's type: `string` converts numbers, booleans and dates to text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; `float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates and times; `any` returns every value as stored.  A value that the type does not accept raises `ODS-COLUMN-TYPE-ERROR`.  A column that is not a column of the sheet, or an unknown type, raises `ODS-READ-OPTION-ERROR`.  Columns are only typed when the sheet has headers.",
+          "message": "El tipo de cada columna cuyo tipo se indica en lugar de inferirse de las primeras filas (véase `type_sample_rows`), por nombre de columna: `string`, `int`, `float`, `number`, `bool`, `date` o `any`.\n\nLos valores se convierten al tipo de la columna: `string` convierte números, booleanos y fechas en texto (por ejemplo, identificadores almacenados como números); `int` acepta números sin parte fraccionaria; `float` y `number` aceptan números; `bool` acepta booleanos; `date` acepta fechas y horas; `any` devuelve cada valor tal como está almacenado.  Un valor que el tipo no acepta genera `ODS-COLUMN-TYPE-ERROR`.  Una columna que no es una columna de la hoja, o un tipo desconocido, genera `ODS-READ-OPTION-ERROR`.  Las columnas solo tienen tipo cuando la hoja tiene encabezados."
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.display_name": {
+          "source": "Error Cells",
+          "message": "Celdas con error"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.short_desc": {
+          "source": "How cells with an error such as #DIV/0! or #N/A are read",
+          "message": "Cómo se leen las celdas con un error como #DIV/0! o #N/A"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.desc": {
+          "source": "How formula cells whose result is an error, such as `#DIV/0!`, `#N/A` or `Err:502`, are read:\n\n- `fail` (the default): the read fails with `ODS-CELL-ERROR`, naming the sheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.\n\nError cells are recognized as LibreOffice marks them; a file saved by a program that stores errors as plain text has text cells instead.",
+          "message": "Cómo se leen las celdas de fórmula cuyo resultado es un error, como `#DIV/0!`, `#N/A` o `Err:502`:\n\n- `fail` (predeterminado): la lectura falla con `ODS-CELL-ERROR`, que indica la hoja, la celda, la columna y el error, a menos que se establezca `error_field`\n- `null`: la celda no tiene valor\n- `text`: el valor de la celda es el texto del error, como `#DIV/0!`, en cualquier columna\n\nCon `error_field`, los errores de cada registro también se devuelven en un campo propio, y las celdas con error se leen sin valor a menos que esta opción sea `text`.\n\nLas celdas con error se reconocen tal como las marca LibreOffice; un archivo guardado por un programa que almacena los errores como texto sin formato tiene celdas de texto en su lugar."
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Fallar"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The read fails at the first error cell",
+          "message": "La lectura falla en la primera celda con error"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "The read fails with `ODS-CELL-ERROR` at the first error cell, unless `error_field` is set",
+          "message": "La lectura falla con `ODS-CELL-ERROR` en la primera celda con error, a menos que se establezca `error_field`"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
+          "source": "No Value",
+          "message": "Sin valor"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
+          "source": "Error cells have no value",
+          "message": "Las celdas con error no tienen valor"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
+          "source": "Error cells are read as no value",
+          "message": "Las celdas con error se leen sin valor"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Error Text",
+          "message": "Texto del error"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Error cells are read as the error's text",
+          "message": "Las celdas con error se leen como el texto del error"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
+          "message": "Las celdas con error se leen como el texto del error, como `#DIV/0!`, en cualquier columna"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.display_name": {
+          "source": "Error Field",
+          "message": "Campo de errores"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.short_desc": {
+          "source": "Return the errors of each row's cells in a field with this name",
+          "message": "Devolver los errores de las celdas de cada fila en un campo con este nombre"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.desc": {
+          "source": "The name of an extra field added to every record with the errors of the row's cells: a hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the record's cells is an error.  Error cells are then accepted: they are read as no value, or as their text if `error_cells` is `text`.  The name must not be the name of a column of the sheet or of the `formula_field`; a name that is raises `ODS-READ-OPTION-ERROR`.",
+          "message": "El nombre de un campo adicional que se añade a cada registro con los errores de las celdas de la fila: un hash del texto del error (como `#DIV/0!`) por nombre de columna, o `NOTHING` si ninguna celda del registro es un error.  Las celdas con error se aceptan entonces: se leen sin valor, o como su texto si `error_cells` es `text`.  El nombre no debe ser el nombre de una columna de la hoja ni el de `formula_field`; un nombre así genera `ODS-READ-OPTION-ERROR`."
+        },
         "app.T0RT.action.cmVhZC1kYXRh.option.Zm9ybXVsYV9maWVsZA.display_name": {
           "source": "Formula Field",
           "message": "Campo de fórmulas"
@@ -398,6 +554,18 @@
         "app.T0RT.action.cmVhZC1kYXRh.option.dG9sd3I.desc": {
           "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
           "message": "Si `True` (por defecto `False`), todos los nombres de encabezado detectados automáticamente se convertirán a minúsculas"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
+          "source": "Type Sample Rows",
+          "message": "Filas de muestra de tipos"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
+          "source": "The number of rows read to infer the type of each column",
+          "message": "El número de filas leídas para inferir el tipo de cada columna"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
+          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates and times a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `ODS-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the sheet has headers.",
+          "message": "El número de filas de datos leídas para inferir el tipo de cada columna a partir de sus valores; `0` lee cada valor tal como está almacenado, con columnas de cualquier tipo.\n\nUna columna cuyos valores en estas filas son todos números enteros es una columna `int`; números, una columna `float`; booleanos, una columna `bool`; fechas y horas, una columna `date`; y texto, una columna `string`; una columna con valores de distintos tipos, o sin valores, se devuelve tal como está almacenada (`any`).  Las celdas vacías y las celdas con error no se cuentan.  Los tipos son los del perfil de la hoja de cálculo.  Un valor posterior que el tipo de su columna no acepta genera `ODS-COLUMN-TYPE-ERROR`, que indica las soluciones: dar el tipo de la columna con `column_types` o muestrear más filas.  Las columnas solo tienen tipo cuando la hoja tiene encabezados."
         },
         "app.T0RT.action.cmVhZC1kYXRh.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
           "source": "Worksheet Name Pattern",

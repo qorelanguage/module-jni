@@ -28,12 +28,15 @@ import java.io.UncheckedIOException;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
 import java.time.DateTimeException;
 import java.time.zone.ZoneRulesException;
 
+import org.qore.dataprovider.format.SpreadsheetColumnType;
 import org.qore.jni.Hash;
 import org.qore.jni.QoreException;
 
@@ -64,6 +67,19 @@ public class OdsIterator extends qore.Qore.AbstractIterator implements java.io.C
     private boolean ignore_empty = false;
     // the name of the field holding the formulas of each record's cells; null if formulas are not returned
     private String formula_field = null;
+    // how error cells are read: "fail", "null" or "text"
+    private String error_cells = "fail";
+    // the name of the field holding the errors of each record's cells; null if errors are not returned
+    private String error_field = null;
+    // the type of each column with a type; null if values are returned as read
+    private HashMap<String, String> column_types = null;
+    // the columns whose types were given (not inferred)
+    private HashSet<String> declared_types = new HashSet<String>();
+    // the number of data rows that the inferred column types were sampled from
+    private int type_sample_rows = 0;
+    // true while rows are sampled to infer column types: error cells are read as no value, and values are not
+    // converted
+    private boolean sampling = false;
     // the number of columns of the table, as ODFDOM gives it
     private final int cachedColCount;
 
@@ -224,6 +240,122 @@ public class OdsIterator extends qore.Qore.AbstractIterator implements java.io.C
         return count;
     }
 
+    /**
+     * Sets how error cells (formula cells whose result is an error, such as #DIV/0!) are read
+     *
+     * @param mode "fail" (the default): an error cell raises ODS-CELL-ERROR, unless the errors are returned in an
+     * error field; "null": no value; "text": the error text, such as "#DIV/0!"
+     *
+     * @throws QoreException ODS-READ-OPTION-ERROR if the mode is unknown
+     */
+    public void setErrorCells(String mode) throws QoreException {
+        if (!"fail".equals(mode) && !"null".equals(mode) && !"text".equals(mode)) {
+            throw new QoreException("ODS-READ-OPTION-ERROR", String.format("invalid \"error_cells\" option "
+                + "\"%s\"; expecting \"fail\", \"null\", or \"text\"", mode));
+        }
+        error_cells = mode;
+    }
+
+    /**
+     * Returns the errors of the cells of each record in a field with the given name: a hash of the error text (ex:
+     * "#DIV/0!") by column name, or null if none of the record's cells is an error; the error cells are then read as
+     * no value, or as their text with setErrorCells("text")
+     *
+     * Call this after the headers and the formula field are set; the name must not be one of the headers or the
+     * formula field.
+     *
+     * @throws QoreException ODS-READ-OPTION-ERROR if the name is empty, one of the headers, or the formula field
+     */
+    public void setErrorField(String name) throws QoreException {
+        if (name == null || name.isEmpty()) {
+            throw new QoreException("ODS-READ-OPTION-ERROR", "the \"error_field\" option must not be empty");
+        }
+        if (headers.contains(name) || name.equals(formula_field)) {
+            throw new QoreException("ODS-READ-OPTION-ERROR", String.format("the \"error_field\" option \"%s\" is "
+                + "the name of a column of the sheet or of the formula field; choose another name; columns: %s", name,
+                headers));
+        }
+        error_field = name;
+    }
+
+    /**
+     * Returns the first data records of the sheet, read as stored, to infer the types of the columns; error cells
+     * are read as no value
+     *
+     * The iteration is reset before and after the sample is read.
+     *
+     * @param rows the maximum number of records
+     */
+    public Hash[] sample(int rows) {
+        ArrayList<Hash> rv = new ArrayList<Hash>();
+        reset();
+        sampling = true;
+        try {
+            while (rv.size() < rows && next()) {
+                rv.add(row_data);
+            }
+        } finally {
+            sampling = false;
+            reset();
+        }
+        return rv.toArray(new Hash[0]);
+    }
+
+    /**
+     * Returns the type of each column with a type, or null if values are returned as read
+     */
+    public Hash getColumnTypes() {
+        if (column_types == null) {
+            return null;
+        }
+        Hash rv = new Hash();
+        for (String header : headers) {
+            String type = column_types.get(header);
+            if (type != null) {
+                rv.put(header, type);
+            }
+        }
+        return rv;
+    }
+
+    /**
+     * Restarts the iteration from the first data row
+     */
+    public void reset() {
+        current_row = -1;
+        row_data = null;
+        count = 0;
+        closeRows();
+    }
+
+    /**
+     * Sets the types that the values of columns are converted to
+     *
+     * @param types the type of each column with a type: "string", "int", "float", "number", "bool", "date", or
+     * "any"; columns without a type are returned as read
+     * @param declared the columns whose types were given rather than inferred
+     * @param sample_rows the number of data rows the other types were inferred from
+     *
+     * @throws QoreException ODS-READ-OPTION-ERROR if a type is unknown
+     */
+    public void setColumnTypes(Hash types, String[] declared, int sample_rows) throws QoreException {
+        HashMap<String, String> map = new HashMap<String, String>();
+        for (java.util.Map.Entry<String, Object> e : types.entrySet()) {
+            String type = e.getValue() == null ? null : e.getValue().toString();
+            if (!SpreadsheetColumnType.isType(type)) {
+                throw new QoreException("ODS-READ-OPTION-ERROR", String.format("column \"%s\" has an invalid "
+                    + "type \"%s\"; expecting one of: %s", e.getKey(), type, SpreadsheetColumnType.TYPE_LIST));
+            }
+            map.put(e.getKey(), type);
+        }
+        column_types = map;
+        declared_types.clear();
+        if (declared != null) {
+            Collections.addAll(declared_types, declared);
+        }
+        type_sample_rows = sample_rows;
+    }
+
     public boolean next() {
         getReader();
         if (current_row == -1) {
@@ -373,19 +505,26 @@ public class OdsIterator extends qore.Qore.AbstractIterator implements java.io.C
         Hash row_data = null;
         // the formulas of the record's cells by A1 reference, if formulas are returned
         Hash formulas = null;
+        // the errors of the record's cells by column, if errors are returned
+        Hash errors = null;
         while (true) {
             if (cell_no >= cachedColCount) {
                 break;
             }
             OdsCell cell = row.getCell(cell_no);
-            Object val;
+            Object val = null;
+            // the error text of an error cell
+            String error = null;
 
             // a row element can have fewer cells than the table has columns, in which case there is no cell
             if (isEmpty(cell)) {
                 if (auto_detect_data) {
                     break;
                 }
-                val = null;
+            } else if (cell.isError()) {
+                // an error is content of the row
+                error = cell.getErrorText();
+                found_data = true;
             } else {
                 val = getCellValue(cell);
                 if (val != null && !found_data) {
@@ -401,6 +540,31 @@ public class OdsIterator extends qore.Qore.AbstractIterator implements java.io.C
                 key = headers.get(col_no);
             } else {
                 key = String.format("%s%d", colIndexToString(col_no), rownum);
+            }
+
+            if (error != null) {
+                if (!sampling) {
+                    if (error_field != null) {
+                        if (errors == null) {
+                            errors = new Hash();
+                        }
+                        errors.put(key, error);
+                    }
+                    if ("text".equals(error_cells)) {
+                        val = error;
+                    } else if (!"null".equals(error_cells) && error_field == null) {
+                        throw cellError(error, key, rownum, cell_no);
+                    }
+                }
+            } else if (val != null && column_types != null && !sampling) {
+                String type = column_types.get(key);
+                if (type != null) {
+                    Object v = SpreadsheetColumnType.convert(val, type);
+                    if (v == SpreadsheetColumnType.MISMATCH) {
+                        throw typeError(val, type, key, rownum);
+                    }
+                    val = v;
+                }
             }
 
             if (row_data == null) {
@@ -437,7 +601,52 @@ public class OdsIterator extends qore.Qore.AbstractIterator implements java.io.C
             }
             row_data.put(formula_field, formulas);
         }
+        if (error_field != null && !sampling) {
+            if (row_data.containsKey(error_field)) {
+                throw new QoreException("ODS-READ-OPTION-ERROR", String.format("the \"error_field\" option \"%s\" "
+                    + "is the name of a field of the record of row %d; choose another name", error_field, rownum));
+            }
+            row_data.put(error_field, errors);
+        }
         return row_data;
+    }
+
+    /**
+     * Returns the exception for an error cell that the read does not accept
+     */
+    private QoreException cellError(String error, String column, int rownum, int col) {
+        String ref = OdsGridReader.formulaReference(rownum - 1, col);
+        String sheet = getReader().getTableName();
+        Hash arg = new Hash();
+        arg.put("worksheet", sheet);
+        arg.put("cell", ref);
+        arg.put("row", rownum);
+        arg.put("column", column);
+        arg.put("error", error);
+        return new QoreException("ODS-CELL-ERROR", String.format("worksheet \"%s\" cell %s (column \"%s\") is the "
+            + "error %s; set \"error_cells\" to \"null\" to read error cells as no value or to \"text\" to read them "
+            + "as their text, or set \"error_field\" to return the errors of each record in a field of their own",
+            sheet, ref, column, error), arg);
+    }
+
+    /**
+     * Returns the exception for a value that is not of the type of its column
+     */
+    private QoreException typeError(Object val, String type, String column, int rownum) {
+        String sheet = getReader().getTableName();
+        Hash arg = new Hash();
+        arg.put("worksheet", sheet);
+        arg.put("row", rownum);
+        arg.put("column", column);
+        arg.put("value", val);
+        arg.put("type", type);
+        String source = declared_types.contains(column)
+            ? "given by \"column_types\""
+            : String.format("inferred from the first %d data rows", type_sample_rows);
+        return new QoreException("ODS-COLUMN-TYPE-ERROR", String.format("worksheet \"%s\" row %d column \"%s\": "
+            + "the value %s is not a value of the column's type %s, %s; give the column's type with \"column_types\" "
+            + "(ex: {\"%s\": \"any\"}) or infer the types from more rows with \"type_sample_rows\"", sheet, rownum,
+            column, SpreadsheetColumnType.describe(val), type, source, column), arg);
     }
 
     /**
@@ -482,7 +691,7 @@ public class OdsIterator extends qore.Qore.AbstractIterator implements java.io.C
             if (last < first_col) {
                 return -1;
             }
-            if (last < start || isEmpty(cell) || getCellValue(cell) == null) {
+            if (last < start || isEmpty(cell) || (!cell.isError() && getCellValue(cell) == null)) {
                 continue;
             }
             return last;

@@ -87,6 +87,78 @@
           "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
           "message": "`True`인 경우 개체가 첫 번째 헤더 행에서 헤더 이름을 구문 분석합니다. 이 경우 `header_cells`이 명시적으로 설정되지 않은 경우 첫 번째 행으로 간주됩니다."
         },
+        "app.T0RT.action.cmVhZA.option.Y29sdW1uX3R5cGVz.display_name": {
+          "source": "Column Types",
+          "message": "열 형식"
+        },
+        "app.T0RT.action.cmVhZA.option.Y29sdW1uX3R5cGVz.short_desc": {
+          "source": "The type of columns whose type is not inferred from their values",
+          "message": "값에서 형식을 추론하지 않는 열의 형식"
+        },
+        "app.T0RT.action.cmVhZA.option.Y29sdW1uX3R5cGVz.desc": {
+          "source": "The type of each column whose type is given rather than inferred from the first rows (see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or `any`.\n\nValues are converted to the column's type: `string` converts numbers, booleans and dates to text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; `float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates and times; `any` returns every value as stored.  A value that the type does not accept raises `ODS-COLUMN-TYPE-ERROR`.  A column that is not a column of the sheet, or an unknown type, raises `ODS-READ-OPTION-ERROR`.  Columns are only typed when the sheet has headers.",
+          "message": "첫 번째 행에서 추론하는 대신 형식을 지정하는 각 열의 형식을 열 이름별로 지정합니다(`type_sample_rows` 참조): `string`, `int`, `float`, `number`, `bool`, `date` 또는 `any`.\n\n값은 열의 형식으로 변환됩니다. `string`은 숫자, 부울 값 및 날짜를 텍스트로 변환합니다(예: 숫자로 저장된 식별자). `int`는 소수부가 없는 숫자를 허용합니다. `float`와 `number`는 숫자를 허용합니다. `bool`은 부울 값을 허용합니다. `date`는 날짜와 시간을 허용합니다. `any`는 모든 값을 저장된 그대로 반환합니다.  형식이 허용하지 않는 값은 `ODS-COLUMN-TYPE-ERROR`를 발생시킵니다.  시트의 열이 아닌 열이나 알 수 없는 형식은 `ODS-READ-OPTION-ERROR`를 발생시킵니다.  열은 시트에 헤더가 있을 때만 형식이 지정됩니다."
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.display_name": {
+          "source": "Error Cells",
+          "message": "오류 셀"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.short_desc": {
+          "source": "How cells with an error such as #DIV/0! or #N/A are read",
+          "message": "#DIV/0! 또는 #N/A와 같은 오류가 있는 셀을 읽는 방법"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.desc": {
+          "source": "How formula cells whose result is an error, such as `#DIV/0!`, `#N/A` or `Err:502`, are read:\n\n- `fail` (the default): the read fails with `ODS-CELL-ERROR`, naming the sheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.\n\nError cells are recognized as LibreOffice marks them; a file saved by a program that stores errors as plain text has text cells instead.",
+          "message": "결과가 `#DIV/0!`, `#N/A` 또는 `Err:502`와 같은 오류인 수식 셀을 읽는 방법:\n\n- `fail`(기본값): `error_field`가 설정되지 않은 경우 시트, 셀, 열 및 오류를 나타내는 `ODS-CELL-ERROR`로 읽기가 실패합니다\n- `null`: 셀에 값이 없습니다\n- `text`: 모든 열에서 셀 값은 `#DIV/0!`과 같은 오류 텍스트입니다\n\n`error_field`를 사용하면 각 레코드의 오류가 별도의 필드로도 반환되며, 이 옵션이 `text`가 아니면 오류 셀은 값 없음으로 읽힙니다.\n\n오류 셀은 LibreOffice가 표시하는 방식으로 인식됩니다. 오류를 일반 텍스트로 저장하는 프로그램으로 저장한 파일에는 대신 텍스트 셀이 있습니다."
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "실패"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The read fails at the first error cell",
+          "message": "첫 번째 오류 셀에서 읽기가 실패합니다"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "The read fails with `ODS-CELL-ERROR` at the first error cell, unless `error_field` is set",
+          "message": "`error_field`가 설정되지 않은 경우 첫 번째 오류 셀에서 `ODS-CELL-ERROR`로 읽기가 실패합니다"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
+          "source": "No Value",
+          "message": "값 없음"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
+          "source": "Error cells have no value",
+          "message": "오류 셀에는 값이 없습니다"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
+          "source": "Error cells are read as no value",
+          "message": "오류 셀은 값 없음으로 읽힙니다"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Error Text",
+          "message": "오류 텍스트"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Error cells are read as the error's text",
+          "message": "오류 셀은 오류 텍스트로 읽힙니다"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
+          "message": "오류 셀은 모든 열에서 `#DIV/0!`과 같은 오류 텍스트로 읽힙니다"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfZmllbGQ.display_name": {
+          "source": "Error Field",
+          "message": "오류 필드"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfZmllbGQ.short_desc": {
+          "source": "Return the errors of each row's cells in a field with this name",
+          "message": "각 행의 셀 오류를 이 이름의 필드로 반환합니다"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfZmllbGQ.desc": {
+          "source": "The name of an extra field added to every record with the errors of the row's cells: a hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the record's cells is an error.  Error cells are then accepted: they are read as no value, or as their text if `error_cells` is `text`.  The name must not be the name of a column of the sheet or of the `formula_field`; a name that is raises `ODS-READ-OPTION-ERROR`.",
+          "message": "행의 셀 오류와 함께 모든 레코드에 추가되는 필드의 이름입니다. 값은 열 이름을 키로 하는 오류 텍스트(예: `#DIV/0!`)의 해시이며, 레코드의 어느 셀도 오류가 아니면 `NOTHING`입니다.  이때 오류 셀이 허용되며, 값 없음으로 읽히거나 `error_cells`가 `text`이면 해당 텍스트로 읽힙니다.  이름은 시트 열의 이름이나 `formula_field`일 수 없으며, 그런 이름은 `ODS-READ-OPTION-ERROR`를 발생시킵니다."
+        },
         "app.T0RT.action.cmVhZA.option.Zm9ybXVsYV9maWVsZA.display_name": {
           "source": "Formula Field",
           "message": "수식 필드"
@@ -146,6 +218,18 @@
         "app.T0RT.action.cmVhZA.option.dG9sd3I.desc": {
           "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
           "message": "`True`인 경우 (기본값 `False`), 자동으로 감지된 모든 헤더 이름이 소문자로 변환됩니다."
+        },
+        "app.T0RT.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
+          "source": "Type Sample Rows",
+          "message": "형식 샘플 행 수"
+        },
+        "app.T0RT.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
+          "source": "The number of rows read to infer the type of each column",
+          "message": "각 열의 형식을 추론하기 위해 읽는 행 수"
+        },
+        "app.T0RT.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
+          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates and times a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `ODS-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the sheet has headers.",
+          "message": "값에서 각 열의 형식을 추론하기 위해 읽는 데이터 행 수입니다. `0`은 모든 값을 저장된 그대로 읽으며 열은 모든 형식이 됩니다.\n\n이 행들의 값이 모두 정수인 열은 `int` 열, 숫자는 `float` 열, 부울 값은 `bool` 열, 날짜와 시간은 `date` 열, 텍스트는 `string` 열이 됩니다. 종류가 다른 값이 있거나 값이 없는 열은 저장된 그대로 반환됩니다(`any`).  빈 셀과 오류 셀은 계산되지 않습니다.  형식은 스프레드시트 프로필의 형식입니다.  열의 형식이 허용하지 않는 이후의 값은 `ODS-COLUMN-TYPE-ERROR`를 발생시키며, 이 오류는 해결 방법으로 `column_types`로 열의 형식을 지정하거나 더 많은 행을 샘플링하는 방법을 제시합니다.  열은 시트에 헤더가 있을 때만 형식이 지정됩니다."
         },
         "app.T0RT.action.cmVhZA.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
           "source": "Worksheet Name Pattern",
@@ -339,6 +423,78 @@
           "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
           "message": "`True`인 경우 개체가 첫 번째 헤더 행에서 헤더 이름을 구문 분석합니다. 이 경우 `header_cells`이 명시적으로 설정되지 않은 경우 첫 번째 행으로 간주됩니다."
         },
+        "app.T0RT.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.display_name": {
+          "source": "Column Types",
+          "message": "열 형식"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.short_desc": {
+          "source": "The type of columns whose type is not inferred from their values",
+          "message": "값에서 형식을 추론하지 않는 열의 형식"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.desc": {
+          "source": "The type of each column whose type is given rather than inferred from the first rows (see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or `any`.\n\nValues are converted to the column's type: `string` converts numbers, booleans and dates to text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; `float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates and times; `any` returns every value as stored.  A value that the type does not accept raises `ODS-COLUMN-TYPE-ERROR`.  A column that is not a column of the sheet, or an unknown type, raises `ODS-READ-OPTION-ERROR`.  Columns are only typed when the sheet has headers.",
+          "message": "첫 번째 행에서 추론하는 대신 형식을 지정하는 각 열의 형식을 열 이름별로 지정합니다(`type_sample_rows` 참조): `string`, `int`, `float`, `number`, `bool`, `date` 또는 `any`.\n\n값은 열의 형식으로 변환됩니다. `string`은 숫자, 부울 값 및 날짜를 텍스트로 변환합니다(예: 숫자로 저장된 식별자). `int`는 소수부가 없는 숫자를 허용합니다. `float`와 `number`는 숫자를 허용합니다. `bool`은 부울 값을 허용합니다. `date`는 날짜와 시간을 허용합니다. `any`는 모든 값을 저장된 그대로 반환합니다.  형식이 허용하지 않는 값은 `ODS-COLUMN-TYPE-ERROR`를 발생시킵니다.  시트의 열이 아닌 열이나 알 수 없는 형식은 `ODS-READ-OPTION-ERROR`를 발생시킵니다.  열은 시트에 헤더가 있을 때만 형식이 지정됩니다."
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.display_name": {
+          "source": "Error Cells",
+          "message": "오류 셀"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.short_desc": {
+          "source": "How cells with an error such as #DIV/0! or #N/A are read",
+          "message": "#DIV/0! 또는 #N/A와 같은 오류가 있는 셀을 읽는 방법"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.desc": {
+          "source": "How formula cells whose result is an error, such as `#DIV/0!`, `#N/A` or `Err:502`, are read:\n\n- `fail` (the default): the read fails with `ODS-CELL-ERROR`, naming the sheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.\n\nError cells are recognized as LibreOffice marks them; a file saved by a program that stores errors as plain text has text cells instead.",
+          "message": "결과가 `#DIV/0!`, `#N/A` 또는 `Err:502`와 같은 오류인 수식 셀을 읽는 방법:\n\n- `fail`(기본값): `error_field`가 설정되지 않은 경우 시트, 셀, 열 및 오류를 나타내는 `ODS-CELL-ERROR`로 읽기가 실패합니다\n- `null`: 셀에 값이 없습니다\n- `text`: 모든 열에서 셀 값은 `#DIV/0!`과 같은 오류 텍스트입니다\n\n`error_field`를 사용하면 각 레코드의 오류가 별도의 필드로도 반환되며, 이 옵션이 `text`가 아니면 오류 셀은 값 없음으로 읽힙니다.\n\n오류 셀은 LibreOffice가 표시하는 방식으로 인식됩니다. 오류를 일반 텍스트로 저장하는 프로그램으로 저장한 파일에는 대신 텍스트 셀이 있습니다."
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "실패"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The read fails at the first error cell",
+          "message": "첫 번째 오류 셀에서 읽기가 실패합니다"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "The read fails with `ODS-CELL-ERROR` at the first error cell, unless `error_field` is set",
+          "message": "`error_field`가 설정되지 않은 경우 첫 번째 오류 셀에서 `ODS-CELL-ERROR`로 읽기가 실패합니다"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
+          "source": "No Value",
+          "message": "값 없음"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
+          "source": "Error cells have no value",
+          "message": "오류 셀에는 값이 없습니다"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
+          "source": "Error cells are read as no value",
+          "message": "오류 셀은 값 없음으로 읽힙니다"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Error Text",
+          "message": "오류 텍스트"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Error cells are read as the error's text",
+          "message": "오류 셀은 오류 텍스트로 읽힙니다"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
+          "message": "오류 셀은 모든 열에서 `#DIV/0!`과 같은 오류 텍스트로 읽힙니다"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.display_name": {
+          "source": "Error Field",
+          "message": "오류 필드"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.short_desc": {
+          "source": "Return the errors of each row's cells in a field with this name",
+          "message": "각 행의 셀 오류를 이 이름의 필드로 반환합니다"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.desc": {
+          "source": "The name of an extra field added to every record with the errors of the row's cells: a hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the record's cells is an error.  Error cells are then accepted: they are read as no value, or as their text if `error_cells` is `text`.  The name must not be the name of a column of the sheet or of the `formula_field`; a name that is raises `ODS-READ-OPTION-ERROR`.",
+          "message": "행의 셀 오류와 함께 모든 레코드에 추가되는 필드의 이름입니다. 값은 열 이름을 키로 하는 오류 텍스트(예: `#DIV/0!`)의 해시이며, 레코드의 어느 셀도 오류가 아니면 `NOTHING`입니다.  이때 오류 셀이 허용되며, 값 없음으로 읽히거나 `error_cells`가 `text`이면 해당 텍스트로 읽힙니다.  이름은 시트 열의 이름이나 `formula_field`일 수 없으며, 그런 이름은 `ODS-READ-OPTION-ERROR`를 발생시킵니다."
+        },
         "app.T0RT.action.cmVhZC1kYXRh.option.Zm9ybXVsYV9maWVsZA.display_name": {
           "source": "Formula Field",
           "message": "수식 필드"
@@ -398,6 +554,18 @@
         "app.T0RT.action.cmVhZC1kYXRh.option.dG9sd3I.desc": {
           "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
           "message": "`True`인 경우 (기본값 `False`), 자동으로 감지된 모든 헤더 이름이 소문자로 변환됩니다."
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
+          "source": "Type Sample Rows",
+          "message": "형식 샘플 행 수"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
+          "source": "The number of rows read to infer the type of each column",
+          "message": "각 열의 형식을 추론하기 위해 읽는 행 수"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
+          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates and times a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `ODS-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the sheet has headers.",
+          "message": "값에서 각 열의 형식을 추론하기 위해 읽는 데이터 행 수입니다. `0`은 모든 값을 저장된 그대로 읽으며 열은 모든 형식이 됩니다.\n\n이 행들의 값이 모두 정수인 열은 `int` 열, 숫자는 `float` 열, 부울 값은 `bool` 열, 날짜와 시간은 `date` 열, 텍스트는 `string` 열이 됩니다. 종류가 다른 값이 있거나 값이 없는 열은 저장된 그대로 반환됩니다(`any`).  빈 셀과 오류 셀은 계산되지 않습니다.  형식은 스프레드시트 프로필의 형식입니다.  열의 형식이 허용하지 않는 이후의 값은 `ODS-COLUMN-TYPE-ERROR`를 발생시키며, 이 오류는 해결 방법으로 `column_types`로 열의 형식을 지정하거나 더 많은 행을 샘플링하는 방법을 제시합니다.  열은 시트에 헤더가 있을 때만 형식이 지정됩니다."
         },
         "app.T0RT.action.cmVhZC1kYXRh.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
           "source": "Worksheet Name Pattern",

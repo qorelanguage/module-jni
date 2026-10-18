@@ -603,6 +603,11 @@ final class XlsxSheetSource implements SheetSource {
         read_formulas = true;
     }
 
+    @Override
+    public String getSheetName() {
+        return sheet_names.get(sheet_index);
+    }
+
     /**
      * Returns the formula of a cell of a shared formula as XSSFCell.getCellFormula() gives it: the formula of the
      * shared formula's master cell, parsed with the workbook's worksheets and names, moved by the cell's offset from
@@ -1290,6 +1295,16 @@ final class XlsxSheetSource implements SheetSource {
                     return null;
                 }
                 return DateUtil.getLocalDateTime(getNumericCellValue(), date1904);
+            }
+
+            @Override
+            public String getErrorCellString() {
+                CellType type = formula ? getBaseCellType(false) : getCellType();
+                if (type != CellType.ERROR) {
+                    throw typeMismatch(CellType.ERROR, type, false);
+                }
+                // the error text, as written in the cell's value
+                return v == null ? "" : v.trim();
             }
 
             @Override

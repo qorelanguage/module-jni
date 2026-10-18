@@ -52,9 +52,11 @@ final class OdsCell {
     private final boolean has_text;
     // the table:formula attribute in ODF syntax; null if not set or empty
     private final String formula;
+    // true if LibreOffice's calcext:value-type attribute marks the cell as an error
+    private final boolean error;
 
     private OdsCell(String value_type, String value, String boolean_value, String date_value, String time_value,
-            String display_text, boolean has_text, String formula) {
+            String display_text, boolean has_text, String formula, boolean error) {
         this.value_type = value_type;
         this.value = value;
         this.boolean_value = boolean_value;
@@ -63,6 +65,7 @@ final class OdsCell {
         this.display_text = display_text;
         this.has_text = has_text;
         this.formula = formula;
+        this.error = error;
     }
 
     /**
@@ -87,6 +90,7 @@ final class OdsCell {
         if (formula != null && formula.isEmpty()) {
             formula = null;
         }
+        boolean error = "error".equals(xr.getAttributeValue(OdsSheetReader.NS_CALCEXT, "value-type"));
 
         StringBuilder display = new StringBuilder();
         boolean has_text = false;
@@ -159,7 +163,25 @@ final class OdsCell {
             }
         }
         return new OdsCell(value_type, value, boolean_value, date_value, time_value, display.toString(), has_text,
-            formula);
+            formula, error);
+    }
+
+    /**
+     * Returns true if the cell is a formula whose result is an error, such as #DIV/0!
+     *
+     * LibreOffice writes such a cell as a string cell with an empty office:string-value, the error text as its
+     * text, and calcext:value-type="error"; ODF itself has no error value type, so an error cell written without
+     * LibreOffice's extension attributes is a string cell.
+     */
+    boolean isError() {
+        return error;
+    }
+
+    /**
+     * Returns the text of an error cell as the spreadsheet displays it, such as "#DIV/0!", "#N/A", or "Err:502"
+     */
+    String getErrorText() {
+        return display_text.trim();
     }
 
     /**

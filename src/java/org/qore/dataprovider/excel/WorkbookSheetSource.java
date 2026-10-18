@@ -23,6 +23,7 @@ package org.qore.dataprovider.excel;
 
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.FormulaError;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -106,6 +107,11 @@ final class WorkbookSheetSource implements SheetSource {
     }
 
     @Override
+    public String getSheetName() {
+        return sheet.getSheetName();
+    }
+
+    @Override
     public void close() throws IOException {
         if (workbook != null) {
             Workbook wb = workbook;
@@ -184,6 +190,17 @@ final class WorkbookSheetSource implements SheetSource {
         public String getCellFormula() {
             // as ExcelGridReader reads the formulas of a sheet
             return cell.getCellType() == CellType.FORMULA ? cell.getCellFormula() : null;
+        }
+
+        @Override
+        public String getErrorCellString() {
+            byte code = cell.getErrorCellValue();
+            try {
+                return FormulaError.forInt(code).getString();
+            } catch (IllegalArgumentException e) {
+                // an error code that POI does not know
+                return "#ERROR(" + code + ")";
+            }
         }
     }
 }

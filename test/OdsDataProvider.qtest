@@ -257,6 +257,13 @@ public class OdsDataProviderTest inherits QUnit::Test {
         addTestCase("list-worksheets action", \testListWorksheetsAction());
         addTestCase("list-worksheets: hidden tables", \testListWorksheetsVisibility());
         addTestCase("negative: list-worksheets", \testListWorksheetsNegative());
+        addTestCase("typing: columns are typed from their values", \testTypedColumns());
+        addTestCase("typing: no sampling", \testUntypedColumns());
+        addTestCase("typing: column_types", \testColumnTypes());
+        addTestCase("typing: a value of another type after the sample", \testTypeMismatch());
+        addTestCase("error cells", \testErrorCells());
+        addTestCase("negative: error options", \testErrorOptionsNegative());
+        addTestCase("typing and error options of the read actions", \testTypingActionOptions());
         set_return_value(main());
     }
 
@@ -282,6 +289,9 @@ public class OdsDataProviderTest inherits QUnit::Test {
         OdsTestHelper::createFormulaRowsOds(test_data_dir + "/formula-rows.ods", False);
         OdsTestHelper::createFormulaRowsOds(test_data_dir + "/formula-repeated.ods", True);
         OdsTestHelper::createSheetVisibilityOds(test_data_dir + "/sheet-visibility.ods");
+        OdsTestHelper::createTypedColumnsOds(test_data_dir + "/typed.ods", 5, 0);
+        OdsTestHelper::createTypedColumnsOds(test_data_dir + "/typed-mismatch.ods", 150, 120);
+        OdsTestHelper::createErrorCellsOds(test_data_dir + "/errors.ods");
 
         assertTrue(is_file(test_data_dir + "/simple.ods"), "simple.ods created");
     }
@@ -300,14 +310,14 @@ public class OdsDataProviderTest inherits QUnit::Test {
 
         assertEq(3, records.size(), "should have 3 data rows");
         assertEq("Alice", records[0].Name);
-        assertEq(30.0, records[0].Age);
+        assertEq(30, records[0].Age);
         assertEq("New York", records[0].City);
 
         assertEq("Bob", records[1].Name);
-        assertEq(25.0, records[1].Age);
+        assertEq(25, records[1].Age);
 
         assertEq("Charlie", records[2].Name);
-        assertEq(35.0, records[2].Age);
+        assertEq(35, records[2].Age);
     }
 
     testReadStream() {
@@ -334,7 +344,7 @@ public class OdsDataProviderTest inherits QUnit::Test {
 
         assertEq(2, records.size(), "should have 2 data rows");
         assertEq("Alice", records[0].Name);
-        assertEq(30.0, records[0].Age);
+        assertEq(30, records[0].Age);
     }
 
     testHeaderCells() {
@@ -377,7 +387,7 @@ public class OdsDataProviderTest inherits QUnit::Test {
 
         assertEq(2, records.size());
         assertEq("value1", records[0].Field1);
-        assertEq(100.0, records[0].Field2);
+        assertEq(100, records[0].Field2);
         assertTrue(records[0].Field3);
     }
 
@@ -490,7 +500,7 @@ public class OdsDataProviderTest inherits QUnit::Test {
 
         # Check first row data types
         assertEq("text", records[0].String);
-        assertEq(42.0, records[0].Integer);
+        assertEq(42, records[0].Integer);
         assertEq(Type::Float, records[0].Float.type());
         assertTrue(abs(records[0].Float - 3.14159) < 0.0001, "Float value should be approximately 3.14159");
         assertTrue(records[0].Boolean);
@@ -689,7 +699,7 @@ public class OdsDataProviderTest inherits QUnit::Test {
 
         assertEq(2, records.size());
         assertEq("value1", records[0].Col1);
-        assertEq(100.0, records[0].Col2);
+        assertEq(100, records[0].Col2);
     }
 
     testEdgeCaseSpecialChars() {
@@ -729,7 +739,7 @@ public class OdsDataProviderTest inherits QUnit::Test {
 
         assertEq(2, records.size());
         assertEq("Alice", records[0].Name);
-        assertEq(30.0, records[0].Age);
+        assertEq(30, records[0].Age);
         assertTrue(records[0].Active);
         assertEq("Bob", records[1].Name);
         assertFalse(records[1].Active);
@@ -838,9 +848,9 @@ public class OdsDataProviderTest inherits QUnit::Test {
         list<hash<auto>> records = map $1, rdp.searchRecords();
         assertEq(2, records.size());
         assertEq("item1", records[0].Name);
-        assertEq(100.0, records[0].Value);
+        assertEq(100, records[0].Value);
         assertEq("item2", records[1].Name);
-        assertEq(200.0, records[1].Value);
+        assertEq(200, records[1].Value);
     }
 
     testWriteNegativePathStreamConflict() {
@@ -975,7 +985,7 @@ public class OdsDataProviderTest inherits QUnit::Test {
         records = map $1, dp.searchRecords();
         assertEq(2, records.size());
         assertEq("value1", records[0].Col1);
-        assertEq(100.0, records[0].Col2);
+        assertEq(100, records[0].Col2);
         assertEq("value2", records[1].Col1);
     }
 
@@ -1002,7 +1012,7 @@ public class OdsDataProviderTest inherits QUnit::Test {
         wdp.createRecord(rec);
         OdsReadDataProvider dp({"data": wdp.getData(), "header_cells": "y1:ab1", "data_cells": "y2:ab2"});
         list<hash<auto>> records = map $1, dp.searchRecords();
-        assertEq(({"c25": 25.0, "c26": 26.0, "c27": 27.0, "c28": 28.0},), records);
+        assertEq(({"c25": 25, "c26": 26, "c27": 27, "c28": 28},), records);
     }
 
     testHeaderOptionConflictAllCtors() {
@@ -1070,14 +1080,14 @@ public class OdsDataProviderTest inherits QUnit::Test {
         list<hash<auto>> records = map $1, rdp.searchRecords();
         assertEq(3, records.size());
         assertEq(("B", "A", "F"), keys records[0]);
-        assertEq(1.0, records[0].B);
+        assertEq(1, records[0].B);
         assertEq("date", records[0].A.type());
         assertEq(d, records[0].A);
         assertEq(True, records[0].F);
-        assertEq(2.0, records[1].B);
+        assertEq(2, records[1].B);
         assertEq(d + 1D, records[1].A);
         assertEq(False, records[1].F);
-        assertEq(3.0, records[2].B);
+        assertEq(3, records[2].B);
         assertEq(NOTHING, records[2].A);
     }
 
@@ -1095,7 +1105,7 @@ public class OdsDataProviderTest inherits QUnit::Test {
         assertEq(Type::Binary, output.data.type());
         assertEq("PK", output.data.substr(0, 2).toString());
         OdsReadDataProvider rdp({"data": output.data, "header_names": True});
-        assertEq(({"Sku": "A-1", "Qty": 5.0}, {"Sku": "B-2", "Qty": 7.0}), (map $1, rdp.searchRecords()));
+        assertEq(({"Sku": "A-1", "Qty": 5}, {"Sku": "B-2", "Qty": 7}), (map $1, rdp.searchRecords()));
     }
 
     testWriterRecordType() {
@@ -1121,16 +1131,16 @@ public class OdsDataProviderTest inherits QUnit::Test {
 
         # default: reading stops at the first empty row
         OdsReadDataProvider dp({"data": data, "header_names": True});
-        assertEq(({"Sku": "A-1", "Qty": 5.0},), (map $1, dp.searchRecords()));
+        assertEq(({"Sku": "A-1", "Qty": 5},), (map $1, dp.searchRecords()));
 
         # ignore_empty: empty rows are skipped, trailing empty rows end the iteration
         dp = new OdsReadDataProvider({"data": data, "header_names": True, "ignore_empty": True});
-        assertEq(({"Sku": "A-1", "Qty": 5.0}, {"Sku": "B-2", "Qty": 7.0}), (map $1, dp.searchRecords()));
+        assertEq(({"Sku": "A-1", "Qty": 5}, {"Sku": "B-2", "Qty": 7}), (map $1, dp.searchRecords()));
 
         # ignore_empty stays within data_cells
         dp = new OdsReadDataProvider({"data": data, "header_names": True, "ignore_empty": True,
             "data_cells": "a2:b3"});
-        assertEq(({"Sku": "A-1", "Qty": 5.0},), (map $1, dp.searchRecords()));
+        assertEq(({"Sku": "A-1", "Qty": 5},), (map $1, dp.searchRecords()));
     }
 
     testReadRepeatedEmptyRows() {
@@ -1138,11 +1148,11 @@ public class OdsDataProviderTest inherits QUnit::Test {
         # skipped without materializing them
         string path = test_data_dir + "/repeated-empty-rows.ods";
         OdsReadDataProvider dp(path, {"header_names": True});
-        assertEq(({"Sku": "A-1", "Qty": 5.0},), (map $1, dp.searchRecords()));
+        assertEq(({"Sku": "A-1", "Qty": 5},), (map $1, dp.searchRecords()));
 
         date start = now_us();
         dp = new OdsReadDataProvider(path, {"header_names": True, "ignore_empty": True});
-        assertEq(({"Sku": "A-1", "Qty": 5.0}, {"Sku": "C-3", "Qty": 9.0}), (map $1, dp.searchRecords()));
+        assertEq(({"Sku": "A-1", "Qty": 5}, {"Sku": "C-3", "Qty": 9}), (map $1, dp.searchRecords()));
         assertLt(10s, now_us() - start, "the repeated empty rows were not iterated one by one");
     }
 
@@ -1255,13 +1265,13 @@ public class OdsDataProviderTest inherits QUnit::Test {
 
         list<hash<auto>> expected = (
             # a row in table:table-header-rows (a row to repeat on printed pages)
-            {"Sku": "A-1", "Qty": 5.0, "Note": "x", "Day": 2025-03-01T00:00:00Z},
+            {"Sku": "A-1", "Qty": 5, "Note": "x", "Day": 2025-03-01T00:00:00Z},
             # rows in a row group; the second row element is repeated for two rows
-            {"Sku": "B-2", "Qty": 6.0, "Note": "y", "Day": 2025-03-02T00:00:00Z},
-            {"Sku": "C-3", "Qty": 7.0, "Note": "z", "Day": 2025-03-03T00:00:00Z},
-            {"Sku": "C-3", "Qty": 7.0, "Note": "z", "Day": 2025-03-03T00:00:00Z},
+            {"Sku": "B-2", "Qty": 6, "Note": "y", "Day": 2025-03-02T00:00:00Z},
+            {"Sku": "C-3", "Qty": 7, "Note": "z", "Day": 2025-03-03T00:00:00Z},
+            {"Sku": "C-3", "Qty": 7, "Note": "z", "Day": 2025-03-03T00:00:00Z},
             # a cell repeated over two columns and a covered (merged) cell
-            {"Sku": "D-4", "Qty": 8.0, "Note": 8.0, "Day": NOTHING},
+            {"Sku": "D-4", "Qty": 8, "Note": 8.0, "Day": NOTHING},
         );
         OdsReadDataProvider dp(path, {"header_names": True, "timezone": "UTC"});
         assertEq(("Sku", "Qty", "Note", "Day"), keys dp.getRecordType());
@@ -1272,12 +1282,12 @@ public class OdsDataProviderTest inherits QUnit::Test {
 
         # spaces, tabs, and line breaks are part of the text
         dp = new OdsReadDataProvider(path, {"header_names": True, "timezone": "UTC", "ignore_empty": True});
-        assertEq(expected + ({"Sku": "E-5", "Qty": 9.0, "Note": "a   b\tc\nd", "Day": 2025-03-08T00:00:00Z},),
+        assertEq(expected + ({"Sku": "E-5", "Qty": 9, "Note": "a   b\tc\nd", "Day": 2025-03-08T00:00:00Z},),
             (map $1, dp.searchRecords()));
 
         # data cells within the repeated rows
         dp = new OdsReadDataProvider(path, {"header_names": True, "timezone": "UTC", "data_cells": "a5:c6"});
-        assertEq(({"Sku": "C-3", "Qty": 7.0, "Note": "z"}, {"Sku": "D-4", "Qty": 8.0, "Note": 8.0}),
+        assertEq(({"Sku": "C-3", "Qty": 7, "Note": "z"}, {"Sku": "D-4", "Qty": 8, "Note": 8.0}),
             (map $1, dp.searchRecords()));
     }
 
@@ -1603,7 +1613,7 @@ printf(\"RESULT:%%s\\n\", make_json(rv));
 
         # the values keep their types: the percentage cell is read as its fraction, and dates keep their time
         OdsReadDataProvider rdp(path, {"header_names": True});
-        assertEq((FormatRecord + {"Amount": -1234.5, "Plain": 42.0},), (map $1, rdp.searchRecords()));
+        assertEq((FormatRecord + {"Amount": -1234.5, "Plain": 42},), (map $1, rdp.searchRecords()));
     }
 
     testWriteColumnFormatsOtherValues() {
@@ -1617,7 +1627,7 @@ printf(\"RESULT:%%s\\n\", make_json(rv));
         assertEq(("string|", "float|", "string|", "date|", "float|", "null|", "boolean|"),
             OdsTestHelper::getCellDataStyles(path, 1, FormatHeaders.size()));
         OdsReadDataProvider rdp(path, {"header_names": True});
-        assertEq(({"Name": "b", "Date": 5.0, "Amount": "n/a", "Share": 2026-10-07T00:00:00, "Code": 3.5,
+        assertEq(({"Name": "b", "Date": 5, "Amount": "n/a", "Share": 2026-10-07T00:00:00, "Code": 3.5,
             "Plain": NOTHING, "Stamp": True},), (map $1, rdp.searchRecords()));
     }
 
@@ -1821,7 +1831,7 @@ printf(\"RESULT:%%s\\n\", make_json(rv));
         assertEq(("Item", "Qty", "Price", "Line", "Calc", "_formulas"), keys rec_type);
         assertEq("hash", rec_type._formulas.getType().getBaseTypeName());
         # values of formula cells are still their results
-        assertEq((10.0, 7.0, 8.0, 25.0, 29.0), (map $1.Line, records));
+        assertEq((10, 7, 8, 25, 29), (map $1.Line, records));
 
         # the formulas are those of the profile of the sheet
         hash<TabularWorkbookGrid> grid = OdsProfileDataProvider::readWorkbookGrid(ReadOnlyFile::readBinaryFile(path),
@@ -1853,7 +1863,7 @@ printf(\"RESULT:%%s\\n\", make_json(rv));
         records = map $1, dp.searchRecords();
         assertEq(7, records.size());
         assertEq(expected + ({"E7": "SUM(B7:C7)"}, NOTHING), (map $1._formulas, records));
-        assertEq((2.0, 2.0), (map $1.Calc, records[5..6]));
+        assertEq((2, 2), (map $1.Calc, records[5..6]));
 
         # a data range not starting at A1 gives the references of the sheet
         dp = new OdsReadDataProvider(path, {"header_cells": "b1:d1", "data_cells": "b3:d5",
@@ -1919,6 +1929,203 @@ printf(\"RESULT:%%s\\n\", make_json(rv));
         }
         OdsReadDataProvider dp({"data": spreadsheet, "header_names": True});
         assertTrue((map $1, dp.searchRecords()).size() > 0, "the intact spreadsheet reads");
+    }
+
+    #! Returns the records of a sheet read with the given options
+    private list<hash<auto>> readOds(string file, *hash<auto> opts) {
+        OdsReadDataProvider dp(test_data_dir + "/" + file, {"header_names": True, "timezone": "UTC"} + opts);
+        return map $1, dp.searchRecords();
+    }
+
+    #! Returns the names of the types of the fields of a sheet read with the given options
+    private hash<string, string> readOdsTypes(string file, *hash<auto> opts) {
+        OdsReadDataProvider dp(test_data_dir + "/" + file, {"header_names": True} + opts);
+        return map {$1.key: $1.value.getType().getName()}, dp.getRecordType().pairIterator();
+    }
+
+    #! Columns are typed from their values in the first rows
+    testTypedColumns() {
+        assertEq({
+            "Id": "*int",
+            "Price": "*float",
+            "Paid": "*bool",
+            "Shipped": "*date",
+            "Name": "*string",
+            "Note": "auto",
+            "Empty": "auto",
+        }, readOdsTypes("typed.ods"));
+        list<hash<auto>> recs = readOds("typed.ods");
+        assertEq(5, recs.size());
+        assertEq((1, 2, 3, 4, 5), (map $1.Id, recs));
+        assertEq(Type::Int, recs[0].Id.type());
+        assertEq((1.25, 2.5, 3.75, 5.0, 6.25), (map $1.Price, recs));
+        assertEq(Type::Float, recs[3].Price.type());
+        assertEq((False, True, False, True, False), (map $1.Paid, recs));
+        assertEq(2026-01-02T00:00:00Z, recs[0].Shipped);
+        assertEq(Type::Date, recs[0].Shipped.type());
+        assertEq("item-1", recs[0].Name);
+        # a column of text and numbers is not converted
+        assertEq(("n-1", 2.0, "n-3", 4.0, "n-5"), (map $1.Note, recs));
+        assertEq((NOTHING, NOTHING, NOTHING, NOTHING, NOTHING), (map $1.Empty, recs));
+        # the record type accepts the records
+        OdsReadDataProvider dp(test_data_dir + "/typed.ods", {"header_names": True});
+        hash<string, AbstractDataField> rec_type = dp.getRecordType();
+        foreach hash<auto> rec in (recs) {
+            map rec_type{$1.key}.getType().acceptsValue($1.value), rec.pairIterator();
+        }
+        # the worksheet provider of the file is typed as well, also after a search
+        AbstractDataProvider sheet = dp.getChildProvider("Orders");
+        assertEq((1, 2, 3, 4, 5), (map $1.Id, sheet.searchRecords()));
+        assertEq("*int", sheet.getRecordType().Id.getType().getName());
+        # each search reads the typed records again
+        assertEq((1, 2, 3, 4, 5), (map $1.Id, dp.searchRecords()));
+        assertEq((1, 2, 3, 4, 5), (map $1.Id, dp.searchRecords()));
+    }
+
+    #! type_sample_rows 0 reads every value as stored, with columns of any type
+    testUntypedColumns() {
+        list<hash<auto>> recs = readOds("typed.ods", {"type_sample_rows": 0});
+        assertEq(1.0, recs[0].Id);
+        assertEq(Type::Float, recs[0].Id.type());
+        assertEq(("auto",), (keys (map {$1: True}, readOdsTypes("typed.ods", {"type_sample_rows": 0}).values())));
+        # without headers, the fields are named by their cells and have no type
+        OdsReadDataProvider dp(test_data_dir + "/typed.ods", {"data_cells": "a2:b3"});
+        assertEq(({"A2": 1.0, "B2": 1.25}, {"A3": 2.0, "B3": 2.5}), (map $1, dp.searchRecords()));
+    }
+
+    #! column_types gives the type of columns
+    testColumnTypes() {
+        hash<auto> opts = {"column_types": {"Id": "float", "Note": "string", "Empty": "date", "Paid": "any",
+            "Price": "number"}};
+        hash<string, string> types = readOdsTypes("typed.ods", opts);
+        assertEq("*float", types.Id);
+        assertEq("*string", types.Note);
+        assertEq("*date", types.Empty);
+        assertEq("auto", types.Paid);
+        assertEq("*number", types.Price);
+        assertEq("*string", types.Name, "other columns are inferred");
+        list<hash<auto>> recs = readOds("typed.ods", opts);
+        assertEq((1.0, 2.0), (map $1.Id, recs[0..1]));
+        assertEq(Type::Number, recs[0].Price.type());
+        assertEq(1.25n, recs[0].Price);
+        # numbers in a text column are converted to text
+        assertEq(("n-1", "2", "n-3", "4", "n-5"), (map $1.Note, recs));
+        # only the given columns are typed when there is no sampling
+        types = readOdsTypes("typed.ods", opts + {"type_sample_rows": 0});
+        assertEq("*float", types.Id);
+        assertEq("auto", types.Name);
+
+        assertThrows("ODS-READ-OPTION-ERROR", "column_types.*\"Id\".*\"bogus\"", \readOds(),
+            ("typed.ods", {"column_types": {"Id": "bogus"}}));
+        assertThrows("ODS-READ-OPTION-ERROR", "column_types.*\"Nope\".*not a column", \readOds(),
+            ("typed.ods", {"column_types": {"Nope": "int"}}));
+        assertThrows("ODS-READ-OPTION-ERROR", "type_sample_rows", \readOds(),
+            ("typed.ods", {"type_sample_rows": -1}));
+    }
+
+    #! A value after the sampled rows that does not have its column's type fails the read, naming the remedy
+    testTypeMismatch() {
+        OdsReadDataProvider dp(test_data_dir + "/typed-mismatch.ods", {"header_names": True});
+        assertEq("*int", dp.getRecordType().Id.getType().getName());
+        int read = 0;
+        *hash<ExceptionInfo> ex;
+        try {
+            map ++read, dp.searchRecords();
+        } catch (hash<ExceptionInfo> e) {
+            ex = e;
+        }
+        assertEq("ODS-COLUMN-TYPE-ERROR", ex.err);
+        assertEq(119, read, "the records before the value are read");
+        assertRegex("worksheet \"Orders\" row 121 column \"Id\".*\"N/A\".*int.*first 100", ex.desc);
+        assertRegex("column_types.*type_sample_rows", ex.desc);
+        assertEq({"worksheet": "Orders", "row": 121, "column": "Id", "value": "N/A", "type": "int"},
+            ex.arg{"worksheet", "row", "column", "value", "type"});
+
+        # a given type names the option
+        assertThrows("ODS-COLUMN-TYPE-ERROR", "row 121 column \"Price\".*\"free\".*given by \"column_types\"",
+            \readOds(), ("typed-mismatch.ods", {"column_types": {"Id": "any", "Price": "float"}}));
+
+        # the remedies
+        list<hash<auto>> recs = readOds("typed-mismatch.ods", {"type_sample_rows": 150});
+        assertEq(150, recs.size());
+        assertEq("N/A", recs[119].Id);
+        assertEq(1.0, recs[0].Id, "a column of numbers and text is not converted");
+        recs = readOds("typed-mismatch.ods", {"column_types": {"Id": "string", "Price": "any"}});
+        assertEq("1", recs[0].Id);
+        assertEq("N/A", recs[119].Id);
+    }
+
+    #! An error cell fails the read by default, naming the ways to accept it
+    testErrorCells() {
+        *hash<ExceptionInfo> ex;
+        try {
+            readOds("errors.ods");
+        } catch (hash<ExceptionInfo> e) {
+            ex = e;
+        }
+        assertEq("ODS-CELL-ERROR", ex.err);
+        assertRegex("worksheet \"Rates\" cell B2 \\(column \"Ratio\"\\).*#DIV/0!", ex.desc);
+        assertRegex("error_cells.*\"null\".*\"text\".*error_field", ex.desc);
+        assertEq({"worksheet": "Rates", "cell": "B2", "row": 2, "column": "Ratio", "error": "#DIV/0!"},
+            ex.arg{"worksheet", "cell", "row", "column", "error"});
+
+        # errors read as no value; the columns are typed from their other values; a formula with a text result is
+        # not an error
+        list<hash<auto>> recs = readOds("errors.ods", {"error_cells": "null"});
+        assertEq((NOTHING, 0.5, NOTHING, NOTHING), (map $1.Ratio, recs));
+        assertEq((NOTHING, "x", "y", "z"), (map $1.Lookup, recs));
+        assertEq("*float", readOdsTypes("errors.ods", {"error_cells": "null"}).Ratio);
+        assertEq("*string", readOdsTypes("errors.ods", {"error_cells": "null"}).Lookup);
+
+        # errors read as their text, in any column
+        recs = readOds("errors.ods", {"error_cells": "text"});
+        assertEq(("#DIV/0!", 0.5, "#N/A", "Err:502"), (map $1.Ratio, recs));
+        assertEq(("#N/A", "x", "y", "z"), (map $1.Lookup, recs));
+
+        # errors in a field of their own
+        recs = readOds("errors.ods", {"error_field": "errors"});
+        assertEq(({"Ratio": "#DIV/0!", "Lookup": "#N/A"}, NOTHING, {"Ratio": "#N/A"}, {"Ratio": "Err:502"}),
+            (map $1.errors, recs));
+        assertEq((NOTHING, 0.5, NOTHING, NOTHING), (map $1.Ratio, recs));
+        assertEq("*hash<auto>", readOdsTypes("errors.ods", {"error_field": "errors"}).errors);
+        recs = readOds("errors.ods", {"error_field": "errors", "error_cells": "text"});
+        assertEq(("#DIV/0!", 0.5, "#N/A", "Err:502"), (map $1.Ratio, recs));
+        assertEq({"Ratio": "#DIV/0!", "Lookup": "#N/A"}, recs[0].errors);
+
+        # with formulas
+        recs = readOds("errors.ods", {"error_field": "errors", "formula_field": "formulas"});
+        assertEq({"B2": "1/0", "C2": "NA()"}, recs[0].formulas);
+        assertEq({"Ratio": "#DIV/0!", "Lookup": "#N/A"}, recs[0].errors);
+
+        # a row of only error cells is a row with content
+        recs = readOds("errors.ods", {"header_names": False, "error_cells": "null", "data_cells": "b2:c2",
+            "headers": ("Ratio", "Lookup")});
+        assertEq(({"Ratio": NOTHING, "Lookup": NOTHING},), recs);
+    }
+
+    #! Invalid error options
+    testErrorOptionsNegative() {
+        # the allowed values of the option are checked with the options
+        assertThrows("OPTION-VALUE-ERROR", "error_cells", \readOds(), ("errors.ods", {"error_cells": "skip"}));
+        assertThrows("ODS-READ-OPTION-ERROR", "error_field.*\"Ratio\".*column", \readOds(),
+            ("errors.ods", {"error_field": "Ratio"}));
+        assertThrows("ODS-READ-OPTION-ERROR", "error_field.*\"f\".*formula field", \readOds(),
+            ("errors.ods", {"error_field": "f", "formula_field": "f"}));
+        assertThrows("ODS-READ-OPTION-ERROR", "error_field.*must not be empty", \readOds(),
+            ("errors.ods", {"error_field": ""}));
+    }
+
+    #! The read actions offer the typing and error options
+    testTypingActionOptions() {
+        foreach string action in ("read", "read-data") {
+            hash<DataProviderActionInfo> info = DataProviderActionCatalog::getAppActionEx("ODS", action);
+            foreach string opt in ("type_sample_rows", "column_types", "error_cells", "error_field") {
+                assertTrue(info.options.hasKey(opt), action + " " + opt);
+            }
+            assertEq(100, info.options.type_sample_rows.default_value);
+            assertEq("fail", info.options.error_cells.default_value);
+            assertEq(("fail", "null", "text"), (map $1.value, info.options.error_cells.allowed_values));
+        }
     }
 
     #! Returns the list-worksheets action and its data provider
@@ -2077,7 +2284,7 @@ printf(\"RESULT:%%s\\n\", make_json(rv));
 
         # the values keep their types: the percentage cell is read as its fraction
         OdsReadDataProvider rdp(path, {"header_names": True});
-        assertEq((MaskRecord + {"Count": 1234567.0},), (map $1, rdp.searchRecords()));
+        assertEq((MaskRecord + {"Count": 1234567},), (map $1, rdp.searchRecords()));
     }
 
     testCommonColumnMasks() {

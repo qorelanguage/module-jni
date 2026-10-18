@@ -36,6 +36,7 @@ import org.apache.poi.ss.usermodel.SheetVisibility;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.ss.usermodel.FormulaError;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -188,6 +189,92 @@ public class ExcelTestHelper {
             }
             workbook.setSheetVisibility(1, SheetVisibility.HIDDEN);
             workbook.setSheetVisibility(2, SheetVisibility.VERY_HIDDEN);
+            try (FileOutputStream out = new FileOutputStream(new File(path))) {
+                workbook.write(out);
+            }
+        }
+    }
+
+    /**
+     * Creates a workbook of orders whose columns have a type each, for typed reading.
+     *
+     * The worksheet "Orders" has a header row (Id, Price, Paid, Shipped, Name, Note, Empty) and the given number of
+     * data rows; data row i (1-based) has Id i, Price i * 1.25, Paid true for even i, Shipped 2026-01-01 plus i days in
+     * a cell with a date format, Name "item-i", Note "n-i" for odd i and the number i for even i, and no Empty cell.
+     * If mismatch_row is positive, the Id of that data row is the text "N/A" and its Price the text "free".
+     *
+     * @param path The path to create the file at
+     * @param xls true for the Excel 97-2003 (.xls) format, false for .xlsx
+     * @param rows The number of data rows
+     * @param mismatch_row The 1-based data row with text in the number columns, or 0 for none
+     */
+    public static void createTypedColumnsExcel(String path, boolean xls, int rows, int mismatch_row)
+            throws IOException {
+        try (Workbook workbook = xls ? new HSSFWorkbook() : new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Orders");
+            CellStyle date_style = workbook.createCellStyle();
+            date_style.setDataFormat(workbook.createDataFormat().getFormat("yyyy-mm-dd"));
+            String[] headers = {"Id", "Price", "Paid", "Shipped", "Name", "Note", "Empty"};
+            Row header = sheet.createRow(0);
+            for (int c = 0; c < headers.length; ++c) {
+                header.createCell(c).setCellValue(headers[c]);
+            }
+            for (int i = 1; i <= rows; ++i) {
+                Row row = sheet.createRow(i);
+                if (i == mismatch_row) {
+                    row.createCell(0).setCellValue("N/A");
+                    row.createCell(1).setCellValue("free");
+                } else {
+                    row.createCell(0).setCellValue(i);
+                    row.createCell(1).setCellValue(i * 1.25);
+                }
+                row.createCell(2).setCellValue(i % 2 == 0);
+                Cell date = row.createCell(3);
+                date.setCellValue(LocalDateTime.of(2026, 1, 1, 0, 0).plusDays(i));
+                date.setCellStyle(date_style);
+                row.createCell(4).setCellValue("item-" + i);
+                if (i % 2 == 1) {
+                    row.createCell(5).setCellValue("n-" + i);
+                } else {
+                    row.createCell(5).setCellValue(i);
+                }
+            }
+            try (FileOutputStream out = new FileOutputStream(new File(path))) {
+                workbook.write(out);
+            }
+        }
+    }
+
+    /**
+     * Creates a workbook with error cells.
+     *
+     * The worksheet "Rates" has a header row (Item, Ratio, Lookup) and three data rows: ("a", =1/0 (#DIV/0!), the
+     * error value #N/A), ("b", 0.5, "x"), and ("c", =NA() (#N/A), "y").  The formulas are evaluated, so their cached
+     * results are the errors.
+     *
+     * @param path The path to create the file at
+     * @param xls true for the Excel 97-2003 (.xls) format, false for .xlsx
+     */
+    public static void createErrorCellsExcel(String path, boolean xls) throws IOException {
+        try (Workbook workbook = xls ? new HSSFWorkbook() : new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Rates");
+            Row header = sheet.createRow(0);
+            header.createCell(0).setCellValue("Item");
+            header.createCell(1).setCellValue("Ratio");
+            header.createCell(2).setCellValue("Lookup");
+            Row r1 = sheet.createRow(1);
+            r1.createCell(0).setCellValue("a");
+            r1.createCell(1).setCellFormula("1/0");
+            r1.createCell(2).setCellErrorValue(FormulaError.NA.getCode());
+            Row r2 = sheet.createRow(2);
+            r2.createCell(0).setCellValue("b");
+            r2.createCell(1).setCellValue(0.5);
+            r2.createCell(2).setCellValue("x");
+            Row r3 = sheet.createRow(3);
+            r3.createCell(0).setCellValue("c");
+            r3.createCell(1).setCellFormula("NA()");
+            r3.createCell(2).setCellValue("y");
+            workbook.getCreationHelper().createFormulaEvaluator().evaluateAll();
             try (FileOutputStream out = new FileOutputStream(new File(path))) {
                 workbook.write(out);
             }

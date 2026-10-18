@@ -87,6 +87,78 @@
           "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
           "message": "Jeśli `True`, obiekt przetworzy nazwy nagłówków z pierwszego wiersza nagłówka; w takim przypadku, jeśli `header_cells` nie zostanie ustawiony jawnie, zostanie przyjęty pierwszy wiersz"
         },
+        "app.RXhjZWw.action.cmVhZA.option.Y29sdW1uX3R5cGVz.display_name": {
+          "source": "Column Types",
+          "message": "Typy kolumn"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.Y29sdW1uX3R5cGVz.short_desc": {
+          "source": "The type of columns whose type is not inferred from their values",
+          "message": "Typ kolumn, których typ nie jest ustalany na podstawie ich wartości"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.Y29sdW1uX3R5cGVz.desc": {
+          "source": "The type of each column whose type is given rather than inferred from the first rows (see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or `any`.\n\nValues are converted to the column's type: `string` converts numbers, booleans and dates to text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; `float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates; `any` returns every value as stored.  A value that the type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`.  A column that is not a column of the worksheet, or an unknown type, raises `EXCEL-READ-OPTION-ERROR`.  Columns are only typed when the worksheet has headers.",
+          "message": "Typ każdej kolumny, której typ jest podany zamiast ustalany na podstawie pierwszych wierszy (zob. `type_sample_rows`), według nazwy kolumny: `string`, `int`, `float`, `number`, `bool`, `date` lub `any`.\n\nWartości są konwertowane na typ kolumny: `string` konwertuje liczby, wartości logiczne i daty na tekst (na przykład identyfikatory zapisane jako liczby); `int` akceptuje liczby bez części ułamkowej; `float` i `number` akceptują liczby; `bool` akceptuje wartości logiczne; `date` akceptuje daty; `any` zwraca każdą wartość tak, jak jest zapisana.  Wartość, której typ nie akceptuje, powoduje `EXCEL-COLUMN-TYPE-ERROR`.  Kolumna, która nie jest kolumną arkusza, lub nieznany typ powoduje `EXCEL-READ-OPTION-ERROR`.  Kolumny mają typ tylko wtedy, gdy arkusz ma nagłówki."
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.display_name": {
+          "source": "Error Cells",
+          "message": "Komórki z błędami"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.short_desc": {
+          "source": "How cells with an error such as #DIV/0! or #N/A are read",
+          "message": "Sposób odczytu komórek z błędem, takim jak #DIV/0! lub #N/A"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.desc": {
+          "source": "How cells with an error, such as `#DIV/0!`, `#N/A` or `#VALUE!`, and formulas whose result is an error are read:\n\n- `fail` (the default): the read fails with `EXCEL-CELL-ERROR`, naming the worksheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.",
+          "message": "Sposób odczytu komórek z błędem, takim jak `#DIV/0!`, `#N/A` lub `#VALUE!`, oraz formuł, których wynikiem jest błąd:\n\n- `fail` (domyślnie): odczyt kończy się błędem `EXCEL-CELL-ERROR`, który podaje arkusz, komórkę, kolumnę i błąd, chyba że ustawiono `error_field`\n- `null`: komórka nie ma wartości\n- `text`: wartością komórki jest tekst błędu, np. `#DIV/0!`, w dowolnej kolumnie\n\nZ `error_field` błędy każdego rekordu są zwracane także we własnym polu, a komórki z błędami są odczytywane jako brak wartości, chyba że ta opcja ma wartość `text`."
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Błąd"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The read fails at the first error cell",
+          "message": "Odczyt kończy się błędem przy pierwszej komórce z błędem"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "The read fails with `EXCEL-CELL-ERROR` at the first error cell, unless `error_field` is set",
+          "message": "Odczyt kończy się błędem `EXCEL-CELL-ERROR` przy pierwszej komórce z błędem, chyba że ustawiono `error_field`"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
+          "source": "No Value",
+          "message": "Brak wartości"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
+          "source": "Error cells have no value",
+          "message": "Komórki z błędami nie mają wartości"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
+          "source": "Error cells are read as no value",
+          "message": "Komórki z błędami są odczytywane jako brak wartości"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Error Text",
+          "message": "Tekst błędu"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Error cells are read as the error's text",
+          "message": "Komórki z błędami są odczytywane jako tekst błędu"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
+          "message": "Komórki z błędami są w każdej kolumnie odczytywane jako tekst błędu, np. `#DIV/0!`"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfZmllbGQ.display_name": {
+          "source": "Error Field",
+          "message": "Pole błędów"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfZmllbGQ.short_desc": {
+          "source": "Return the errors of each row's cells in a field with this name",
+          "message": "Zwracaj błędy komórek każdego wiersza w polu o tej nazwie"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfZmllbGQ.desc": {
+          "source": "The name of an extra field added to every record with the errors of the row's cells: a hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the record's cells is an error.  Error cells are then accepted: they are read as no value, or as their text if `error_cells` is `text`.  The name must not be the name of a column of the worksheet or of the `formula_field`; a name that is raises `EXCEL-READ-OPTION-ERROR`.",
+          "message": "Nazwa dodatkowego pola dodawanego do każdego rekordu z błędami komórek wiersza: hash tekstu błędu (np. `#DIV/0!`) według nazwy kolumny lub `NOTHING`, jeśli żadna komórka rekordu nie jest błędem.  Komórki z błędami są wtedy akceptowane: są odczytywane jako brak wartości lub jako ich tekst, jeśli `error_cells` ma wartość `text`.  Nazwa nie może być nazwą kolumny arkusza ani `formula_field`; taka nazwa powoduje `EXCEL-READ-OPTION-ERROR`."
+        },
         "app.RXhjZWw.action.cmVhZA.option.Zm9ybXVsYV9maWVsZA.display_name": {
           "source": "Formula Field",
           "message": "Pole formuł"
@@ -146,6 +218,18 @@
         "app.RXhjZWw.action.cmVhZA.option.dG9sd3I.desc": {
           "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
           "message": "Jeśli `True` (domyślnie `False`), wszystkie automatycznie wykryte nazwy nagłówków zostaną przekonwertowane na małe litery"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
+          "source": "Type Sample Rows",
+          "message": "Wiersze próbki typów"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
+          "source": "The number of rows read to infer the type of each column",
+          "message": "Liczba wierszy odczytywanych w celu ustalenia typu każdej kolumny"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
+          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the worksheet has headers.",
+          "message": "Liczba wierszy danych odczytywanych w celu ustalenia typu każdej kolumny na podstawie jej wartości; `0` odczytuje każdą wartość tak, jak jest zapisana, z kolumnami dowolnego typu.\n\nKolumna, której wartości w tych wierszach są wszystkie liczbami całkowitymi, jest kolumną `int`, liczbami kolumną `float`, wartościami logicznymi kolumną `bool`, datami kolumną `date`, a tekstem kolumną `string`; kolumna z wartościami różnych rodzajów lub bez wartości jest zwracana tak, jak jest zapisana (`any`).  Puste komórki i komórki z błędami nie są liczone.  Typy są typami profilu arkusza kalkulacyjnego.  Późniejsza wartość, której typ jej kolumny nie akceptuje, powoduje `EXCEL-COLUMN-TYPE-ERROR`, który podaje rozwiązania: podanie typu kolumny w `column_types` lub próbkowanie większej liczby wierszy.  Kolumny mają typ tylko wtedy, gdy arkusz ma nagłówki."
         },
         "app.RXhjZWw.action.cmVhZA.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
           "source": "Worksheet Name Pattern",
@@ -339,6 +423,78 @@
           "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
           "message": "Jeśli `True`, obiekt przetworzy nazwy nagłówków z pierwszego wiersza nagłówka; w takim przypadku, jeśli `header_cells` nie zostanie ustawiony jawnie, zostanie przyjęty pierwszy wiersz"
         },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.display_name": {
+          "source": "Column Types",
+          "message": "Typy kolumn"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.short_desc": {
+          "source": "The type of columns whose type is not inferred from their values",
+          "message": "Typ kolumn, których typ nie jest ustalany na podstawie ich wartości"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.desc": {
+          "source": "The type of each column whose type is given rather than inferred from the first rows (see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or `any`.\n\nValues are converted to the column's type: `string` converts numbers, booleans and dates to text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; `float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates; `any` returns every value as stored.  A value that the type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`.  A column that is not a column of the worksheet, or an unknown type, raises `EXCEL-READ-OPTION-ERROR`.  Columns are only typed when the worksheet has headers.",
+          "message": "Typ każdej kolumny, której typ jest podany zamiast ustalany na podstawie pierwszych wierszy (zob. `type_sample_rows`), według nazwy kolumny: `string`, `int`, `float`, `number`, `bool`, `date` lub `any`.\n\nWartości są konwertowane na typ kolumny: `string` konwertuje liczby, wartości logiczne i daty na tekst (na przykład identyfikatory zapisane jako liczby); `int` akceptuje liczby bez części ułamkowej; `float` i `number` akceptują liczby; `bool` akceptuje wartości logiczne; `date` akceptuje daty; `any` zwraca każdą wartość tak, jak jest zapisana.  Wartość, której typ nie akceptuje, powoduje `EXCEL-COLUMN-TYPE-ERROR`.  Kolumna, która nie jest kolumną arkusza, lub nieznany typ powoduje `EXCEL-READ-OPTION-ERROR`.  Kolumny mają typ tylko wtedy, gdy arkusz ma nagłówki."
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.display_name": {
+          "source": "Error Cells",
+          "message": "Komórki z błędami"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.short_desc": {
+          "source": "How cells with an error such as #DIV/0! or #N/A are read",
+          "message": "Sposób odczytu komórek z błędem, takim jak #DIV/0! lub #N/A"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.desc": {
+          "source": "How cells with an error, such as `#DIV/0!`, `#N/A` or `#VALUE!`, and formulas whose result is an error are read:\n\n- `fail` (the default): the read fails with `EXCEL-CELL-ERROR`, naming the worksheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.",
+          "message": "Sposób odczytu komórek z błędem, takim jak `#DIV/0!`, `#N/A` lub `#VALUE!`, oraz formuł, których wynikiem jest błąd:\n\n- `fail` (domyślnie): odczyt kończy się błędem `EXCEL-CELL-ERROR`, który podaje arkusz, komórkę, kolumnę i błąd, chyba że ustawiono `error_field`\n- `null`: komórka nie ma wartości\n- `text`: wartością komórki jest tekst błędu, np. `#DIV/0!`, w dowolnej kolumnie\n\nZ `error_field` błędy każdego rekordu są zwracane także we własnym polu, a komórki z błędami są odczytywane jako brak wartości, chyba że ta opcja ma wartość `text`."
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "Błąd"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The read fails at the first error cell",
+          "message": "Odczyt kończy się błędem przy pierwszej komórce z błędem"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "The read fails with `EXCEL-CELL-ERROR` at the first error cell, unless `error_field` is set",
+          "message": "Odczyt kończy się błędem `EXCEL-CELL-ERROR` przy pierwszej komórce z błędem, chyba że ustawiono `error_field`"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
+          "source": "No Value",
+          "message": "Brak wartości"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
+          "source": "Error cells have no value",
+          "message": "Komórki z błędami nie mają wartości"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
+          "source": "Error cells are read as no value",
+          "message": "Komórki z błędami są odczytywane jako brak wartości"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Error Text",
+          "message": "Tekst błędu"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Error cells are read as the error's text",
+          "message": "Komórki z błędami są odczytywane jako tekst błędu"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
+          "message": "Komórki z błędami są w każdej kolumnie odczytywane jako tekst błędu, np. `#DIV/0!`"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.display_name": {
+          "source": "Error Field",
+          "message": "Pole błędów"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.short_desc": {
+          "source": "Return the errors of each row's cells in a field with this name",
+          "message": "Zwracaj błędy komórek każdego wiersza w polu o tej nazwie"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.desc": {
+          "source": "The name of an extra field added to every record with the errors of the row's cells: a hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the record's cells is an error.  Error cells are then accepted: they are read as no value, or as their text if `error_cells` is `text`.  The name must not be the name of a column of the worksheet or of the `formula_field`; a name that is raises `EXCEL-READ-OPTION-ERROR`.",
+          "message": "Nazwa dodatkowego pola dodawanego do każdego rekordu z błędami komórek wiersza: hash tekstu błędu (np. `#DIV/0!`) według nazwy kolumny lub `NOTHING`, jeśli żadna komórka rekordu nie jest błędem.  Komórki z błędami są wtedy akceptowane: są odczytywane jako brak wartości lub jako ich tekst, jeśli `error_cells` ma wartość `text`.  Nazwa nie może być nazwą kolumny arkusza ani `formula_field`; taka nazwa powoduje `EXCEL-READ-OPTION-ERROR`."
+        },
         "app.RXhjZWw.action.cmVhZC1kYXRh.option.Zm9ybXVsYV9maWVsZA.display_name": {
           "source": "Formula Field",
           "message": "Pole formuł"
@@ -398,6 +554,18 @@
         "app.RXhjZWw.action.cmVhZC1kYXRh.option.dG9sd3I.desc": {
           "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
           "message": "Jeśli `True` (domyślnie `False`), wszystkie automatycznie wykryte nazwy nagłówków zostaną przekonwertowane na małe litery"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
+          "source": "Type Sample Rows",
+          "message": "Wiersze próbki typów"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
+          "source": "The number of rows read to infer the type of each column",
+          "message": "Liczba wierszy odczytywanych w celu ustalenia typu każdej kolumny"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
+          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the worksheet has headers.",
+          "message": "Liczba wierszy danych odczytywanych w celu ustalenia typu każdej kolumny na podstawie jej wartości; `0` odczytuje każdą wartość tak, jak jest zapisana, z kolumnami dowolnego typu.\n\nKolumna, której wartości w tych wierszach są wszystkie liczbami całkowitymi, jest kolumną `int`, liczbami kolumną `float`, wartościami logicznymi kolumną `bool`, datami kolumną `date`, a tekstem kolumną `string`; kolumna z wartościami różnych rodzajów lub bez wartości jest zwracana tak, jak jest zapisana (`any`).  Puste komórki i komórki z błędami nie są liczone.  Typy są typami profilu arkusza kalkulacyjnego.  Późniejsza wartość, której typ jej kolumny nie akceptuje, powoduje `EXCEL-COLUMN-TYPE-ERROR`, który podaje rozwiązania: podanie typu kolumny w `column_types` lub próbkowanie większej liczby wierszy.  Kolumny mają typ tylko wtedy, gdy arkusz ma nagłówki."
         },
         "app.RXhjZWw.action.cmVhZC1kYXRh.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
           "source": "Worksheet Name Pattern",

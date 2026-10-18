@@ -87,6 +87,78 @@
           "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
           "message": "若為 `True`，物件將從第一個標頭列解析標頭名稱，在這種情況下，若未明確設定 `header_cells`，則會假定為第一列"
         },
+        "app.T0RT.action.cmVhZA.option.Y29sdW1uX3R5cGVz.display_name": {
+          "source": "Column Types",
+          "message": "欄類型"
+        },
+        "app.T0RT.action.cmVhZA.option.Y29sdW1uX3R5cGVz.short_desc": {
+          "source": "The type of columns whose type is not inferred from their values",
+          "message": "類型不從其值推斷的欄之類型"
+        },
+        "app.T0RT.action.cmVhZA.option.Y29sdW1uX3R5cGVz.desc": {
+          "source": "The type of each column whose type is given rather than inferred from the first rows (see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or `any`.\n\nValues are converted to the column's type: `string` converts numbers, booleans and dates to text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; `float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates and times; `any` returns every value as stored.  A value that the type does not accept raises `ODS-COLUMN-TYPE-ERROR`.  A column that is not a column of the sheet, or an unknown type, raises `ODS-READ-OPTION-ERROR`.  Columns are only typed when the sheet has headers.",
+          "message": "依欄名稱指定類型（而非從前幾列推斷，請參閱 `type_sample_rows`）的每一欄類型：`string`、`int`、`float`、`number`、`bool`、`date` 或 `any`。\n\n值會轉換為欄的類型：`string` 會將數字、布林值和日期轉換為文字（例如以數字儲存的識別碼）；`int` 接受沒有小數部分的數字；`float` 和 `number` 接受數字；`bool` 接受布林值；`date` 接受日期和時間；`any` 會依儲存方式傳回每個值。  類型不接受的值會引發 `ODS-COLUMN-TYPE-ERROR`。  不是工作表欄的欄或未知的類型會引發 `ODS-READ-OPTION-ERROR`。  只有在工作表有標題時，欄才會有類型。"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.display_name": {
+          "source": "Error Cells",
+          "message": "錯誤儲存格"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.short_desc": {
+          "source": "How cells with an error such as #DIV/0! or #N/A are read",
+          "message": "如何讀取含有 #DIV/0! 或 #N/A 等錯誤的儲存格"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.desc": {
+          "source": "How formula cells whose result is an error, such as `#DIV/0!`, `#N/A` or `Err:502`, are read:\n\n- `fail` (the default): the read fails with `ODS-CELL-ERROR`, naming the sheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.\n\nError cells are recognized as LibreOffice marks them; a file saved by a program that stores errors as plain text has text cells instead.",
+          "message": "如何讀取結果為錯誤（例如 `#DIV/0!`、`#N/A` 或 `Err:502`）的公式儲存格：\n\n- `fail`（預設值）：除非設定了 `error_field`，否則讀取會以 `ODS-CELL-ERROR` 失敗，並指出工作表、儲存格、欄和錯誤\n- `null`：儲存格沒有值\n- `text`：在任何欄中，儲存格的值都是錯誤的文字，例如 `#DIV/0!`\n\n使用 `error_field` 時，每筆記錄的錯誤也會在其專屬欄位中傳回，而且除非此選項為 `text`，否則錯誤儲存格會讀取為無值。\n\n錯誤儲存格是依 LibreOffice 標記的方式辨識；由將錯誤儲存為純文字之程式所儲存的檔案，則會改為文字儲存格。"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "失敗"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The read fails at the first error cell",
+          "message": "讀取會在第一個錯誤儲存格失敗"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "The read fails with `ODS-CELL-ERROR` at the first error cell, unless `error_field` is set",
+          "message": "除非設定了 `error_field`，否則讀取會在第一個錯誤儲存格以 `ODS-CELL-ERROR` 失敗"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
+          "source": "No Value",
+          "message": "無值"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
+          "source": "Error cells have no value",
+          "message": "錯誤儲存格沒有值"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
+          "source": "Error cells are read as no value",
+          "message": "錯誤儲存格會讀取為無值"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Error Text",
+          "message": "錯誤文字"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Error cells are read as the error's text",
+          "message": "錯誤儲存格會讀取為錯誤的文字"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
+          "message": "錯誤儲存格在任何欄中都會讀取為錯誤的文字，例如 `#DIV/0!`"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfZmllbGQ.display_name": {
+          "source": "Error Field",
+          "message": "錯誤欄位"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfZmllbGQ.short_desc": {
+          "source": "Return the errors of each row's cells in a field with this name",
+          "message": "在此名稱的欄位中傳回每一列儲存格的錯誤"
+        },
+        "app.T0RT.action.cmVhZA.option.ZXJyb3JfZmllbGQ.desc": {
+          "source": "The name of an extra field added to every record with the errors of the row's cells: a hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the record's cells is an error.  Error cells are then accepted: they are read as no value, or as their text if `error_cells` is `text`.  The name must not be the name of a column of the sheet or of the `formula_field`; a name that is raises `ODS-READ-OPTION-ERROR`.",
+          "message": "新增至每筆記錄、包含該列儲存格錯誤的額外欄位名稱：以欄名稱為鍵的錯誤文字（例如 `#DIV/0!`）雜湊；若記錄的儲存格都不是錯誤，則為 `NOTHING`。  此時會接受錯誤儲存格：它們會讀取為無值，或在 `error_cells` 為 `text` 時讀取為其文字。  名稱不得為工作表欄的名稱或 `formula_field`；此類名稱會引發 `ODS-READ-OPTION-ERROR`。"
+        },
         "app.T0RT.action.cmVhZA.option.Zm9ybXVsYV9maWVsZA.display_name": {
           "source": "Formula Field",
           "message": "公式欄位"
@@ -146,6 +218,18 @@
         "app.T0RT.action.cmVhZA.option.dG9sd3I.desc": {
           "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
           "message": "若為 `True`（預設為 `False`），所有自動偵測到的標頭名稱都會轉換為小寫字母"
+        },
+        "app.T0RT.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
+          "source": "Type Sample Rows",
+          "message": "類型取樣列數"
+        },
+        "app.T0RT.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
+          "source": "The number of rows read to infer the type of each column",
+          "message": "為推斷每一欄的類型而讀取的列數"
+        },
+        "app.T0RT.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
+          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates and times a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `ODS-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the sheet has headers.",
+          "message": "為從值推斷每一欄類型而讀取的資料列數；`0` 會依儲存方式讀取每個值，欄可為任何類型。\n\n在這些列中值全為整數的欄為 `int` 欄，數字為 `float` 欄，布林值為 `bool` 欄，日期和時間為 `date` 欄，文字為 `string` 欄；含有不同種類的值或沒有值的欄，會依儲存方式傳回（`any`）。  空白儲存格和錯誤儲存格不列入計算。  類型即試算表剖析的類型。  其欄類型不接受的後續值會引發 `ODS-COLUMN-TYPE-ERROR`，並指出補救方式：使用 `column_types` 指定欄的類型，或取樣更多列。  只有在工作表有標題時，欄才會有類型。"
         },
         "app.T0RT.action.cmVhZA.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
           "source": "Worksheet Name Pattern",
@@ -339,6 +423,78 @@
           "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
           "message": "若為 `True`，物件將從第一個標頭列解析標頭名稱，在這種情況下，若未明確設定 `header_cells`，則會假定為第一列"
         },
+        "app.T0RT.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.display_name": {
+          "source": "Column Types",
+          "message": "欄類型"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.short_desc": {
+          "source": "The type of columns whose type is not inferred from their values",
+          "message": "類型不從其值推斷的欄之類型"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.desc": {
+          "source": "The type of each column whose type is given rather than inferred from the first rows (see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or `any`.\n\nValues are converted to the column's type: `string` converts numbers, booleans and dates to text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; `float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates and times; `any` returns every value as stored.  A value that the type does not accept raises `ODS-COLUMN-TYPE-ERROR`.  A column that is not a column of the sheet, or an unknown type, raises `ODS-READ-OPTION-ERROR`.  Columns are only typed when the sheet has headers.",
+          "message": "依欄名稱指定類型（而非從前幾列推斷，請參閱 `type_sample_rows`）的每一欄類型：`string`、`int`、`float`、`number`、`bool`、`date` 或 `any`。\n\n值會轉換為欄的類型：`string` 會將數字、布林值和日期轉換為文字（例如以數字儲存的識別碼）；`int` 接受沒有小數部分的數字；`float` 和 `number` 接受數字；`bool` 接受布林值；`date` 接受日期和時間；`any` 會依儲存方式傳回每個值。  類型不接受的值會引發 `ODS-COLUMN-TYPE-ERROR`。  不是工作表欄的欄或未知的類型會引發 `ODS-READ-OPTION-ERROR`。  只有在工作表有標題時，欄才會有類型。"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.display_name": {
+          "source": "Error Cells",
+          "message": "錯誤儲存格"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.short_desc": {
+          "source": "How cells with an error such as #DIV/0! or #N/A are read",
+          "message": "如何讀取含有 #DIV/0! 或 #N/A 等錯誤的儲存格"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.desc": {
+          "source": "How formula cells whose result is an error, such as `#DIV/0!`, `#N/A` or `Err:502`, are read:\n\n- `fail` (the default): the read fails with `ODS-CELL-ERROR`, naming the sheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.\n\nError cells are recognized as LibreOffice marks them; a file saved by a program that stores errors as plain text has text cells instead.",
+          "message": "如何讀取結果為錯誤（例如 `#DIV/0!`、`#N/A` 或 `Err:502`）的公式儲存格：\n\n- `fail`（預設值）：除非設定了 `error_field`，否則讀取會以 `ODS-CELL-ERROR` 失敗，並指出工作表、儲存格、欄和錯誤\n- `null`：儲存格沒有值\n- `text`：在任何欄中，儲存格的值都是錯誤的文字，例如 `#DIV/0!`\n\n使用 `error_field` 時，每筆記錄的錯誤也會在其專屬欄位中傳回，而且除非此選項為 `text`，否則錯誤儲存格會讀取為無值。\n\n錯誤儲存格是依 LibreOffice 標記的方式辨識；由將錯誤儲存為純文字之程式所儲存的檔案，則會改為文字儲存格。"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "失敗"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The read fails at the first error cell",
+          "message": "讀取會在第一個錯誤儲存格失敗"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "The read fails with `ODS-CELL-ERROR` at the first error cell, unless `error_field` is set",
+          "message": "除非設定了 `error_field`，否則讀取會在第一個錯誤儲存格以 `ODS-CELL-ERROR` 失敗"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
+          "source": "No Value",
+          "message": "無值"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
+          "source": "Error cells have no value",
+          "message": "錯誤儲存格沒有值"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
+          "source": "Error cells are read as no value",
+          "message": "錯誤儲存格會讀取為無值"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Error Text",
+          "message": "錯誤文字"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Error cells are read as the error's text",
+          "message": "錯誤儲存格會讀取為錯誤的文字"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
+          "message": "錯誤儲存格在任何欄中都會讀取為錯誤的文字，例如 `#DIV/0!`"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.display_name": {
+          "source": "Error Field",
+          "message": "錯誤欄位"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.short_desc": {
+          "source": "Return the errors of each row's cells in a field with this name",
+          "message": "在此名稱的欄位中傳回每一列儲存格的錯誤"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.desc": {
+          "source": "The name of an extra field added to every record with the errors of the row's cells: a hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the record's cells is an error.  Error cells are then accepted: they are read as no value, or as their text if `error_cells` is `text`.  The name must not be the name of a column of the sheet or of the `formula_field`; a name that is raises `ODS-READ-OPTION-ERROR`.",
+          "message": "新增至每筆記錄、包含該列儲存格錯誤的額外欄位名稱：以欄名稱為鍵的錯誤文字（例如 `#DIV/0!`）雜湊；若記錄的儲存格都不是錯誤，則為 `NOTHING`。  此時會接受錯誤儲存格：它們會讀取為無值，或在 `error_cells` 為 `text` 時讀取為其文字。  名稱不得為工作表欄的名稱或 `formula_field`；此類名稱會引發 `ODS-READ-OPTION-ERROR`。"
+        },
         "app.T0RT.action.cmVhZC1kYXRh.option.Zm9ybXVsYV9maWVsZA.display_name": {
           "source": "Formula Field",
           "message": "公式欄位"
@@ -398,6 +554,18 @@
         "app.T0RT.action.cmVhZC1kYXRh.option.dG9sd3I.desc": {
           "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
           "message": "若為 `True`（預設為 `False`），所有自動偵測到的標頭名稱都會轉換為小寫字母"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
+          "source": "Type Sample Rows",
+          "message": "類型取樣列數"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
+          "source": "The number of rows read to infer the type of each column",
+          "message": "為推斷每一欄的類型而讀取的列數"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
+          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates and times a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `ODS-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the sheet has headers.",
+          "message": "為從值推斷每一欄類型而讀取的資料列數；`0` 會依儲存方式讀取每個值，欄可為任何類型。\n\n在這些列中值全為整數的欄為 `int` 欄，數字為 `float` 欄，布林值為 `bool` 欄，日期和時間為 `date` 欄，文字為 `string` 欄；含有不同種類的值或沒有值的欄，會依儲存方式傳回（`any`）。  空白儲存格和錯誤儲存格不列入計算。  類型即試算表剖析的類型。  其欄類型不接受的後續值會引發 `ODS-COLUMN-TYPE-ERROR`，並指出補救方式：使用 `column_types` 指定欄的類型，或取樣更多列。  只有在工作表有標題時，欄才會有類型。"
         },
         "app.T0RT.action.cmVhZC1kYXRh.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
           "source": "Worksheet Name Pattern",

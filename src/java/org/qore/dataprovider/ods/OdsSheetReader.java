@@ -62,6 +62,8 @@ final class OdsSheetReader implements Closeable {
     static final String NS_TEXT = "urn:oasis:names:tc:opendocument:xmlns:text:1.0";
     static final String NS_MANIFEST = "urn:oasis:names:tc:opendocument:xmlns:manifest:1.0";
     static final String NS_STYLE = "urn:oasis:names:tc:opendocument:xmlns:style:1.0";
+    // LibreOffice's extension namespace, whose value-type attribute marks error cells
+    static final String NS_CALCEXT = "urn:org:documentfoundation:names:experimental:calc:xmlns:calcext:1.0";
 
     private static final String CONTENT = "content.xml";
     private static final String TEMP_PREFIX = "qore-ods-";
@@ -73,6 +75,8 @@ final class OdsSheetReader implements Closeable {
     private int table_index = -1;
     // the number of columns of the selected table, as OdfTable.getColumnCount() gives it
     private int column_count = 0;
+    // the name of the selected table
+    private String table_name = null;
 
     private OdsSheetReader(ZipFile zip) {
         this.zip = zip;
@@ -183,6 +187,13 @@ final class OdsSheetReader implements Closeable {
     }
 
     /**
+     * Returns the name of the selected table
+     */
+    String getTableName() {
+        return table_name;
+    }
+
+    /**
      * Ensures that the document is a spreadsheet, as loading it as an OdfSpreadsheetDocument does: its media type is
      * that of the "mimetype" file, or that of the root document in the manifest if there is no such file
      */
@@ -242,19 +253,23 @@ final class OdsSheetReader implements Closeable {
         // the table at the wanted index and its column count, used if no table has the name
         int index_match = -1;
         int index_match_columns = 0;
+        String index_match_name = null;
         int count = 0;
         try (Content content = openContent()) {
             if (content.xr != null) {
                 while (content.nextTable()) {
                     XMLStreamReader xr = content.xr;
                     int idx = count++;
-                    if (first || sheet_name.equals(xr.getAttributeValue(NS_TABLE, "name"))) {
+                    String name = xr.getAttributeValue(NS_TABLE, "name");
+                    if (first || sheet_name.equals(name)) {
                         table_index = idx;
+                        table_name = name;
                         column_count = countColumns(xr);
                         return;
                     }
                     if (idx == wanted_index) {
                         index_match = idx;
+                        index_match_name = name;
                         index_match_columns = countColumns(xr);
                     } else {
                         skipElement(xr);
@@ -269,6 +284,7 @@ final class OdsSheetReader implements Closeable {
             throw new RuntimeException(String.format("sheet %s is unknown", sheet_name));
         }
         table_index = index_match;
+        table_name = index_match_name;
         column_count = index_match_columns;
     }
 

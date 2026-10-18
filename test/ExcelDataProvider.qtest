@@ -292,6 +292,12 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         addTestCase("list-worksheets action", \testListWorksheetsAction());
         addTestCase("list-worksheets: hidden and very hidden worksheets", \testListWorksheetsVisibility());
         addTestCase("negative: list-worksheets", \testListWorksheetsNegative());
+        addTestCase("typing: columns are typed from their values", \testTypedColumns());
+        addTestCase("typing: no sampling", \testUntypedColumns());
+        addTestCase("typing: column_types", \testColumnTypes());
+        addTestCase("typing: a value of another type after the sample", \testTypeMismatch());
+        addTestCase("error cells", \testErrorCells());
+        addTestCase("typing and error options of the read actions", \testTypingActionOptions());
         set_return_value(main());
     }
 
@@ -319,6 +325,12 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         ExcelTestHelper::createSharedFormulaExcel(test_data_dir + "/shared-formulas.xlsx");
         ExcelTestHelper::createSheetVisibilityExcel(test_data_dir + "/sheet-visibility.xlsx", False);
         ExcelTestHelper::createSheetVisibilityExcel(test_data_dir + "/sheet-visibility.xls", True);
+        ExcelTestHelper::createTypedColumnsExcel(test_data_dir + "/typed.xlsx", False, 5, 0);
+        ExcelTestHelper::createTypedColumnsExcel(test_data_dir + "/typed.xls", True, 5, 0);
+        ExcelTestHelper::createTypedColumnsExcel(test_data_dir + "/typed-mismatch.xlsx", False, 150, 120);
+        ExcelTestHelper::createTypedColumnsExcel(test_data_dir + "/typed-mismatch.xls", True, 150, 120);
+        ExcelTestHelper::createErrorCellsExcel(test_data_dir + "/errors.xlsx", False);
+        ExcelTestHelper::createErrorCellsExcel(test_data_dir + "/errors.xls", True);
 
         assertTrue(is_file(test_data_dir + "/simple.xlsx"), "simple.xlsx created");
     }
@@ -337,14 +349,14 @@ public class ExcelDataProviderTest inherits QUnit::Test {
 
         assertEq(3, records.size(), "should have 3 data rows");
         assertEq("Alice", records[0].Name);
-        assertEq(30.0, records[0].Age);
+        assertEq(30, records[0].Age);
         assertEq("New York", records[0].City);
 
         assertEq("Bob", records[1].Name);
-        assertEq(25.0, records[1].Age);
+        assertEq(25, records[1].Age);
 
         assertEq("Charlie", records[2].Name);
-        assertEq(35.0, records[2].Age);
+        assertEq(35, records[2].Age);
     }
 
     testReadStream() {
@@ -371,7 +383,7 @@ public class ExcelDataProviderTest inherits QUnit::Test {
 
         assertEq(2, records.size(), "should have 2 data rows");
         assertEq("Alice", records[0].Name);
-        assertEq(30.0, records[0].Age);
+        assertEq(30, records[0].Age);
     }
 
     testHeaderCells() {
@@ -414,7 +426,7 @@ public class ExcelDataProviderTest inherits QUnit::Test {
 
         assertEq(2, records.size());
         assertEq("value1", records[0].Field1);
-        assertEq(100.0, records[0].Field2);
+        assertEq(100, records[0].Field2);
         assertTrue(records[0].Field3);
     }
 
@@ -519,7 +531,7 @@ public class ExcelDataProviderTest inherits QUnit::Test {
 
         # Check first row data types
         assertEq("text", records[0].String);
-        assertEq(42.0, records[0].Integer);
+        assertEq(42, records[0].Integer);
         assertEq(Type::Float, records[0].Float.type());
         assertTrue(abs(records[0].Float - 3.14159) < 0.0001, "Float value should be approximately 3.14159");
         assertTrue(records[0].Boolean);
@@ -540,11 +552,11 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         assertEq(2, records.size());
 
         # Formula results should be evaluated
-        assertEq(30.0, records[0].Sum, "10 + 20 = 30");
-        assertEq(200.0, records[0].Product, "10 * 20 = 200");
+        assertEq(30, records[0].Sum, "10 + 20 = 30");
+        assertEq(200, records[0].Product, "10 * 20 = 200");
 
-        assertEq(8.0, records[1].Sum, "5 + 3 = 8");
-        assertEq(15.0, records[1].Product, "5 * 3 = 15");
+        assertEq(8, records[1].Sum, "5 + 3 = 8");
+        assertEq(15, records[1].Product, "5 * 3 = 15");
     }
 
     testMultiSheet() {
@@ -676,6 +688,175 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         # the unencrypted workbook reads
         ExcelReadDataProvider dp({"data": workbook, "header_names": True});
         assertEq(3, (map $1, dp.searchRecords()).size());
+    }
+
+    #! Returns the records of a worksheet read with the given options
+    private list<hash<auto>> readExcel(string file, *hash<auto> opts) {
+        ExcelReadDataProvider dp(test_data_dir + "/" + file, {"header_names": True} + opts);
+        return map $1, dp.searchRecords();
+    }
+
+    #! Returns the names of the types of the fields of a worksheet read with the given options
+    private hash<string, string> readExcelTypes(string file, *hash<auto> opts) {
+        ExcelReadDataProvider dp(test_data_dir + "/" + file, {"header_names": True} + opts);
+        return map {$1.key: $1.value.getType().getName()}, dp.getRecordType().pairIterator();
+    }
+
+    #! Columns are typed from their values in the first rows
+    testTypedColumns() {
+        foreach string file in ("typed.xlsx", "typed.xls") {
+            assertEq({
+                "Id": "*int",
+                "Price": "*float",
+                "Paid": "*bool",
+                "Shipped": "*date",
+                "Name": "*string",
+                "Note": "auto",
+                "Empty": "auto",
+            }, readExcelTypes(file), file);
+            list<hash<auto>> recs = readExcel(file);
+            assertEq(5, recs.size(), file);
+            assertEq((1, 2, 3, 4, 5), (map $1.Id, recs), file);
+            assertEq(Type::Int, recs[0].Id.type(), file);
+            assertEq((1.25, 2.5, 3.75, 5.0, 6.25), (map $1.Price, recs), file);
+            assertEq(Type::Float, recs[3].Price.type(), file);
+            assertEq((False, True, False, True, False), (map $1.Paid, recs), file);
+            assertEq(2026-01-02, recs[0].Shipped, file);
+            assertEq(Type::Date, recs[0].Shipped.type(), file);
+            assertEq("item-1", recs[0].Name, file);
+            # a column of text and numbers is not converted
+            assertEq(("n-1", 2.0, "n-3", 4.0, "n-5"), (map $1.Note, recs), file);
+            assertEq((NOTHING, NOTHING, NOTHING, NOTHING, NOTHING), (map $1.Empty, recs), file);
+            # the record type accepts the records
+            ExcelReadDataProvider dp(test_data_dir + "/" + file, {"header_names": True});
+            hash<string, AbstractDataField> rec_type = dp.getRecordType();
+            foreach hash<auto> rec in (recs) {
+                map rec_type{$1.key}.getType().acceptsValue($1.value), rec.pairIterator();
+            }
+            # the worksheet provider of the file is typed as well
+            AbstractDataProvider sheet = dp.getChildProvider("Orders");
+            assertEq((1, 2, 3, 4, 5), (map $1.Id, sheet.searchRecords()), file);
+            assertEq("*int", sheet.getRecordType().Id.getType().getName(), file);
+        }
+    }
+
+    #! type_sample_rows 0 reads every value as stored, with columns of any type
+    testUntypedColumns() {
+        list<hash<auto>> recs = readExcel("typed.xlsx", {"type_sample_rows": 0});
+        assertEq(1.0, recs[0].Id);
+        assertEq(Type::Float, recs[0].Id.type());
+        assertEq(("auto",), (keys (map {$1: True}, readExcelTypes("typed.xlsx", {"type_sample_rows": 0}).values())));
+    }
+
+    #! column_types gives the type of columns
+    testColumnTypes() {
+        hash<auto> opts = {"column_types": {"Id": "float", "Note": "string", "Empty": "date", "Paid": "any"}};
+        hash<string, string> types = readExcelTypes("typed.xlsx", opts);
+        assertEq("*float", types.Id);
+        assertEq("*string", types.Note);
+        assertEq("*date", types.Empty);
+        assertEq("auto", types.Paid);
+        assertEq("*float", types.Price, "other columns are inferred");
+        list<hash<auto>> recs = readExcel("typed.xlsx", opts);
+        assertEq((1.0, 2.0), (map $1.Id, recs[0..1]));
+        # numbers in a text column are converted to text
+        assertEq(("n-1", "2", "n-3", "4", "n-5"), (map $1.Note, recs));
+        # only the given columns are typed when there is no sampling
+        types = readExcelTypes("typed.xlsx", opts + {"type_sample_rows": 0});
+        assertEq("*float", types.Id);
+        assertEq("auto", types.Price);
+
+        assertThrows("EXCEL-READ-OPTION-ERROR", "column_types.*\"Id\".*\"bogus\"", \readExcel(),
+            ("typed.xlsx", {"column_types": {"Id": "bogus"}}));
+        assertThrows("EXCEL-READ-OPTION-ERROR", "column_types.*\"Nope\".*not a column", \readExcel(),
+            ("typed.xlsx", {"column_types": {"Nope": "int"}}));
+        assertThrows("EXCEL-READ-OPTION-ERROR", "type_sample_rows", \readExcel(),
+            ("typed.xlsx", {"type_sample_rows": -1}));
+    }
+
+    #! A value after the sampled rows that does not have its column's type fails the read, naming the remedy
+    testTypeMismatch() {
+        foreach string file in ("typed-mismatch.xlsx", "typed-mismatch.xls") {
+            ExcelReadDataProvider dp(test_data_dir + "/" + file, {"header_names": True});
+            assertEq("*int", dp.getRecordType().Id.getType().getName(), file);
+            int read = 0;
+            *hash<ExceptionInfo> ex;
+            try {
+                map ++read, dp.searchRecords();
+            } catch (hash<ExceptionInfo> e) {
+                ex = e;
+            }
+            assertEq("EXCEL-COLUMN-TYPE-ERROR", ex.err, file);
+            assertEq(119, read, file + ": the records before the value are read");
+            assertRegex("worksheet \"Orders\" row 121 column \"Id\".*\"N/A\".*int.*first 100", ex.desc, file);
+            assertRegex("column_types.*type_sample_rows", ex.desc, file);
+            assertEq({"worksheet": "Orders", "row": 121, "column": "Id", "value": "N/A", "type": "int"},
+                ex.arg{"worksheet", "row", "column", "value", "type"}, file);
+
+            # the remedies
+            list<hash<auto>> recs = readExcel(file, {"type_sample_rows": 150});
+            assertEq(150, recs.size(), file);
+            assertEq("N/A", recs[119].Id, file);
+            assertEq(1.0, recs[0].Id, file + ": a column of numbers and text is not converted");
+            recs = readExcel(file, {"column_types": {"Id": "string", "Price": "any"}});
+            assertEq("1", recs[0].Id, file);
+            assertEq("N/A", recs[119].Id, file);
+        }
+    }
+
+    #! An error cell fails the read by default, naming the ways to accept it
+    testErrorCells() {
+        foreach string file in ("errors.xlsx", "errors.xls") {
+            *hash<ExceptionInfo> ex;
+            try {
+                readExcel(file);
+            } catch (hash<ExceptionInfo> e) {
+                ex = e;
+            }
+            assertEq("EXCEL-CELL-ERROR", ex.err, file);
+            assertRegex("worksheet \"Rates\" cell B2 \\(column \"Ratio\"\\).*#DIV/0!", ex.desc, file);
+            assertRegex("error_cells.*\"null\".*\"text\".*error_field", ex.desc, file);
+            assertEq({"worksheet": "Rates", "cell": "B2", "column": "Ratio", "error": "#DIV/0!"},
+                ex.arg{"worksheet", "cell", "column", "error"}, file);
+
+            # errors read as no value; the columns are typed from their other values
+            list<hash<auto>> recs = readExcel(file, {"error_cells": "null"});
+            assertEq((NOTHING, 0.5, NOTHING), (map $1.Ratio, recs), file);
+            assertEq((NOTHING, "x", "y"), (map $1.Lookup, recs), file);
+            assertEq("*float", readExcelTypes(file, {"error_cells": "null"}).Ratio, file);
+
+            # errors read as their text
+            recs = readExcel(file, {"error_cells": "text"});
+            assertEq(("#DIV/0!", 0.5, "#N/A"), (map $1.Ratio, recs), file);
+            assertEq(("#N/A", "x", "y"), (map $1.Lookup, recs), file);
+
+            # errors in a field of their own
+            recs = readExcel(file, {"error_field": "errors"});
+            assertEq(({"Ratio": "#DIV/0!", "Lookup": "#N/A"}, NOTHING, {"Ratio": "#N/A"}), (map $1.errors, recs),
+                file);
+            assertEq((NOTHING, 0.5, NOTHING), (map $1.Ratio, recs), file);
+            assertEq("*hash<auto>", readExcelTypes(file, {"error_field": "errors"}).errors, file);
+            recs = readExcel(file, {"error_field": "errors", "error_cells": "text"});
+            assertEq(("#DIV/0!", 0.5, "#N/A"), (map $1.Ratio, recs), file);
+            assertEq({"Ratio": "#DIV/0!", "Lookup": "#N/A"}, recs[0].errors, file);
+        }
+        # the allowed values of the option are checked with the options
+        assertThrows("OPTION-VALUE-ERROR", "error_cells", \readExcel(), ("errors.xlsx", {"error_cells": "skip"}));
+        assertThrows("EXCEL-READ-OPTION-ERROR", "error_field.*\"Ratio\".*column", \readExcel(),
+            ("errors.xlsx", {"error_field": "Ratio"}));
+    }
+
+    #! The read actions offer the typing and error options
+    testTypingActionOptions() {
+        foreach string action in ("read", "read-data") {
+            hash<DataProviderActionInfo> info = DataProviderActionCatalog::getAppActionEx("Excel", action);
+            foreach string opt in ("type_sample_rows", "column_types", "error_cells", "error_field") {
+                assertTrue(info.options.hasKey(opt), action + " " + opt);
+            }
+            assertEq(100, info.options.type_sample_rows.default_value);
+            assertEq("fail", info.options.error_cells.default_value);
+            assertEq(("fail", "null", "text"), (map $1.value, info.options.error_cells.allowed_values));
+        }
     }
 
     #! Returns the list-worksheets action and its data provider
@@ -826,7 +1007,7 @@ public class ExcelDataProviderTest inherits QUnit::Test {
             assertEq(5, records.size(), ext);
             assertEq(OrderFormulas, (map $1._formulas, records), ext);
             # values of formula cells are still their results
-            assertEq((10.0, 7.0, 8.0, 25.0, 29.0), (map $1.Line, records), ext);
+            assertEq((10, 7, 8, 25, 29), (map $1.Line, records), ext);
             assertEq(("Item", "Qty", "Price", "Line", "_formulas"), keys records[0], ext);
             # the record type declares the field
             hash<string, AbstractDataField> rec_type = dp.getRecordType();
@@ -1079,7 +1260,7 @@ public class ExcelDataProviderTest inherits QUnit::Test {
 
         assertEq(2, records.size());
         assertEq("value1", records[0].Col1);
-        assertEq(100.0, records[0].Col2);
+        assertEq(100, records[0].Col2);
     }
 
     testEdgeCaseSpecialChars() {
@@ -1119,7 +1300,7 @@ public class ExcelDataProviderTest inherits QUnit::Test {
 
         assertEq(2, records.size());
         assertEq("Alice", records[0].Name);
-        assertEq(30.0, records[0].Age);
+        assertEq(30, records[0].Age);
         assertTrue(records[0].Active);
         assertEq("Bob", records[1].Name);
         assertFalse(records[1].Active);
@@ -1252,9 +1433,9 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         list<hash<auto>> records = map $1, rdp.searchRecords();
         assertEq(2, records.size());
         assertEq("item1", records[0].Name);
-        assertEq(100.0, records[0].Value);
+        assertEq(100, records[0].Value);
         assertEq("item2", records[1].Name);
-        assertEq(200.0, records[1].Value);
+        assertEq(200, records[1].Value);
     }
 
     testWriteNegativePathStreamConflict() {
@@ -1410,8 +1591,8 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         });
         records = map $1, dp.searchRecords();
         assertEq(2, records.size());
-        assertEq({"Col1": "value1", "Col2": 100.0, "Col3": True}, records[0]);
-        assertEq({"Col1": "value2", "Col2": 200.0, "Col3": False}, records[1]);
+        assertEq({"Col1": "value1", "Col2": 100, "Col3": True}, records[0]);
+        assertEq({"Col1": "value2", "Col2": 200, "Col3": False}, records[1]);
     }
 
     # returns an xlsx with a header row, two data rows separated by an empty row, and two trailing empty rows
@@ -1431,18 +1612,18 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         # default: reading stops at the first empty row
         ExcelReadDataProvider dp({"data": data, "header_names": True});
         list<hash<auto>> records = map $1, dp.searchRecords();
-        assertEq(({"Sku": "A-1", "Qty": 5.0},), records);
+        assertEq(({"Sku": "A-1", "Qty": 5},), records);
 
         # ignore_empty: empty rows are skipped, trailing empty rows end the iteration
         dp = new ExcelReadDataProvider({"data": data, "header_names": True, "ignore_empty": True});
         records = map $1, dp.searchRecords();
-        assertEq(({"Sku": "A-1", "Qty": 5.0}, {"Sku": "B-2", "Qty": 7.0}), records);
+        assertEq(({"Sku": "A-1", "Qty": 5}, {"Sku": "B-2", "Qty": 7}), records);
 
         # ignore_empty stays within data_cells (rows 2-3 hold only the first record and the empty row)
         dp = new ExcelReadDataProvider({"data": data, "header_names": True, "ignore_empty": True,
             "data_cells": "a2:b3"});
         records = map $1, dp.searchRecords();
-        assertEq(({"Sku": "A-1", "Qty": 5.0},), records);
+        assertEq(({"Sku": "A-1", "Qty": 5},), records);
 
         # the option is also applied to worksheet child providers
         dp = new ExcelReadDataProvider({"data": data, "header_names": True, "ignore_empty": True});
@@ -1481,12 +1662,12 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         wdp.createRecord(rec);
         ExcelReadDataProvider dp({"data": wdp.getData(), "header_cells": "y1:ab1", "data_cells": "y2:ab2"});
         list<hash<auto>> records = map $1, dp.searchRecords();
-        assertEq(({"c25": 25.0, "c26": 26.0, "c27": 27.0, "c28": 28.0},), records);
+        assertEq(({"c25": 25, "c26": 26, "c27": 27, "c28": 28},), records);
 
         # a data range wider than the header range ends at the last header column
         dp = new ExcelReadDataProvider({"data": wdp.getData(), "header_cells": "y1:z1", "data_cells": "y2:ab2"});
         records = map $1, dp.searchRecords();
-        assertEq(({"c25": 25.0, "c26": 26.0},), records);
+        assertEq(({"c25": 25, "c26": 26},), records);
     }
 
     testHeaderOptionConflictAllCtors() {
@@ -1555,8 +1736,8 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         list<hash<auto>> records = map $1, rdp.searchRecords();
         assertEq(250, records.size());
         assertEq(("Id", "Name", "Shipped"), keys records[0]);
-        assertEq({"Id": 1.0, "Name": "row-1", "Shipped": d}, records[0]);
-        assertEq({"Id": 250.0, "Name": "row-250", "Shipped": d}, records[249]);
+        assertEq({"Id": 1, "Name": "row-1", "Shipped": d}, records[0]);
+        assertEq({"Id": 250, "Name": "row-250", "Shipped": d}, records[249]);
     }
 
     testWriteHeadersFromFirstRecord() {
@@ -1570,9 +1751,9 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         ExcelReadDataProvider rdp({"data": dp.getData(), "header_names": True});
         list<hash<auto>> records = map $1, rdp.searchRecords();
         assertEq((
-            {"B": 1.0, "A": d},
-            {"B": 2.0, "A": d + 1D},
-            {"B": 3.0, "A": NOTHING},
+            {"B": 1, "A": d},
+            {"B": 2, "A": d + 1D},
+            {"B": 3, "A": NOTHING},
         ), records);
     }
 
@@ -1590,7 +1771,7 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         assertEq(Type::Binary, output.data.type());
         assertEq("PK", output.data.substr(0, 2).toString());
         ExcelReadDataProvider rdp({"data": output.data, "header_names": True});
-        assertEq(({"Sku": "A-1", "Qty": 5.0}, {"Sku": "B-2", "Qty": 7.0}), (map $1, rdp.searchRecords()));
+        assertEq(({"Sku": "A-1", "Qty": 5}, {"Sku": "B-2", "Qty": 7}), (map $1, rdp.searchRecords()));
     }
 
     testProfileGrid() {
@@ -1720,7 +1901,12 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         string path = test_data_dir + "/streaming-features.xlsx";
         ExcelTestHelper::createStreamingFeaturesExcel(path);
 
-        ExcelReadDataProvider dp(path, {"header_names": True, "timezone": "UTC", "ignore_empty": True});
+        # error cells fail the read by default
+        assertThrows("EXCEL-CELL-ERROR", "cell D5 \\(column \"Inline\"\\) is the error #N/A", sub () {
+            map $1, (new ExcelReadDataProvider(path, {"header_names": True, "ignore_empty": True})).searchRecords();
+        });
+        ExcelReadDataProvider dp(path, {"header_names": True, "timezone": "UTC", "ignore_empty": True,
+            "error_cells": "null"});
         assertEq(("Main", "Chart", "Sparse"), dp.getChildProviderNames());
         assertEq(("Name", "Val", "When", "Inline"), keys dp.getRecordType());
         list<hash<auto>> expected = (
@@ -1728,7 +1914,7 @@ public class ExcelDataProviderTest inherits QUnit::Test {
             {"Name": "rich", "Val": 42.5, "When": 2023-03-15T06:00:00Z, "Inline": "a b"},
             # escaped characters; the cell's own number style overrides the column's date style
             {"Name": "escA", "Val": 7.0, "When": 1.0, "Inline": "B"},
-            # a boolean cell is true only for "1"; an error cell has no value
+            # a boolean cell is true only for "1"; an error cell has no value with "error_cells": "null"
             {"Name": True, "Val": False, "When": 2023-03-16T00:00:00Z, "Inline": NOTHING},
             # formula cells give their cached results
             {"Name": 2.0, "Val": "xyC", "When": True, "Inline": NOTHING},
@@ -1740,7 +1926,7 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         assertEq(expected, (map $1, dp.searchRecords()));
 
         # without ignore_empty, reading stops at the missing row 4
-        dp = new ExcelReadDataProvider(path, {"header_names": True, "timezone": "UTC"});
+        dp = new ExcelReadDataProvider(path, {"header_names": True, "timezone": "UTC", "error_cells": "null"});
         assertEq(expected[0..1], (map $1, dp.searchRecords()));
 
         # a chart sheet has no cells
@@ -1963,7 +2149,7 @@ printf(\"RESULT:%%s\\n\", make_json({\"count\": count, \"mismatches\": mismatche
             ExcelReadDataProvider rdp(path, {"header_names": True});
             list<hash<auto>> recs = map $1, rdp.searchRecords();
             assertEq(1, recs.size(), i.key);
-            assertEq(FormatRecord + {"Amount": -1234.5, "Plain": 42.0}, recs[0], i.key + ": values");
+            assertEq(FormatRecord + {"Amount": -1234.5, "Plain": 42}, recs[0], i.key + ": values");
         }
     }
 
@@ -1978,7 +2164,7 @@ printf(\"RESULT:%%s\\n\", make_json({\"count\": count, \"mismatches\": mismatche
         assertEq(("General", "General", "General", "yyyy-mm-dd hh:mm:ss", "General", "General", "General"),
             ExcelTestHelper::getCellFormats(path, 1));
         ExcelReadDataProvider rdp(path, {"header_names": True});
-        assertEq(({"Name": "b", "Date": 5.0, "Amount": "n/a", "Share": 2026-10-07T00:00:00, "Code": 3.5,
+        assertEq(({"Name": "b", "Date": 5, "Amount": "n/a", "Share": 2026-10-07T00:00:00, "Code": 3.5,
             "Plain": NOTHING, "Stamp": True},), (map $1, rdp.searchRecords()));
     }
 
@@ -2150,7 +2336,7 @@ printf(\"RESULT:%%s\\n\", make_json({\"count\": count, \"mismatches\": mismatche
             # the values keep their types
             ExcelReadDataProvider rdp(path, {"header_names": True});
             list<hash<auto>> recs = map $1, rdp.searchRecords();
-            assertEq((MaskRecord + {"Count": 1234567.0},), recs, i.key + ": values");
+            assertEq((MaskRecord + {"Count": 1234567},), recs, i.key + ": values");
         }
         # a column format and a column mask for different columns
         string path = test_data_dir + "/column-masks-formats.xlsx";
@@ -2270,7 +2456,7 @@ printf(\"RESULT:%%s\\n\", make_json({\"count\": count, \"mismatches\": mismatche
         dp.createRecord({"id": "A-1", "n": 1});
         dp.finishCreate();
         ExcelReadDataProvider rdp(path, {"headers": ("id", "n")});
-        assertEq(({"id": "A-1", "n": 1.0},), (map $1, rdp.searchRecords()));
+        assertEq(({"id": "A-1", "n": 1},), (map $1, rdp.searchRecords()));
     }
 
     testWriteTimeZone() {

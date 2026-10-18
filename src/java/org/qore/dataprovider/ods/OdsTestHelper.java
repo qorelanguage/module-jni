@@ -686,6 +686,77 @@ public class OdsTestHelper {
         });
     }
 
+    /**
+     * Creates a spreadsheet of orders whose columns have a type each, for typed reading.
+     *
+     * The table "Orders" has a header row (Id, Price, Paid, Shipped, Name, Note, Empty) and the given number of data
+     * rows; data row i (1-based) has Id i, Price i * 1.25, Paid true for even i, Shipped 2026-01-01 plus i days (a date
+     * cell), Name "item-i", Note "n-i" for odd i and the number i for even i, and no Empty cell.  If mismatch_row is
+     * positive, the Id of that data row is the text "N/A" and its Price the text "free".
+     *
+     * @param path The path to create the file at
+     * @param rows The number of data rows
+     * @param mismatch_row The 1-based data row with text in the number columns, or 0 for none
+     */
+    public static void createTypedColumnsOds(String path, int rows, int mismatch_row) throws IOException {
+        writeOds(path, out -> {
+            out.write("<table:table table:name=\"Orders\">"
+                + "<table:table-column table:number-columns-repeated=\"7\"/>"
+                + "<table:table-row>" + str("Id") + str("Price") + str("Paid") + str("Shipped") + str("Name")
+                + str("Note") + str("Empty") + "</table:table-row>");
+            LocalDateTime base = LocalDateTime.of(2026, 1, 1, 0, 0);
+            for (int i = 1; i <= rows; ++i) {
+                out.write("<table:table-row>");
+                if (i == mismatch_row) {
+                    out.write(str("N/A") + str("free"));
+                } else {
+                    out.write(num(i) + "<table:table-cell office:value-type=\"float\" office:value=\"" + (i * 1.25)
+                        + "\"><text:p>" + (i * 1.25) + "</text:p></table:table-cell>");
+                }
+                boolean paid = i % 2 == 0;
+                out.write("<table:table-cell office:value-type=\"boolean\" office:boolean-value=\"" + paid
+                    + "\"><text:p>" + (paid ? "TRUE" : "FALSE") + "</text:p></table:table-cell>"
+                    + day(base.plusDays(i).toLocalDate().toString()) + str("item-" + i)
+                    + (i % 2 == 1 ? str("n-" + i) : num(i)) + "<table:table-cell/></table:table-row>");
+            }
+            out.write("</table:table>");
+        });
+    }
+
+    /**
+     * Creates a spreadsheet with formulas whose results are errors, written as LibreOffice (7.6) writes them: a string
+     * cell with an empty office:string-value, the error text as its text, and calcext:value-type="error".
+     *
+     * The table "Rates" has a header row (Item, Ratio, Lookup) and four data rows: ("a", =1/0 (#DIV/0!), =NA()
+     * (#N/A)), ("b", 0.5, ="x" (a formula with a text result, which is not an error)), ("c", =NA() (#N/A), "y"), and
+     * ("d", =SQRT(-1) (Err:502, LibreOffice's text for an invalid argument), "z").
+     *
+     * @param path The path to create the file at
+     */
+    public static void createErrorCellsOds(String path) throws IOException {
+        writeOds(path, out -> {
+            out.write("<table:table table:name=\"Rates\" "
+                + "xmlns:calcext=\"urn:org:documentfoundation:names:experimental:calc:xmlns:calcext:1.0\">"
+                + "<table:table-column table:number-columns-repeated=\"3\"/>"
+                + "<table:table-row>" + str("Item") + str("Ratio") + str("Lookup") + "</table:table-row>"
+                + "<table:table-row>" + str("a") + error("of:=1/0", "#DIV/0!") + error("of:=NA()", "#N/A")
+                + "</table:table-row>"
+                + "<table:table-row>" + str("b") + "<table:table-cell office:value-type=\"float\" "
+                + "office:value=\"0.5\" calcext:value-type=\"float\"><text:p>0.5</text:p></table:table-cell>"
+                + "<table:table-cell table:formula=\"of:=&quot;x&quot;\" office:value-type=\"string\" "
+                + "office:string-value=\"x\" calcext:value-type=\"string\"><text:p>x</text:p></table:table-cell>"
+                + "</table:table-row>"
+                + "<table:table-row>" + str("c") + error("of:=NA()", "#N/A") + str("y") + "</table:table-row>"
+                + "<table:table-row>" + str("d") + error("of:=SQRT(-1)", "Err:502") + str("z") + "</table:table-row>"
+                + "</table:table>");
+        });
+    }
+
+    private static String error(String formula, String text) {
+        return "<table:table-cell table:formula=\"" + formula + "\" office:value-type=\"string\" "
+            + "office:string-value=\"\" calcext:value-type=\"error\"><text:p>" + text + "</text:p></table:table-cell>";
+    }
+
     private static String formula(String formula, int value) {
         return "<table:table-cell table:formula=\"" + formula + "\" office:value-type=\"float\" office:value=\""
             + value + "\"><text:p>" + value + "</text:p></table:table-cell>";

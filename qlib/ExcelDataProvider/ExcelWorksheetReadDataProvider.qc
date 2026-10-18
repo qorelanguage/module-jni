@@ -41,6 +41,9 @@ public class ExcelWorksheetReadDataProvider inherits DataProvider::AbstractDataP
         #! the iterator object
         ExcelIterator i;
 
+        #! the record type, kept once it is read: the iterator is released when a search ends
+        *hash<string, AbstractDataField> record_type;
+
         #! the workbook file of the parent provider, if the provider was created from it
         *ExcelFile file;
 
@@ -148,7 +151,10 @@ public class ExcelWorksheetReadDataProvider inherits DataProvider::AbstractDataP
 
     #! Returns the description of the record type, if any
     private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
-        return ExcelReadDataProvider::getIteratorRecordType(i, sheet, opts);
+        if (!record_type) {
+            record_type = ExcelReadDataProvider::getIteratorRecordType(i, sheet, opts);
+        }
+        return record_type;
     }
 
     #! Returns data provider static info

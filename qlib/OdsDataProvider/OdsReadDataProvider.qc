@@ -64,8 +64,46 @@ public class OdsReadDataProvider inherits DataProvider::AbstractDataProvider {
             },
         };
 
+        #! The default number of data rows sampled to infer the types of the columns
+        const DefaultTypeSampleRows = 100;
+
+        #! The column type of each kind of value of TabularProfiler::classify()
+        const InferredTypes = {
+            "int": "int",
+            "number": "float",
+            "bool": "bool",
+            "date": "date",
+            "string": "string",
+        };
+
+        #! The column types of the \c column_types option
+        const ColumnTypes = {
+            "string": AbstractDataProviderType::get(StringOrNothingType),
+            "int": AbstractDataProviderType::get(IntOrNothingType),
+            "float": AbstractDataProviderType::get(FloatOrNothingType),
+            "number": AbstractDataProviderType::get(NumberOrNothingType),
+            "bool": AbstractDataProviderType::get(BoolOrNothingType),
+            "date": AbstractDataProviderType::get(DateOrNothingType),
+            "any": AbstractDataProviderType::anyDataType,
+        };
+
         #! Constructor options
         const ConstructorOptions = {
+            "column_types": <DataProviderOptionInfo>{
+                "display_name": "Column Types",
+                "short_desc": "The type of columns whose type is not inferred from their values",
+                "type": AbstractDataProviderType::get(AutoHashOrNothingType),
+                "desc": "The type of each column whose type is given rather than inferred from the first rows "
+                    "(see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or "
+                    "`any`.\n\n"
+                    "Values are converted to the column's type: `string` converts numbers, booleans and dates to "
+                    "text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; "
+                    "`float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates and times; "
+                    "`any` returns every value as stored.  A value that the type does not accept raises "
+                    "`ODS-COLUMN-TYPE-ERROR`.  A column that is not a column of the sheet, or an unknown type, "
+                    "raises `ODS-READ-OPTION-ERROR`.  Columns are only typed when the sheet has headers.",
+                "example_value": {"Order No": "string", "Amount": "number"},
+            },
             "data": <DataProviderOptionInfo>{
                 "display_name": "Input Data",
                 "short_desc": "ODS data to process",
@@ -78,6 +116,54 @@ public class OdsReadDataProvider inherits DataProvider::AbstractDataProvider {
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "The range of cells for data to process",
                 "example_value": "b2:f10",
+            },
+            "error_cells": <DataProviderOptionInfo>{
+                "display_name": "Error Cells",
+                "short_desc": "How cells with an error such as #DIV/0! or #N/A are read",
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "How formula cells whose result is an error, such as `#DIV/0!`, `#N/A` or `Err:502`, are "
+                    "read:\n\n"
+                    "- `fail` (the default): the read fails with `ODS-CELL-ERROR`, naming the sheet, cell, column "
+                    "and error, unless `error_field` is set\n"
+                    "- `null`: the cell has no value\n"
+                    "- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\n"
+                    "With `error_field`, the errors of each record are also returned in a field of their own, and "
+                    "error cells are read as no value unless this option is `text`.\n\n"
+                    "Error cells are recognized as LibreOffice marks them; a file saved by a program that stores "
+                    "errors as plain text has text cells instead.",
+                "default_value": "fail",
+                "allowed_values": (
+                    <AllowedValueInfo>{
+                        "value": "fail",
+                        "display_name": "Fail",
+                        "short_desc": "The read fails at the first error cell",
+                        "desc": "The read fails with `ODS-CELL-ERROR` at the first error cell, unless `error_field` "
+                            "is set",
+                    },
+                    <AllowedValueInfo>{
+                        "value": "null",
+                        "display_name": "No Value",
+                        "short_desc": "Error cells have no value",
+                        "desc": "Error cells are read as no value",
+                    },
+                    <AllowedValueInfo>{
+                        "value": "text",
+                        "display_name": "Error Text",
+                        "short_desc": "Error cells are read as the error's text",
+                        "desc": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
+                    },
+                ),
+            },
+            "error_field": <DataProviderOptionInfo>{
+                "display_name": "Error Field",
+                "short_desc": "Return the errors of each row's cells in a field with this name",
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "The name of an extra field added to every record with the errors of the row's cells: a "
+                    "hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the "
+                    "record's cells is an error.  Error cells are then accepted: they are read as no value, or as "
+                    "their text if `error_cells` is `text`.  The name must not be the name of a column of the "
+                    "sheet or of the `formula_field`; a name that is raises `ODS-READ-OPTION-ERROR`.",
+                "example_value": "_errors",
             },
             "formula_field": <DataProviderOptionInfo>{
                 "display_name": "Formula Field",
@@ -166,6 +252,21 @@ public class OdsReadDataProvider inherits DataProvider::AbstractDataProvider {
                 "type": AbstractDataProviderType::get(SoftBoolType),
                 "desc": "If `True` (default `False`), all automatically-detected header names will be converted to "
                     "lower case letters",
+            },
+            "type_sample_rows": <DataProviderOptionInfo>{
+                "display_name": "Type Sample Rows",
+                "short_desc": "The number of rows read to infer the type of each column",
+                "type": AbstractDataProviderType::get(SoftIntType),
+                "desc": "The number of data rows read to infer the type of each column from its values; `0` reads "
+                    "every value as stored, with columns of any type.\n\n"
+                    "A column whose values in these rows are all whole numbers is an `int` column, numbers a "
+                    "`float` column, booleans a `bool` column, dates and times a `date` column, and text a `string` "
+                    "column; a column with values of different kinds, or with no values, is returned as stored "
+                    "(`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet "
+                    "profile.  A later value that its column's type does not accept raises `ODS-COLUMN-TYPE-ERROR`, "
+                    "which names the remedies: giving the column's type with `column_types`, or sampling more "
+                    "rows.  Columns are only typed when the sheet has headers.",
+                "default_value": DefaultTypeSampleRows,
             },
             "worksheet": <DataProviderOptionInfo>{
                 "display_name": "Worksheet Name",
@@ -301,7 +402,8 @@ public class OdsReadDataProvider inherits DataProvider::AbstractDataProvider {
     }
 
     #! Validates option combinations and parses cell range options
-    /** @throw ODS-READ-OPTION-ERROR \c "headers" and \c "header_names" are both given
+    /** @throw ODS-READ-OPTION-ERROR \c "headers" and \c "header_names" are both given, \c type_sample_rows is
+        negative, \c error_cells is not \c fail, \c null, or \c text, or \c column_types gives an unknown type
         @throw ODS-INVALID-LOCATION invalid location or range string
         @throw ODS-FORMULA-FIELD-ERROR the \c formula_field option is an empty string
     */
@@ -316,6 +418,20 @@ public class OdsReadDataProvider inherits DataProvider::AbstractDataProvider {
         }
         if (exists opts.formula_field && !opts.formula_field.val()) {
             throw "ODS-FORMULA-FIELD-ERROR", "the \"formula_field\" option must not be empty";
+        }
+        if (exists opts.type_sample_rows && opts.type_sample_rows < 0) {
+            throw "ODS-READ-OPTION-ERROR", sprintf("the \"type_sample_rows\" option must be 0 or more; got %d",
+                opts.type_sample_rows);
+        }
+        if (exists opts.error_cells && !inlist(opts.error_cells, ("fail", "null", "text"))) {
+            throw "ODS-READ-OPTION-ERROR", sprintf("invalid \"error_cells\" option %y; expecting \"fail\", "
+                "\"null\", or \"text\"", opts.error_cells);
+        }
+        foreach hash<auto> i in (opts.column_types.pairIterator()) {
+            if (!ColumnTypes{i.value}) {
+                throw "ODS-READ-OPTION-ERROR", sprintf("the \"column_types\" option gives column %y the type %y; "
+                    "expecting one of: %y", i.key, i.value, keys ColumnTypes);
+            }
         }
         if (opts.headers && opts.header_names) {
             throw "ODS-READ-OPTION-ERROR", "cannot provide both \"headers\" and \"header_names\" options; use "
@@ -493,8 +609,14 @@ public class OdsReadDataProvider inherits DataProvider::AbstractDataProvider {
     }
 
     #! Configures an iterator from processed options
-    /** @param it the iterator to configure
+    /** When the iterator has headers, the types of its columns are set: those of the \c column_types option, and the
+        others inferred from the first \c type_sample_rows data rows, which are read for that
+
+        @param it the iterator to configure
         @param opts options already processed by processCellOptions()
+
+        @throw ODS-READ-OPTION-ERROR \c column_types names a column that is not a column of the sheet, or
+        \c error_field is the name of a column or of the formula field
     */
     static configureIterator(OdsIterator it, *hash<auto> opts) {
         if (opts.header_cells) {
@@ -518,9 +640,83 @@ public class OdsReadDataProvider inherits DataProvider::AbstractDataProvider {
         if (opts.ignore_empty) {
             it.setIgnoreEmpty(True);
         }
-        # set last: the name is checked against the headers
+        # set last: the names are checked against the headers
         if (exists opts.formula_field) {
             it.setFormulaField(opts.formula_field);
+        }
+        it.setErrorCells(opts.error_cells ?? "fail");
+        if (exists opts.error_field) {
+            it.setErrorField(opts.error_field);
+        }
+        OdsReadDataProvider::setColumnTypes(it, opts);
+    }
+
+    #! Returns the type of each column inferred from the values of sample records
+    /** The values are classified as the spreadsheet profile classifies them
+        (@ref DataProvider::TabularProfiler::classify() "TabularProfiler::classify()"); text is not parsed: a value
+        of text is text.  A column whose values are all whole numbers is an \c int column, numbers a \c float
+        column, booleans a \c bool column, dates a \c date column, and text a \c string column; a column with
+        values of different kinds, or with no values, is an \c any column.
+
+        @param recs the sample records
+        @param columns the columns
+
+        @return the type of each column
+    */
+    static hash<string, string> inferColumnTypes(*softlist<auto> recs, list<string> columns) {
+        hash<string, string> rv;
+        foreach string col in (columns) {
+            hash<string, bool> kinds;
+            foreach hash<auto> rec in (recs) {
+                auto v = rec{col};
+                switch (v.typeCode()) {
+                    case NT_NOTHING:
+                    case NT_NULL:
+                        break;
+                    case NT_STRING:
+                        kinds.string = True;
+                        break;
+                    default:
+                        kinds{TabularProfiler::classify(v).type} = True;
+                        break;
+                }
+            }
+            string type = "any";
+            if (kinds.size() == 1) {
+                type = InferredTypes{kinds.firstKey()} ?? "any";
+            } else if (kinds.size() == 2 && kinds.int && kinds.number) {
+                type = "float";
+            }
+            rv{col} = type;
+        }
+        return rv;
+    }
+
+    #! Sets the types of the columns of an iterator: those of the \c column_types option, and the others inferred
+    #! from the first data rows
+    /** @throw ODS-READ-OPTION-ERROR \c column_types names a column that is not a column of the sheet
+    */
+    static setColumnTypes(OdsIterator it, *hash<auto> opts) {
+        list<string> headers = it.getHeaders() ?? ();
+        if (!headers) {
+            # without headers, the fields of each record are named by their cells, so columns have no type
+            return;
+        }
+        hash<string, string> types;
+        foreach hash<auto> i in (opts.column_types.pairIterator()) {
+            if (!inlist(i.key, headers)) {
+                throw "ODS-READ-OPTION-ERROR", sprintf("the \"column_types\" option names column %y, which is not "
+                    "a column of the sheet; the columns are: %y", i.key, headers);
+            }
+            types{i.key} = i.value;
+        }
+        int sample_rows = opts.type_sample_rows ?? DefaultTypeSampleRows;
+        if (sample_rows) {
+            # the given types win over the inferred ones
+            types = OdsReadDataProvider::inferColumnTypes(it.sample(sample_rows), headers) + types;
+        }
+        if (types) {
+            it.setColumnTypes(types, keys opts.column_types, sample_rows);
         }
     }
 
@@ -529,17 +725,23 @@ public class OdsReadDataProvider inherits DataProvider::AbstractDataProvider {
         @param sheet the name of the sheet
         @param opts options already processed by processCellOptions()
 
-        @return the fields of the records: the columns, and the formula field if the \c formula_field option is set
+        @return the fields of the records: the columns, with the type of each typed column, and the formula and
+        error fields if the \c formula_field and \c error_field options are set
     */
     static hash<string, AbstractDataField> getIteratorRecordType(OdsIterator it, string sheet, *hash<auto> opts) {
+        *hash<auto> types = it.getColumnTypes();
         hash<string, AbstractDataField> rv = map {
             $1: new QoreDataField($1, "ODS sheet " + sheet + " column " + $1,
-                AbstractDataProviderType::anyDataType)
+                ColumnTypes{types{$1}} ?? AbstractDataProviderType::anyDataType)
         }, it.getHeaders();
         if (rv && exists opts.formula_field) {
             rv{opts.formula_field} = new QoreDataField(opts.formula_field, "The formulas of the cells of the row "
                 "by cell reference, or NOTHING if none of them holds a formula",
                 AbstractDataProviderType::get(AutoHashOrNothingType));
+        }
+        if (rv && exists opts.error_field) {
+            rv{opts.error_field} = new QoreDataField(opts.error_field, "The errors of the cells of the row by column, "
+                "or NOTHING if none of them is an error", AbstractDataProviderType::get(AutoHashOrNothingType));
         }
         return rv;
     }
