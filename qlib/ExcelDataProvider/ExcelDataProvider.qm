@@ -534,6 +534,10 @@ module ExcelDataProvider {
       records written) and the conditions of the worksheets, unless \c unmatched is \c "skip"; a skipped record is
       not counted; a condition that cannot be evaluated for a record, such as one with a field that the record does
       not have, raises \c EXCEL-WRITE-ROUTE-ERROR naming the record and the worksheet
+    - as every error raised when a record is created, a route error reaches the caller of
+      @ref DataProvider::AbstractDataProvider::createRecord() "createRecord()" as \c CREATE-RECORD-ERROR, whose
+      description begins with the error code: <tt>EXCEL-WRITE-ROUTE-ERROR: data provider ...: record 3 matches no
+      worksheet; ...</tt>
     - the \c write-data action returns the number of records written to each worksheet in \c sheet_counts, by
       worksheet name in workbook order (see @ref ExcelDataProvider::ExcelGeneratedDataInfo "ExcelGeneratedDataInfo");
       with \c route \c "all", a record written to two worksheets is counted in each, while \c record_count counts
@@ -574,7 +578,8 @@ module ExcelDataProvider {
     - \c EXCEL-READ-OPTION-ERROR: Invalid read options or option conflicts
     - \c EXCEL-WRITE-OPTION-ERROR: Invalid write options or option conflicts
     - \c EXCEL-WRITE-ROUTE-ERROR: With the \c sheets write option, a record matches no worksheet, or the condition
-      of a worksheet cannot be evaluated for a record (see @ref ExcelDataProvider_writing_sheets)
+      of a worksheet cannot be evaluated for a record; it is raised as \c CREATE-RECORD-ERROR, whose description
+      begins with \c EXCEL-WRITE-ROUTE-ERROR (see @ref ExcelDataProvider_writing_sheets)
     - \c EXCEL-INVALID-LOCATION: Invalid cell range format
     - \c EXCEL-FORMULA-FIELD-ERROR: The \c formula_field option is empty or the name of a column
     - \c EXCEL-COLUMN-TYPE-ERROR: A value is not a value of its column's type
