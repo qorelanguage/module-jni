@@ -2834,6 +2834,22 @@ printf(\"RESULT:%%s\\n\", make_json({\"count\": count, \"mismatches\": mismatche
             "INVALID-OPERATION: ", getCreateErrorDesc("EXCEL-WRITE-ROUTE-ERROR", sub () {
                 dp.createRecord({"Id": 1});
             }));
+
+        # records of different shapes: exists tests whether a record has the field, so a record without it does not
+        # match and is written to the next worksheet
+        dp = new ExcelWriteDataProvider({"sheets": (
+            {"worksheet": "Returns", "columns": ("id", "type"), "when": "exists @type && @type == \"return\""},
+            {"worksheet": "Other", "columns": ("id",)},
+        )});
+        dp.createRecord({"type": "return", "id": 1});
+        dp.createRecord({"id": 2});
+        dp.createRecord({"type": "order", "id": 3});
+        output = dp.finishCreate();
+        assertEq(3, output.record_count);
+        assertEq({"Returns": 1, "Other": 2}, output.sheet_counts);
+        hash<auto> written = readWorksheets(output.data);
+        assertEq(({"id": 1, "type": "return"},), written.Returns);
+        assertEq(({"id": 2}, {"id": 3}), written.Other);
     }
 
     testWriteSheetsEmpty() {

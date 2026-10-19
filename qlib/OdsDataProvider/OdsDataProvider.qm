@@ -469,6 +469,22 @@ module OdsDataProvider {
     # {"data": <ods>, "record_count": 120, "sheet_counts": {"Orders": 100, "Returns": 15, "Other": 5}}
     @endcode
 
+    Records of different shapes are told apart with the DPQL operator \c exists, which tests whether the record has a
+    field (@ref dpql_exists "exists", %DataProvider 3.11): below, a record without \c type does not match the first
+    worksheet and is written to the next one, where <tt>\@type == "return"</tt> alone would raise
+    \c ODS-WRITE-ROUTE-ERROR for it:
+
+    @code{.py}
+    OdsWriteDataProvider dp("returns.ods", {"sheets": (
+        {"worksheet": "Returns", "when": "exists @type && @type == \"return\""},
+        {"worksheet": "Other"},
+    )});
+    dp.createRecord({"type": "return", "id": 1});
+    # no type: written to the Other worksheet
+    dp.createRecord({"id": 2});
+    dp.finishCreate();
+    @endcode
+
     An invalid worksheet, an invalid condition, or a worksheet option for a column that is not written raises
     \c ODS-WRITE-OPTION-ERROR naming the worksheet.  As the conditions can use fields that are not written, the
     record type of the provider is open with \c sheets.
