@@ -103,6 +103,81 @@ pool.exec("update orders set status = %v where id = %v", "processed", order.id);
     the statement is closed or its transaction ends. Each result set and statement is closed even if
     the other close operation reports an error.
 
+    @section jdbc_multiple_results Statements with Several Results
+
+    A statement can produce several results: a batch of statements (ex: <tt>insert ...; select ...</tt>, where the
+    database and its JDBC driver accept it), or a stored procedure returning several result sets.  The driver reads
+    every result, and raises the error of any statement, whether the JDBC driver reports it when the SQL is executed
+    or only when that statement's result is reached (as the SQL Server driver does).  A statement with a single
+    result returns it as before.
+
+    @subsection jdbc_multiple_results_exec Results of exec(), execRaw() and select()
+
+    @ref Qore::SQL::Datasource::exec() "exec()", @ref Qore::SQL::Datasource::execRaw() "execRaw()" and
+    @ref Qore::SQL::Datasource::select() "select()" return a single result as before: a hash of column lists for a
+    result set, or the update count (\c -1 if the JDBC driver reported no result, ex: after <tt>set nocount
+    on</tt> with SQL Server).
+
+    Several results are returned in the format of the \c freetds and \c sybase drivers:
+    - result sets, and update counts greater than 0, are kept; update counts of 0 are left out, such as the counts
+      that JDBC drivers report for \c SET and DDL statements, and for updates that changed no rows
+    - if nothing is kept, NOTHING is returned
+    - if one result is kept, it is returned alone, in the format of a single result
+    - otherwise a hash is returned, with keys \c query0, \c query1, ... giving the kept results in order
+
+    @note The shape of the value depends on the data: since an update count of 0 is left out, the same SQL can
+    return a hash, a single value, or NOTHING.
+
+    |!SQL|!Results reported by the JDBC driver|!Returned value
+    |<tt>select 1 as a; select 2 as b</tt>|two result sets|<tt>{"query0": {"a": (1,)}, "query1": {"b": (2,)}}</tt>
+    |<tt>update a ...; update b ...</tt>|update counts 2 and 3|<tt>{"query0": 2, "query1": 3}</tt>
+    |<tt>update a ...; update b ...</tt>|update counts 0 and 3|<tt>3</tt>
+    |<tt>update a ...; update b ...</tt>|update counts 0 and 0|NOTHING
+    |<tt>insert ...; select count(*) as c from t</tt>|update count 1, a result set|<tt>{"query0": 1, "query1": {"c": (4,)}}</tt>
+    |<tt>set search_path = app; select id from t</tt>|update count 0, a result set|<tt>{"id": (1, 2)}</tt>
+    |<tt>exec proc_with_two_selects</tt> (SQL Server)|two result sets|<tt>{"query0": {...}, "query1": {...}}</tt>
+
+    Which statements report an update count depends on the database and its JDBC driver; for example, the SQL Server
+    driver does not report a count for every statement of a batch by default.
+
+    @par Example
+    @code{.py}
+# returns {"query0": 1, "query1": {"orders": (17,)}} when the row is inserted
+auto result = ds.exec("insert into orders (id) values (%v); select count(*) as orders from orders", 123);
+    @endcode
+
+    @subsection jdbc_multiple_results_select Results of selectRow(), selectRows() and selectColumnar()
+
+    @ref Qore::SQL::Datasource::selectRow() "selectRow()", @ref Qore::SQL::Datasource::selectRows() "selectRows()"
+    and @ref Qore::SQL::Datasource::selectColumnar() "selectColumnar()" return the rows of exactly one result set.
+    Update counts before and after it are skipped.  SQL returning no result set raises \c JDBC-SELECT-ROW-ERROR,
+    \c JDBC-SELECT-ROWS-ERROR or \c JDBC-SELECT-COLUMNAR-ERROR, as before; SQL returning more than one raises the
+    same exception, for example "SQL passed to selectRows() returned more than one result set; use select() or
+    exec()".
+
+    @par Example
+    @code{.py}
+# the update count is skipped; the rows of the select are returned
+list<hash<auto>> rows = ds.selectRows("update orders set seen = true where id = %v; select * from orders "
+    "where id = %v", 123, 123);
+    @endcode
+
+    @subsection jdbc_multiple_results_stmt Results of SQLStatement
+
+    A @ref Qore::SQL::SQLStatement "SQLStatement" returns the rows of one result set:
+    - executing it skips the update counts before the first result set; without a result set, every result is read
+      when it is executed
+    - when the result set has been read to the end (\c next() returns \c False, or a fetch method or
+      \c getOutput() reads the last row), the remaining results are read: the errors of later statements are raised
+      by that call, their update counts are added, and another result set raises \c JDBC-RESULTSET-ERROR
+      ("the SQL executed by SQLStatement returned more than one result set; use select() or exec()")
+    - \c affectedRows() returns the total of the update counts read so far, or \c -1 if the JDBC driver reported
+      none: after executing, the counts before the result set; after \c getOutput() or \c getOutputRows(), all of
+      them (%Qore allows \c affectedRows() only until rows are fetched with \c next() or a fetch method)
+    - results after a result set that is not read to the end are discarded when the statement is closed or executed
+      again
+    - after the last row, \c fetchRow() raises \c JDBC-RESULTSET-ERROR
+
     @section jdbc_columnar_results jdbc Columnar Result Support
 
     When module-jni is built against %Qore headers exposing the columnar result API, the \c jdbc DBI driver provides

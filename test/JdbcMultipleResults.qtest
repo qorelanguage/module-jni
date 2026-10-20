@@ -1,0 +1,209 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+# SPDX-License-Identifier: MIT
+
+%modern
+%prepend-module-path ../build
+%requires jni
+%requires QUnit
+%module-cmd(jni) add-relative-classpath qore-jni-test.jar
+%module-cmd(jni) import org.qore.jni.test.JdbcTransactionDriver
+%exec-class JdbcMultipleResultsTest
+
+#! Statements with several results, scripted by the test JDBC driver ("multi:" SQL; see JdbcTransactionDriver)
+class JdbcMultipleResultsTest inherits QUnit::Test {
+    constructor() : Test("JDBC statements with several results", "1.0", \ARGV) {
+        addTestCase("a single result is returned as before", \singleResults());
+        addTestCase("exec, execRaw and select return every result", \allResults());
+        addTestCase("errors of later statements are raised", \laterErrors());
+        addTestCase("selectRow, selectRows and selectColumnar need exactly one result set", \oneResultSet());
+        addTestCase("SQLStatement reads the results after its result set", \statementResults());
+        set_return_value(main());
+    }
+
+    private Datasource datasource() {
+        JdbcTransactionDriver::reset();
+        Datasource ds("jdbc:@qore-transaction-test:fixture");
+        ds.open();
+        return ds;
+    }
+
+    private bool hasColumnar(AbstractDatasource ds) {
+        return (ds.getCapabilities() & DBI_CAP_HAS_COLUMNAR_SELECT) != 0;
+    }
+
+    private bool resultsRead(string sql) {
+        return inlist("results-read:" + sql, JdbcTransactionDriver::events());
+    }
+
+    private singleResults() {
+        Datasource ds = datasource();
+        on_exit ds.rollback();
+        assertEq({"a": (1, 2)}, ds.select("multi:rs=a:1,2"));
+        assertTrue(resultsRead("multi:rs=a:1,2"));
+        assertEq({"a": ()}, ds.select("multi:rs=a:"));
+        assertEq({"a": (3,)}, ds.exec("multi:rs=a:3"));
+        assertEq(3, ds.exec("multi:count=3"));
+        assertTrue(resultsRead("multi:count=3"));
+        assertEq(0, ds.exec("multi:count=0"));
+        assertEq(0, ds.execRaw("multi:count=0"));
+        # no result at all
+        assertEq(-1, ds.exec("multi:none"));
+        assertEq(({"a": 1}, {"a": 2}), ds.selectRows("multi:rs=a:1,2"));
+        assertEq((), ds.selectRows("multi:rs=a:"));
+        assertEq({"a": 7}, ds.selectRow("multi:rs=a:7"));
+        assertNothing(ds.selectRow("multi:rs=a:"));
+        assertThrows("JDBC-SELECT-ROW-ERROR", "returned more than 1 row", sub () { ds.selectRow("multi:rs=a:1,2"); });
+        assertThrows("JDBC-SELECT-ROWS-ERROR", "did not return a result set", sub () {
+            ds.selectRows("multi:count=1");
+        });
+        if (hasColumnar(ds)) {
+            assertEq((1, 2), ds.selectColumnar("multi:rs=a:1,2").getColumn("a").toList());
+        }
+    }
+
+    private allResults() {
+        Datasource ds = datasource();
+        on_exit ds.rollback();
+        assertEq({"query0": {"a": (1,)}, "query1": {"b": (2, 3)}}, ds.select("multi:rs=a:1;rs=b:2,3"));
+        assertEq({"query0": 1, "query1": 2}, ds.exec("multi:count=1;count=2"));
+        assertTrue(resultsRead("multi:count=1;count=2"));
+        assertEq({"query0": 1, "query1": {"c": (5,)}}, ds.exec("multi:count=1;rs=c:5"));
+        assertEq({"query0": {"a": ()}, "query1": 4}, ds.execRaw("multi:rs=a:;count=4"));
+        assertEq({"query0": 1, "query1": 2, "query2": {"a": (1,)}, "query3": 3},
+            ds.exec("multi:count=1;count=2;rs=a:1;count=3"));
+        # update counts of 0 are left out, as with module-sybase: the shape depends on the data
+        assertEq(3, ds.exec("multi:count=0;count=3"));
+        assertEq({"query0": 2, "query1": 3}, ds.exec("multi:count=2;count=3"));
+        assertNothing(ds.exec("multi:count=0;count=0"));
+        # statements without a count (set-up statements) do not hide a result set
+        assertEq({"a": (1,)}, ds.select("multi:count=0;rs=a:1;count=0"));
+    }
+
+    private laterErrors() {
+        Datasource ds = datasource();
+        on_exit ds.rollback();
+        # the first statement's error, as before
+        assertThrows("JNI-ERROR", "first failure", sub () { ds.exec("multi:fail=first failure"); });
+        # an error raised when moving to a later result
+        assertThrows("JNI-ERROR", "later failure", sub () { ds.exec("multi:count=1;fail=later failure"); });
+        assertThrows("JNI-ERROR", "later failure", sub () { ds.execRaw("multi:count=1;fail=later failure"); });
+        assertThrows("JNI-ERROR", "later failure", sub () { ds.select("multi:rs=a:1;fail=later failure"); });
+        assertThrows("JNI-ERROR", "later failure", sub () { ds.selectRows("multi:rs=a:1;fail=later failure"); });
+        assertThrows("JNI-ERROR", "later failure", sub () { ds.selectRow("multi:rs=a:1;fail=later failure"); });
+        assertThrows("JNI-ERROR", "later failure", sub () { ds.selectRow("multi:rs=a:;fail=later failure"); });
+        assertThrows("JNI-ERROR", "later failure", sub () {
+            ds.selectRows("multi:count=1;fail=later failure;rs=a:1");
+        });
+        # an error raised when the rows of a later result set are read (ex: SQL Server)
+        assertThrows("JNI-ERROR", "rows failure", sub () { ds.select("multi:rs=a:1;rowsfail=b:rows failure"); });
+        if (hasColumnar(ds)) {
+            assertThrows("JNI-ERROR", "later failure", sub () {
+                ds.selectColumnar("multi:rs=a:1;fail=later failure");
+            });
+        }
+        SQLStatement stmt(ds);
+        stmt.prepare("multi:count=1;fail=later failure");
+        assertThrows("JNI-ERROR", "later failure", \stmt.exec());
+    }
+
+    private oneResultSet() {
+        Datasource ds = datasource();
+        on_exit ds.rollback();
+        # update counts before and after the result set are skipped
+        assertEq(({"a": 1}, {"a": 2}), ds.selectRows("multi:count=1;rs=a:1,2;count=2"));
+        assertEq({"a": 1}, ds.selectRow("multi:count=1;rs=a:1;count=2"));
+        assertTrue(resultsRead("multi:count=1;rs=a:1;count=2"));
+        assertThrows("JDBC-SELECT-ROWS-ERROR", "SQL passed to selectRows\\(\\) returned more than one result set; "
+            "use select\\(\\) or exec\\(\\)", sub () { ds.selectRows("multi:rs=a:1;rs=b:2"); });
+        assertThrows("JDBC-SELECT-ROW-ERROR", "SQL passed to selectRow\\(\\) returned more than one result set; "
+            "use select\\(\\) or exec\\(\\)", sub () { ds.selectRow("multi:rs=a:1;count=1;rs=b:2"); });
+        assertThrows("JDBC-SELECT-ROWS-ERROR", "did not return a result set", sub () {
+            ds.selectRows("multi:count=1;count=2");
+        });
+        assertThrows("JDBC-SELECT-ROW-ERROR", "did not return a result set", sub () { ds.selectRow("multi:none"); });
+        if (hasColumnar(ds)) {
+            assertEq((1, 2), ds.selectColumnar("multi:count=1;rs=a:1,2;count=3").getColumn("a").toList());
+            assertThrows("JDBC-SELECT-COLUMNAR-ERROR", "SQL passed to selectColumnar\\(\\) returned more than one "
+                "result set; use select\\(\\) or exec\\(\\)", sub () { ds.selectColumnar("multi:rs=a:1;rs=b:2"); });
+            assertThrows("JDBC-SELECT-COLUMNAR-ERROR", "did not return a result set", sub () {
+                ds.selectColumnar("multi:count=1");
+            });
+        }
+    }
+
+    private statementResults() {
+        Datasource ds = datasource();
+        SQLStatement stmt(ds);
+        on_exit stmt.rollback();
+
+        # update counts before the result set are skipped; the rest is read when the result set ends
+        stmt.prepare("multi:count=2;rs=a:1,2;count=3");
+        stmt.exec();
+        assertEq(2, stmt.affectedRows());
+        assertTrue(stmt.next());
+        assertEq({"a": 1}, stmt.fetchRow());
+        assertTrue(stmt.next());
+        assertEq({"a": 2}, stmt.fetchRow());
+        assertFalse(resultsRead("multi:count=2;rs=a:1,2;count=3"));
+        assertFalse(stmt.next());
+        assertTrue(resultsRead("multi:count=2;rs=a:1,2;count=3"));
+        # the statement stays at the end of its rows
+        assertFalse(stmt.next());
+        assertEq((), stmt.fetchRows());
+        assertEq({}, stmt.fetchColumns());
+        assertThrows("JDBC-RESULTSET-ERROR", "no current row", \stmt.fetchRow());
+
+        # executed again, it starts from its first result; getOutput() reads the result set to the end, after which
+        # affectedRows() is the total of all update counts (libqore allows affectedRows() only before next() or
+        # a fetch)
+        stmt.exec();
+        assertEq(2, stmt.affectedRows());
+        assertEq({"a": (1, 2)}, stmt.getOutput());
+        assertEq(5, stmt.affectedRows());
+        # read to the end, the result set has no more rows
+        assertEq({"a": ()}, stmt.getOutput());
+
+        # without a result set, exec() reads every result
+        stmt.prepare("multi:count=1;count=0;count=4");
+        stmt.exec();
+        assertEq(5, stmt.affectedRows());
+        assertNothing(stmt.getOutput());
+        assertThrows("JDBC-RESULTSET-ERROR", "did not produce a result set", \stmt.next());
+        stmt.prepare("multi:none");
+        stmt.exec();
+        assertEq(-1, stmt.affectedRows());
+
+        # a partial fetch does not read past its rows; reading to the end raises the later error
+        stmt.prepare("multi:rs=a:1,2,3;fail=later failure");
+        stmt.exec();
+        assertEq(({"a": 1},), stmt.fetchRows(1));
+        assertEq({"a": (2,)}, stmt.fetchColumns(1));
+        assertThrows("JNI-ERROR", "later failure", \stmt.fetchRows());
+
+        # a second result set cannot be returned by SQLStatement
+        stmt.prepare("multi:rs=a:1;rs=b:2");
+        stmt.exec();
+        assertTrue(stmt.next());
+        assertThrows("JDBC-RESULTSET-ERROR", "the SQL executed by SQLStatement returned more than one result set; "
+            "use select\\(\\) or exec\\(\\)", \stmt.next());
+
+        # getOutput() and fetchColumns() read to the end
+        stmt.prepare("multi:rs=a:1,2;count=1");
+        assertEq({"a": (1, 2)}, stmt.getOutput());
+        assertEq(1, stmt.affectedRows());
+        stmt.prepare("multi:rs=a:1;rowsfail=b:rows failure");
+        stmt.exec();
+        assertThrows("JDBC-RESULTSET-ERROR", "more than one result set", \stmt.fetchColumns());
+
+        if (hasColumnar(ds)) {
+            stmt.prepare("multi:rs=a:1,2;count=4");
+            stmt.exec();
+            assertEq((1, 2), stmt.fetchColumnar().getColumn("a").toList());
+            assertTrue(resultsRead("multi:rs=a:1,2;count=4"));
+            stmt.prepare("multi:rs=a:1,2;fail=later failure");
+            stmt.exec();
+            assertThrows("JNI-ERROR", "later failure", \stmt.fetchColumnar());
+        }
+    }
+}

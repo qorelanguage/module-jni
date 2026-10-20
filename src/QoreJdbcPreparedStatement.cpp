@@ -71,6 +71,10 @@ int QoreJdbcPreparedStatement::exec(ExceptionSink* xsink) {
             env.callVoidMethod(previous, Globals::methodResultSetClose, nullptr);
         }
         cvec.clear();
+        results_done = false;
+        update_count_total = -1;
+        // SQLStatement returns one result set; the results after it are read when it ends
+        setOnlyResultSet("JDBC-RESULTSET-ERROR", "the SQL executed by SQLStatement");
         if (!stmt) {
             // the JDBC handles were released when the connection was lost; prepare on the current connection
             prepareStatement(env, sql);
@@ -80,11 +84,32 @@ int QoreJdbcPreparedStatement::exec(ExceptionSink* xsink) {
             return -1;
         }
 
-        if (execIntern(env, sql, xsink)
-            && (acquireResultSet(env, xsink) || describeResultSet(env, xsink))) {
-                return -1;
+        bool result_set = execIntern(env, sql, xsink);
+        if (*xsink) {
+            return -1;
         }
-        return *xsink ? -1 : 0;
+        if (do_batch_execute) {
+            return 0;
+        }
+        // update counts before the result set are added to affectedRows(); without a result set, every result is
+        // read here
+        result_set = skipUpdateCounts(env, result_set, xsink);
+        if (*xsink) {
+            return -1;
+        }
+        if (result_set) {
+            if (acquireResultSet(env, xsink)) {
+                return -1;
+            }
+            if (describeResultSet(env, xsink)) {
+                if (*xsink) {
+                    return -1;
+                }
+                // no columns, so no rows can be returned: read the remaining results
+                return finishResults(env, xsink) ? -1 : 0;
+            }
+        }
+        return 0;
     } catch (JavaException& e) {
         e.convert(xsink);
     }
@@ -102,7 +127,8 @@ int QoreJdbcPreparedStatement::bind(const QoreListNode& args, ExceptionSink* xsi
 }
 
 bool QoreJdbcPreparedStatement::requireResultSet(ExceptionSink* xsink) const {
-    if (rs) {
+    // a result set read to the end stays at its end
+    if (rs || results_done) {
         return true;
     }
     xsink->raiseException("JDBC-RESULTSET-ERROR", "the executed statement did not produce a result set");
@@ -112,7 +138,7 @@ bool QoreJdbcPreparedStatement::requireResultSet(ExceptionSink* xsink) const {
 QoreHashNode* QoreJdbcPreparedStatement::getOutputHash(ExceptionSink* xsink, bool empty_hash_if_nothing,
         int max_rows) {
     // Non-query statements have no output; getOutput() is also valid after a batch DML.
-    if (!rs) {
+    if (!rs && !results_done) {
         return nullptr;
     }
     try {
@@ -184,7 +210,7 @@ bool QoreJdbcPreparedStatement::next(ExceptionSink* xsink) {
     }
     try {
         Env env;
-        return QoreJdbcStatement::next(env);
+        return QoreJdbcStatement::next(env, xsink);
     } catch (JavaException& e) {
         e.convert(xsink);
     }

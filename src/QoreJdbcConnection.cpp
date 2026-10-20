@@ -467,11 +467,7 @@ QoreValue QoreJdbcConnection::select(const QoreString* qstr, const QoreListNode*
             return QoreValue();
         }
 
-        if (result_set) {
-            return stmt.getOutputHash(env, xsink, false);
-        }
-
-        return stmt.rowsAffected(env);
+        return stmt.getResults(env, result_set, xsink);
     } catch (jni::Exception& e) {
         e.convert(xsink);
     }
@@ -492,9 +488,9 @@ QoreColumnarResult* QoreJdbcConnection::selectColumnar(const QoreString* qstr, c
             return nullptr;
         }
 
-        if (!result_set) {
-            xsink->raiseException("JDBC-SELECT-COLUMNAR-ERROR",
-                "SQL passed to selectColumnar() did not return a result set");
+        // update counts are skipped; exactly one result set is required
+        if (stmt.acquireOnlyResultSet(env, result_set, "JDBC-SELECT-COLUMNAR-ERROR",
+            "SQL passed to selectColumnar()", xsink)) {
             return nullptr;
         }
 
@@ -519,8 +515,9 @@ QoreListNode* QoreJdbcConnection::selectRows(const QoreString* qstr, const QoreL
             return nullptr;
         }
 
-        if (!result_set) {
-            xsink->raiseException("JDBC-SELECT-ROWS-ERROR", "SQL passed to selectRows() did not return a result set");
+        // update counts are skipped; exactly one result set is required
+        if (stmt.acquireOnlyResultSet(env, result_set, "JDBC-SELECT-ROWS-ERROR", "SQL passed to selectRows()",
+            xsink)) {
             return nullptr;
         }
 
@@ -544,8 +541,9 @@ QoreHashNode* QoreJdbcConnection::selectRow(const QoreString* qstr, const QoreLi
             return nullptr;
         }
 
-        if (!result_set) {
-            xsink->raiseException("JDBC-SELECT-ROW-ERROR", "SQL passed to selectRow() did not return a result set");
+        // update counts are skipped; exactly one result set is required
+        if (stmt.acquireOnlyResultSet(env, result_set, "JDBC-SELECT-ROW-ERROR", "SQL passed to selectRow()",
+            xsink)) {
             return nullptr;
         }
 
@@ -568,11 +566,7 @@ QoreValue QoreJdbcConnection::exec(const QoreString* qstr, const QoreListNode* a
             return QoreValue();
         }
 
-        if (result_set) {
-            return stmt.getOutputHash(env, xsink, false);
-        }
-
-        return stmt.rowsAffected(env);
+        return stmt.getResults(env, result_set, xsink);
     } catch (jni::Exception& e) {
         e.convert(xsink);
     }
@@ -591,11 +585,7 @@ QoreValue QoreJdbcConnection::execRaw(const QoreString* qstr, ExceptionSink* xsi
             return QoreValue();
         }
 
-        if (result_set) {
-            return stmt.getOutputHash(env, xsink, false);
-        }
-
-        return stmt.rowsAffected(env);
+        return stmt.getResults(env, result_set, xsink);
     } catch (jni::Exception& e) {
         e.convert(xsink);
     }

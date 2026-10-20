@@ -82,18 +82,65 @@ public:
 
     DLLLOCAL bool exec(Env& env, ExceptionSink* xsink, const QoreString& qstr, const QoreListNode* args);
 
-    //! Return how many rows were affected by the executed statement.
-    /** @return count of affected rows; -1 in case the number is not available
+    //! Return how many rows were affected by the executed statement
+    /** @return the total of the update counts reported for the statement (or for the batch of an array bind);
+        -1 if no count was reported
     */
-    DLLLOCAL int rowsAffected(Env& env);
+    DLLLOCAL int rowsAffected() const;
 
-    DLLLOCAL bool next(Env& env);
+    //! Retrieves the next row of the current result set
+    /** If the statement may return only this result set (see acquireOnlyResultSet()), then when the result set
+        ends, the remaining results are read: their errors are raised, their update counts are added to
+        rowsAffected(), and another result set raises an exception.
 
-    //! Acquires the result set
+        @param env the JNI environment
+        @param xsink exception sink; check it when false is returned
+
+        @return true if a row is available, false at the end of the result set (or if an exception was raised)
+    */
+    DLLLOCAL bool next(Env& env, ExceptionSink* xsink);
+
+    //! Acquires the current result set
     DLLLOCAL int acquireResultSet(Env& env, ExceptionSink* xsink);
 
+    //! Returns every result of the executed statement (for exec(), execRaw() and select())
+    /** A statement with a single result returns it as before: the result set as a hash of column lists, or the
+        update count (-1 if the driver reported no result).
+
+        A statement with several results returns them as module-sybase does: result sets and update counts
+        greater than 0 are kept (counts of 0 are left out); if none is kept, NOTHING is returned; if one is kept,
+        it is returned alone; otherwise a hash with keys \c query0, \c query1, ... is returned in result order.
+
+        Errors raised by later statements are raised as exceptions.
+
+        @param env the JNI environment
+        @param result_set the value returned by exec(): true if the first result is a result set
+        @param xsink exception sink
+
+        @return the results as described above
+    */
+    DLLLOCAL QoreValue getResults(Env& env, bool result_set, ExceptionSink* xsink);
+
+    //! Positions on the only result set of the executed statement
+    /** Update counts before the result set are skipped (and added to rowsAffected()). When the result set is read
+        to the end, the remaining results are read (see next()).
+
+        @param env the JNI environment
+        @param result_set the value returned by exec(): true if the first result is a result set
+        @param err the exception code for a statement without a result set or with more than one
+        @param desc the subject of the exception description (ex: \c "SQL passed to selectRows()")
+        @param xsink exception sink
+
+        @return 0 if positioned on the result set, 1 if the result set has no columns (no rows can be returned;
+        the remaining results have been read), -1 if an exception was raised
+    */
+    DLLLOCAL int acquireOnlyResultSet(Env& env, bool result_set, const char* err, const char* desc,
+            ExceptionSink* xsink);
+
     //! Get result hash
-    /** @param enc the JNI environment variable
+    /** Acquires the current result set and returns its rows
+
+        @param env the JNI environment variable
         @param xsink exception sink
         @param empty_hash_if_nothing whether to return empty hash or empty hash with column names when no rows
         available
@@ -104,31 +151,35 @@ public:
     DLLLOCAL QoreHashNode* getOutputHash(Env& env, ExceptionSink* xsink, bool empty_hash_if_nothing,
             int max_rows = -1);
 
-    //! Get a reuslt list as a list of hashes
-    /** @param enc the JNI environment variable
+    //! Get the rows of the acquired result set as a list of hashes
+    /** @param env the JNI environment variable
         @param xsink exception sink
         @param max_rows maximum count of rows to return; if <= 0 the count of returned rows is not limited
 
         @return list of row hashes
     */
-    DLLLOCAL QoreListNode* getOutputList(Env& env, ExceptionSink* xsink, int max_rows = -1);
+    DLLLOCAL QoreListNode* getOutputList(Env& env, ExceptionSink* xsink, int max_rows = -1) {
+        return getOutputListIntern(env, xsink, max_rows);
+    }
 
 #ifdef QORE_JNI_HAVE_COLUMNAR_RESULT_V2
-    //! Get result columns as a ColumnarResult
+    //! Get the columns of the acquired result set as a ColumnarResult
     /** @param env the JNI environment variable
         @param xsink exception sink
         @param max_rows maximum count of rows to return; if <= 0 the count of returned rows is not limited
 
         @return columnar result
     */
-    DLLLOCAL QoreColumnarResult* getOutputColumnar(Env& env, ExceptionSink* xsink, int max_rows = -1);
+    DLLLOCAL QoreColumnarResult* getOutputColumnar(Env& env, ExceptionSink* xsink, int max_rows = -1) {
+        return getOutputColumnarIntern(env, xsink, max_rows);
+    }
 #endif
 
-    //! Get one result row as a hash
-    /** @param enc the JNI environment variable
+    //! Get the only row of the acquired result set as a hash
+    /** @param env the JNI environment variable
         @param xsink exception sink
 
-        @return one result-set row
+        @return the only row; NOTHING if there are no rows; an exception is raised for more than one row
     */
     DLLLOCAL QoreHashNode* getSingleRow(Env& env, ExceptionSink* xsink);
 
@@ -175,6 +226,57 @@ protected:
 
     //! Total for the last batch, or -1 if the driver does not report exact counts.
     int batch_rows_affected = -1;
+
+    //! Total of the update counts of the executed statement; -1 if none was reported
+    int update_count_total = -1;
+
+    //! The statement may return only the current result set (SQLStatement, selectRow(), selectRows(),
+    //! selectColumnar()): the results after it are read when it ends
+    bool only_result_set = false;
+
+    //! The only result set was read to the end and the results after it were read
+    bool results_done = false;
+
+    //! Exception code for a second result set when only one is allowed
+    const char* only_result_set_err = nullptr;
+
+    //! Subject of the exception description for a second result set when only one is allowed
+    const char* only_result_set_desc = nullptr;
+
+    //! Moves to the next result of the executed statement; closes the current result set
+    /** @return true if the next result is a result set; false if it is an update count or there are no more
+        results (then getUpdateCount() returns -1)
+    */
+    DLLLOCAL bool moreResults(Env& env);
+
+    //! Returns the update count of the current result
+    /** @return the update count, -1 if the current result is a result set or there are no more results; an
+        exception is raised for an invalid count
+    */
+    DLLLOCAL int getUpdateCount(Env& env, ExceptionSink* xsink);
+
+    //! Adds an update count to the total
+    DLLLOCAL int addUpdateCount(int count, ExceptionSink* xsink);
+
+    //! Skips update counts, adding them to the total, until a result set or the end of the results
+    /** @return true if positioned on a result set; false at the end of the results or if an exception was raised
+    */
+    DLLLOCAL bool skipUpdateCounts(Env& env, bool result_set, ExceptionSink* xsink);
+
+    //! Allows only one result set; a second one raises \a err with "<desc> returned more than one result set"
+    DLLLOCAL void setOnlyResultSet(const char* err, const char* desc) {
+        only_result_set = true;
+        only_result_set_err = err;
+        only_result_set_desc = desc;
+    }
+
+    //! Reads the results after the only result set
+    /** Errors of later statements are raised, update counts are added to the total, and a result set raises an
+        exception.
+
+        @return 0 for OK, -1 if an exception was raised
+    */
+    DLLLOCAL int finishResults(Env& env, ExceptionSink* xsink);
 
     DLLLOCAL void prepareAndBindStatement(Env& env, ExceptionSink* xsink, const QoreString& str);
 

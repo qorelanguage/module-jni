@@ -235,13 +235,7 @@ static int jdbc_stmt_affected_rows(SQLStatement* stmt, ExceptionSink* xsink) {
     QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
     assert(ps);
 
-    try {
-        Env env;
-        return ps->rowsAffected(env);
-    } catch (JavaException& e) {
-        e.convert(xsink);
-    }
-    return -1;
+    return ps->rowsAffected();
 }
 
 static QoreHashNode* jdbc_stmt_get_output(SQLStatement* stmt, ExceptionSink* xsink) {

@@ -91,6 +91,13 @@ public:
     DLLLOCAL QoreValue getClientVersion(ExceptionSink* xsink);
     DLLLOCAL QoreStringNode* getDriverRealName(ExceptionSink* xsink);
 
+    //! Execute a Qore-style SQL statement and return all its results
+    /** @param qstr Qore-style SQL statement
+        @param args SQL parameters
+        @param xsink exception sink
+
+        @return the results; see QoreJdbcStatement::getResults()
+    */
     DLLLOCAL QoreValue select(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink);
 
 #ifdef QORE_JNI_HAVE_COLUMNAR_RESULT_V2
@@ -99,7 +106,7 @@ public:
         @param args SQL parameters
         @param xsink exception sink
 
-        @return columnar result
+        @return columnar result of the only result set; update counts are skipped
     */
     DLLLOCAL QoreColumnarResult* selectColumnar(const QoreString* qstr, const QoreListNode* args,
         ExceptionSink* xsink);
@@ -110,7 +117,7 @@ public:
         @param args SQL parameters
         @param xsink exception sink
 
-        @return a list of row hashes
+        @return a list of row hashes of the only result set; update counts are skipped
     */
     DLLLOCAL QoreListNode* selectRows(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink);
 
@@ -119,7 +126,7 @@ public:
         @param args SQL parameters
         @param xsink exception sink
 
-        @return one row hash
+        @return the only row hash of the only result set; update counts are skipped
     */
     DLLLOCAL QoreHashNode* selectRow(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink);
 
@@ -128,7 +135,7 @@ public:
         @param args SQL parameters
         @param xsink exception sink
 
-        @return 0 for OK, -1 for error
+        @return the results; see QoreJdbcStatement::getResults()
     */
     DLLLOCAL QoreValue exec(const QoreString* qstr, const QoreListNode* args, ExceptionSink* xsink);
 
@@ -136,7 +143,7 @@ public:
     /** @param qstr SQL statement
         @param xsink exception sink
 
-        @return 0 for OK, -1 for error
+        @return the results; see QoreJdbcStatement::getResults()
     */
     DLLLOCAL QoreValue execRaw(const QoreString* qstr, ExceptionSink* xsink);
 

@@ -23,6 +23,8 @@ public class Main inherits QUnit::Test {
         addTestCase("pgsqlTest", \pgsqlTest());
         addTestCase("oracleTest", \oracleTest());
         addTestCase("firebirdTest", \firebirdTest());
+        addTestCase("pgsqlMultipleResultsTest", \pgsqlMultipleResultsTest());
+        addTestCase("mssqlMultipleResultsTest", \mssqlMultipleResultsTest());
 
         # execute tests and set program return value
         set_return_value(main());
@@ -103,6 +105,147 @@ public class Main inherits QUnit::Test {
         on_exit ds.exec("drop table jdbc_test");
 
         doTestIntern(ds);
+    }
+
+    private bool hasColumnar(AbstractDatasource ds) {
+        return (ds.getCapabilities() & DBI_CAP_HAS_COLUMNAR_SELECT) != 0;
+    }
+
+    #! pgjdbc returns a result for every statement; it raises the errors of later statements when executing
+    private pgsqlMultipleResultsTest() {
+        *AbstractDatasource ds = getConnection("QORE_DB_CONNSTR_JDBC_PGSQL");
+        if (!ds) {
+            testSkip("no jdbc connection available");
+        }
+        ds.execRaw("create temporary table jdbc_multi_test (id integer)");
+        ds.commit();
+        on_exit ds.rollback();
+
+        assertEq({"query0": {"a": (1,)}, "query1": {"b": (2,)}}, ds.select("select 1 as a; select 2 as b"));
+        assertEq({"query0": 1, "query1": 2}, ds.exec("insert into jdbc_multi_test values (1); "
+            "insert into jdbc_multi_test values (2), (3)"));
+        assertEq({"query0": 1, "query1": {"count": (4,)}}, ds.exec("insert into jdbc_multi_test values (4); "
+            "select count(*) as count from jdbc_multi_test"));
+        # statements without a count (pgjdbc reports 0) and updates of no rows are left out
+        assertEq({"a": (1,)}, ds.select("set local search_path = public; select 1 as a"));
+        assertEq(3, ds.exec("update jdbc_multi_test set id = id where id < 0; "
+            "update jdbc_multi_test set id = id where id < 4"));
+        assertNothing(ds.execRaw("update jdbc_multi_test set id = id where id < 0; "
+            "update jdbc_multi_test set id = id where id < 0"));
+        # a single statement is unchanged
+        assertEq(0, ds.exec("update jdbc_multi_test set id = id where id < 0"));
+
+        # selectRows(), selectRow() and selectColumnar() skip update counts and require one result set
+        assertEq(({"id": 1}, {"id": 2}), ds.selectRows("update jdbc_multi_test set id = id; "
+            "select id from jdbc_multi_test where id < 3 order by id"));
+        assertEq({"count": 4}, ds.selectRow("update jdbc_multi_test set id = id; "
+            "select count(*) as count from jdbc_multi_test"));
+        assertThrows("JDBC-SELECT-ROWS-ERROR", "returned more than one result set; use select\\(\\) or exec\\(\\)",
+            sub () { ds.selectRows("select 1 as a; select 2 as b"); });
+        assertThrows("JDBC-SELECT-ROW-ERROR", "returned more than one result set", sub () {
+            ds.selectRow("select 1 as a; select 2 as b");
+        });
+        if (hasColumnar(ds)) {
+            assertEq((1, 2, 3, 4), map int($1), asList(getColumn(ds.selectColumnar("update jdbc_multi_test set "
+                "id = id; select id from jdbc_multi_test order by id"), "id")));
+            assertThrows("JDBC-SELECT-COLUMNAR-ERROR", "returned more than one result set", sub () {
+                ds.selectColumnar("select 1 as a; select 2 as b");
+            });
+        }
+
+        # SQLStatement: counts before the result set, then all counts once it has been read
+        {
+            SQLStatement stmt(ds);
+            stmt.prepare("insert into jdbc_multi_test values (5); select id from jdbc_multi_test order by id; "
+                "insert into jdbc_multi_test values (6), (7)");
+            stmt.exec();
+            assertEq(1, stmt.affectedRows());
+            assertEq({"id": (1, 2, 3, 4, 5)}, stmt.getOutput());
+            assertEq(3, stmt.affectedRows());
+            stmt.prepare("select 1 as a; select 2 as b");
+            stmt.exec();
+            assertTrue(stmt.next());
+            assertThrows("JDBC-RESULTSET-ERROR", "returned more than one result set", \stmt.next());
+        }
+        assertEq(7, ds.selectRow("select count(*) as count from jdbc_multi_test").count);
+
+        # pgjdbc raises the error of a later statement when executing (last: it aborts the transaction)
+        assertThrows("JNI-ERROR", "division by zero", sub () { ds.select("select 1 as a; select 1/0 as b"); });
+    }
+
+    #! mssql-jdbc reports the error of a later statement only when its result is reached, so it was lost before
+    private mssqlMultipleResultsTest() {
+        *AbstractDatasource ds = getConnection("QORE_DB_CONNSTR_JDBC_MSSQL");
+        if (!ds) {
+            testSkip("no jdbc connection available");
+        }
+        assertEq("Microsoft SQL Server", ds.getDriverRealName());
+        ds.execRaw("if object_id('jdbc_multi_test') is not null drop table jdbc_multi_test; "
+            "create table jdbc_multi_test (id int)");
+        ds.execRaw("if object_id('jdbc_multi_proc') is not null drop procedure jdbc_multi_proc");
+        ds.execRaw("create procedure jdbc_multi_proc as begin set nocount on; select 1 as a; select 2 as b; end");
+        ds.execRaw("if object_id('jdbc_multi_error_proc') is not null drop procedure jdbc_multi_error_proc");
+        ds.execRaw("create procedure jdbc_multi_error_proc as begin set nocount on; select 1 as a; "
+            "raiserror('jdbc later failure', 16, 1); end");
+        ds.commit();
+        on_exit {
+            ds.rollback();
+            ds.execRaw("drop table jdbc_multi_test; drop procedure jdbc_multi_proc; "
+                "drop procedure jdbc_multi_error_proc");
+            ds.commit();
+        }
+
+        assertEq({"query0": {"a": (1,)}, "query1": {"b": (2,)}}, ds.select("select 1 as a; select 2 as b"));
+        assertEq({"query0": 1, "query1": {"c": (1,)}}, ds.exec("insert into jdbc_multi_test values (1); "
+            "select count(*) as c from jdbc_multi_test"));
+        assertEq(1, ds.exec("update jdbc_multi_test set id = id where id < 0; "
+            "update jdbc_multi_test set id = id where id < 2"));
+        # a procedure returning two result sets
+        assertEq({"query0": {"a": (1,)}, "query1": {"b": (2,)}}, ds.select("exec jdbc_multi_proc"));
+        # set nocount on: no result at all
+        assertEq(-1, ds.exec("set nocount on; update jdbc_multi_test set id = id"));
+
+        # selectRows(), selectRow() and selectColumnar() skip update counts and require one result set
+        assertEq(({"id": 1},), ds.selectRows("update jdbc_multi_test set id = id; select id from jdbc_multi_test"));
+        assertEq({"id": 1}, ds.selectRow("update jdbc_multi_test set id = id; select id from jdbc_multi_test"));
+        assertThrows("JDBC-SELECT-ROWS-ERROR", "returned more than one result set", sub () {
+            ds.selectRows("exec jdbc_multi_proc");
+        });
+        assertThrows("JDBC-SELECT-ROW-ERROR", "returned more than one result set", sub () {
+            ds.selectRow("select 1 as a; select 2 as b");
+        });
+        if (hasColumnar(ds)) {
+            assertThrows("JDBC-SELECT-COLUMNAR-ERROR", "returned more than one result set", sub () {
+                ds.selectColumnar("exec jdbc_multi_proc");
+            });
+        }
+
+        # SQLStatement
+        {
+            SQLStatement stmt(ds);
+            stmt.prepare("insert into jdbc_multi_test values (2); select id from jdbc_multi_test order by id");
+            stmt.exec();
+            assertEq(1, stmt.affectedRows());
+            assertEq({"id": (1, 2)}, stmt.getOutput());
+            stmt.prepare("exec jdbc_multi_proc");
+            stmt.exec();
+            assertTrue(stmt.next());
+            assertThrows("JDBC-RESULTSET-ERROR", "returned more than one result set", \stmt.next());
+        }
+        ds.commit();
+
+        # errors of later statements are raised; they were lost before
+        assertThrows("JNI-ERROR", "Divide by zero", sub () { ds.select("select 1 as a; select 1/0 as b"); });
+        ds.rollback();
+        assertThrows("JNI-ERROR", "jdbc later failure", sub () { ds.select("exec jdbc_multi_error_proc"); });
+        ds.rollback();
+        assertThrows("JNI-ERROR", "jdbc later failure", sub () { ds.selectRow("exec jdbc_multi_error_proc"); });
+        ds.rollback();
+        assertThrows("JNI-ERROR", "Divide by zero", sub () {
+            ds.exec("update jdbc_multi_test set id = id where id < 0; insert into jdbc_multi_test values (1/0)");
+        });
+        ds.rollback();
+        assertEq(2, ds.selectRow("select count(*) as c from jdbc_multi_test").c);
     }
 
     private doTestIntern(auto ds) {

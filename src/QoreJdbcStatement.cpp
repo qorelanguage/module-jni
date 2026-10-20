@@ -219,6 +219,8 @@ void QoreJdbcStatement::reset(Env& env, ExceptionSink* xsink) {
     array_bind_size = 0;
     do_batch_execute = false;
     batch_rows_affected = -1;
+    update_count_total = -1;
+    results_done = false;
     params = nullptr;
     cvec.clear();
 }
@@ -227,6 +229,8 @@ void QoreJdbcStatement::freeHandles(Env& env, ExceptionSink* xsink) {
     close(env, xsink);
     do_batch_execute = false;
     batch_rows_affected = -1;
+    update_count_total = -1;
+    results_done = false;
     cvec.clear();
 }
 
@@ -283,7 +287,7 @@ int QoreJdbcStatement::describeResultSet(Env& env, ExceptionSink* xsink) {
         return -1;
     }
 
-    assert(cvec.empty());
+    cvec.clear();
     cvec.reserve(count);
 
     // detect duplicate column names in the output
@@ -342,9 +346,194 @@ int QoreJdbcStatement::describeResultSet(Env& env, ExceptionSink* xsink) {
     return 0;
 }
 
-bool QoreJdbcStatement::next(Env& env) {
+bool QoreJdbcStatement::next(Env& env, ExceptionSink* xsink) {
+    if (results_done) {
+        return false;
+    }
     assert(rs);
-    return env.callBooleanMethod(rs, Globals::methodResultSetNext, nullptr);
+    if (env.callBooleanMethod(rs, Globals::methodResultSetNext, nullptr)) {
+        return true;
+    }
+    if (only_result_set) {
+        finishResults(env, xsink);
+    }
+    return false;
+}
+
+bool QoreJdbcStatement::moreResults(Env& env) {
+    // getMoreResults() closes the current result set; close it here so its handle is released either way
+    if (rs) {
+        GlobalReference<jobject> closing = std::move(rs);
+        env.callVoidMethod(closing, Globals::methodResultSetClose, nullptr);
+    }
+    return env.callBooleanMethod(stmt, Globals::methodPreparedStatementGetMoreResults, nullptr);
+}
+
+int QoreJdbcStatement::getUpdateCount(Env& env, ExceptionSink* xsink) {
+    jint count = env.callIntMethod(stmt, Globals::methodPreparedStatementGetUpdateCount, nullptr);
+    if (count < -1) {
+        xsink->raiseException("JDBC-UPDATE-COUNT-ERROR", "JDBC driver returned invalid update count %d", count);
+    }
+    return count;
+}
+
+int QoreJdbcStatement::addUpdateCount(int count, ExceptionSink* xsink) {
+    assert(count >= 0);
+    if (update_count_total < 0) {
+        update_count_total = count;
+        return 0;
+    }
+    if (count > std::numeric_limits<int>::max() - update_count_total) {
+        xsink->raiseException("JDBC-UPDATE-COUNT-ERROR", "the total update count exceeds the supported integer "
+            "range");
+        return -1;
+    }
+    update_count_total += count;
+    return 0;
+}
+
+bool QoreJdbcStatement::skipUpdateCounts(Env& env, bool result_set, ExceptionSink* xsink) {
+    size_t results = 0;
+    while (!result_set) {
+        if (++results % 100 == 0 && qore_check_cancel(xsink, "JDBC update count iteration")) {
+            return false;
+        }
+        int count = getUpdateCount(env, xsink);
+        if (*xsink || count == -1) {
+            return false;
+        }
+        if (addUpdateCount(count, xsink)) {
+            return false;
+        }
+        result_set = moreResults(env);
+    }
+    return true;
+}
+
+int QoreJdbcStatement::finishResults(Env& env, ExceptionSink* xsink) {
+    assert(only_result_set);
+    assert(!results_done);
+    // the rows end here even if a later result raises an error
+    results_done = true;
+    size_t results = 0;
+    while (true) {
+        if (++results % 100 == 0 && qore_check_cancel(xsink, "JDBC result iteration")) {
+            return -1;
+        }
+        if (moreResults(env)) {
+            xsink->raiseException(only_result_set_err, "%s returned more than one result set; use select() or "
+                "exec()", only_result_set_desc);
+            return -1;
+        }
+        int count = getUpdateCount(env, xsink);
+        if (*xsink) {
+            return -1;
+        }
+        if (count == -1) {
+            return 0;
+        }
+        if (addUpdateCount(count, xsink)) {
+            return -1;
+        }
+    }
+}
+
+QoreValue QoreJdbcStatement::getResults(Env& env, bool result_set, ExceptionSink* xsink) {
+    assert(!only_result_set);
+    if (do_batch_execute) {
+        return batch_rows_affected;
+    }
+
+    // every result in the order reported by the driver
+    ReferenceHolder<QoreListNode> results(new QoreListNode(autoTypeInfo), xsink);
+    std::vector<bool> is_result_set;
+    while (true) {
+        size_t size = results->size();
+        if (size && !(size % 100) && qore_check_cancel(xsink, "JDBC result iteration")) {
+            return QoreValue();
+        }
+        if (result_set) {
+            ReferenceHolder<QoreHashNode> h(getOutputHash(env, xsink, false), xsink);
+            if (*xsink) {
+                return QoreValue();
+            }
+            results->push(h.release(), xsink);
+        } else {
+            int count = getUpdateCount(env, xsink);
+            if (*xsink) {
+                return QoreValue();
+            }
+            if (count == -1) {
+                break;
+            }
+            results->push(count, xsink);
+        }
+        is_result_set.push_back(result_set);
+        result_set = moreResults(env);
+    }
+
+    size_t size = results->size();
+    assert(size == is_result_set.size());
+    // a statement without results returns the update count -1, as before
+    if (!size) {
+        return -1;
+    }
+    // a single result is returned as before
+    if (size == 1) {
+        return results->shift();
+    }
+
+    // several results are returned as module-sybase returns them: result sets and update counts greater than 0
+    ReferenceHolder<QoreListNode> kept(new QoreListNode(autoTypeInfo), xsink);
+    for (size_t i = 0; i < size; ++i) {
+        if (i && !(i % 100) && qore_check_cancel(xsink, "JDBC result assembly")) {
+            return QoreValue();
+        }
+        QoreValue v = results->retrieveEntry(i);
+        if (is_result_set[i] || v.getAsBigInt() > 0) {
+            kept->push(v.refSelf(), xsink);
+        }
+    }
+    size = kept->size();
+    if (!size) {
+        return QoreValue();
+    }
+    if (size == 1) {
+        return kept->shift();
+    }
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+    for (size_t i = 0; i < size; ++i) {
+        if (i && !(i % 100) && qore_check_cancel(xsink, "JDBC result assembly")) {
+            return QoreValue();
+        }
+        QoreStringMaker key("query%zu", i);
+        rv->setKeyValue(key.c_str(), kept->retrieveEntry(i).refSelf(), xsink);
+    }
+    return rv.release();
+}
+
+int QoreJdbcStatement::acquireOnlyResultSet(Env& env, bool result_set, const char* err, const char* desc,
+        ExceptionSink* xsink) {
+    setOnlyResultSet(err, desc);
+    result_set = skipUpdateCounts(env, result_set, xsink);
+    if (*xsink) {
+        return -1;
+    }
+    if (!result_set) {
+        xsink->raiseException(err, "%s did not return a result set", desc);
+        return -1;
+    }
+    if (acquireResultSet(env, xsink)) {
+        return -1;
+    }
+    if (describeResultSet(env, xsink)) {
+        if (*xsink) {
+            return -1;
+        }
+        // no columns, so no rows can be returned: read the remaining results
+        return finishResults(env, xsink) ? -1 : 1;
+    }
+    return 0;
 }
 
 int QoreJdbcStatement::acquireResultSet(Env& env, ExceptionSink* xsink) {
@@ -426,7 +615,10 @@ QoreHashNode* QoreJdbcStatement::getOutputHashIntern(Env& env, ExceptionSink* xs
     size_t row_count = 0;
     while (true) {
         // get next row
-        if (!next(env)) {
+        if (!next(env, xsink)) {
+            if (*xsink) {
+                return nullptr;
+            }
             break;
         }
 
@@ -460,22 +652,15 @@ QoreHashNode* QoreJdbcStatement::getOutputHashIntern(Env& env, ExceptionSink* xs
     return l.getHash();
 }
 
-QoreListNode* QoreJdbcStatement::getOutputList(Env& env, ExceptionSink* xsink, int max_rows) {
-    if (acquireResultSet(env, xsink) || describeResultSet(env, xsink)) {
-        return nullptr;
-    }
-
-    return getOutputListIntern(env, xsink, max_rows);
-}
-
 QoreListNode* QoreJdbcStatement::getOutputListIntern(Env& env, ExceptionSink* xsink, int max_rows) {
     ReferenceHolder<QoreListNode> l(new QoreListNode(autoTypeInfo), xsink);
 
     int rowCount = 0;
     while (true) {
-        // make sure there is at least one row
-        if (!next(env)) {
-            // if not, return NOTHING
+        if (!next(env, xsink)) {
+            if (*xsink) {
+                return nullptr;
+            }
             break;
         }
 
@@ -1514,14 +1699,6 @@ static std::unique_ptr<JdbcColumnarBuilder> jdbc_make_columnar_builder(const Qor
         jdbc_make_schema(col, kind, column_type, QoreBufferElementType::Invalid, col.nullable), xsink));
 }
 
-QoreColumnarResult* QoreJdbcStatement::getOutputColumnar(Env& env, ExceptionSink* xsink, int max_rows) {
-    if (acquireResultSet(env, xsink) || describeResultSet(env, xsink)) {
-        return nullptr;
-    }
-
-    return getOutputColumnarIntern(env, xsink, max_rows);
-}
-
 static int jdbc_set_int_array(Env& env, jintArray array, const std::vector<jint>& values) {
     if (values.empty()) {
         return 0;
@@ -1558,9 +1735,10 @@ static int jdbc_get_long_array(Env& env, jlongArray array, std::vector<jlong>& v
     return 0;
 }
 
+// at_end is set if the end of the result set was reached
 static int jdbc_fetch_columnar_java_batches(Env& env, jobject rs,
         std::vector<std::unique_ptr<JdbcColumnarBuilder>>& builders, const cvec_t& cvec,
-        const std::vector<jint>& modes, int max_rows, ExceptionSink* xsink) {
+        const std::vector<jint>& modes, int max_rows, bool& at_end, ExceptionSink* xsink) {
     size_t column_count = builders.size();
     assert(column_count == cvec.size());
     assert(column_count == modes.size());
@@ -1604,6 +1782,7 @@ static int jdbc_fetch_columnar_java_batches(Env& env, jobject rs,
 
         int batch_rows = env.getIntField(batch, Globals::fieldJdbcColumnarBatchRows);
         if (!batch_rows) {
+            at_end = true;
             break;
         }
 
@@ -1640,7 +1819,9 @@ static int jdbc_fetch_columnar_java_batches(Env& env, jobject rs,
         }
 
         fetched += static_cast<size_t>(batch_rows);
+        // the Java reader returns fewer rows than requested only at the end of the result set
         if (batch_rows < rows_to_fetch) {
+            at_end = true;
             break;
         }
         if (qore_check_cancel(xsink, "JDBC columnar Java batch result fetch")) {
@@ -1672,13 +1853,24 @@ QoreColumnarResult* QoreJdbcStatement::getOutputColumnarIntern(Env& env, Excepti
     }
 
     if (java_batch_supported) {
-        if (jdbc_fetch_columnar_java_batches(env, rs, builders, cvec, java_batch_modes, max_rows, xsink)) {
-            return nullptr;
+        // a result set read to the end has no more rows
+        if (!results_done) {
+            bool at_end = false;
+            if (jdbc_fetch_columnar_java_batches(env, rs, builders, cvec, java_batch_modes, max_rows, at_end,
+                xsink)) {
+                return nullptr;
+            }
+            if (at_end && only_result_set && finishResults(env, xsink)) {
+                return nullptr;
+            }
         }
     } else {
         size_t row_count = 0;
         while (true) {
-            if (!next(env)) {
+            if (!next(env, xsink)) {
+                if (*xsink) {
+                    return nullptr;
+                }
                 break;
             }
 
@@ -1728,30 +1920,23 @@ QoreColumnarResult* QoreJdbcStatement::getOutputColumnarIntern(Env& env, Excepti
 #endif
 
 QoreHashNode* QoreJdbcStatement::getSingleRow(Env& env, ExceptionSink* xsink) {
-    assert(!rs);
-    LocalReference<jobject> result_set = env.callObjectMethod(stmt,
-        Globals::methodPreparedStatementGetResultSet, nullptr);
-    if (!result_set) {
-        return nullptr;
-    }
-
-    rs = result_set.makeGlobal();
-
-    // make sure there is at least one row
-    if (!next(env)) {
-        // if not, return NOTHING
-        return nullptr;
-    }
-
-    if (describeResultSet(env, xsink)) {
+    assert(rs);
+    // make sure there is at least one row; if not, return NOTHING
+    if (!next(env, xsink)) {
         return nullptr;
     }
 
     ReferenceHolder<QoreHashNode> rv(getSingleRowIntern(env, xsink), xsink);
+    if (*xsink) {
+        return nullptr;
+    }
 
     // make sure there's not another row
-    if (next(env)) {
+    if (next(env, xsink)) {
         xsink->raiseException("JDBC-SELECT-ROW-ERROR", "SQL passed to selectRow() returned more than 1 row");
+        return nullptr;
+    }
+    if (*xsink) {
         return nullptr;
     }
 
@@ -1759,7 +1944,11 @@ QoreHashNode* QoreJdbcStatement::getSingleRow(Env& env, ExceptionSink* xsink) {
 }
 
 QoreHashNode* QoreJdbcStatement::getSingleRowIntern(Env& env, ExceptionSink* xsink) {
-    assert(rs);
+    if (!rs) {
+        assert(results_done);
+        xsink->raiseException("JDBC-RESULTSET-ERROR", "no current row: the result set has been read to the end");
+        return nullptr;
+    }
     // get the row to return
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
     jint c = 0;
@@ -1799,11 +1988,11 @@ QoreValue QoreJdbcStatement::getColumnValue(Env& env, int column, QoreJdbcColumn
     return rv.release();
 }
 
-int QoreJdbcStatement::rowsAffected(Env& env) {
+int QoreJdbcStatement::rowsAffected() const {
     if (do_batch_execute) {
         return batch_rows_affected;
     }
-    return env.callIntMethod(stmt, Globals::methodPreparedStatementGetUpdateCount, nullptr);
+    return update_count_total;
 }
 
 int QoreJdbcStatement::parse(QoreString* str, const QoreListNode* args, ExceptionSink* xsink) {

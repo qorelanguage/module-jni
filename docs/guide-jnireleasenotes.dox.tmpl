@@ -226,6 +226,14 @@
       in auto-commit mode is never executed twice, and the error is raised instead.  A lost transaction raises
       \c JDBC-TRANSACTION-ERROR (it was \c ODBC-TRANSACTION-ERROR), and a \c SQLStatement released by a lost
       connection is prepared again when it is next executed.  See @ref jdbc_lost_connections "lost connections".
+    - Fixed the \c jdbc driver ignoring every result after the first: for SQL returning several results, such as a
+      batch of statements or a procedure returning several result sets, later result sets and update counts were
+      lost, and so were the errors of later statements when the JDBC driver reports them only when their result is
+      reached (as the SQL Server driver does).  \c exec(), \c execRaw() and \c select() now return every result,
+      in the format of the \c freetds driver; \c selectRow(), \c selectRows(), \c selectColumnar() and
+      \c SQLStatement skip update counts and raise an exception for more than one result set; and
+      \c SQLStatement::affectedRows() returns the total of the update counts.  A statement with a single result
+      returns it as before.  See @ref jdbc_multiple_results "statements with several results".
     - Fixed @ref exceldataproviderintro "ExcelDataProvider" reading without header options returning
       no data and rejecting cell ranges past column \c Z.
     - Fixed @ref mqttdataproviderintro "MqttDataProvider" failing to load because the required Paho
