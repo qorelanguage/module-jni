@@ -7,6 +7,8 @@
 %requires jni
 %requires QUnit
 %module-cmd(jni) add-relative-classpath qore-jni-test.jar
+# JdbcCursorTest uses the org.qore.lang wrapper classes, which are provided by qore-jni.jar
+%module-cmd(jni) add-relative-classpath ../build/qore-jni.jar
 %module-cmd(jni) import org.qore.jni.test.JdbcCursorTest
 %exec-class JdbcPostgresqlTransactionsTest
 

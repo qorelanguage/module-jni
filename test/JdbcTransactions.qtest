@@ -7,7 +7,10 @@
 %requires jni
 %requires QUnit
 %module-cmd(jni) add-relative-classpath qore-jni-test.jar
+# JdbcCursorTest uses the org.qore.lang wrapper classes, which are provided by qore-jni.jar
+%module-cmd(jni) add-relative-classpath ../build/qore-jni.jar
 %module-cmd(jni) import org.qore.jni.test.JdbcTransactionDriver
+%module-cmd(jni) import org.qore.jni.test.JdbcCursorTest
 %exec-class JdbcTransactionsTest
 
 class JdbcTransactionsTest inherits QUnit::Test {
@@ -29,6 +32,7 @@ class JdbcTransactionsTest inherits QUnit::Test {
         addTestCase("lost connection: an auto-commit statement never runs twice", \lostAutoCommit());
         addTestCase("lost connection: an active transaction is reported lost", \lostActiveTransaction());
         addTestCase("lost connection: a released statement is prepared again", \lostReleasedStatement());
+        addTestCase("result sets survive Java native-call boundaries", \cursorLifetime());
         set_return_value(main());
     }
 
@@ -282,5 +286,12 @@ class JdbcTransactionsTest inherits QUnit::Test {
         # the first write was lost with the transaction; only the second one was committed
         assertEq(1, JdbcTransactionDriver::durable());
         assertEq(2, JdbcTransactionDriver::count("execute:write:false"));
+    }
+
+    private cursorLifetime() {
+        DatasourcePool ds = pool();
+        assertEq(({"id": 11}, {"id": 22}), JdbcCursorTest::readRows(ds, "multi:rs=id:11,22"));
+        assertEq((), JdbcCursorTest::readRows(ds, "multi:rs=id:"));
+        assertFalse(ds.inTransaction());
     }
 }
