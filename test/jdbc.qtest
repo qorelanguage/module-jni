@@ -25,6 +25,7 @@ public class Main inherits QUnit::Test {
         addTestCase("firebirdTest", \firebirdTest());
         addTestCase("pgsqlMultipleResultsTest", \pgsqlMultipleResultsTest());
         addTestCase("mssqlMultipleResultsTest", \mssqlMultipleResultsTest());
+        addTestCase("mssqlLostConnectionTest", \mssqlLostConnectionTest());
 
         # execute tests and set program return value
         set_return_value(main());
@@ -246,6 +247,61 @@ public class Main inherits QUnit::Test {
         });
         ds.rollback();
         assertEq(2, ds.selectRow("select count(*) as c from jdbc_multi_test").c);
+    }
+
+    #! a statement interrupted by a lost connection is executed again only when it cannot have taken effect
+    private mssqlLostConnectionTest() {
+        *AbstractDatasource ds = getConnection("QORE_DB_CONNSTR_JDBC_MSSQL");
+        if (!ds) {
+            testSkip("no jdbc connection available");
+        }
+        AbstractDatasource observer = getConnection("QORE_DB_CONNSTR_JDBC_MSSQL");
+        # KILL cannot be executed in a transaction
+        observer.setAutoCommit(True);
+        string table = "jdbc_lost_connection_test";
+        observer.execRaw(sprintf("if object_id('%s') is not null drop table %s; create table %s (id int)", table,
+            table, table));
+        # executed in reverse order: the rollback releases the locks the drop waits for
+        on_exit observer.execRaw(sprintf("drop table %s", table));
+        on_exit ds.rollback();
+        code kill_session = sub () {
+            observer.execRaw(sprintf("kill %d", ds.selectRow("select @@spid as spid").spid));
+        };
+
+        code count = int sub () {
+            return observer.selectRow(sprintf("select count(*) as c from %s", table)).c;
+        };
+
+        # a datasource in auto-commit mode: the server may have committed the statement before the connection was
+        # lost, so it never runs twice; the error is raised and the datasource is reconnected
+        ds.setAutoCommit(True);
+        kill_session();
+        assertThrows("JNI-ERROR", sub () { ds.exec(sprintf("insert into %s values (1)", table)); });
+        assertEq(0, count());
+        assertEq(1, ds.exec(sprintf("insert into %s values (1)", table)));
+        assertEq(1, count());
+        ds.setAutoCommit(False);
+
+        # a read outside a transaction also runs in auto-commit mode and is not executed again
+        kill_session();
+        assertThrows("JNI-ERROR", sub () { ds.select("select 1 as a"); });
+        assertEq({"a": (1,)}, ds.select("select 1 as a"));
+
+        # the first statement of a transaction: the SQL Server driver reports the lost connection when the
+        # transaction is started, before the statement is sent; the error is raised
+        kill_session();
+        assertThrows("JNI-ERROR", sub () { ds.exec(sprintf("insert into %s values (2)", table)); });
+        assertEq(1, count());
+        assertEq(1, ds.exec(sprintf("insert into %s values (2)", table)));
+        ds.commit();
+        assertEq(2, count());
+
+        # in an active transaction the work is lost: reported, never replayed
+        ds.exec(sprintf("insert into %s values (3)", table));
+        kill_session();
+        assertThrows("JDBC-TRANSACTION-ERROR", sub () { ds.exec(sprintf("insert into %s values (4)", table)); });
+        ds.rollback();
+        assertEq(2, count());
     }
 
     private doTestIntern(auto ds) {

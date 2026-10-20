@@ -18,6 +18,7 @@ class JdbcPostgresqlTransactionsTest inherits QUnit::Test {
         addTestCase("commit, rollback, prepared writes and failed reads", \transactions());
         addTestCase("result sets survive Java native-call boundaries", \cursorLifetime());
         addTestCase("prepared results and batch bindings can be reused", \reuse());
+        addTestCase("a lost connection replays only a statement that cannot have taken effect", \lostConnection());
         set_return_value(main());
     }
 
@@ -28,6 +29,48 @@ class JdbcPostgresqlTransactionsTest inherits QUnit::Test {
         assertEq((), JdbcCursorTest::readRows(ds, "select 1 as id where false"));
         assertFalse(ds.inTransaction());
         assertNoIdleTransactions(ds);
+    }
+
+    #! terminates the server session of a datasource; waits until it has ended
+    private terminateSession(AbstractDatasource observer, int pid) {
+        assertTrue(observer.selectRow("select pg_terminate_backend(%v, 10000) as done", pid).done);
+        observer.rollback();
+    }
+
+    private lostConnection() {
+        string connstr = connection();
+        Datasource observer(connstr);
+        Datasource ds(connstr);
+        string table = "jdbc_lost_connection_test_" + getpid();
+        observer.execRaw(sprintf("drop table if exists %s; create table %s (id integer)", table, table));
+        observer.commit();
+        # executed in reverse order: the rollbacks release the locks the drop waits for
+        on_exit {
+            observer.execRaw(sprintf("drop table if exists %s", table));
+            observer.commit();
+        }
+        on_exit observer.rollback();
+        on_exit ds.rollback();
+
+        # the first statement of a transaction runs once more on the new connection
+        terminateSession(observer, ds.selectRow("select pg_backend_pid() as pid").pid);
+        assertEq(1, ds.exec(sprintf("insert into %s values (1)", table)));
+        ds.commit();
+        assertEq(1, observer.selectRow(sprintf("select count(*) as count from %s", table)).count);
+        observer.rollback();
+
+        # a read outside a transaction runs in auto-commit mode and is not executed again; the datasource is
+        # reconnected
+        terminateSession(observer, ds.selectRow("select pg_backend_pid() as pid").pid);
+        assertThrows("JNI-ERROR", sub () { ds.select("select 1 as a"); });
+        assertEq({"a": (1,)}, ds.select("select 1 as a"));
+
+        # in an active transaction the work is lost: reported, never replayed
+        ds.exec(sprintf("insert into %s values (2)", table));
+        terminateSession(observer, ds.selectRow("select pg_backend_pid() as pid").pid);
+        assertThrows("JDBC-TRANSACTION-ERROR", sub () { ds.exec(sprintf("insert into %s values (3)", table)); });
+        ds.rollback();
+        assertEq(1, observer.selectRow(sprintf("select count(*) as count from %s", table)).count);
     }
 
     private string connection() {

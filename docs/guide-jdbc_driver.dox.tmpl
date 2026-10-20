@@ -95,6 +95,10 @@ pool.exec("update orders set status = %v where id = %v", "processed", order.id);
     - if the transaction already had executed statements, \c JDBC-TRANSACTION-ERROR is raised, as that work is
       lost; roll back the transaction before starting a new one
 
+    Some JDBC drivers report a lost connection already when the transaction is started, before the statement is
+    sent (for example the SQL Server driver, which starts a transaction with a request to the server); the error is
+    then raised and the next call uses a new connection.
+
     SQL that commits by itself, for example a batch with an explicit \c COMMIT or a procedure that commits, is
     outside this guarantee.  @ref Qore::SQL::SQLStatement "SQLStatement" objects keep their SQL and arguments when
     the connection is lost and are prepared again on the new connection when they are next executed.
