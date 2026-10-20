@@ -2,7 +2,7 @@
 # Copyright (C) 2026 Qore Technologies, s.r.o.
 
 %modern
-%prepend-module-path ../build
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %requires jni
 %module-cmd(jni) add-relative-classpath qore-jni-test.jar
 %module-cmd(jni) import org.qore.jni.ExceptionConversionFixture

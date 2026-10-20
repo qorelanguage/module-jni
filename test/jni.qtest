@@ -4,7 +4,7 @@
 
 %modern
 
-%prepend-module-path ../build
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %requires jni
 %requires QUnit
 %requires Util
@@ -310,6 +310,11 @@ public class Main inherits QUnit::Test {
         return qore_bin;
     }
 
+    #! Returns a parse directive making a child script load the jni module that this test loaded
+    private static string jniModulePath() {
+        return sprintf("%%prepend-module-path \"%s\"\n", dirname(get_module_hash().jni.filename));
+    }
+
     private static string shellQuote(string arg) {
         return "'" + replace(arg, "'", "'\\''") + "'";
     }
@@ -340,7 +345,7 @@ list.add(\"checked-jni\");
 System::gc();
 ";
         TmpFile tmp(NOTHING, ".qr");
-        tmp.file.write(src);
+        tmp.file.write(jniModulePath() + src);
         tmp.file.close();
 
         # stderr is captured to catch -Xcheck:jni warnings, so the JVM launcher must not write its
@@ -362,7 +367,7 @@ System::gc();
             testSkip("system() is not available on this platform");
         }
         TmpFile tmp(NOTHING, ".qr");
-        tmp.file.write("%modern\n%requires jni\n%module-cmd(jni) import java.util.ArrayList\n"
+        tmp.file.write(jniModulePath() + "%modern\n%requires jni\n%module-cmd(jni) import java.util.ArrayList\n"
             "ArrayList list();\nlist.add(\"blank-jvm-args\");\n@assert(list.get(0) == \"blank-jvm-args\");\n");
         tmp.file.close();
         foreach string args in ("", " ", "  -Dqore.jni.test=1   -Dqore.jni.test2=2 ") {
@@ -425,7 +430,7 @@ System::gc();
 exit(0);
 ";
         TmpFile tmp(NOTHING, ".qr");
-        tmp.file.write(src);
+        tmp.file.write(jniModulePath() + src);
         tmp.file.close();
 
         string cmd = sprintf("%s %s", qoreBin(), tmp.path);
@@ -474,7 +479,7 @@ class Main {
 Main::run();
 ";
         TmpFile tmp(NOTHING, ".qr");
-        tmp.file.write(src);
+        tmp.file.write(jniModulePath() + src);
         tmp.file.close();
 
         string cmd = sprintf("%s %s", qoreBin(), tmp.path);

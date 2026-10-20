@@ -104,7 +104,9 @@ class GeneratedBindingsTest inherits QUnit::Test {
         string jar = f.persist();
         on_exit { GeneratedBindings::deleteJar(jar); }
         TmpFile script(NOTHING, ".qr");
-        script.file.write("%modern\n%requires jni\n"
+        # the child loads the jni module that this test loaded
+        script.file.write(sprintf("%%prepend-module-path \"%s\"\n", dirname(get_module_hash().jni.filename))
+            + "%modern\n%requires jni\n"
             "%module-cmd(jni) add-classpath " + get_script_dir() + "/qore-jni-test.jar\n"
             "%module-cmd(jni) import org.qore.jni.test.GeneratedBindings\n"
             "GeneratedBindings::checkJar(\"" + jar + "\");\n");

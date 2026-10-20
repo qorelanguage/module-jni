@@ -13,7 +13,7 @@
 %modern
 %disable-warning non-existent-method-call
 
-%prepend-module-path ../build
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %requires jni
 %module-cmd(jni) add-relative-classpath ../build/qore-jni.jar
 %module-cmd(jni) add-relative-classpath ../build/qore-jni-compiler.jar
