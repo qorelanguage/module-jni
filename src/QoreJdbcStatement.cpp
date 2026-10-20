@@ -107,48 +107,62 @@ int QoreJdbcStatement::bindQueryArguments(Env& env, ExceptionSink* xsink) {
     return 0;
 }
 
-bool QoreJdbcStatement::execIntern(Env& env, const QoreString& qstr, ExceptionSink* xsink) {
-    do {
-        // check for a lost connection
-        try {
-            if (do_batch_execute) {
-                LocalReference<jintArray> counts = env.callObjectMethod(stmt,
-                    Globals::methodPreparedStatementExecuteBatch, nullptr).as<jintArray>();
-                if (!counts) {
-                    xsink->raiseException("JDBC-BATCH-COUNT-ERROR", "JDBC driver returned no batch update counts");
-                    return false;
-                }
-                int total = 0;
-                bool unknown = false;
-                jsize size = env.getArrayLength(counts);
-                if (static_cast<size_t>(size) != array_bind_size) {
-                    xsink->raiseException("JDBC-BATCH-COUNT-ERROR",
-                        "JDBC driver returned %d update counts for %zu batch entries", size, array_bind_size);
-                    return false;
-                }
-                for (jsize i = 0; i < size; ++i) {
-                    if (i && !(i % 100) && qore_check_cancel(xsink, "JDBC batch update counts")) {
-                        return false;
-                    }
-                    jint count = env.getIntArrayElement(counts, i);
-                    if (count == -2) { // java.sql.Statement.SUCCESS_NO_INFO
-                        unknown = true;
-                    } else if (count < 0) {
-                        xsink->raiseException("JDBC-BATCH-COUNT-ERROR",
-                            "JDBC driver returned invalid update count %d for batch entry %d", count, i + 1);
-                        return false;
-                    } else if (count > std::numeric_limits<int>::max() - total) {
-                        xsink->raiseException("JDBC-BATCH-COUNT-ERROR",
-                            "batch update count exceeds the supported integer range");
-                        return false;
-                    } else {
-                        total += count;
-                    }
-                }
-                batch_rows_affected = unknown ? -1 : total;
+bool QoreJdbcStatement::executeOnce(Env& env, ExceptionSink* xsink) {
+    if (do_batch_execute) {
+        LocalReference<jintArray> counts = env.callObjectMethod(stmt,
+            Globals::methodPreparedStatementExecuteBatch, nullptr).as<jintArray>();
+        if (!counts) {
+            xsink->raiseException("JDBC-BATCH-COUNT-ERROR", "JDBC driver returned no batch update counts");
+            return false;
+        }
+        int total = 0;
+        bool unknown = false;
+        jsize size = env.getArrayLength(counts);
+        if (static_cast<size_t>(size) != array_bind_size) {
+            xsink->raiseException("JDBC-BATCH-COUNT-ERROR",
+                "JDBC driver returned %d update counts for %zu batch entries", size, array_bind_size);
+            return false;
+        }
+        for (jsize i = 0; i < size; ++i) {
+            if (i && !(i % 100) && qore_check_cancel(xsink, "JDBC batch update counts")) {
                 return false;
             }
-            return env.callBooleanMethod(stmt, Globals::methodPreparedStatementExecute, nullptr);
+            jint count = env.getIntArrayElement(counts, i);
+            if (count == -2) { // java.sql.Statement.SUCCESS_NO_INFO
+                unknown = true;
+            } else if (count < 0) {
+                xsink->raiseException("JDBC-BATCH-COUNT-ERROR",
+                    "JDBC driver returned invalid update count %d for batch entry %d", count, i + 1);
+                return false;
+            } else if (count > std::numeric_limits<int>::max() - total) {
+                xsink->raiseException("JDBC-BATCH-COUNT-ERROR",
+                    "batch update count exceeds the supported integer range");
+                return false;
+            } else {
+                total += count;
+            }
+        }
+        batch_rows_affected = unknown ? -1 : total;
+        return false;
+    }
+    return env.callBooleanMethod(stmt, Globals::methodPreparedStatementExecute, nullptr);
+}
+
+bool QoreJdbcStatement::execIntern(Env& env, const QoreString& qstr, ExceptionSink* xsink) {
+    // Replay rule: a lost connection is re-established (see reconnectLostConnection()), but the interrupted
+    // statement is executed again only if the lost attempt cannot have taken effect on the server:
+    // - it ran with JDBC auto-commit disabled, so the server rolls it back with the lost session, and
+    // - no earlier statement of the transaction was lost with it (the datasource has no active transaction; the
+    //   DBI_CAP_AUTORECONNECT contract).
+    // In auto-commit mode (a read outside a transaction, or a datasource in auto-commit mode) the server may have
+    // completed and committed the statement before the connection dropped, so it is never executed twice: the
+    // error is raised on the re-established connection. A statement is executed again at most once.
+    // (SQL that commits by itself, ex: an explicit COMMIT in the batch, is outside this guarantee.)
+    bool replayed = false;
+    while (true) {
+        bool replay_safe = !replayed && conn->inTransaction() && !conn->getDatasource()->activeTransaction();
+        try {
+            return executeOnce(env, xsink);
         } catch (JavaException& e) {
             LocalReference<jthrowable> throwable = e.save();
             assert(throwable);
@@ -159,21 +173,21 @@ bool QoreJdbcStatement::execIntern(Env& env, const QoreString& qstr, ExceptionSi
                 bool connected = env.callBooleanMethod(conn->getConnectionObject(), Globals::methodConnectionIsValid,
                     &jarg);
                 //printd(5, "QoreJdbcStatement::execIntern() connected: %d\n", connected);
-                if (!connected && !reconnectLostConnection(env, xsink)) {
+                if (!connected && !reconnectLostConnection(env, xsink) && replay_safe) {
                     assert(!*xsink);
-                    // repeat statement execution after reconnection when not in a transaction
+                    // execute the statement again on the new connection
                     prepareAndBindStatement(env, xsink, qstr);
                     if (*xsink) {
                         return false;
                     }
+                    replayed = true;
                     continue;
                 }
             }
             e.restore(throwable);
             throw;
         }
-    } while (false);
-    return false;
+    }
 }
 
 void QoreJdbcStatement::close(Env& env, ExceptionSink* xsink) {
@@ -209,10 +223,17 @@ void QoreJdbcStatement::reset(Env& env, ExceptionSink* xsink) {
     cvec.clear();
 }
 
+void QoreJdbcStatement::freeHandles(Env& env, ExceptionSink* xsink) {
+    close(env, xsink);
+    do_batch_execute = false;
+    batch_rows_affected = -1;
+    cvec.clear();
+}
+
 int QoreJdbcStatement::reconnectLostConnection(Env& env, ExceptionSink* xsink) {
     if (conn->getDatasource()->activeTransaction()) {
         printd(0, "QoreJdbcStatement::reconnectLostConnection() connection lost while in a transaction\n");
-        xsink->raiseException("ODBC-TRANSACTION-ERROR", "connection to database server lost while in a "
+        xsink->raiseException("JDBC-TRANSACTION-ERROR", "connection to database server lost while in a "
             "transaction; transaction has been lost");
     }
 
@@ -226,8 +247,12 @@ int QoreJdbcStatement::reconnectLostConnection(Env& env, ExceptionSink* xsink) {
     // Disconnect first
     conn->close(env);
 
-    // try to reconnect
-    if (conn->reconnect(env, xsink)) {
+    // try to reconnect; xsink can already hold the lost-transaction error or statement cleanup errors, so the
+    // reconnection reports into its own sink
+    ExceptionSink reconnect_xsink;
+    int reconnect_rc = conn->reconnect(env, &reconnect_xsink);
+    xsink->assimilate(reconnect_xsink);
+    if (reconnect_rc) {
         // Free state completely.
         reset(env, xsink);
 

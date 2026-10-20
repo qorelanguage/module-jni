@@ -71,6 +71,10 @@ int QoreJdbcPreparedStatement::exec(ExceptionSink* xsink) {
             env.callVoidMethod(previous, Globals::methodResultSetClose, nullptr);
         }
         cvec.clear();
+        if (!stmt) {
+            // the JDBC handles were released when the connection was lost; prepare on the current connection
+            prepareStatement(env, sql);
+        }
         if (bindQueryArguments(env, xsink)) {
             assert(*xsink);
             return -1;
@@ -190,10 +194,10 @@ bool QoreJdbcPreparedStatement::next(ExceptionSink* xsink) {
 int QoreJdbcPreparedStatement::clear(ExceptionSink* xsink) {
     try {
         //printd(5, "QoreJdbcPreparedStatement::clear() %p\n", this);
-        assignBindArgs(xsink, nullptr);
-        sql.clear();
+        // Called when the connection is lost: release the JDBC handles but keep the SQL and the bind arguments,
+        // so the statement can be executed again (or replayed by a reconnecting exec()) on the new connection.
         Env env;
-        reset(env, xsink);
+        freeHandles(env, xsink);
         return *xsink ? -1 : 0;
     } catch (JavaException& e) {
         e.convert(xsink);

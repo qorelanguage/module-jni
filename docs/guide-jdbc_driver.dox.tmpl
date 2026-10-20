@@ -49,7 +49,7 @@
     |Arbitrary-precision numbers|Bind and retrieve decimal values using Qore arbitrary-precision numbers; database precision and configured number conversion still apply.|@ref Qore::SQL::DBI_CAP_HAS_NUMBER_SUPPORT "DBI_CAP_HAS_NUMBER_SUPPORT"
     |Time zone conversion|Handle time zones when converting date/time values; the database type determines whether a zone is stored.|@ref Qore::SQL::DBI_CAP_TIME_ZONE_SUPPORT "DBI_CAP_TIME_ZONE_SUPPORT"
     |Server time zone interpretation|Interpret date/time values using the datasource server time zone. This controls value conversion and does not change the database server configuration.|@ref Qore::SQL::DBI_CAP_SERVER_TIME_ZONE "DBI_CAP_SERVER_TIME_ZONE"
-    |Connection recovery|Reconnect a lost connection outside an active transaction. A lost transaction is reported to the caller; uncommitted work cannot be recovered.|@ref Qore::SQL::DBI_CAP_AUTORECONNECT "DBI_CAP_AUTORECONNECT"
+    |Connection recovery|Reconnect a lost connection. A lost transaction is reported to the caller; uncommitted work cannot be recovered. The interrupted statement is executed again only when it cannot have taken effect; see @ref jdbc_lost_connections.|@ref Qore::SQL::DBI_CAP_AUTORECONNECT "DBI_CAP_AUTORECONNECT"
     |Driver options|Read and change supported driver settings with @ref Qore::SQL::Datasource::getOption() "Datasource::getOption()" and @ref Qore::SQL::Datasource::setOption() "Datasource::setOption()". See @ref jdbc_driver_options.|@ref Qore::SQL::DBI_CAP_HAS_OPTION_SUPPORT "DBI_CAP_HAS_OPTION_SUPPORT"
     |Native columnar results|Return columns suitable for analytical processing through @ref Qore::SQL::Datasource::selectColumnar() "Datasource::selectColumnar()" and @ref Qore::SQL::SQLStatement::fetchColumnar() "SQLStatement::fetchColumnar()" when built with columnar Qore APIs.|@ref Qore::SQL::DBI_CAP_HAS_COLUMNAR_SELECT "DBI_CAP_HAS_COLUMNAR_SELECT"
 
@@ -78,6 +78,26 @@ on_success pool.commit();
 hash<auto> order = pool.selectRow("select * from orders where id = %v for update", 123);
 pool.exec("update orders set status = %v where id = %v", "processed", order.id);
     @endcode
+
+    @subsection jdbc_lost_connections Lost Connections
+
+    When a statement fails because the connection to the server was lost, the driver reconnects, and executes the
+    statement once more on the new connection only if the lost attempt cannot have taken effect on the server:
+    - the statement started a transaction (auto-commit is disabled, which is the default for
+      @ref Qore::SQL::Datasource::exec() "exec()", @ref Qore::SQL::Datasource::execRaw() "execRaw()" and
+      @ref Qore::SQL::SQLStatement "SQLStatement" execution), so the server rolls it back with the lost session; and
+    - no earlier statement of the transaction was lost with it
+
+    In every other case the error is raised on the reconnected datasource, and the caller decides what to do:
+    - a statement executed in auto-commit mode, which is a select outside a transaction or any statement on a
+      datasource in auto-commit mode, may have been completed and committed by the server before the connection
+      dropped, so it is never executed twice
+    - if the transaction already had executed statements, \c JDBC-TRANSACTION-ERROR is raised, as that work is
+      lost; roll back the transaction before starting a new one
+
+    SQL that commits by itself, for example a batch with an explicit \c COMMIT or a procedure that commits, is
+    outside this guarantee.  @ref Qore::SQL::SQLStatement "SQLStatement" objects keep their SQL and arguments when
+    the connection is lost and are prepared again on the new connection when they are next executed.
 
     JDBC result sets held by a \c SQLStatement remain valid across separate Java-to-%Qore calls until
     the statement is closed or its transaction ends. Each result set and statement is closed even if

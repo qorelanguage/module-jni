@@ -58,6 +58,11 @@ public:
         return connection;
     }
 
+    //! Returns true if the JDBC connection is in a transaction (auto-commit disabled)
+    DLLLOCAL bool inTransaction() const {
+        return transaction;
+    }
+
     //! Set an option for the connection.
     /** @param opt option name
         @param val option value to use

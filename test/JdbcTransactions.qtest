@@ -23,6 +23,12 @@ class JdbcTransactionsTest inherits QUnit::Test {
         addTestCase("non-query output and invalid fetches", \nonQueryOutput());
         addTestCase("batch counts, unknown counts and overflow", \batchCounts());
         addTestCase("repeated execution failures preserve exceptions and release handles", \repeatedFailures());
+        addTestCase("lost connection: the first statement of a transaction runs again", \lostFirstStatement());
+        addTestCase("lost connection: a prepared statement starting a transaction runs again",
+            \lostFirstPreparedStatement());
+        addTestCase("lost connection: an auto-commit statement never runs twice", \lostAutoCommit());
+        addTestCase("lost connection: an active transaction is reported lost", \lostActiveTransaction());
+        addTestCase("lost connection: a released statement is prepared again", \lostReleasedStatement());
         set_return_value(main());
     }
 
@@ -193,5 +199,88 @@ class JdbcTransactionsTest inherits QUnit::Test {
         }
         assertEq(0, JdbcTransactionDriver::durable());
         assertEq(1, ds.select("read"));
+    }
+
+    private lostFirstStatement() {
+        # the first statement of a transaction: the server rolls the lost attempt back, so it runs once more on the
+        # new connection, which keeps the requested transaction
+        DatasourcePool ds = pool();
+        JdbcTransactionDriver::loseConnectionAt("execute:write:false", True);
+        assertEq(1, ds.exec("write"));
+        assertEq(2, JdbcTransactionDriver::count("execute:write:false"));
+        assertEq(2, JdbcTransactionDriver::count("connect"));
+        assertEq(0, JdbcTransactionDriver::durable());
+        ds.commit();
+        assertEq(1, JdbcTransactionDriver::durable());
+    }
+
+    private lostFirstPreparedStatement() {
+        # a prepared statement starting a transaction is replayed the same way, with its SQL and arguments
+        DatasourcePool ds = pool();
+        SQLStatement stmt(ds);
+        stmt.prepare("write");
+        JdbcTransactionDriver::loseConnectionAt("execute:write:false", True);
+        stmt.exec();
+        assertEq(1, stmt.affectedRows());
+        assertEq(2, JdbcTransactionDriver::count("execute:write:false"));
+        stmt.commit();
+        assertEq(1, JdbcTransactionDriver::durable());
+        # the statement stays usable on the new connection
+        stmt.exec();
+        stmt.commit();
+        assertEq(2, JdbcTransactionDriver::durable());
+    }
+
+    private lostAutoCommit() {
+        # auto-commit mode: the server may have committed the lost attempt, so it never runs twice; the connection
+        # is re-established and the error is raised
+        JdbcTransactionDriver::reset();
+        Datasource auto_ds("jdbc:@qore-transaction-test:fixture");
+        auto_ds.setAutoCommit(True);
+        JdbcTransactionDriver::loseConnectionAt("execute:write:true", True);
+        assertThrows("JNI-ERROR", "injected connection loss", sub () { auto_ds.exec("write"); });
+        assertEq(1, JdbcTransactionDriver::count("execute:write:true"));
+        assertEq(1, JdbcTransactionDriver::durable());
+        assertEq(1, auto_ds.exec("write"));
+        assertEq(2, JdbcTransactionDriver::durable());
+
+        # a read outside a transaction also runs in auto-commit mode and is not executed again
+        DatasourcePool ds = pool();
+        JdbcTransactionDriver::loseConnectionAt("execute:read:true", False);
+        assertThrows("JNI-ERROR", "injected connection loss", sub () { ds.select("read"); });
+        assertEq(1, JdbcTransactionDriver::count("execute:read:true"));
+        assertEq(1, ds.select("read"));
+    }
+
+    private lostActiveTransaction() {
+        # in an active transaction the earlier work is lost with the session: reported, never replayed
+        DatasourcePool ds = pool();
+        ds.exec("write");
+        JdbcTransactionDriver::loseConnectionAt("execute:write:false", True);
+        assertThrows("JDBC-TRANSACTION-ERROR", sub () { ds.exec("write"); });
+        assertEq(2, JdbcTransactionDriver::count("execute:write:false"));
+        ds.rollback();
+        assertEq(0, JdbcTransactionDriver::durable());
+        assertEq(1, ds.exec("write"));
+        ds.commit();
+        assertEq(1, JdbcTransactionDriver::durable());
+    }
+
+    private lostReleasedStatement() {
+        # a statement holding the transaction is released when another call on the datasource loses the
+        # connection; executed again, it is prepared on the new connection
+        JdbcTransactionDriver::reset();
+        Datasource single("jdbc:@qore-transaction-test:fixture");
+        SQLStatement other(single);
+        other.prepare("write");
+        other.exec();
+        JdbcTransactionDriver::loseConnectionAt("execute:read:false", False);
+        assertThrows("JDBC-TRANSACTION-ERROR", sub () { single.select("read"); });
+        other.exec();
+        assertEq(1, other.affectedRows());
+        other.commit();
+        # the first write was lost with the transaction; only the second one was committed
+        assertEq(1, JdbcTransactionDriver::durable());
+        assertEq(2, JdbcTransactionDriver::count("execute:write:false"));
     }
 }

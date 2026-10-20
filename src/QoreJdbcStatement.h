@@ -189,6 +189,11 @@ protected:
     */
     DLLLOCAL void reset(Env& env, ExceptionSink* xsink);
 
+    //! Releases the JDBC statement and result set but keeps the SQL and bind arguments
+    /** Used when the connection is lost: the statement is prepared again before it is next executed.
+    */
+    DLLLOCAL void freeHandles(Env& env, ExceptionSink* xsink);
+
     //! Parse a Qore-style SQL statement
     /** @param str Qore-style SQL statement
         @param args SQL parameters
@@ -202,7 +207,18 @@ protected:
 
     DLLLOCAL int bindQueryArguments(Env& env, ExceptionSink* xsink);
 
+    //! Executes the prepared statement; reconnects a lost connection
+    /** The statement is executed once more on the new connection only if the lost attempt cannot have taken
+        effect (see the implementation for the rule).
+
+        @return true if the first result is a result set
+    */
     DLLLOCAL bool execIntern(Env& env, const QoreString& sql, ExceptionSink* xsink);
+
+    //! Executes the prepared statement or batch once
+    /** @return true if the first result is a result set
+    */
+    DLLLOCAL bool executeOnce(Env& env, ExceptionSink* xsink);
 
 #if 0
     DLLLOCAL const char* getArrayBindType(const QoreListNode* l) const;

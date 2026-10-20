@@ -19,6 +19,9 @@ public final class JdbcTransactionDriver implements Driver {
     // All fixture state and proxy callbacks are serialized on this class's monitor.
     private static final ArrayList<String> events = new ArrayList<>();
     private static String failure = "";
+    // execution at which the connection is lost, and whether the server applied the statement first
+    private static String loss = "";
+    private static boolean lossApplied;
     private static int durable;
     private static boolean installed;
 
@@ -29,11 +32,30 @@ public final class JdbcTransactionDriver implements Driver {
         }
         events.clear();
         failure = "";
+        loss = "";
+        lossApplied = false;
         durable = 0;
     }
 
     public static synchronized void failNext(String operation) {
         failure = operation;
+    }
+
+    /** The connection is lost at the given "execute:<sql>:<auto-commit>" event; with {@code applied} the server
+        executed the statement before the connection dropped (committing it in auto-commit mode). */
+    public static synchronized void loseConnectionAt(String operation, boolean applied) {
+        loss = operation;
+        lossApplied = applied;
+    }
+
+    public static synchronized int count(String operation) {
+        int rv = 0;
+        for (String e : events) {
+            if (e.equals(operation)) {
+                ++rv;
+            }
+        }
+        return rv;
     }
 
     public static synchronized String[] events() {
@@ -60,21 +82,36 @@ public final class JdbcTransactionDriver implements Driver {
         PreparedStatement prepare(String sql) {
             // Accessed only by the synchronized proxy callbacks below.
             int[] batchSize = {0};
+            // the update count is only available after a successful execution
+            int[] updateCount = {-1};
             return (PreparedStatement) Proxy.newProxyInstance(JdbcTransactionDriver.class.getClassLoader(),
                 new Class<?>[] {PreparedStatement.class}, (proxy, method, args) -> {
                     synchronized (JdbcTransactionDriver.class) {
                         switch (method.getName()) {
-                            case "execute":
-                                event("execute:" + sql + ":" + autoCommit);
-                                if (sql.equals("write")) {
+                            case "execute": {
+                                String operation = "execute:" + sql + ":" + autoCommit;
+                                boolean lose = loss.equals(operation);
+                                if (lose) {
+                                    loss = "";
+                                }
+                                event(operation);
+                                if (sql.equals("write") && (!lose || lossApplied)) {
                                     if (autoCommit) {
                                         ++durable;
                                     } else {
                                         ++pending;
                                     }
                                 }
+                                if (lose) {
+                                    // the server rolls back the open transaction of a lost session
+                                    pending = 0;
+                                    closed = true;
+                                    throw new SQLException("injected connection loss", "08006");
+                                }
+                                updateCount[0] = 1;
                                 return false;
-                            case "getUpdateCount": return 1;
+                            }
+                            case "getUpdateCount": return updateCount[0];
                             case "setByte":
                             case "setShort":
                             case "setInt":

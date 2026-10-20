@@ -220,6 +220,12 @@
       and incomplete statement cleanup. Fixed batch update counts, empty batches, and statement reuse
       after failed binds. Unknown batch counts return \c -1; overflow raises \c JDBC-BATCH-COUNT-ERROR.
       See @ref jdbc_transaction_boundaries "JDBC transaction boundaries".
+    - Fixed the \c jdbc driver not executing a statement after reconnecting a lost connection: a write returned
+      \c -1 without being executed, and a query returned \c -1 instead of its rows.  The statement is now executed
+      again only if it cannot have taken effect (it started a transaction, which the server rolls back); a statement
+      in auto-commit mode is never executed twice, and the error is raised instead.  A lost transaction raises
+      \c JDBC-TRANSACTION-ERROR (it was \c ODBC-TRANSACTION-ERROR), and a \c SQLStatement released by a lost
+      connection is prepared again when it is next executed.  See @ref jdbc_lost_connections "lost connections".
     - Fixed @ref exceldataproviderintro "ExcelDataProvider" reading without header options returning
       no data and rejecting cell ranges past column \c Z.
     - Fixed @ref mqttdataproviderintro "MqttDataProvider" failing to load because the required Paho

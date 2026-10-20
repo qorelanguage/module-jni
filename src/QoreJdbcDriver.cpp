@@ -304,7 +304,8 @@ static int jdbc_stmt_free(SQLStatement* stmt, ExceptionSink* xsink) {
     QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
     assert(ps);
 
-    // Free all handles without closing the statement or freeing private data
+    // Free all handles without closing the statement or freeing private data; the statement is prepared again on
+    // the new connection when it is next executed
     return ps->clear(xsink);
 }
 

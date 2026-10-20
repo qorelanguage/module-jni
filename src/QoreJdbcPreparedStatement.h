@@ -111,7 +111,7 @@ public:
     */
     DLLLOCAL bool next(ExceptionSink* xsink);
 
-    //! Clears the object
+    //! Releases the JDBC handles after a lost connection; the SQL and bind arguments are kept
     DLLLOCAL int clear(ExceptionSink* xsink);
 
 private:
