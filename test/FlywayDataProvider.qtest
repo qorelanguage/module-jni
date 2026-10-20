@@ -41,10 +41,15 @@
 
 public class FlywayDataProviderTest inherits QUnit::Test {
     private {
+        #! the schema managed by the tests: clean drops every object in the schemas Flyway manages
+        const Schema = "qore_flyway_test";
+
         string test_data_dir;
         *string jdbc_url;
         *string jdbc_user;
         *string jdbc_password;
+        #! the database driver is on Flyway's global classpath
+        bool driver_classpath;
     }
 
     constructor() : Test("FlywayDataProviderTest", "1.0", \ARGV) {
@@ -55,10 +60,18 @@ public class FlywayDataProviderTest inherits QUnit::Test {
         }
         test_data_dir = script_dir + "/flyway-test-data/sql";
 
-        # Get JDBC connection from environment
-        jdbc_url = ENV.QORE_DB_CONNSTR_JDBC_PGSQL;
-        jdbc_user = ENV.FLYWAY_DB_USER ?? "postgres";
-        jdbc_password = ENV.FLYWAY_DB_PASSWORD ?? "omq";
+        # the connection is a jdbc datasource string, as for the jdbc driver tests (ex:
+        # "jdbc:user/pass@ignored{url=postgresql://host:5432/db,classpath=/path/postgresql.jar}")
+        if (ENV.QORE_DB_CONNSTR_JDBC_PGSQL) {
+            hash<auto> ds = parse_datasource(ENV.QORE_DB_CONNSTR_JDBC_PGSQL);
+            string url = ds.options.url ?? ds.db;
+            jdbc_url = url =~ /^jdbc:/ ? url : "jdbc:" + url;
+            jdbc_user = ds.user;
+            jdbc_password = ds.pass;
+        }
+%ifdef FLYWAY_TEST_DRIVER_CLASSPATH
+        driver_classpath = True;
+%endif
 
         addTestCase("factory test", \testFactory());
         addTestCase("child providers", \testChildProviders());
@@ -69,9 +82,31 @@ public class FlywayDataProviderTest inherits QUnit::Test {
         addTestCase("validate", \testValidate());
         addTestCase("validation failure response", \testValidationFailure());
         addTestCase("clean and repair", \testCleanAndRepair());
+        addTestCase("schemas and history table options", \testSchemasAndTable());
 
         # execute tests and set program return value
         set_return_value(main());
+    }
+
+    private checkConnection() {
+        if (!jdbc_url) {
+            testSkip("no JDBC connection available (QORE_DB_CONNSTR_JDBC_PGSQL not set)");
+        }
+        if (!driver_classpath) {
+            testSkip("the database driver is not on Flyway's global classpath (run with "
+                "-DFLYWAY_TEST_DRIVER_CLASSPATH and JDBC_DB_CLASSPATH set to the driver)");
+        }
+    }
+
+    private hash<auto> getOptions(string location = "filesystem:" + test_data_dir) {
+        return {
+            "url": jdbc_url,
+            "user": jdbc_user,
+            "password": jdbc_password,
+            "locations": (location,),
+            # a schema of its own, so that clean cannot drop the objects of the database's default schema
+            "schemas": (Schema,),
+        };
     }
 
     private testFactory() {
@@ -80,15 +115,8 @@ public class FlywayDataProviderTest inherits QUnit::Test {
     }
 
     private testChildProviders() {
-        if (!jdbc_url) {
-            testSkip("no JDBC connection available (QORE_DB_CONNSTR_JDBC_PGSQL not set)");
-        }
-        FlywayDataProvider dp({
-            "url": jdbc_url,
-            "user": jdbc_user,
-            "password": jdbc_password,
-            "locations": ("filesystem:" + test_data_dir,),
-        });
+        checkConnection();
+        FlywayDataProvider dp(getOptions());
         # Verify child provider names
         list<string> children = dp.getChildProviderNames();
         assertTrue(children.size() >= 5);
@@ -126,15 +154,8 @@ public class FlywayDataProviderTest inherits QUnit::Test {
     }
 
     private testMigrateAndInfo() {
-        if (!jdbc_url) {
-            testSkip("no JDBC connection available (QORE_DB_CONNSTR_JDBC_PGSQL not set)");
-        }
-        FlywayDataProvider dp({
-            "url": jdbc_url,
-            "user": jdbc_user,
-            "password": jdbc_password,
-            "locations": ("filesystem:" + test_data_dir,),
-        });
+        checkConnection();
+        FlywayDataProvider dp(getOptions());
 
         # Clean first to ensure a fresh state
         AbstractDataProvider cleanDp = dp.getChildProvider("clean");
@@ -163,15 +184,8 @@ public class FlywayDataProviderTest inherits QUnit::Test {
     }
 
     private testValidate() {
-        if (!jdbc_url) {
-            testSkip("no JDBC connection available (QORE_DB_CONNSTR_JDBC_PGSQL not set)");
-        }
-        FlywayDataProvider dp({
-            "url": jdbc_url,
-            "user": jdbc_user,
-            "password": jdbc_password,
-            "locations": ("filesystem:" + test_data_dir,),
-        });
+        checkConnection();
+        FlywayDataProvider dp(getOptions());
 
         AbstractDataProvider validateDp = dp.getChildProvider("validate");
         auto result = validateDp.doRequest(NOTHING);
@@ -182,9 +196,7 @@ public class FlywayDataProviderTest inherits QUnit::Test {
     }
 
     private testValidationFailure() {
-        if (!jdbc_url) {
-            testSkip("no JDBC connection available (QORE_DB_CONNSTR_JDBC_PGSQL not set)");
-        }
+        checkConnection();
         TmpDir changed();
         foreach string filename in ("V1__create_test_table.sql", "V2__add_email_column.sql") {
             string content = File::readTextFile(test_data_dir + DirSep + filename);
@@ -196,8 +208,7 @@ public class FlywayDataProviderTest inherits QUnit::Test {
             f.write(content);
             f.close();
         }
-        FlywayDataProvider dp({"url": jdbc_url, "user": jdbc_user, "password": jdbc_password,
-            "locations": ("filesystem:" + changed.path,)});
+        FlywayDataProvider dp(getOptions("filesystem:" + changed.path));
         AbstractDataProvider provider = dp.getChildProvider("validate");
         hash<auto> result = provider.doRequest(NOTHING);
         assertFalse(result.validationSuccessful);
@@ -209,15 +220,8 @@ public class FlywayDataProviderTest inherits QUnit::Test {
     }
 
     private testCleanAndRepair() {
-        if (!jdbc_url) {
-            testSkip("no JDBC connection available (QORE_DB_CONNSTR_JDBC_PGSQL not set)");
-        }
-        FlywayDataProvider dp({
-            "url": jdbc_url,
-            "user": jdbc_user,
-            "password": jdbc_password,
-            "locations": ("filesystem:" + test_data_dir,),
-        });
+        checkConnection();
+        FlywayDataProvider dp(getOptions());
 
         # Clean
         AbstractDataProvider cleanDp = dp.getChildProvider("clean");
@@ -234,5 +238,41 @@ public class FlywayDataProviderTest inherits QUnit::Test {
         # Final clean to leave the database in a clean state
         cleanDp = dp.getChildProvider("clean");
         cleanDp.doRequest(NOTHING);
+    }
+
+    #! migrations and the history table are in the configured schema, and clean drops the objects of that schema only
+    private testSchemasAndTable() {
+        checkConnection();
+        # a table in the default schema of the database
+        Datasource ds(ENV.QORE_DB_CONNSTR_JDBC_PGSQL);
+        ds.open();
+        ds.execRaw("create table if not exists qore_flyway_sentinel (id int)");
+        ds.commit();
+        on_exit {
+            ds.rollback();
+            ds.execRaw("drop table if exists qore_flyway_sentinel");
+            ds.commit();
+        }
+        string tables_sql = sprintf("select table_name from information_schema.tables where table_schema = '%s' "
+            "order by 1", Schema);
+        # the tables in the default schema that the tests could create or drop; other tables are not compared, as
+        # the database may be shared
+        string default_schema_sql = "select table_name from information_schema.tables where table_schema = "
+            "current_schema() and table_name in ('flyway_test', 'qore_flyway_history', 'flyway_schema_history', "
+            "'qore_flyway_sentinel') order by 1";
+        list<auto> default_tables = ds.select(default_schema_sql).table_name;
+        assertTrue(inlist("qore_flyway_sentinel", default_tables));
+
+        FlywayDataProvider dp(getOptions() + {"table": "qore_flyway_history"});
+        dp.getChildProvider("clean").doRequest(NOTHING);
+        assertEq(2, dp.getChildProvider("migrate").doRequest(NOTHING).size());
+        assertEq(("flyway_test", "qore_flyway_history"), ds.select(tables_sql).table_name);
+        # the migrations did not change the default schema
+        assertEq(default_tables, ds.select(default_schema_sql).table_name);
+
+        dp.getChildProvider("clean").doRequest(NOTHING);
+        assertEq((), ds.select(tables_sql).table_name);
+        # neither did clean
+        assertEq(default_tables, ds.select(default_schema_sql).table_name);
     }
 }

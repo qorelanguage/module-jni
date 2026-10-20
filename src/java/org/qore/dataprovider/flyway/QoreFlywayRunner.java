@@ -24,6 +24,7 @@ package org.qore.dataprovider.flyway;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import org.flywaydb.core.api.MigrationInfoService;
+import org.flywaydb.core.api.configuration.FluentConfiguration;
 import org.flywaydb.core.api.output.CleanResult;
 import org.flywaydb.core.api.output.MigrateOutput;
 import org.flywaydb.core.api.output.MigrateResult;
@@ -45,19 +46,46 @@ public class QoreFlywayRunner implements Closeable {
     private Flyway flyway;
 
     /**
+     * Creates a new QoreFlywayRunner with the default schema history table.
+     *
+     * @param jdbcUrl   The JDBC connection URL
+     * @param user      The database username
+     * @param password  The database password
+     * @param locations The migration script locations (e.g., "filesystem:/path/to/sql")
+     * @param schemas   The schemas managed by Flyway; the first one is the default schema of the migrations and
+     *                  holds the history table, and clean drops the objects in these schemas only; if
+     *                  {@code null} or empty, the default schema of the connection is managed
+     */
+    public QoreFlywayRunner(String jdbcUrl, String user, String password, String[] locations, String[] schemas) {
+        this(jdbcUrl, user, password, locations, schemas, null);
+    }
+
+    /**
      * Creates a new QoreFlywayRunner.
      *
      * @param jdbcUrl   The JDBC connection URL
      * @param user      The database username
      * @param password  The database password
      * @param locations The migration script locations (e.g., "filesystem:/path/to/sql")
+     * @param schemas   The schemas managed by Flyway; the first one is the default schema of the migrations and
+     *                  holds the history table, and clean drops the objects in these schemas only; if
+     *                  {@code null} or empty, the default schema of the connection is managed
+     * @param table     The name of the schema history table; if {@code null}, Flyway's default
+     *                  ({@code flyway_schema_history}) is used
      */
-    public QoreFlywayRunner(String jdbcUrl, String user, String password, String[] locations) {
-        flyway = Flyway.configure()
+    public QoreFlywayRunner(String jdbcUrl, String user, String password, String[] locations, String[] schemas,
+            String table) {
+        FluentConfiguration config = Flyway.configure()
             .dataSource(jdbcUrl, user, password)
             .locations(locations)
-            .cleanDisabled(false)
-            .load();
+            .cleanDisabled(false);
+        if (schemas != null && schemas.length > 0) {
+            config.schemas(schemas);
+        }
+        if (table != null) {
+            config.table(table);
+        }
+        flyway = config.load();
     }
 
     /**

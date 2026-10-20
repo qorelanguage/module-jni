@@ -230,4 +230,19 @@ public const AppName = "Flyway";
 namespace Priv {
 #! Flyway logo
 const FlywayLogo = File::readTextFile(get_script_dir() + "/flyway-logo.svg");
+
+#! Returns a Flyway runner for the given options
+/** @param copts the options: \c url, \c user and \c password, and the optional \c locations, \c schemas and
+    \c table
+
+    @return a Flyway runner configured with all options
+*/
+QoreFlywayRunner sub get_flyway_runner(hash<auto> copts) {
+    # prefix locations with "filesystem:" if no prefix is present
+    list<string> locations = map ($1 =~ /:/ ? $1 : "filesystem:" + $1), copts.locations ?? ();
+    list<string> schemas = map $1.toString(), copts.schemas ?? ();
+    return copts.table
+        ? new QoreFlywayRunner(copts.url, copts.user, copts.password, locations, schemas, copts.table)
+        : new QoreFlywayRunner(copts.url, copts.user, copts.password, locations, schemas);
+}
 }

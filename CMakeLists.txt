@@ -788,12 +788,16 @@ install(FILES ${JASPER_JAR} DESTINATION ${QORE_USER_MODULES_DIR}/JasperReportsDa
 set(FLYWAY_JAR ${CMAKE_CURRENT_BINARY_DIR}/qore-dataprovider-flyway.jar)
 set(FLYWAY_CLASSPATH ${CMAKE_SOURCE_DIR}/qlib/FlywayDataProvider/jar/flyway-core-10.20.0.jar:${CMAKE_SOURCE_DIR}/qlib/FlywayDataProvider/jar/flyway-database-postgresql-10.20.0.jar:${CMAKE_SOURCE_DIR}/qlib/FlywayDataProvider/jar/jackson-annotations-2.15.2.jar:${CMAKE_SOURCE_DIR}/qlib/FlywayDataProvider/jar/jackson-core-2.15.2.jar:${CMAKE_SOURCE_DIR}/qlib/FlywayDataProvider/jar/jackson-databind-2.15.2.jar:${CMAKE_SOURCE_DIR}/qlib/FlywayDataProvider/jar/jackson-dataformat-toml-2.15.2.jar:${CMAKE_SOURCE_DIR}/qlib/FlywayDataProvider/jar/jackson-datatype-jsr310-2.15.2.jar)
 set(FLYWAY_ROOT ${CMAKE_SOURCE_DIR}/src/java)
-set(FLYWAY_SOURCES ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/flyway/)
+set(FLYWAY_SOURCES_DIR ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/flyway/)
+# the jar is rebuilt when one of these files changes (a directory dependency only changes when files are added)
+set(FLYWAY_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/flyway/QoreFlywayRunner.java
+)
 
 add_custom_command(
     OUTPUT ${FLYWAY_JAR}
     COMMAND ${CMAKE_COMMAND} -E env QORE_MODULE_DIR=${QORE_JNI_BUILD_MODULE_DIR} ${QORE_EXECUTABLE} -l jni ${CMAKE_SOURCE_DIR}/bin/qjava2jar
-        --root=${FLYWAY_ROOT} -d ${CMAKE_CURRENT_BINARY_DIR}/jar-flyway ${FLYWAY_JAR} ${FLYWAY_SOURCES} -cp ${FLYWAY_CLASSPATH}
+        --root=${FLYWAY_ROOT} -d ${CMAKE_CURRENT_BINARY_DIR}/jar-flyway ${FLYWAY_JAR} ${FLYWAY_SOURCES_DIR} -cp ${FLYWAY_CLASSPATH}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FLYWAY_JAR} ${CMAKE_SOURCE_DIR}/qlib/FlywayDataProvider/jar/
     COMMAND ${CMAKE_COMMAND} -E make_directory ${QORE_AOT_QMOD_DIR}/FlywayDataProvider/jar
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FLYWAY_JAR} ${QORE_AOT_QMOD_DIR}/FlywayDataProvider/jar/

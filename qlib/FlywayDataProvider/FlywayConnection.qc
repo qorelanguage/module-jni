@@ -172,8 +172,7 @@ public class FlywayConnection inherits ConnectionProvider::AbstractConnectionWit
         if (rtopts) {
             copts += rtopts;
         }
-        list<string> locations = map ($1 =~ /:/ ? $1 : "filesystem:" + $1), copts.locations ?? ();
-        return new QoreFlywayRunner(copts.url, copts.user, copts.password, locations);
+        return get_flyway_runner(copts);
     }
 }
 }

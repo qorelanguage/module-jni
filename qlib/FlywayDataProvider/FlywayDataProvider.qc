@@ -111,9 +111,7 @@ public class FlywayDataProvider inherits DataProvider::AbstractDataProvider {
         if (!copts.password) {
             error("FLYWAY-CONSTRUCTOR-ERROR", "the \"password\" option is required");
         }
-        # prepare locations: prefix with "filesystem:" if no prefix is present
-        list<string> locations = map ($1 =~ /:/ ? $1 : "filesystem:" + $1), copts.locations ?? ();
-        runner = new QoreFlywayRunner(copts.url, copts.user, copts.password, locations);
+        runner = get_flyway_runner(copts);
     }
 
     #! Creates the object from a connection object
@@ -122,8 +120,7 @@ public class FlywayDataProvider inherits DataProvider::AbstractDataProvider {
         if (options) {
             copts += options;
         }
-        list<string> locations = map ($1 =~ /:/ ? $1 : "filesystem:" + $1), copts.locations ?? ();
-        runner = new QoreFlywayRunner(copts.url, copts.user, copts.password, locations);
+        runner = get_flyway_runner(copts);
     }
 
     string getName() {
