@@ -102,6 +102,7 @@ fi
 # for this artifact, 67f8093e8d8104c74bbf588392ac3229803f5d17, which the file this SHA-256 was taken from matched)
 PGJDBC_VERSION=42.7.7
 PGJDBC_SHA256=157963d60ae66d607e09466e8c0cdf8087e9cb20d0159899ffca96bca2528460
+FLYWAY_TEST_ARGS=
 if [[ "${QORE_DB_CONNSTR}" == pgsql:* ]]; then
     echo && echo "-- downloading the PostgreSQL JDBC driver ${PGJDBC_VERSION} --"
     export PGJDBC_JAR=${MODULE_SRC_DIR}/build/postgresql-${PGJDBC_VERSION}.jar
@@ -116,6 +117,10 @@ if [[ "${QORE_DB_CONNSTR}" == pgsql:* ]]; then
     export QORE_DB_CONNSTR_JDBC_PGSQL=$(qore -e 'hash<auto> h = parse_datasource(ENV.QORE_DB_CONNSTR);
         print(sprintf("jdbc:%s/%s@ignored{url=postgresql://%s:%d/%s,classpath=%s}", h.user, h.pass ?? "",
             h.host ?? "localhost", h.port ?? 5432, h.db, ENV.PGJDBC_JAR));')
+    # the Flyway tests need the driver on Flyway's global classpath: the test adds JDBC_DB_CLASSPATH to it when
+    # the FLYWAY_TEST_DRIVER_CLASSPATH parse define is set (no other test uses the define)
+    export JDBC_DB_CLASSPATH=${PGJDBC_JAR}
+    FLYWAY_TEST_ARGS=-DFLYWAY_TEST_DRIVER_CLASSPATH
 fi
 
 # run the tests
@@ -127,7 +132,7 @@ for test in test/*.qtest; do
         continue
     fi
     date
-    gosu qore:qore qore --enable-debug $test -vv
+    gosu qore:qore qore --enable-debug ${FLYWAY_TEST_ARGS} $test -vv
     RESULTS="$RESULTS $?"
     date
 done

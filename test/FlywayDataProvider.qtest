@@ -173,14 +173,13 @@ public class FlywayDataProviderTest inherits QUnit::Test {
         assertEq((), migrateDp.doRequest(NOTHING));
         assertThrows("RUNTIME-TYPE-ERROR", sub () { migrateDp.doRequest({}); });
 
-        # Check info
+        # Check info: when Flyway creates the schema it manages, it records the creation before the migrations
+        # ("<< Flyway Schema Creation >>", without a version)
         AbstractDataProvider infoDp = dp.getChildProvider("info");
         list<hash<auto>> records = map $1, infoDp.searchRecords();
-        assertGt(0, records.size());
-        # Should have at least 2 migrations (V1 and V2)
-        assertGt(1, records.size());
-        assertEq("1", records[0].version);
-        assertEq("2", records[1].version);
+        assertEq(("1", "2"), map $1.version, records, $1.version);
+        assertEq((), map $1, records, !$1.version && $1.type != "SCHEMA");
+        assertEq(("SUCCESS",), keys (map {$1.state: True}, records));
     }
 
     private testValidate() {
