@@ -35,6 +35,14 @@
       with a Java object return type, now fails when it is parsed; use a list instead.  A raw \c java.util.Map return
       value, declared as \c *hash<auto> before, is declared as \c auto; this only changes parse-time type checks.
       See @ref jni_collection_types "declared types of Java lists and maps".
+    - <b>Update handlers of the \c jdbc driver's lost-transaction error.</b> When the connection is lost in a
+      transaction, the \c jdbc DBI driver raises \c JDBC-TRANSACTION-ERROR; it raised \c ODBC-TRANSACTION-ERROR
+      before.  Code that catches the old error code must catch the new one.  See
+      @ref jdbc_lost_connections "lost connections".
+    - <b>Review code executing SQL with several results through the \c jdbc driver.</b> \c exec(),
+      \c execRaw() and \c select() return every result of such SQL, and the shape of the value depends on the
+      results; \c selectRow(), \c selectRows(), \c selectColumnar() and \c SQLStatement raise an exception
+      for more than one result set.  See @ref jdbc_multiple_results "statements with several results".
     - <b>Use explicit lifecycle APIs where deterministic cleanup matters.</b> Native wrappers use
       automatic native-reference cleanup instead of Java finalizers; explicit release remains available. See
       @ref jni_qore_object_lifecycle_managementguide "object lifecycle management" and
