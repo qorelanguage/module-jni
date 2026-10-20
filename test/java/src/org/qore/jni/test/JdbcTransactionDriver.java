@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -40,6 +41,11 @@ public final class JdbcTransactionDriver implements Driver {
         loss = "";
         lossApplied = false;
         durable = 0;
+    }
+
+    /** Returns a new connection of this driver without DriverManager (for helpers loaded by other class loaders) */
+    public static synchronized Connection open() {
+        return new Session().connect();
     }
 
     public static synchronized void failNext(String operation) {
@@ -153,16 +159,33 @@ public final class JdbcTransactionDriver implements Driver {
         - {@code rs=COL:V,V}: a result set with an INTEGER column (no values: an empty result set)
         - {@code fail=MSG}: executing, or moving to this result, raises an SQLException
         - {@code rowsfail=COL:MSG}: a result set whose rows raise an SQLException when read
-        Moving past the last result records the event "results-read:<sql>". */
+        Moving past the last result records the event "results-read:<sql>".  Like the SQL Server driver,
+        executeQuery() and executeUpdate() look only at the first result. */
     private static final class ScriptedStatement implements InvocationHandler {
-        private final String sql;
-        private final String[] results;
+        private String sql;
+        private String[] results;
         private int index = -1;
         private ResultSet current;
 
+        // sql is null for a Statement, which receives its SQL when executed
         ScriptedStatement(String sql) {
+            if (sql != null) {
+                load(sql);
+            }
+        }
+
+        private void load(String sql) throws IllegalArgumentException {
+            if (!sql.startsWith("multi:")) {
+                throw new IllegalArgumentException("unsupported SQL: " + sql);
+            }
             this.sql = sql;
             results = sql.substring("multi:".length()).split(";");
+            index = -1;
+        }
+
+        private int updateCount() {
+            return index >= 0 && index < results.length && results[index].startsWith("count=")
+                ? Integer.parseInt(results[index].substring(6)) : -1;
         }
 
         // moves to the next result; returns true if it is a result set
@@ -200,16 +223,42 @@ public final class JdbcTransactionDriver implements Driver {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             synchronized (JdbcTransactionDriver.class) {
-                switch (method.getName()) {
+                String name = method.getName();
+                if (name.startsWith("execute") && args != null && args.length == 1 && args[0] instanceof String) {
+                    if (current != null) {
+                        current.close();
+                        current = null;
+                    }
+                    load((String) args[0]);
+                }
+                switch (name) {
                     case "execute":
                         event("execute:" + sql);
                         index = -1;
                         return advance();
+                    case "executeQuery":
+                        event("executeQuery:" + sql);
+                        index = -1;
+                        if (!advance()) {
+                            throw new SQLException("the statement did not return a result set");
+                        }
+                        return current;
+                    case "executeUpdate": {
+                        event("executeUpdate:" + sql);
+                        index = -1;
+                        if (advance()) {
+                            throw new SQLException("a result set was returned for an update");
+                        }
+                        int count = updateCount();
+                        return count < 0 ? 0 : count;
+                    }
                     case "getMoreResults": return advance();
                     case "getResultSet": return current;
-                    case "getUpdateCount":
-                        return index >= 0 && index < results.length && results[index].startsWith("count=")
-                            ? Integer.parseInt(results[index].substring(6)) : -1;
+                    case "getUpdateCount": return updateCount();
+                    case "setString":
+                    case "setInt":
+                    case "setLong":
+                    case "setNull": return null;
                     case "close":
                         if (current != null) {
                             current.close();
@@ -309,6 +358,9 @@ public final class JdbcTransactionDriver implements Driver {
                                 return null;
                             case "getAutoCommit": return autoCommit;
                             case "prepareStatement": return prepare((String) args[0]);
+                            case "createStatement":
+                                return Proxy.newProxyInstance(JdbcTransactionDriver.class.getClassLoader(),
+                                    new Class<?>[] {Statement.class}, new ScriptedStatement(null));
                             case "commit":
                                 event("commit");
                                 if (autoCommit) {

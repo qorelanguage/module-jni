@@ -842,12 +842,18 @@ install(FILES ${TIKA_JAR} DESTINATION ${QORE_USER_MODULES_DIR}/TikaDataProvider/
 # JDBC generic data provider jar (no external deps — JDBC is JDK built-in)
 set(JDBC_DP_JAR ${CMAKE_CURRENT_BINARY_DIR}/qore-dataprovider-jdbc.jar)
 set(JDBC_DP_ROOT ${CMAKE_SOURCE_DIR}/src/java)
-set(JDBC_DP_SOURCES ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/jdbc/)
+set(JDBC_DP_SOURCES_DIR ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/jdbc/)
+# the jar is rebuilt when one of these files changes (a directory dependency only changes when files are added)
+set(JDBC_DP_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/jdbc/JdbcQueryExecutor.java
+    ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/jdbc/JdbcSchemaIntrospector.java
+    ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/jdbc/JdbcTypeMapper.java
+)
 
 add_custom_command(
     OUTPUT ${JDBC_DP_JAR}
     COMMAND ${CMAKE_COMMAND} -E env QORE_MODULE_DIR=${QORE_JNI_BUILD_MODULE_DIR} ${QORE_EXECUTABLE} -l jni ${CMAKE_SOURCE_DIR}/bin/qjava2jar
-        --root=${JDBC_DP_ROOT} -d ${CMAKE_CURRENT_BINARY_DIR}/jar-jdbc-dp ${JDBC_DP_JAR} ${JDBC_DP_SOURCES}
+        --root=${JDBC_DP_ROOT} -d ${CMAKE_CURRENT_BINARY_DIR}/jar-jdbc-dp ${JDBC_DP_JAR} ${JDBC_DP_SOURCES_DIR}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/qlib/JdbcDataProvider/jar
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${JDBC_DP_JAR} ${CMAKE_SOURCE_DIR}/qlib/JdbcDataProvider/jar/
     COMMAND ${CMAKE_COMMAND} -E make_directory ${QORE_AOT_QMOD_DIR}/JdbcDataProvider/jar

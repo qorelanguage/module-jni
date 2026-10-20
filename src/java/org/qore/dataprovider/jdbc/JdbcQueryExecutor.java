@@ -59,71 +59,152 @@ public class JdbcQueryExecutor implements Closeable {
 
     /**
      * Executes a SELECT query and returns all rows as a list of Hash.
+     * <p>
+     * The SQL must return one result set; the results after it are read, so that the errors of later statements
+     * are raised, and another result set raises an exception.
      *
      * @param sql the SQL SELECT statement
      * @return list of Hash entries, one per row
-     * @throws SQLException if a database access error occurs
+     * @throws SQLException if a database access error occurs, if a statement fails, or if the SQL returns more
+     *         than one result set
      */
     public ArrayList<Hash> executeQuery(String sql) throws SQLException {
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            ResultSetMetaData meta = rs.getMetaData();
-            ArrayList<Hash> list = new ArrayList<>();
-            while (rs.next()) {
-                list.add(resultSetRowToHash(rs, meta));
+        try (Statement stmt = connection.createStatement()) {
+            ArrayList<Hash> list;
+            try (ResultSet rs = stmt.executeQuery(sql)) {
+                list = readRows(rs);
             }
+            readRemainingResults(stmt, true);
             return list;
         }
     }
 
     /**
      * Executes an INSERT, UPDATE, or DELETE statement.
+     * <p>
+     * Every result is read, so that the errors of later statements are raised; the rows of result sets returned
+     * after the first result are read and discarded.
      *
      * @param sql the SQL DML statement
-     * @return the number of affected rows
-     * @throws SQLException if a database access error occurs
+     * @return the number of affected rows: the total of the update counts of all statements
+     * @throws SQLException if a database access error occurs or if a statement fails
      */
     public int executeUpdate(String sql) throws SQLException {
         try (Statement stmt = connection.createStatement()) {
-            return stmt.executeUpdate(sql);
+            int count = stmt.executeUpdate(sql);
+            return totalUpdateCount(count, readRemainingResults(stmt, false));
         }
     }
 
     /**
      * Executes a parameterized SELECT query and returns all rows as a list of Hash.
+     * <p>
+     * The SQL must return one result set; the results after it are read, so that the errors of later statements
+     * are raised, and another result set raises an exception.
      *
      * @param sql    the SQL SELECT statement with {@code ?} placeholders
      * @param params the parameter values to bind
      * @return list of Hash entries, one per row
-     * @throws SQLException if a database access error occurs
+     * @throws SQLException if a database access error occurs, if a statement fails, or if the SQL returns more
+     *         than one result set
      */
     public ArrayList<Hash> executeQueryWithParams(String sql, Object[] params) throws SQLException {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             setParams(ps, params);
+            ArrayList<Hash> list;
             try (ResultSet rs = ps.executeQuery()) {
-                ResultSetMetaData meta = rs.getMetaData();
-                ArrayList<Hash> list = new ArrayList<>();
-                while (rs.next()) {
-                    list.add(resultSetRowToHash(rs, meta));
-                }
-                return list;
+                list = readRows(rs);
             }
+            readRemainingResults(ps, true);
+            return list;
         }
     }
 
     /**
      * Executes a parameterized INSERT, UPDATE, or DELETE statement.
+     * <p>
+     * Every result is read, so that the errors of later statements are raised; the rows of result sets returned
+     * after the first result are read and discarded.
      *
      * @param sql    the SQL DML statement with {@code ?} placeholders
      * @param params the parameter values to bind
-     * @return the number of affected rows
-     * @throws SQLException if a database access error occurs
+     * @return the number of affected rows: the total of the update counts of all statements
+     * @throws SQLException if a database access error occurs or if a statement fails
      */
     public int executeUpdateWithParams(String sql, Object[] params) throws SQLException {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             setParams(ps, params);
-            return ps.executeUpdate();
+            int count = ps.executeUpdate();
+            return totalUpdateCount(count, readRemainingResults(ps, false));
         }
+    }
+
+    /**
+     * Reads all rows of a result set.
+     *
+     * @param rs the result set
+     * @return list of Hash entries, one per row
+     * @throws SQLException if a database access error occurs
+     */
+    private ArrayList<Hash> readRows(ResultSet rs) throws SQLException {
+        ResultSetMetaData meta = rs.getMetaData();
+        ArrayList<Hash> list = new ArrayList<>();
+        while (rs.next()) {
+            list.add(resultSetRowToHash(rs, meta));
+        }
+        return list;
+    }
+
+    /**
+     * Reads the results after the first result of an executed statement.
+     * <p>
+     * JDBC drivers may report the error of a later statement only when its result is reached (ex: the SQL Server
+     * driver), so every result is read: errors are raised, and the rows of result sets are read, as a failing
+     * statement can report its error while its rows are read.
+     *
+     * @param stmt  the executed statement
+     * @param query {@code true} if the SQL is a query, for which another result set raises an exception
+     * @return the total of the update counts of the results read
+     * @throws SQLException if a database access error occurs, if a statement fails, or if a query returns more than
+     *         one result set
+     */
+    private static long readRemainingResults(Statement stmt, boolean query) throws SQLException {
+        long total = 0;
+        while (true) {
+            if (stmt.getMoreResults()) {
+                if (query) {
+                    throw new SQLException("the SQL of the query returned more than one result set; a query "
+                        + "returns the rows of one result set");
+                }
+                try (ResultSet rs = stmt.getResultSet()) {
+                    while (rs.next()) {
+                        // the rows are not returned; the statement's error, if any, is raised while they are read
+                    }
+                }
+                continue;
+            }
+            int count = stmt.getUpdateCount();
+            if (count == -1) {
+                return total;
+            }
+            total += count;
+        }
+    }
+
+    /**
+     * Returns the total of the first update count and the update counts read after it.
+     *
+     * @param first the update count of the first statement
+     * @param rest  the total of the update counts of the later statements
+     * @return the total
+     * @throws SQLException if the total exceeds the supported integer range
+     */
+    private static int totalUpdateCount(int first, long rest) throws SQLException {
+        long total = first + rest;
+        if (total > Integer.MAX_VALUE) {
+            throw new SQLException("the total update count exceeds the supported integer range");
+        }
+        return (int) total;
     }
 
     /**

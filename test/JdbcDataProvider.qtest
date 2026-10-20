@@ -35,6 +35,9 @@
 # the helper classes of the module, to create a table provider without a connection
 %module-cmd(jni) import org.qore.dataprovider.jdbc.JdbcSchemaIntrospector
 %module-cmd(jni) import org.qore.dataprovider.jdbc.JdbcQueryExecutor
+# the test JDBC driver, for statements with scripted results
+%module-cmd(jni) add-relative-classpath qore-jni-test.jar
+%module-cmd(jni) import org.qore.jni.test.JdbcTransactionDriver
 
 %exec-class JdbcDataProviderTest
 
@@ -63,6 +66,9 @@ public class JdbcDataProviderTest inherits QUnit::Test {
         addTestCase("query provider", \testQueryProvider());
         addTestCase("tables provider", \testTablesProvider());
         addTestCase("table provider info", \testTableProviderInfo());
+        addTestCase("query executor: update counts of all statements", \testQueryExecutorCounts());
+        addTestCase("query executor: errors of later statements", \testQueryExecutorErrors());
+        addTestCase("query executor: a query returns one result set", \testQueryExecutorOneResultSet());
 
         set_return_value(main());
     }
@@ -90,6 +96,56 @@ public class JdbcDataProviderTest inherits QUnit::Test {
             new JdbcDataProvider({
                 "url": "jdbc:postgresql://localhost/test",
             });
+        });
+    }
+
+    #! statements with scripted results ("multi:" SQL; see JdbcTransactionDriver); like the SQL Server driver, the
+    #! test driver reports the results after the first one only when they are read
+    private testQueryExecutorCounts() {
+        JdbcTransactionDriver::reset();
+        JdbcQueryExecutor executor(JdbcTransactionDriver::open());
+        # single results
+        assertEq(({"a": 1}, {"a": 2}), executor.executeQuery("multi:rs=a:1,2"));
+        assertEq(3, executor.executeUpdate("multi:count=3"));
+        assertEq(0, executor.executeUpdate("multi:none"));
+        # the update counts of all statements are added
+        assertEq(5, executor.executeUpdate("multi:count=2;count=3"));
+        assertEq(5, executor.executeUpdateWithParams("multi:count=2;count=0;count=3", (1,)));
+        # the rows of a later result set are read and discarded
+        assertEq(2, executor.executeUpdate("multi:count=2;rs=a:1"));
+    }
+
+    private testQueryExecutorErrors() {
+        JdbcTransactionDriver::reset();
+        JdbcQueryExecutor executor(JdbcTransactionDriver::open());
+        # the errors of later statements are raised
+        assertThrows("JNI-ERROR", "later failure", sub () {
+            executor.executeUpdate("multi:count=1;fail=later failure");
+        });
+        assertThrows("JNI-ERROR", "later failure", sub () {
+            executor.executeUpdateWithParams("multi:count=1;fail=later failure", (1,));
+        });
+        assertThrows("JNI-ERROR", "rows failure", sub () {
+            executor.executeUpdate("multi:count=1;rowsfail=b:rows failure");
+        });
+        assertThrows("JNI-ERROR", "later failure", sub () {
+            executor.executeQuery("multi:rs=a:1;fail=later failure");
+        });
+        assertThrows("JNI-ERROR", "later failure", sub () {
+            executor.executeQueryWithParams("multi:rs=a:1;count=1;fail=later failure", (1,));
+        });
+    }
+
+    private testQueryExecutorOneResultSet() {
+        JdbcTransactionDriver::reset();
+        JdbcQueryExecutor executor(JdbcTransactionDriver::open());
+        # a query returns the rows of one result set
+        assertEq(({"a": 1},), executor.executeQuery("multi:rs=a:1;count=4"));
+        assertThrows("JNI-ERROR", "the SQL of the query returned more than one result set", sub () {
+            executor.executeQuery("multi:rs=a:1;rs=b:2");
+        });
+        assertThrows("JNI-ERROR", "the SQL of the query returned more than one result set", sub () {
+            executor.executeQueryWithParams("multi:rs=a:1;rowsfail=b:rows failure", (1,));
         });
     }
 

@@ -25,7 +25,9 @@
 #! Contains all public definitions in the JdbcDataProvider module
 public namespace JdbcDataProvider {
 #! Data provider for executing JDBC SQL queries
-/**
+/** The SQL must return one result set, whose rows are returned.  Every result after it is read, so that the
+    errors of later statements are raised (some JDBC drivers, such as the SQL Server driver, report them only when
+    their result is reached); a second result set raises an exception.
 */
 public class JdbcQueryDataProvider inherits DataProvider::AbstractDataProvider {
     public {

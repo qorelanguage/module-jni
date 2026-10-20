@@ -25,7 +25,10 @@
 #! Contains all public definitions in the JdbcDataProvider module
 public namespace JdbcDataProvider {
 #! Data provider for executing JDBC SQL statements (INSERT, UPDATE, DELETE, DDL)
-/**
+/** Every result of the SQL is read, so that the errors of all statements are raised (some JDBC drivers, such as
+    the SQL Server driver, report the error of a later statement only when its result is reached).  The
+    \c affected_rows value is the total of the update counts of all statements; the rows of any result set are read
+    and discarded.
 */
 public class JdbcExecDataProvider inherits DataProvider::AbstractDataProvider {
     public {
