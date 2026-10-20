@@ -147,18 +147,19 @@ QoreStringNode* Jvm::createVM() {
                 unsafe_warnings_explicit = true;
             }
 #endif
-            ssize_t pos = 0;
+            // options are separated by spaces; empty parts (an empty value, or repeated, leading or trailing
+            // spaces) are skipped, as the JVM does not start with an empty option
+            size_t pos = 0;
             while (true) {
                 ssize_t i = val.find(' ', pos);
+                size_t end = (i == -1) ? val.strlen() : static_cast<size_t>(i);
+                if (end > pos) {
+                    strvec.emplace_back(val.c_str() + pos, end - pos);
+                }
                 if (i == -1) {
-                    std::string opt(val.c_str() + pos);
-                    strvec.push_back(opt);
                     break;
                 }
-                // add option
-                std::string opt(val.c_str() + pos, i - pos);
-                strvec.push_back(opt);
-                pos = i + 1;
+                pos = end + 1;
             }
             num_options += strvec.size();
         }

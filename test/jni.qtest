@@ -297,6 +297,7 @@ public class Main inherits QUnit::Test {
         addTestCase("class constant object lifetime test", \classConstantObjectLifetimeTest());
         addTestCase("checked JNI string reference lifetime test", \checkedJniStringReferenceLifetimeTest());
         addTestCase("import builtin-class collision test", \importBuiltinClassCollisionTest());
+        addTestCase("blank QORE_JNI_JVM_ARGS values add no JVM option", \blankJvmArgsTest());
         addTestCase("injected superclass loader test", \injectedSuperclassLoaderTest());
         addTestCase("loader precedence for cached byte code test", \cachedByteCodeLoaderPrecedenceTest());
         addTestCase("registered sibling classloader identity test", \registeredSiblingClassLoaderIdentityTest());
@@ -351,6 +352,25 @@ System::gc();
         string output = trim(backquote(cmd));
         assertEq("QORE_JNI_EXIT=0", output,
             "checked-JNI child must exit cleanly without warnings or errors");
+    }
+
+    #! An empty QORE_JNI_JVM_ARGS value, and repeated, leading or trailing spaces, must not add empty JVM options
+    /** Regression test: each space-separated part became a JVM option, so an empty value or extra spaces gave an
+        empty option string, with which the JVM failed to start (a crash on Linux). */
+    blankJvmArgsTest() {
+        if (!Qore::Option::HAVE_SYSTEM) {
+            testSkip("system() is not available on this platform");
+        }
+        TmpFile tmp(NOTHING, ".qr");
+        tmp.file.write("%modern\n%requires jni\n%module-cmd(jni) import java.util.ArrayList\n"
+            "ArrayList list();\nlist.add(\"blank-jvm-args\");\n@assert(list.get(0) == \"blank-jvm-args\");\n");
+        tmp.file.close();
+        foreach string args in ("", " ", "  -Dqore.jni.test=1   -Dqore.jni.test2=2 ") {
+            string cmd = sprintf("env -u JAVA_TOOL_OPTIONS -u _JAVA_OPTIONS -u JDK_JAVA_OPTIONS "
+                "QORE_JNI_JVM_ARGS=%s %s -b --enable-debug %s 2>&1; echo QORE_JNI_EXIT=$?", shellQuote(args),
+                shellQuote(qoreBin()), shellQuote(tmp.path));
+            assertEq("QORE_JNI_EXIT=0", trim(backquote(cmd)), sprintf("QORE_JNI_JVM_ARGS=%y", args));
+        }
     }
 
     #! Importing a Java class that collides with a qpp builtin Qore class must raise cleanly, not crash

@@ -210,6 +210,8 @@
       @ref jni_qore_object_lifecycle_managementguide "object lifecycle management".
     - Fixed hangs and aborts during JVM-owned process shutdown, dynamic-class teardown, and explicit
       %Qore process exit, including the macOS shutdown failure.
+    - Fixed the JVM failing to start (a crash on Linux) when \c QORE_JNI_JVM_ARGS was set to an empty value or
+      contained repeated, leading or trailing spaces.
     - Fixed the process aborting when a Program's Java context could not be created, for example because
       a Java class of the module's dynamic API failed to initialize; loading the module, a
       <tt>%module-cmd(jni)</tt> command, or a \c jni import now fails with the Java exception instead.
