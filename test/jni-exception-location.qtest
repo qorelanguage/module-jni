@@ -2,6 +2,7 @@
 # Copyright (C) 2026 Qore Technologies, s.r.o.
 
 %modern
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %prepend-module-path "${SCRIPT_DIR}/../qlib"
 %requires QUnit
 %requires jni

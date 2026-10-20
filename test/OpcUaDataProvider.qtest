@@ -5,6 +5,7 @@
 %modern
 %allow-injection
 
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %requires Util
 %requires QUnit
 %requires DataProvider

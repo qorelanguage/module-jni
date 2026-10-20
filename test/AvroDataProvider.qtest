@@ -25,6 +25,7 @@
 %modern
 
 # Add classpaths BEFORE module requires to ensure the JNI classpath is available
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %module-cmd(jni) add-relative-classpath ../qlib/AvroDataProvider/jar/qore-dataprovider-avro.jar
 %module-cmd(jni) add-relative-classpath ../qlib/AvroDataProvider/jar/avro-1.12.0.jar
 %module-cmd(jni) add-relative-classpath ../qlib/AvroDataProvider/jar/jackson-core-2.17.2.jar

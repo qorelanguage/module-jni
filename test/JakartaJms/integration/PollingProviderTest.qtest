@@ -24,6 +24,7 @@
 
 %modern
 
+%prepend-module-path "${SCRIPT_DIR}/../../../build"
 %requires QUnit
 %requires DataProvider
 %requires ../../../qlib/JakartaJmsDataProvider

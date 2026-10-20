@@ -24,6 +24,7 @@
 
 %modern
 
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %prepend-module-path "${SCRIPT_DIR}/../qlib"
 %requires QUnit
 %requires Util
@@ -2218,7 +2219,8 @@ printf(\"RESULT:%%s\\n\", make_json({\"count\": count, \"mismatches\": mismatche
     #! Runs a Qore program in a child process with a small JVM heap; returns the result it prints
     private hash<auto> runChild(string src, string arg) {
         TmpFile tmp(NOTHING, ".qr");
-        tmp.file.write(src);
+        # the child loads the jni module that this test loaded
+        tmp.file.write(sprintf("%%prepend-module-path \"%s\"\n", dirname(get_module_hash().jni.filename)) + src);
         tmp.file.close();
         string cmd = sprintf("env -u JAVA_TOOL_OPTIONS -u _JAVA_OPTIONS -u JDK_JAVA_OPTIONS "
             "QORE_JNI_MAX_HEAP_SIZE=%s %s --enable-debug %s %s 2>&1; echo CHILD_EXIT=$?", ChildHeap,

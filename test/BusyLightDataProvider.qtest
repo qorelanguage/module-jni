@@ -6,6 +6,7 @@
 %modern
 %allow-injection
 
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %prepend-module-path "${SCRIPT_DIR}/../qlib"
 %requires Util
 %requires QUnit

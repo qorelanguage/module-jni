@@ -1,6 +1,7 @@
 #!/usr/bin/env qore
 # Copyright 2026 Qore Technologies, s.r.o.
 %modern
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %requires QUnit
 %requires jni
 %module-cmd(jni) set-compat-types true

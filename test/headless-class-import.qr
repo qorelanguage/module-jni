@@ -1,5 +1,6 @@
 # Copyright (C) 2026 Qore Technologies, s.r.o.
 # SPDX-License-Identifier: MIT
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %requires jni
 %module-cmd(jni) import sun.awt.dnd.SunDropTargetEvent
 

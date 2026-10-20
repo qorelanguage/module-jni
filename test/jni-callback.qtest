@@ -2,6 +2,7 @@
 
 %modern
 
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %requires jni
 %requires QUnit
 

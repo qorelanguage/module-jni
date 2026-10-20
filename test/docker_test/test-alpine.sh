@@ -31,7 +31,7 @@ echo "export PAYARA_JAR=\${PAYARA_HOME}/glassfish/lib/gf-client.jar" >> ${ENV_FI
 export MAKE_JOBS=4
 
 # the tests must load the modules of this tree: reject relative module paths in them
-${MODULE_SRC_DIR}/test/docker_test/check-module-paths.sh
+${MODULE_SRC_DIR}/test/docker_test/check-module-paths.sh jni
 
 # build module and install
 echo && echo "-- building module --"

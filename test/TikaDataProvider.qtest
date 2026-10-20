@@ -25,6 +25,7 @@
 %modern
 
 # Add classpaths BEFORE module requires
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %module-cmd(jni) add-relative-classpath ../qlib/TikaDataProvider/jar/qore-dataprovider-tika.jar
 %module-cmd(jni) add-relative-classpath ../qlib/TikaDataProvider/jar/commons-codec-1.17.1.jar
 %module-cmd(jni) add-relative-classpath ../qlib/TikaDataProvider/jar/commons-csv-1.12.0.jar

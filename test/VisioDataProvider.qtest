@@ -25,6 +25,7 @@
 %modern
 
 # Add classpaths for the Visio module and POI dependencies
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %module-cmd(jni) add-relative-classpath ../qlib/ExcelDataProvider/jar/poi-5.5.0.jar
 %module-cmd(jni) add-relative-classpath ../qlib/ExcelDataProvider/jar/poi-ooxml-5.5.0.jar
 %module-cmd(jni) add-relative-classpath ../qlib/ExcelDataProvider/jar/poi-ooxml-full-5.5.0.jar

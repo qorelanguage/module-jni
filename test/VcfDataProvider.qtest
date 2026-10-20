@@ -25,6 +25,7 @@
 %modern
 
 # Add classpaths BEFORE module requires to ensure the JNI classpath is available
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %module-cmd(jni) add-relative-classpath ../qlib/VcfDataProvider/jar/qore-dataprovider-vcf.jar
 %module-cmd(jni) add-relative-classpath ../qlib/VcfDataProvider/jar/ez-vcard-0.12.1.jar
 %module-cmd(jni) add-relative-classpath ../qlib/VcfDataProvider/jar/vinnie-2.0.2.jar

@@ -25,6 +25,7 @@
 %modern
 
 # Add classpaths for the Access module and Jackcess dependencies
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %module-cmd(jni) add-relative-classpath ../qlib/AccessDataProvider/jar/jackcess-4.0.7.jar
 %module-cmd(jni) add-relative-classpath ../qlib/AccessDataProvider/jar/commons-lang3-3.10.jar
 %module-cmd(jni) add-relative-classpath ../qlib/AccessDataProvider/jar/commons-logging-1.2.jar

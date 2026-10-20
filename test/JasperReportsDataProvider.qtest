@@ -25,6 +25,7 @@
 %modern
 
 # Add classpaths BEFORE module requires to ensure the JNI classpath is available
+%prepend-module-path "${SCRIPT_DIR}/../build"
 %module-cmd(jni) add-relative-classpath ../qlib/JasperReportsDataProvider/jar/qore-dataprovider-jasperreports.jar
 %module-cmd(jni) add-relative-classpath ../qlib/JasperReportsDataProvider/jar/commons-beanutils-1.9.4.jar
 %module-cmd(jni) add-relative-classpath ../qlib/JasperReportsDataProvider/jar/commons-collections-3.2.2.jar
