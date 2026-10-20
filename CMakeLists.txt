@@ -878,12 +878,17 @@ install(FILES ${JDBC_DP_JAR} DESTINATION ${QORE_USER_MODULES_DIR}/JdbcDataProvid
 set(CAMEL_JAR ${CMAKE_CURRENT_BINARY_DIR}/qore-dataprovider-camel.jar)
 set(CAMEL_CLASSPATH ${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/angus-activation-2.0.2.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-api-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-base-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-base-engine-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-bean-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-browse-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-cluster-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-controlbus-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-core-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-core-catalog-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-core-engine-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-core-languages-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-core-model-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-core-processor-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-core-reifier-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-dataformat-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-dataset-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-direct-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-file-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-health-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-language-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-log-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-main-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-management-api-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-mock-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-ref-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-rest-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-saga-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-scheduler-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-seda-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-stub-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-support-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-timer-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-tooling-model-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-util-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-util-json-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-validator-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-xml-io-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-xml-io-util-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-xml-jaxb-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-xml-jaxp-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-xml-jaxp-util-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-xpath-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-xslt-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/camel-yaml-io-4.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/commons-codec-1.17.1.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/istack-commons-runtime-4.1.2.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/jackson-annotations-2.17.2.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/jackson-core-2.17.2.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/jackson-databind-2.17.2.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/jackson-dataformat-yaml-2.17.2.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/jakarta.activation-api-2.1.3.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/jakarta.xml.bind-api-4.0.2.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/jaxb-core-4.0.5.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/jaxb-runtime-4.0.5.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/slf4j-api-2.0.16.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/snakeyaml-2.2.jar:${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/txw2-4.0.5.jar)
 set(CAMEL_ROOT ${CMAKE_SOURCE_DIR}/src/java)
-set(CAMEL_SOURCES ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/camel/)
+set(CAMEL_SOURCES_DIR ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/camel/)
+# the jar is rebuilt when one of these files changes (a directory dependency only changes when files are added)
+set(CAMEL_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/camel/CamelTestHelper.java
+    ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/camel/QoreCamelContext.java
+)
 
 add_custom_command(
     OUTPUT ${CAMEL_JAR}
     COMMAND ${CMAKE_COMMAND} -E env QORE_MODULE_DIR=${QORE_JNI_BUILD_MODULE_DIR} ${QORE_EXECUTABLE} -l jni ${CMAKE_SOURCE_DIR}/bin/qjava2jar
-        --root=${CAMEL_ROOT} -d ${CMAKE_CURRENT_BINARY_DIR}/jar-camel ${CAMEL_JAR} ${CAMEL_SOURCES} -cp ${CAMEL_CLASSPATH}
+        --root=${CAMEL_ROOT} -d ${CMAKE_CURRENT_BINARY_DIR}/jar-camel ${CAMEL_JAR} ${CAMEL_SOURCES_DIR} -cp ${CAMEL_CLASSPATH}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CAMEL_JAR} ${CMAKE_SOURCE_DIR}/qlib/CamelDataProvider/jar/
     COMMAND ${CMAKE_COMMAND} -E make_directory ${QORE_AOT_QMOD_DIR}/CamelDataProvider/jar
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CAMEL_JAR} ${QORE_AOT_QMOD_DIR}/CamelDataProvider/jar/
@@ -903,12 +908,18 @@ install(FILES ${CAMEL_JAR} DESTINATION ${QORE_USER_MODULES_DIR}/CamelDataProvide
 set(KAFKA_JAR ${CMAKE_CURRENT_BINARY_DIR}/qore-dataprovider-kafka.jar)
 set(KAFKA_CLASSPATH ${CMAKE_SOURCE_DIR}/qlib/KafkaDataProvider/jar/zstd-jni-1.5.6-9.jar:${CMAKE_SOURCE_DIR}/qlib/KafkaDataProvider/jar/lz4-java-1.8.0.jar:${CMAKE_SOURCE_DIR}/qlib/KafkaDataProvider/jar/slf4j-api-2.0.16.jar:${CMAKE_SOURCE_DIR}/qlib/KafkaDataProvider/jar/snappy-java-1.1.10.7.jar:${CMAKE_SOURCE_DIR}/qlib/KafkaDataProvider/jar/kafka-clients-3.9.0.jar)
 set(KAFKA_ROOT ${CMAKE_SOURCE_DIR}/src/java)
-set(KAFKA_SOURCES ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/kafka/)
+set(KAFKA_SOURCES_DIR ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/kafka/)
+# the jar is rebuilt when one of these files changes (a directory dependency only changes when files are added)
+set(KAFKA_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/kafka/QoreJavaConfig.java
+    ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/kafka/QoreKafkaConsumer.java
+    ${CMAKE_SOURCE_DIR}/src/java/org/qore/dataprovider/kafka/QoreKafkaProducer.java
+)
 
 add_custom_command(
     OUTPUT ${KAFKA_JAR}
     COMMAND ${CMAKE_COMMAND} -E env QORE_MODULE_DIR=${QORE_JNI_BUILD_MODULE_DIR} ${QORE_EXECUTABLE} -l jni ${CMAKE_SOURCE_DIR}/bin/qjava2jar
-        --root=${KAFKA_ROOT} -d ${CMAKE_CURRENT_BINARY_DIR}/jar-kafka ${KAFKA_JAR} ${KAFKA_SOURCES} -cp ${KAFKA_CLASSPATH}
+        --root=${KAFKA_ROOT} -d ${CMAKE_CURRENT_BINARY_DIR}/jar-kafka ${KAFKA_JAR} ${KAFKA_SOURCES_DIR} -cp ${KAFKA_CLASSPATH}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${KAFKA_JAR} ${CMAKE_SOURCE_DIR}/qlib/KafkaDataProvider/jar/
     COMMAND ${CMAKE_COMMAND} -E make_directory ${QORE_AOT_QMOD_DIR}/KafkaDataProvider/jar
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${KAFKA_JAR} ${QORE_AOT_QMOD_DIR}/KafkaDataProvider/jar/
