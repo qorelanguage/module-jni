@@ -51,12 +51,19 @@ public class JdbcDataProviderTest inherits QUnit::Test {
     }
 
     constructor() : Test("JdbcDataProviderTest", "1.0", \ARGV) {
-        # Get JDBC connection from environment
-        jdbc_url = ENV.QORE_DB_CONNSTR_JDBC_PGSQL;
-        jdbc_user = ENV.JDBC_DB_USER ?? "postgres";
-        jdbc_password = ENV.JDBC_DB_PASSWORD ?? "omq";
-        jdbc_classpath = ENV.JDBC_DB_CLASSPATH;
-        jdbc_driver_class = ENV.JDBC_DB_DRIVER_CLASS;
+        # the connection is a jdbc datasource string, as for the jdbc driver tests (ex:
+        # "jdbc:user/pass@ignored{url=postgresql://host:5432/db,classpath=/path/postgresql.jar}")
+        if (ENV.QORE_DB_CONNSTR_JDBC_PGSQL) {
+            hash<auto> ds = parse_datasource(ENV.QORE_DB_CONNSTR_JDBC_PGSQL);
+            string url = ds.options.url ?? ds.db;
+            jdbc_url = url =~ /^jdbc:/ ? url : "jdbc:" + url;
+            jdbc_user = ds.user;
+            jdbc_password = ds.pass;
+            jdbc_classpath = ds.options.classpath;
+            # a driver loaded with the classpath option must be registered with its class
+            jdbc_driver_class = ENV.JDBC_DB_DRIVER_CLASS
+                ?? (jdbc_url =~ /^jdbc:postgresql:/ ? "org.postgresql.Driver" : NOTHING);
+        }
 
         addTestCase("factory test", \testFactory());
         addTestCase("action registration", \testActionRegistration());

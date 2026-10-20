@@ -103,6 +103,27 @@ if [ -n "${ARTEMIS_JAKARTA_JAR_URL}" ]; then
     fi
 fi
 
+# download the PostgreSQL JDBC driver for the jdbc driver and JDBC data provider tests against the PostgreSQL
+# service; the version is pinned and the download is verified with its SHA-256 (Maven Central publishes a SHA-1
+# for this artifact, 67f8093e8d8104c74bbf588392ac3229803f5d17, which the file this SHA-256 was taken from matched)
+PGJDBC_VERSION=42.7.7
+PGJDBC_SHA256=157963d60ae66d607e09466e8c0cdf8087e9cb20d0159899ffca96bca2528460
+if [[ "${QORE_DB_CONNSTR}" == pgsql:* ]]; then
+    echo && echo "-- downloading the PostgreSQL JDBC driver ${PGJDBC_VERSION} --"
+    export PGJDBC_JAR=${MODULE_SRC_DIR}/build/postgresql-${PGJDBC_VERSION}.jar
+    curl -fSL --retry 3 -o ${PGJDBC_JAR} \
+        https://repo1.maven.org/maven2/org/postgresql/postgresql/${PGJDBC_VERSION}/postgresql-${PGJDBC_VERSION}.jar
+    if ! echo "${PGJDBC_SHA256}  ${PGJDBC_JAR}" | sha256sum -c -; then
+        echo "ERROR: ${PGJDBC_JAR} does not have the expected SHA-256"
+        rm -f ${PGJDBC_JAR}
+        exit 1
+    fi
+    # a jdbc datasource string for the PostgreSQL service (ex: from pgsql:postgres/omq@postgres%postgres)
+    export QORE_DB_CONNSTR_JDBC_PGSQL=$(qore -e 'hash<auto> h = parse_datasource(ENV.QORE_DB_CONNSTR);
+        print(sprintf("jdbc:%s/%s@ignored{url=postgresql://%s:%d/%s,classpath=%s}", h.user, h.pass ?? "",
+            h.host ?? "localhost", h.port ?? 5432, h.db, ENV.PGJDBC_JAR));')
+fi
+
 # run the tests
 export QORE_MODULE_DIR=${MODULE_SRC_DIR}/qlib:${MODULE_SRC_DIR}/test/JakartaJms/lib:${QORE_MODULE_DIR}
 cd ${MODULE_SRC_DIR}
