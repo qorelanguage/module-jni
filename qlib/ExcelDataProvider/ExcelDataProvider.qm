@@ -606,6 +606,7 @@ module ExcelDataProvider {
     @section ExcelDataProvider_relnotes Release Notes
 
     @subsection ExcelDataProvider_v1_1 ExcelDataProvider v1.1
+    - `preserve_empty_rows` lets the reader keep empty records, including trailing empty rows, when checking exports
     - added the \c header_row write option to place column headers after blank leading rows, including in
       individual worksheets of a multi-sheet workbook
     - added the \c list-worksheets action and

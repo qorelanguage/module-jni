@@ -204,6 +204,15 @@ public class ExcelReadDataProvider inherits DataProvider::AbstractDataProvider {
                 "desc": "List of header / column names for the data iterated; if this is present, then "
                     "`header_names` must be `False`",
             },
+            "preserve_empty_rows": <DataProviderOptionInfo>{
+                "display_name": "Preserve Empty Rows",
+                "short_desc": "Return empty rows as records",
+                "type": AbstractDataProviderType::get(SoftBoolType),
+                "desc": "If `True`, return empty rows through the last stored worksheet row, within `data_cells`. "
+                    "Use this to verify exports containing records whose fields are all empty. Takes precedence "
+                    "over `ignore_empty`; `False` by default.",
+                "default_value": False,
+            },
             "ignore_empty": <DataProviderOptionInfo>{
                 "display_name": "Ignore Empty Rows",
                 "short_desc": "Skip empty rows instead of stopping at the first one",
@@ -665,6 +674,7 @@ public class ExcelReadDataProvider inherits DataProvider::AbstractDataProvider {
         if (opts.ignore_empty) {
             it.setIgnoreEmpty(True);
         }
+        it.setPreserveEmptyRows(opts.preserve_empty_rows ?? False);
         # set last: the name is checked against the headers
         if (exists opts.formula_field) {
             it.setFormulaField(opts.formula_field);

@@ -1070,6 +1070,30 @@
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.aGVhZGVyX3Jvdw.desc": {
           "source": "The 1-based row containing the column headers; `1` by default. Earlier rows are blank, and records follow the header row. A value after row `1` requires `write_headers` to be `true`.",
           "message": "Рядок із заголовками стовпців, нумерований від 1; типове значення — `1`. Попередні рядки порожні, а записи йдуть після заголовків. Значення більше за `1` вимагає встановити `write_headers` у `true`."
+        },
+        "app.RXhjZWw.action.cmVhZA.option.cHJlc2VydmVfZW1wdHlfcm93cw.display_name": {
+          "source": "Preserve Empty Rows",
+          "message": "Зберігати порожні рядки"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.cHJlc2VydmVfZW1wdHlfcm93cw.short_desc": {
+          "source": "Return empty rows as records",
+          "message": "Повертати порожні рядки як записи"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.cHJlc2VydmVfZW1wdHlfcm93cw.desc": {
+          "source": "If `True`, return empty rows through the last stored worksheet row, within `data_cells`. Use this to verify exports containing records whose fields are all empty. Takes precedence over `ignore_empty`; `False` by default.",
+          "message": "Якщо `True`, повертає порожні рядки до останнього збереженого рядка аркуша в межах `data_cells`. Дає змогу перевіряти експорти із записами, усі поля яких порожні. Має пріоритет над `ignore_empty`; типове значення — `False`."
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.cHJlc2VydmVfZW1wdHlfcm93cw.display_name": {
+          "source": "Preserve Empty Rows",
+          "message": "Зберігати порожні рядки"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.cHJlc2VydmVfZW1wdHlfcm93cw.short_desc": {
+          "source": "Return empty rows as records",
+          "message": "Повертати порожні рядки як записи"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.cHJlc2VydmVfZW1wdHlfcm93cw.desc": {
+          "source": "If `True`, return empty rows through the last stored worksheet row, within `data_cells`. Use this to verify exports containing records whose fields are all empty. Takes precedence over `ignore_empty`; `False` by default.",
+          "message": "Якщо `True`, повертає порожні рядки до останнього збереженого рядка аркуша в межах `data_cells`. Дає змогу перевіряти експорти із записами, усі поля яких порожні. Має пріоритет над `ignore_empty`; типове значення — `False`."
         }
       }
     }

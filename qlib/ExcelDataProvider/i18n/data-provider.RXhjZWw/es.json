@@ -1070,6 +1070,30 @@
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.aGVhZGVyX3Jvdw.desc": {
           "source": "The 1-based row containing the column headers; `1` by default. Earlier rows are blank, and records follow the header row. A value after row `1` requires `write_headers` to be `true`.",
           "message": "La fila que contiene los encabezados de las columnas, contada desde 1; el valor predeterminado es `1`. Las filas anteriores están vacías y los registros siguen a los encabezados. Un valor mayor que `1` requiere `write_headers` en `true`."
+        },
+        "app.RXhjZWw.action.cmVhZA.option.cHJlc2VydmVfZW1wdHlfcm93cw.display_name": {
+          "source": "Preserve Empty Rows",
+          "message": "Conservar filas vacías"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.cHJlc2VydmVfZW1wdHlfcm93cw.short_desc": {
+          "source": "Return empty rows as records",
+          "message": "Devolver filas vacías como registros"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.cHJlc2VydmVfZW1wdHlfcm93cw.desc": {
+          "source": "If `True`, return empty rows through the last stored worksheet row, within `data_cells`. Use this to verify exports containing records whose fields are all empty. Takes precedence over `ignore_empty`; `False` by default.",
+          "message": "Si es `True`, devuelve las filas vacías hasta la última fila almacenada de la hoja, dentro de `data_cells`. Permite verificar exportaciones con registros cuyos campos están todos vacíos. Tiene prioridad sobre `ignore_empty`; el valor predeterminado es `False`."
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.cHJlc2VydmVfZW1wdHlfcm93cw.display_name": {
+          "source": "Preserve Empty Rows",
+          "message": "Conservar filas vacías"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.cHJlc2VydmVfZW1wdHlfcm93cw.short_desc": {
+          "source": "Return empty rows as records",
+          "message": "Devolver filas vacías como registros"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.cHJlc2VydmVfZW1wdHlfcm93cw.desc": {
+          "source": "If `True`, return empty rows through the last stored worksheet row, within `data_cells`. Use this to verify exports containing records whose fields are all empty. Takes precedence over `ignore_empty`; `False` by default.",
+          "message": "Si es `True`, devuelve las filas vacías hasta la última fila almacenada de la hoja, dentro de `data_cells`. Permite verificar exportaciones con registros cuyos campos están todos vacíos. Tiene prioridad sobre `ignore_empty`; el valor predeterminado es `False`."
         }
       }
     }

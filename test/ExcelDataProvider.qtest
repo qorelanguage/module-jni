@@ -1661,6 +1661,39 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         records = map $1, dp.getChildProviderEx("Sheet1").searchRecords();
         assertEq(2, records.size());
         assertEq("B-2", records[1].Sku);
+        # Keeping empty records is explicit and bounded, including trailing rows and child providers.
+        foreach bool skip in ((False, True)) {
+            dp = new ExcelReadDataProvider({"data": data, "header_names": True,
+                "ignore_empty": skip, "preserve_empty_rows": True});
+            list<hash<auto>> kept = map $1, dp.searchRecords();
+            assertEq(5, kept.size());
+            assertEq({"Sku": NOTHING, "Qty": NOTHING}, kept[1]);
+            assertEq({"Sku": NOTHING, "Qty": NOTHING}, kept[4]);
+            assertEq("B-2", kept[2].Sku);
+        }
+        dp = new ExcelReadDataProvider({"data": data, "header_names": True,
+            "preserve_empty_rows": True, "data_cells": "a2:b3"});
+        list<hash<auto>> bounded = map $1, dp.getChildProviderEx("Sheet1").searchRecords();
+        assertEq(2, bounded.size());
+        assertEq({"Sku": NOTHING, "Qty": NOTHING}, bounded[1]);
+
+        ExcelWriteDataProvider empty_writer({"headers": ("Sku", "Qty"), "write_headers": False});
+        empty_writer.createRecord({"Sku": NOTHING, "Qty": NOTHING});
+        empty_writer.createRecord({"Sku": NOTHING, "Qty": NOTHING});
+        dp = new ExcelReadDataProvider({"data": empty_writer.getData(), "headers": ("Sku", "Qty"),
+            "preserve_empty_rows": True});
+        list<hash<auto>> empty_records = map $1, dp.searchRecords();
+        assertEq(({"Sku": NOTHING, "Qty": NOTHING}, {"Sku": NOTHING, "Qty": NOTHING}), empty_records);
+
+        ExcelWriteDataProvider offset_writer({"headers": ("Sku", "Qty"), "header_row": 3});
+        offset_writer.createRecord({"Sku": "A-1", "Qty": 5});
+        dp = new ExcelReadDataProvider({"data": offset_writer.getData(), "headers": ("Sku", "Qty"),
+            "preserve_empty_rows": True, "data_cells": "a1:b3"});
+        list<hash<auto>> offset_records = map $1, dp.searchRecords();
+        assertEq(3, offset_records.size(), "gaps before the first stored row are preserved");
+        assertEq({"Sku": NOTHING, "Qty": NOTHING}, offset_records[0]);
+        assertEq({"Sku": "Sku", "Qty": "Qty"}, offset_records[2]);
+
     }
 
     testColumnsPastZ() {

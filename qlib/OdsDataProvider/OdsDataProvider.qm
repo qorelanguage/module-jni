@@ -492,6 +492,7 @@ module OdsDataProvider {
     @section OdsDataProvider_relnotes Release Notes
 
     @subsection OdsDataProvider_v1_0 OdsDataProvider v1.0
+    - `preserve_empty_rows` lets the reader keep empty records, including trailing empty rows, when checking exports
     - added the \c header_row write option to place column headers after blank leading rows, including in
       individual worksheets of a multi-sheet workbook
     - initial release

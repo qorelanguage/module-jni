@@ -65,6 +65,7 @@ public class OdsIterator extends qore.Qore.AbstractIterator implements java.io.C
     private Hash row_data = null;
     private long count = 0;
     private boolean ignore_empty = false;
+    private boolean preserve_empty_rows = false;
     // the name of the field holding the formulas of each record's cells; null if formulas are not returned
     private String formula_field = null;
     // how error cells are read: "fail", "null" or "text"
@@ -121,6 +122,15 @@ public class OdsIterator extends qore.Qore.AbstractIterator implements java.io.C
      */
     public void setIgnoreEmpty(boolean ignore_empty) {
         this.ignore_empty = ignore_empty;
+    }
+
+    /**
+     * Keeps empty rows through the last stored row instead of skipping them or ending the iteration.
+     *
+     * @param preserve_empty_rows whether empty rows are returned; takes precedence over ignore_empty
+     */
+    public void setPreserveEmptyRows(boolean preserve_empty_rows) {
+        this.preserve_empty_rows = preserve_empty_rows;
     }
 
     /**
@@ -497,7 +507,7 @@ public class OdsIterator extends qore.Qore.AbstractIterator implements java.io.C
             // a data range without an end column and without headers ends at the last cell with a value in the row
             end_cell = getLastValueColumn(row, cell_no);
             if (end_cell == -1) {
-                return null;
+                return preserve_empty_rows ? new Hash() : null;
             }
         }
         int col_no = 0;
@@ -592,7 +602,12 @@ public class OdsIterator extends qore.Qore.AbstractIterator implements java.io.C
             ++col_no;
         }
         if (!found_data) {
-            return null;
+            if (!preserve_empty_rows) {
+                return null;
+            }
+            if (row_data == null) {
+                row_data = new Hash();
+            }
         }
         if (formula_field != null) {
             if (row_data.containsKey(formula_field)) {

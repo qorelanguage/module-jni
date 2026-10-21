@@ -1070,6 +1070,30 @@
         "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.aGVhZGVyX3Jvdw.desc": {
           "source": "The 1-based row containing the column headers; `1` by default. Earlier rows are blank, and records follow the header row. A value after row `1` requires `write_headers` to be `true`.",
           "message": "Riadok obsahujúci hlavičky stĺpcov, číslovaný od 1; predvolená hodnota je `1`. Predchádzajúce riadky sú prázdne a záznamy nasledujú za hlavičkou. Hodnota väčšia ako `1` vyžaduje `write_headers` nastavené na `true`."
+        },
+        "app.RXhjZWw.action.cmVhZA.option.cHJlc2VydmVfZW1wdHlfcm93cw.display_name": {
+          "source": "Preserve Empty Rows",
+          "message": "Zachovať prázdne riadky"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.cHJlc2VydmVfZW1wdHlfcm93cw.short_desc": {
+          "source": "Return empty rows as records",
+          "message": "Vrátiť prázdne riadky ako záznamy"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.cHJlc2VydmVfZW1wdHlfcm93cw.desc": {
+          "source": "If `True`, return empty rows through the last stored worksheet row, within `data_cells`. Use this to verify exports containing records whose fields are all empty. Takes precedence over `ignore_empty`; `False` by default.",
+          "message": "Ak je `True`, vráti prázdne riadky až po posledný uložený riadok hárka v rozsahu `data_cells`. Slúži na overenie exportov so záznamami, ktorých všetky polia sú prázdne. Má prednosť pred `ignore_empty`; predvolená hodnota je `False`."
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.cHJlc2VydmVfZW1wdHlfcm93cw.display_name": {
+          "source": "Preserve Empty Rows",
+          "message": "Zachovať prázdne riadky"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.cHJlc2VydmVfZW1wdHlfcm93cw.short_desc": {
+          "source": "Return empty rows as records",
+          "message": "Vrátiť prázdne riadky ako záznamy"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.cHJlc2VydmVfZW1wdHlfcm93cw.desc": {
+          "source": "If `True`, return empty rows through the last stored worksheet row, within `data_cells`. Use this to verify exports containing records whose fields are all empty. Takes precedence over `ignore_empty`; `False` by default.",
+          "message": "Ak je `True`, vráti prázdne riadky až po posledný uložený riadok hárka v rozsahu `data_cells`. Slúži na overenie exportov so záznamami, ktorých všetky polia sú prázdne. Má prednosť pred `ignore_empty`; predvolená hodnota je `False`."
         }
       }
     }

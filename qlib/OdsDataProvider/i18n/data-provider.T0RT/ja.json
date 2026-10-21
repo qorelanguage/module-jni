@@ -974,6 +974,30 @@
         "app.T0RT.action.d3JpdGUtZGF0YQ.option.aGVhZGVyX3Jvdw.desc": {
           "source": "The 1-based row containing the column headers; `1` by default. Earlier rows are blank, and records follow the header row. A value after row `1` requires `write_headers` to be `true`.",
           "message": "列ヘッダーを含む行を1から数えた番号です。デフォルトは `1` です。それより前の行は空白になり、レコードはヘッダー行の後に続きます。`1` より大きい値には `write_headers` を `true` にする必要があります。"
+        },
+        "app.T0RT.action.cmVhZA.option.cHJlc2VydmVfZW1wdHlfcm93cw.display_name": {
+          "source": "Preserve Empty Rows",
+          "message": "空の行を保持"
+        },
+        "app.T0RT.action.cmVhZA.option.cHJlc2VydmVfZW1wdHlfcm93cw.short_desc": {
+          "source": "Return empty rows as records",
+          "message": "空の行をレコードとして返す"
+        },
+        "app.T0RT.action.cmVhZA.option.cHJlc2VydmVfZW1wdHlfcm93cw.desc": {
+          "source": "If `True`, return empty rows through the last stored worksheet row, within `data_cells`. Use this to verify exports containing records whose fields are all empty. Takes precedence over `ignore_empty`; `False` by default.",
+          "message": "`True` の場合、`data_cells` の範囲内で、ワークシートに保存された最後の行まで空の行を返します。すべてのフィールドが空のレコードを含むエクスポートの検証に使用します。`ignore_empty` より優先され、デフォルトは `False` です。"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.cHJlc2VydmVfZW1wdHlfcm93cw.display_name": {
+          "source": "Preserve Empty Rows",
+          "message": "空の行を保持"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.cHJlc2VydmVfZW1wdHlfcm93cw.short_desc": {
+          "source": "Return empty rows as records",
+          "message": "空の行をレコードとして返す"
+        },
+        "app.T0RT.action.cmVhZC1kYXRh.option.cHJlc2VydmVfZW1wdHlfcm93cw.desc": {
+          "source": "If `True`, return empty rows through the last stored worksheet row, within `data_cells`. Use this to verify exports containing records whose fields are all empty. Takes precedence over `ignore_empty`; `False` by default.",
+          "message": "`True` の場合、`data_cells` の範囲内で、ワークシートに保存された最後の行まで空の行を返します。すべてのフィールドが空のレコードを含むエクスポートの検証に使用します。`ignore_empty` より優先され、デフォルトは `False` です。"
         }
       }
     }
