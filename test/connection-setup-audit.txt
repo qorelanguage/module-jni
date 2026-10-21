@@ -1,0 +1,87 @@
+Connection setup audit - 2026-10-21
+Copyright 2026 Qore Technologies, s.r.o.
+
+Skill: /home/david/.codex/skills/audit-changes/SKILL.md
+Scope: current connection setup changes, their tests, build configuration and documentation.
+Changed tracked files: CMakeLists.txt, docs/guide-jdbc_driver.dox.tmpl, docs/guide-jni_types.dox.tmpl, docs/guide-jnireleasenotes.dox.tmpl, src/Globals.cpp, src/QoreJdbcConnection.cpp, src/QoreJdbcDriver.cpp, src/defs.cpp, src/java/org/qore/jni/JavaClassBuilder.java, src/java/org/qore/jni/QoreJavaApi.java, src/java/org/qore/jni/QoreJavaDynamicApi.java
+New files: connection regression fixtures.
+
+Validation: Debug JNI and Java fixture build; connection 10 cases/56 assertions; transaction 24/189; multi-result 5/78; result-metadata 8/64; exception-location and reference-safety pass; live PostgreSQL transaction 10/97. Valgrind runs exercise cancellation, exception conversion and cleanup; HotSpot 25 stack probing and native runtime shutdown allocations also occur with the unchanged installed module. The unchanged-module 20-Program control reports exactly the same definite/indirect allocations as the new full suite (849/5011 bytes). Worker/connection ownership is asserted explicitly. No native-runtime workaround is added.
+
+Library limits: cancellation cannot forcibly stop an opaque vendor login API. The changes use native
+cancellation where available and preserve pending Qore cancellation after native return. Oracle Net,
+CT-Lib, blocking MySQL clients and native JDBC/ODBC drivers require finite vendor timeouts.
+The new tests document which drivers can cancel a silent socket without first releasing the peer.
+
+| Check | Status | Evidence |
+|-------|--------|----------|
+| Entry exists in `doxygen/lang/120_modules.dox.tmpl` (for modules in the Qore repo; N/A for external module repos) | N/A | No new .qm module; existing binary-module guides and release notes updated. |
+| Entry exists in `doxygen/lang/900_release_notes.dox.tmpl` (for modules in the Qore repo; external modules have release notes in their .qm) | N/A | No new .qm module; existing binary-module guides and release notes updated. |
+| `qore_user_module()` or `qore_external_user_module()` call in `CMakeLists.txt` | N/A | No new .qm module; existing binary-module guides and release notes updated. |
+| Module added to QMOD list in `CMakeLists.txt` | N/A | No new .qm module; existing binary-module guides and release notes updated. |
+| `.qm` file has `@section <lowercasemodname>intro` as first doc section — **must be all lowercase** (e.g., `avrodataproviderintro`, not `AvroDataProviderintro`) | N/A | No new .qm module; existing binary-module guides and release notes updated. |
+| `%modern` in `.qm` file — no redundant `%new-style`, `%require-types`, `%strict-args`, `%enable-all-warnings` | N/A | No new .qm module; existing binary-module guides and release notes updated. |
+| No parse directives (`%requires`, `%modern`, `%new-style`) in separated `.qc` files (check OUTSIDE of `@code` blocks only) | N/A | No new .qm module; existing binary-module guides and release notes updated. |
+| No `%include` usage (deprecated for modules) | N/A | No new .qm module; existing binary-module guides and release notes updated. |
+| Copyright 2026 on all new files | N/A | No new .qm module; existing binary-module guides and release notes updated. |
+| Directory layout: `.qm` inside `qlib/<ModuleName>/` directory (not at `qlib/<ModuleName>.qm` for multi-file modules) | N/A | No new .qm module; existing binary-module guides and release notes updated. |
+| No second `.qm` for the same module at `qlib/<ModuleName>.qm` | N/A | No new .qm module; existing binary-module guides and release notes updated. |
+| `ns=Qore::XX` matches the QoreNamespace constructor path | N/A | No new QPP class. |
+| `%modern` directive present | Pass | New .qtest files use %modern, are executable, prepend the local build path, and require their own driver plus Qore-delivered QUnit. |
+| Executable permission set (`chmod +x`) | Pass | New .qtest files use %modern, are executable, prepend the local build path, and require their own driver plus Qore-delivered QUnit. |
+| Uses %prepend-module-path  before %requires for in-repo modules (Qore and Qore modules only; not Qorus) | Pass | New .qtest files use %modern, are executable, prepend the local build path, and require their own driver plus Qore-delivered QUnit. |
+| External module dependencies use `%try-module` — except modules delivered with the project itself (Qore ex: DataProvider, ConnectionProvider, QUnit, etc.) which use hard `%requires` | Pass | New .qtest files use %modern, are executable, prepend the local build path, and require their own driver plus Qore-delivered QUnit. |
+| No filesystem operations (fopen, open, creat, unlink, remove, rename, mkdir, rmdir, stat, chmod) without sandbox checks | N/A | No new production filesystem operations. |
+| No network operations (connect, bind, socket, getaddrinfo, gethostbyname) without sandbox checks | Pass | No new raw socket/connect/DNS API; existing opaque DB client calls remain behind DBI DATABASE-domain restrictions. Poll only waits on a client-owned descriptor. |
+| If filesystem/network ops exist, verify `QoreSandboxManagerHelper` usage | Pass | Program cancellation uses the native cancel helper or Qore cancellable wait/poll; no new endpoint-policy parsing. |
+| No `File::`, `Dir::`, `Socket::`, `HTTPClient::` usage without justification | Pass | Socket use is confined to owned loopback regression fixtures; no external network dependency for those cases. |
+| All `for`/`while` loops that could iterate >100 times have `qore_check_cancel()` checks | Pass | Readiness/condition loops check cancellation on every wait and after completion. No deprecated interrupt API or unchecked long CPU loop added. |
+| Uses `qore_check_cancel()` (NOT deprecated `qore_check_io_interrupt()`) | Pass | Readiness/condition loops check cancellation on every wait and after completion. No deprecated interrupt API or unchecked long CPU loop added. |
+| Check frequency: every 100 iterations for tight loops, every 10 for expensive iterations | Pass | Readiness/condition loops check cancellation on every wait and after completion. No deprecated interrupt API or unchecked long CPU loop added. |
+| No blocking operations without cancellation support | Pass | New waits are cancellable poll/condition waits or lifetime cleanup joins. Existing vendor calls without interruptible login APIs are bounded by native configured timeouts; limitations are documented. |
+| Every action has `display_name`, `short_desc` (plain text, <80 chars), `desc` (markdown) | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| Every action has `options` populated via `getActionOptionFromFields()` — without this, the action shows an empty, unusable form | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| Every action has `output_type` set to a typed data type constant (e.g., `MyResponseDataType`) — not omitted | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| DPAT_API actions: provider has `"supports_request": True` and implements `doRequestImpl()` | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| DPAT_FIND actions: every option exists in `SearchOptions`, `getRecordTypeImpl()` returns `*hash<string, AbstractDataField>` | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| Scheme-based apps (with `"scheme"` in registerApp): actions use `"path"` and do NOT use `"cls"` — having both `scheme` and `cls` causes a runtime error | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| Single-key hash slices use trailing comma: `Fields{"key",}` (without trailing comma, `Fields{"key"}` returns the value, not a hash) | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| **Typed data type classes exist** for request and response types — inherit `HashDataType`, have `const Fields` hash, call `addQoreFields(Fields)` in constructor, export public constant at bottom (e.g., `public const MyDataType = new MyDataType();`) | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| Request/input types use `public` Fields (enables `ClassName::Fields` in action registration) | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| Response/output types use `private` Fields | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| Each field in data types has `display_name`, `type`, and `desc` (markdown-formatted) | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| Input fields have `example_value` where useful (string fields, endpoint URIs, SQL queries, etc.) | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| Fields with finite allowed values use `allowed_values` with `AllowedValueInfo` containing both `value` and `display_name` (Title Case, human-readable) — never bare values, never described only in text | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| Password/secret fields have `"sensitive": True` | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| `groups` uses `AppGroup` enum values from `qlib/DataProvider/AppGroup.qc` | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| App `logo` stored as separate file, loaded at module level in `Priv` namespace | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| App `desc` uses markdown: bullet list of capabilities, links to project website, business-language explanation of value | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| `display_name` is user-friendly ("Apache Avro" not "avro") | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| `short_desc` is plain text, under 80 chars, single sentence — no markdown | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| `desc` uses markdown: backticks for code/field refs (`` `field_name` ``, `` `True` ``, `` `pdf` ``), `\n\n` for paragraphs, `- ` bullet lists for enumerations, `**bold**` for caveats | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| Descriptions use plain business language relating to common challenges — not just technical "what" but "why" and "when to use" | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| No bare `True`/`False`/`NOTHING` — must be backtick-wrapped in `desc` | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| No bare field/option names in prose — must use backticks | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| Long descriptions (>500 chars) use bold section headers and bullet lists | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| **Factory registration in Qore repo**: every factory name registered in `qlib/DataProvider/DataProvider.qc` → `FactoryMap` (without this, module loads but doesn't appear in Qorus apps) | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| **`getRecordTypeImpl()` signature**: must be `private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options)` — NOT returning `*AbstractDataProviderType` | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| **Dependency JARs committed** (for JNI modules): JAR files in `qlib/*/jar/` may be gitignored — use `git add -f` to ensure they're tracked, otherwise CI compilation fails | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| JAR install rules in CMakeLists.txt for all dependency JARs | N/A | No DataProvider implementation, registration, data type or dependency JAR changes. |
+| **No workarounds**: No TODOs, FIXMEs, stubs, or partially-implemented features | Pass | Root fixes: client async API, exception conversion deferral, diagnostic timeout handling, checked attributes and callback ownership. No TODO/stub or detached cancellation workaround. |
+| **Exception safety**: C++ uses `ReferenceHolder` for Qore allocations, `std::unique_ptr` for C++ allocations, `*xsink` checked after every fallible operation | Pass | Failure paths release native handles, preserve the first exception, and close partial connections; negative and cancellation cases pass. |
+| **Thread safety**: All mutable shared state protected by `std::lock_guard<std::mutex>` or documented as immutable-after-construction | Pass | Cancellation state is shared and synchronized; callbacks cannot access a freed helper/handle. JNI worker state uses a lock/condition and is freed only after join. |
+| **Type safety**: Strongly-typed `code<return(args)>` instead of untyped `code`; `static_cast` instead of C casts; typed hashdecls for results; enums where appropriate | Pass | Native timeout conversion checks type/range before narrowing; opaque pointers use typed casts; Qore fixtures use typed variables and exception hashes. |
+| **Performance**: No O(n²) where O(n) is possible; no unnecessary copies; coordinate descent uses incremental residuals not full matrix multiply | Pass | No periodic timeout slices, quadratic loops or detached workers; no callback-state allocation without an active sandbox manager. |
+| **Error handling**: All inputs validated (dimensions, empty data, unfitted models); C++ I/O handles EAGAIN/EINTR if applicable | Pass | Invalid, overflowing and zero timeouts plus native errors/cancellation are covered. Cancellable poll handles EINTR through the core API. |
+| **Documentation**: Doxygen `@param`, `@return`, `@throw` on all public methods; `@par Example` with realistic business scenarios; `@note` for important caveats | Pass | Driver guide, concrete connection example, native-library caveats and release notes updated; no new QPP public methods. |
+| **QPP flags**: `[flags=CONSTANT]` on methods that never throw; `[flags=RET_VALUE_ONLY]` on methods that throw but have no side effects | N/A | No QPP method changes. |
+| **Security**: No user-controlled format strings; no buffer overflows; bounds checking on array indices; no credentials in code | Pass | No real credentials in fixtures, user-controlled format strings or unchecked buffer writes. JDBC no longer appends the potentially secret-bearing URL to errors. |
+| **Correctness**: Algorithms verified against reference implementations; edge cases tested (empty data, single sample, all-zero features) | Pass | Debug JNI and Java fixture build; connection 10 cases/56 assertions; transaction 24/189; multi-result 5/78; result-metadata 8/64; exception-location and reference-safety pass; live PostgreSQL transaction 10/97. Valgrind runs exercise cancellation, exception conversion and cleanup; HotSpot 25 stack probing and native runtime shutdown allocations also occur with the unchanged installed module. The unchanged-module 20-Program control reports exactly the same definite/indirect allocations as the new full suite (849/5011 bytes). Worker/connection ownership is asserted explicitly. No native-runtime workaround is added. |
+
+No new source file lacks a 2026 copyright. Third-party Autoconf macro copyright is preserved.
+No new module/class build registration is required. The JNI fixture source is registered in CMake.
+This audit does not claim arbitrary third-party DB clients enforce per-host sandbox policy or provide
+interruptible login; the existing DATABASE functional-domain boundary is unchanged.
+Raw verification logs and native-library control runs: /tmp/db-connect-audit-x6bnghwe/.
+
+Documentation: the JNI module target is rebuilt after correcting Java generic-parameter and type-markup warnings. Full provider docs additionally depend on current Qore DataProvider and ValueMask tag files, which are older/missing locally.

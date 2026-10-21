@@ -44,13 +44,17 @@ static constexpr int jdbc_caps = DBI_CAP_TRANSACTION_MANAGEMENT
 DBIDriver* DBID_JDBC = nullptr;
 
 static int jdbc_open(Datasource* ds, ExceptionSink* xsink) {
-    std::unique_ptr<QoreJdbcConnection> conn(new QoreJdbcConnection(ds, xsink));
-    if (*xsink) {
-        return -1;
+    try {
+        std::unique_ptr<QoreJdbcConnection> conn(new QoreJdbcConnection(ds, xsink));
+        if (*xsink) {
+            return -1;
+        }
+        ds->setPrivateData(static_cast<void*>(conn.release()));
+        return 0;
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
     }
-
-    ds->setPrivateData((void*)conn.release());
-    return 0;
+    return -1;
 }
 
 static int jdbc_close(Datasource* ds) {

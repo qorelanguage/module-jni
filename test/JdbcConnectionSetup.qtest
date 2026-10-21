@@ -1,0 +1,174 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+# SPDX-License-Identifier: MIT
+%modern
+%no-child-restrictions
+%prepend-module-path "${SCRIPT_DIR}/../build"
+%requires QUnit
+%requires jni
+%module-cmd(jni) add-relative-classpath qore-jni-test.jar
+%module-cmd(jni) import org.qore.jni.test.JdbcConnectionDriver
+%exec-class ConnectionSetupTest
+
+class ConnectionSetupTest inherits QUnit::Test {
+    constructor() : Test("JDBC connection setup", "1.0", \ARGV) {
+        addTestCase("native connection timeout", \timeout());
+        addTestCase("thread cancellation during connection", \cancel());
+        addTestCase("program interruption during connection", \interrupt());
+        addTestCase("peer closure preserves the native error", \peerClosed());
+        addTestCase("successful connection and cleanup", \successful());
+        addTestCase("metadata failure closes connection", \metadataFailure());
+        addTestCase("initialization failure closes connection", \initializationFailure());
+        addTestCase("repeated cancellation releases workers", \repeatedCancellation());
+        addTestCase("connection returned during cancellation is closed", \cancelRace());
+        addTestCase("Java exception conversion with cancellation pending", \pendingException());
+        set_return_value(main());
+    }
+
+    private hash<auto> config(int port, int seconds) {
+        hash<auto> cfg = {"type": "jdbc", "db": sprintf("qore-connect:%d:%d", port, seconds * 1000)};
+        return cfg;
+    }
+
+    # The accepted socket is a deterministic barrier: the driver is inside connection setup.
+    # A timeout bounds test failures; peer cleanup releases native libraries that cannot cancel login.
+    private hash<auto> attempt(string mode) {
+        int closed_before = JdbcConnectionDriver::closed();
+        Socket server();
+        server.bind("127.0.0.1:0", True);
+        server.listen();
+        hash<auto> cfg = config(server.getSocketInfo().port, mode == "timeout" ? 1 : 5);
+        if (mode == "race") {
+            cfg.db += ":return-on-interrupt";
+        }
+        cfg.fixture_port = sprintf("%d", mode == "exception" ? server.getSocketInfo().port : 0);
+        Queue done();
+        SandboxManager sm();
+        Program p(PO_NO_CHILD_PO_RESTRICTIONS);
+        p.loadModule("jni");
+        if (mode == "interrupt") {
+            p.setSandboxManager(sm);
+        }
+        p.parse(sprintf("%%modern\n%%module-cmd(jni) add-classpath \"%s/qore-jni-test.jar\"\n%%module-cmd(jni) import org.qore.jni.test.JdbcConnectionDriver\n", get_script_dir()) + "%modern
+sub run(Queue done, hash<auto> cfg) {
+    hash<auto> result;
+    try {
+        JdbcConnectionDriver::install();
+        if (int(cfg.fixture_port)) {
+            JdbcConnectionDriver::throwAfterRead(int(cfg.fixture_port));
+        }
+        remove cfg.fixture_port;
+        Datasource ds(cfg);
+        ds.open();
+        result.err = \"NONE\";
+    } catch (hash<ExceptionInfo> ex) {
+        result.err = ex.err;
+        result.desc = ex.desc;
+    }
+    done.push(result);
+}
+hash<auto> sub stats() {
+    return {\"active\": JdbcConnectionDriver::active(), \"closed\": JdbcConnectionDriver::closed()};
+}
+", "connection-setup-worker");
+        int tid = background p.callFunction("run", done, cfg);
+        *Socket peer = server.accept(5s);
+        if (!peer) {
+            hash<auto> result = done.get(1s);
+            fail(sprintf("driver did not contact the fixture: %y", result));
+        }
+        on_exit {
+            peer.shutdown();
+            peer.close();
+            server.close();
+        }
+        int start = clock_get_monotonic_us();
+        if (mode == "cancel" || mode == "race" || mode == "exception") {
+            cancel_thread(tid, "connection test cancellation");
+        } else if (mode == "interrupt") {
+            sm.requestInterrupt();
+        }
+        if (mode == "success" || mode == "metadata" || mode == "initialization") {
+            peer.send(parse_hex_string(mode == "success" ? "01" : (mode == "metadata" ? "02" : "03")));
+        }
+        if (mode == "close" || mode == "exception") {
+            peer.shutdown();
+            peer.close();
+        }
+        hash<auto> result;
+        try {
+            result = done.get(3s);
+        } catch (hash<ExceptionInfo> ex) {
+            peer.shutdown();
+            peer.close();
+            done.get(10s);
+            rethrow;
+        }
+        result.elapsed = clock_get_monotonic_us() - start;
+        sm.clearInterrupt();
+        result += p.callFunction("stats");
+        result.closed -= closed_before;
+        return result;
+    }
+
+    timeout() {
+        hash<auto> result = attempt("timeout");
+        assertEq("JNI-ERROR", result.err);
+        assertTrue(result.elapsed >= 500000);
+        assertTrue(result.elapsed < 2500000, "configured timeout bounds connection setup");
+    }
+    cancel() {
+        hash<auto> result = attempt("cancel");
+        assertEq("THREAD-CANCELLED", result.err);
+        assertTrue(result.elapsed < 2000000);
+        assertTrue(index(result.desc, "connection test cancellation") >= 0);
+    }
+    interrupt() {
+        hash<auto> result = attempt("interrupt");
+        assertEq("PROGRAM-INTERRUPTED", result.err);
+        assertTrue(result.elapsed < 2000000);
+    }
+    peerClosed() {
+        assertEq("JNI-ERROR", attempt("close").err);
+    }
+    successful() {
+        hash<auto> result = attempt("success");
+        assertEq("NONE", result.err);
+        assertEq(0, result.active);
+        assertEq(1, result.closed);
+    }
+    metadataFailure() {
+        hash<auto> result = attempt("metadata");
+        assertEq("JNI-ERROR", result.err);
+        assertTrue(index(result.desc, "fixture metadata failure") >= 0);
+        assertEq(1, result.closed);
+        assertEq(0, result.active);
+    }
+    initializationFailure() {
+        hash<auto> result = attempt("initialization");
+        assertEq("JNI-ERROR", result.err);
+        assertTrue(index(result.desc, "fixture initialization failure") >= 0);
+        assertEq(1, result.closed);
+        assertEq(0, result.active);
+    }
+    cancelRace() {
+        hash<auto> result = attempt("race");
+        assertEq("THREAD-CANCELLED", result.err);
+        assertEq(0, result.active);
+        assertEq(1, result.closed);
+    }
+    pendingException() {
+        hash<auto> result = attempt("exception");
+        assertEq("JNI-ERROR", result.err);
+        assertTrue(index(result.desc, "fixture exception after cancellation") >= 0);
+        assertEq(0, result.active);
+    }
+    repeatedCancellation() {
+        for (int i = 0; i < 10; ++i) {
+            hash<auto> result = attempt("cancel");
+            assertEq("THREAD-CANCELLED", result.err);
+            assertEq(0, result.active);
+            assertEq(0, result.closed);
+        }
+    }
+}

@@ -208,7 +208,7 @@ public class QoreJavaDynamicApi {
     }
 
     //! sets the Java caller context and runs DriverManager.getConnection()
-    public static Connection getConnection(String url, Properties props) throws SQLException {
-        return DriverManager.getConnection(url, props);
+    public static Connection getConnection(String url, Properties props) throws Throwable {
+        return QoreJavaApi.openJdbcConnection(() -> DriverManager.getConnection(url, props));
     }
 }

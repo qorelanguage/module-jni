@@ -141,9 +141,9 @@
     The %Qore types declared for Java methods and fields match the values that the conversions above produce, so
     that %Qore code can be type-checked when it is parsed:
     - every Java list (a class implementing \c java.util.List, such as \c ArrayList, \c LinkedList, or a list class
-      of its own) is converted to a %Qore list, so a list return value or field is declared as \c *list<auto>
+      of its own) is converted to a %Qore list, so a list return value or field is declared as <tt>*list&lt;auto&gt;</tt>
     - a Java map is converted to a %Qore hash only when all its keys are strings, so a map return value or field is
-      declared as \c *hash<auto> only when its key type is \c String, as given by the Java generic signature (for
+      declared as <tt>*hash&lt;auto&gt;</tt> only when its key type is \c String, as given by the Java generic signature (for
       example <tt>Map&lt;String, V&gt;</tt>, <tt>TreeMap&lt;String, V&gt;</tt>, or a class declared as
       <tt>StringMap extends HashMap&lt;String, Object&gt;</tt>); any other map (a raw \c Map, a key type variable,
       \c Properties, or <tt>TreeMap&lt;Integer, V&gt;</tt>) is declared as \c auto, as it is a hash or a Java

@@ -6,6 +6,11 @@
 
     @section jni_3_0_0 jni Module Version 3.0.0
 
+    - made Java socket-based JDBC connection establishment cancellable using a joined virtual thread
+    - fixed a native abort while converting a Java exception with Qore cancellation pending
+    - closed connections after failed metadata/session initialization and cancellation races
+
+
     @anchor jni_2_5_0
     @anchor jni_2_6_0
     @anchor jni_2_7_0
@@ -28,12 +33,12 @@
       other types. See @ref jni_java_to_qore "Java to Qore type conversions".
     - <b>Review code using Java lists and maps as Java objects.</b> The %Qore types declared for Java methods and
       fields now match the values they return: every Java list, such as \c ArrayList or \c LinkedList, is declared
-      as \c *list<auto>, and a Java map as \c *hash<auto> only when its key type is \c String; any other map is
+      as <tt>*list&lt;auto&gt;</tt>, and a Java map as <tt>*hash&lt;auto&gt;</tt> only when its key type is \c String; any other map is
       declared as \c auto, as it is a hash or a Java object depending on its keys (a method returning
       <tt>TreeMap&lt;Integer, String&gt;</tt> still returns a Java object, and is now declared as \c auto).  Code
       that assigns a returned \c ArrayList to a variable declared as the Java class, or that overrides such a method
       with a Java object return type, now fails when it is parsed; use a list instead.  A raw \c java.util.Map return
-      value, declared as \c *hash<auto> before, is declared as \c auto; this only changes parse-time type checks.
+      value, declared as <tt>*hash&lt;auto&gt;</tt> before, is declared as \c auto; this only changes parse-time type checks.
       See @ref jni_collection_types "declared types of Java lists and maps".
     - <b>Review code using Java date and time values.</b> The values of \c java.time.OffsetDateTime,
       \c java.time.OffsetTime, \c java.time.LocalDate and \c java.time.LocalTime are now %Qore dates, as those of the

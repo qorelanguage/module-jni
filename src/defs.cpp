@@ -207,6 +207,9 @@ QoreStringNode* JavaException::toString(bool clear) const {
 }
 
 void JavaException::convert(ExceptionSink* xsink) {
+    // Converting the original exception must not throw a second cancellation exception while
+    // constructing its Java call stack or argument. The request remains pending afterwards.
+    QoreCancelDeferralHelper cancel_deferral;
     JNIEnv* env = Jvm::getEnv();         //not using the Env wrapper because we don't want any C++ exceptions here
     jthrowable raw_throwable = env->ExceptionOccurred();
     assert(raw_throwable != nullptr);

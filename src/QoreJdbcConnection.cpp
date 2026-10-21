@@ -60,7 +60,19 @@ QoreJdbcConnection::QoreJdbcConnection(Datasource* ds, ExceptionSink* xsink) : d
     }
 
     // determine DB type
-    LocalReference<jobject> md = env.callObjectMethod(connection, Globals::methodConnectionGetMetaData, nullptr);
+    LocalReference<jobject> md;
+    try {
+        md = env.callObjectMethod(connection, Globals::methodConnectionGetMetaData, nullptr);
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        QoreCancelDeferralHelper cancel_deferral;
+        try {
+            close(env);
+        } catch (jni::Exception& close_error) {
+            close_error.convert(xsink);
+        }
+        return;
+    }
     if (!md) {
         return;
     }
@@ -138,13 +150,26 @@ int QoreJdbcConnection::connect(Env& env, ExceptionSink* xsink) {
         jargs[0].z = !transaction;
         env.callVoidMethod(connection, Globals::methodConnectionSetAutoCommit, &jargs[0]);
     } catch (jni::Exception& e) {
-        e.convert(xsink);
-        xsink->appendLastDescription(" (using JDBC URL: '%s')", url.c_str());
+        if (qore_check_cancel(xsink, "connecting to the JDBC server")) {
+            e.ignore();
+        } else {
+            e.convert(xsink);
+        }
         // A connection can exist even when setting its initial mode failed.
+        QoreCancelDeferralHelper cancel_deferral;
         try {
             close(env);
         } catch (jni::Exception& close_error) {
             close_error.convert(xsink);
+        }
+        return -1;
+    }
+    if (qore_check_cancel(xsink, "connecting to the JDBC server")) {
+        QoreCancelDeferralHelper cancel_deferral;
+        try {
+            close(env);
+        } catch (jni::Exception& e) {
+            e.convert(xsink);
         }
         return -1;
     }

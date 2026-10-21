@@ -4,6 +4,24 @@
 
     @tableofcontents
 
+    @section jdbc_connect_cancellation Connection establishment and timeouts
+
+    JDBC connection factories run on a Java 21 virtual thread, allowing Qore thread cancellation and
+    program interruption to interrupt Java socket connects and reads. The worker is always joined;
+    connections returned concurrently with cancellation are closed. The JDBC driver class-loader context
+    is preserved. Drivers that perform native I/O must honor Java interruption or provide a finite native
+    login timeout; their native call cannot otherwise be forcibly stopped safely.
+    @par Example
+    PostgreSQL JDBC separates TCP connection and socket-read timeouts:
+    @code{.py}
+    Datasource ds("jdbc:app/pass@ignored{url=postgresql://db1.internal:5432,db2.internal:5432/orders?connectTimeout=5&socketTimeout=5,classpath=/usr/share/java/postgresql.jar}");
+    ds.open();
+    @endcode
+    @note For PostgreSQL JDBC, \c connectTimeout alone does not bound a server that accepts a TCP
+    connection and then stays silent. \c socketTimeout bounds socket reads, including the handshake,
+    but also affects later queries. Choose both according to the application's query duration requirements.
+
+
     This module implements the \c "jdbc" driver for %Qore to allow %Qore (as well as other languages such as %Python
     that use %Qore as a "language bridge") to access data in databases with jdbc drivers.
 

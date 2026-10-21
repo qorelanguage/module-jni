@@ -958,6 +958,71 @@ static void JNICALL java_api_deregister_java_thread(JNIEnv* jenv, jobject obj) {
     q_deregister_foreign_thread();
 }
 
+namespace {
+// The Java caller owns this state until its connection worker has been joined. The worker only
+// signals it; it never accesses a Qore program, exception sink or value on its virtual thread.
+struct JdbcConnectionWaiter {
+    QoreThreadLock lock;
+    QoreCondition condition;
+    bool complete = false;
+};
+}
+
+static jlong JNICALL java_api_new_connection_waiter(JNIEnv* env, jclass) {
+    try {
+        return reinterpret_cast<jlong>(new JdbcConnectionWaiter);
+    } catch (const std::bad_alloc&) {
+        jclass cls = env->FindClass("java/lang/OutOfMemoryError");
+        if (cls) {
+            env->ThrowNew(cls, "cannot allocate JDBC connection waiter");
+            env->DeleteLocalRef(cls);
+        }
+        return 0;
+    }
+}
+
+static void JNICALL java_api_complete_connection_waiter(JNIEnv*, jclass, jlong ptr) {
+    auto* waiter = reinterpret_cast<JdbcConnectionWaiter*>(ptr);
+    AutoLocker lock(waiter->lock);
+    waiter->complete = true;
+    waiter->condition.signal();
+}
+
+static void JNICALL java_api_await_connection_waiter(JNIEnv* jenv, jclass, jlong ptr) {
+    auto* waiter = reinterpret_cast<JdbcConnectionWaiter*>(ptr);
+    ExceptionSink xsink;
+    {
+        AutoLocker lock(waiter->lock);
+        while (!waiter->complete) {
+            if (waiter->condition.waitWithInterrupt(waiter->lock, &xsink) == QORE_COND_RESULT_INTERRUPTED) {
+                break;
+            }
+        }
+    }
+    if (!xsink) {
+        qore_check_cancel(&xsink, "connecting to the JDBC server");
+    }
+    if (xsink) {
+        QoreCancelDeferralHelper cancel_deferral;
+        Env env(jenv);
+        try {
+            QoreToJava::wrapException(env, xsink);
+        } catch (JavaException&) {
+            // A failure allocating the wrapper has already raised a Java exception.
+        } catch (const std::bad_alloc&) {
+            jclass cls = jenv->FindClass("java/lang/OutOfMemoryError");
+            if (cls) {
+                jenv->ThrowNew(cls, "cannot wrap JDBC connection cancellation");
+                jenv->DeleteLocalRef(cls);
+            }
+        }
+    }
+}
+
+static void JNICALL java_api_delete_connection_waiter(JNIEnv*, jclass, jlong ptr) {
+    delete reinterpret_cast<JdbcConnectionWaiter*>(ptr);
+}
+
 static jstring JNICALL qore_exception_wrapper_get_message(JNIEnv* jenv, jclass, jlong ptr) {
     ExceptionSink* xsink = reinterpret_cast<ExceptionSink*>(ptr);
 
@@ -2611,6 +2676,14 @@ static JNINativeMethod invocationHandlerNativeMethods[2] = {
 };
 
 static JNINativeMethod qoreJavaApiNativeMethods[] = {
+    {const_cast<char*>("newConnectionWaiter0"), const_cast<char*>("()J"),
+        reinterpret_cast<void*>(java_api_new_connection_waiter)},
+    {const_cast<char*>("completeConnectionWaiter0"), const_cast<char*>("(J)V"),
+        reinterpret_cast<void*>(java_api_complete_connection_waiter)},
+    {const_cast<char*>("awaitConnectionWaiter0"), const_cast<char*>("(J)V"),
+        reinterpret_cast<void*>(java_api_await_connection_waiter)},
+    {const_cast<char*>("deleteConnectionWaiter0"), const_cast<char*>("(J)V"),
+        reinterpret_cast<void*>(java_api_delete_connection_waiter)},
     {
         const_cast<char*>("initQore0"),
         const_cast<char*>("()J"),

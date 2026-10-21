@@ -421,7 +421,7 @@ public class JavaClassBuilder {
     /** add a normal method overriding a method of the parent class, with the signature of the overridden method
      *
      *  The Qore method's return value is converted to the return type of the overridden method; see
-     *  @ref convertReturnValue()
+     *  <tt>convertReturnValue()</tt>
      */
     public static DynamicType.Builder<?> addOverridingMethod(DynamicType.Builder<?> bb, long mptr, long vptr,
             int visibility, Method overridden) {
@@ -525,7 +525,7 @@ public class JavaClassBuilder {
     }
 
     /** makes a call to a Qore method overriding a Java method, converting its return value to the method's return
-     *  type; see @ref doNormalCall() and @ref convertReturnValue()
+     *  type; see @ref doNormalCall() and <tt>convertReturnValue()</tt>
      */
     @RuntimeType
     public static Object doNormalCallTyped(String methodName, long qobjptr, long mptr, long vptr, Class<?> rtype,

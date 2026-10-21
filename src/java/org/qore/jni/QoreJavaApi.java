@@ -264,6 +264,81 @@ public class QoreJavaApi {
         return stack.length > 0 ? Arrays.copyOfRange(stack, 1, stack.length) : null;
     }
 
+    /** Runs a JDBC connection attempt with cooperative Qore cancellation.
+     *
+     * The virtual thread makes Java socket connects and reads interruptible. The worker is always
+     * joined, and a connection returned concurrently with cancellation is closed before returning.
+     * Drivers doing native I/O must themselves honor interruption or configure a finite login timeout.
+     *
+     * The connection type is erased to AutoCloseable because this class is bootstrap-loaded.
+     * @param connect connection factory in the caller's class-loader context
+     * @return the established connection
+     * @throws Throwable the original connection error or Qore cancellation exception
+     */
+    public static <T extends AutoCloseable> T openJdbcConnection(
+            java.util.concurrent.Callable<T> connect) throws Throwable {
+        java.util.concurrent.CompletableFuture<T> result = new java.util.concurrent.CompletableFuture<>();
+        long waiter = newConnectionWaiter0();
+        Thread worker = null;
+        boolean returned = false;
+        try {
+            worker = Thread.ofVirtual().name("qore-jdbc-connect").start(() -> {
+                try {
+                    result.complete(connect.call());
+                } catch (Throwable error) {
+                    result.completeExceptionally(error);
+                } finally {
+                    completeConnectionWaiter0(waiter);
+                }
+            });
+            awaitConnectionWaiter0(waiter);
+            try {
+                T connection = result.get();
+                returned = true;
+                return connection;
+            } catch (java.util.concurrent.ExecutionException error) {
+                throw error.getCause();
+            }
+        } finally {
+            if (worker != null) {
+                if (!returned) {
+                    worker.interrupt();
+                }
+                // Cleanup cannot leave a live worker referencing the native waiter. Preserve any
+                // Java interrupt of the calling thread, but finish the join before freeing it.
+                boolean interrupted = false;
+                for (;;) {
+                    try {
+                        worker.join();
+                        break;
+                    } catch (InterruptedException error) {
+                        interrupted = true;
+                        worker.interrupt();
+                    }
+                }
+                if (interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+                if (!returned && !result.isCompletedExceptionally()) {
+                    T connection = result.getNow(null);
+                    if (connection != null) {
+                        try {
+                            connection.close();
+                        } catch (Throwable ignored) {
+                            // Preserve the cancellation or connection failure already being thrown.
+                        }
+                    }
+                }
+            }
+            deleteConnectionWaiter0(waiter);
+        }
+    }
+
+    private native static long newConnectionWaiter0();
+    private native static void completeConnectionWaiter0(long waiter);
+    private native static void awaitConnectionWaiter0(long waiter) throws Throwable;
+    private native static void deleteConnectionWaiter0(long waiter);
+
     private native static long initQore0() throws Throwable;
     private native static void initQoreBootstrap0() throws Throwable;
     private native static Object callFunction0(long pgm_ptr, String name, Object... args) throws Throwable;
