@@ -8,18 +8,162 @@
 %requires QUnit
 %module-cmd(jni) add-relative-classpath qore-jni-test.jar
 %module-cmd(jni) import org.qore.jni.test.JdbcTransactionDriver
+%module-cmd(jni) import java.sql.Types
 %exec-class JdbcResultMetadataTest
 
 #! The columns of the results of the jdbc driver, with the test JDBC driver's typed result sets
 class JdbcResultMetadataTest inherits QUnit::Test {
     constructor() : Test("JDBC result metadata", "1.0", \ARGV) {
         addTestCase("duplicate column names are made unique in lower case", \duplicateNames());
+        addTestCase("SQLStatement::describe() describes the columns of the result set", \describeColumns());
+        addTestCase("the described type is the type of the values returned, with each numeric option",
+            \describedTypesMatchValues());
+        addTestCase("after the last row, the last result set is described", \describeAfterLastRow());
+        addTestCase("a statement without a result set has no columns", \describeWithoutResultSet());
+        addTestCase("describe() executes a statement that has not been executed", \describeBeforeExec());
+        addTestCase("duplicate column names are described with their unique keys", \describeDuplicateNames());
         set_return_value(main());
     }
 
     private Datasource datasource() {
         JdbcTransactionDriver::reset();
         return new Datasource("jdbc:@qore-transaction-test:fixture");
+    }
+
+    #! the description of the columns of the typed result set "all" with the default numeric option
+    private hash<auto> expectedAll() {
+        return {
+            "id": {"name": "id", "type": NT_INT, "maxsize": 10, "native_type": "int4", "internal_id": Types::INTEGER,
+                "nullable": False},
+            "name": {"name": "name", "type": NT_STRING, "maxsize": 20, "native_type": "varchar",
+                "internal_id": Types::VARCHAR, "nullable": True},
+            "price": {"name": "price", "type": NT_NUMBER, "maxsize": 10, "native_type": "numeric",
+                "internal_id": Types::DECIMAL, "nullable": True, "precision": 10, "scale": 2},
+            # no fractional digits and at most 18 digits: integers with the optimal-numbers option
+            "units": {"name": "units", "type": NT_INT, "maxsize": 12, "native_type": "numeric",
+                "internal_id": Types::NUMERIC, "nullable": True, "precision": 12, "scale": 0},
+            "flag": {"name": "flag", "type": NT_BOOLEAN, "maxsize": 1, "native_type": "bool",
+                "internal_id": Types::BIT, "nullable": True},
+            "ratio": {"name": "ratio", "type": NT_FLOAT, "maxsize": 17, "native_type": "float8",
+                "internal_id": Types::DOUBLE, "nullable": True},
+            "data": {"name": "data", "type": NT_BINARY, "maxsize": 16, "native_type": "bytea",
+                "internal_id": Types::VARBINARY, "nullable": True},
+            "created": {"name": "created", "type": NT_DATE, "maxsize": 29, "native_type": "timestamp",
+                "internal_id": Types::TIMESTAMP, "nullable": True},
+            # a java.util.UUID is returned as a Java object
+            "uuid": {"name": "uuid", "type": NT_OBJECT, "maxsize": 0, "native_type": "uuid",
+                "internal_id": Types::OTHER, "nullable": True},
+            # the driver does not report the class: the SQL type gives the type
+            "legacy": {"name": "legacy", "type": NT_STRING, "maxsize": 8, "native_type": "varchar",
+                "internal_id": Types::VARCHAR, "nullable": True},
+            # the class cannot be loaded: the SQL type gives the type
+            "hidden": {"name": "hidden", "type": NT_INT, "maxsize": 19, "native_type": "int8",
+                "internal_id": Types::BIGINT, "nullable": True},
+        };
+    }
+
+    private describeColumns() {
+        Datasource ds = datasource();
+        on_exit ds.rollback();
+        SQLStatement stmt(ds);
+        on_exit stmt.close();
+        stmt.prepare("multi:typed=all");
+        stmt.exec();
+        assertEq(expectedAll(), stmt.describe());
+        # update counts before the result set are skipped
+        stmt.prepare("multi:count=2;typed=all");
+        stmt.exec();
+        assertEq(expectedAll(), stmt.describe());
+    }
+
+    private describedTypesMatchValues() {
+        foreach *string option in ((NOTHING, "numeric-numbers", "string-numbers")) {
+            Datasource ds = datasource();
+            on_exit ds.rollback();
+            if (option) {
+                ds.setOption(option, True);
+            }
+            SQLStatement stmt(ds);
+            on_exit stmt.close();
+            stmt.prepare("multi:typed=all");
+            stmt.exec();
+            hash<auto> desc = stmt.describe();
+            assertTrue(stmt.next());
+            hash<auto> row = stmt.fetchRow();
+            assertEq(keys desc, keys row);
+            foreach string col in (keys row) {
+                assertEq(row{col}.typeCode(), desc{col}.type, sprintf("%s with %s", col, option ?? "the default"));
+            }
+            switch (option) {
+                case "numeric-numbers":
+                    assertEq(NT_NUMBER, desc.units.type);
+                    break;
+                case "string-numbers":
+                    assertEq(NT_STRING, desc.units.type);
+                    assertEq(NT_STRING, desc.price.type);
+                    break;
+            }
+        }
+    }
+
+    private describeAfterLastRow() {
+        Datasource ds = datasource();
+        on_exit ds.rollback();
+        SQLStatement stmt(ds);
+        on_exit stmt.close();
+        stmt.prepare("multi:typed=all");
+        stmt.exec();
+        assertEq(1, stmt.fetchRows().size());
+        assertFalse(stmt.next());
+        assertEq(expectedAll(), stmt.describe());
+    }
+
+    private describeWithoutResultSet() {
+        Datasource ds = datasource();
+        on_exit ds.rollback();
+        SQLStatement stmt(ds);
+        on_exit stmt.close();
+        # an update count
+        stmt.prepare("multi:count=1");
+        stmt.exec();
+        assertEq({}, stmt.describe());
+        # a batch of an array bind
+        stmt.prepare("known %v");
+        stmt.bind((1, 2));
+        stmt.exec();
+        assertEq({}, stmt.describe());
+        # a statement executed again without a result set has no columns any more
+        stmt.prepare("multi:typed=duplicates");
+        stmt.exec();
+        assertEq(3, stmt.describe().size());
+        stmt.prepare("multi:count=1");
+        stmt.exec();
+        assertEq({}, stmt.describe());
+    }
+
+    private describeBeforeExec() {
+        Datasource ds = datasource();
+        on_exit ds.rollback();
+        SQLStatement stmt(ds);
+        on_exit stmt.close();
+        stmt.prepare("multi:typed=duplicates");
+        assertEq(("id", "id_1", "id_2"), keys stmt.describe());
+        # the rows of that execution are then fetched, without executing the statement again
+        assertEq(({"id": 1, "id_1": 2, "id_2": 3},), stmt.fetchRows());
+        assertEq(1, JdbcTransactionDriver::count("execute:multi:typed=duplicates"));
+    }
+
+    private describeDuplicateNames() {
+        Datasource ds = datasource();
+        on_exit ds.rollback();
+        SQLStatement stmt(ds);
+        on_exit stmt.close();
+        stmt.prepare("multi:typed=duplicates");
+        stmt.exec();
+        hash<auto> desc = stmt.describe();
+        assertEq(("id", "id_1", "id_2"), keys desc);
+        # the name is the column's name; the key is the name of the column in the rows
+        assertEq(("id", "id", "id"), map $1.name, desc.iterator());
     }
 
     private duplicateNames() {

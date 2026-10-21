@@ -217,6 +217,16 @@ bool QoreJdbcPreparedStatement::next(ExceptionSink* xsink) {
     return false;
 }
 
+QoreHashNode* QoreJdbcPreparedStatement::describe(ExceptionSink* xsink) {
+    try {
+        Env env;
+        return QoreJdbcStatement::describe(env, xsink);
+    } catch (JavaException& e) {
+        e.convert(xsink);
+    }
+    return nullptr;
+}
+
 int QoreJdbcPreparedStatement::clear(ExceptionSink* xsink) {
     try {
         //printd(5, "QoreJdbcPreparedStatement::clear() %p\n", this);

@@ -6,10 +6,13 @@
 %prepend-module-path "${SCRIPT_DIR}/../build"
 %requires jni
 %requires QUnit
+%requires TableMapper
+%requires DataProvider
 %module-cmd(jni) add-relative-classpath qore-jni-test.jar
 # JdbcCursorTest uses the org.qore.lang wrapper classes, which are provided by qore-jni.jar
 %module-cmd(jni) add-relative-classpath ../build/qore-jni.jar
 %module-cmd(jni) import org.qore.jni.test.JdbcCursorTest
+%module-cmd(jni) import java.sql.Types
 %exec-class JdbcPostgresqlTransactionsTest
 
 class JdbcPostgresqlTransactionsTest inherits QUnit::Test {
@@ -20,7 +23,70 @@ class JdbcPostgresqlTransactionsTest inherits QUnit::Test {
         addTestCase("prepared results and batch bindings can be reused", \reuse());
         addTestCase("a lost connection replays only a statement that cannot have taken effect", \lostConnection());
         addTestCase("duplicate column names are made unique in lower case", \duplicateNames());
+        addTestCase("SQLStatement::describe() describes the result columns", \describeColumns());
+        addTestCase("a statement mapper gets the record type of a statement", \statementRecordType());
         set_return_value(main());
+    }
+
+    private describeColumns() {
+        Datasource ds(connection());
+        on_exit ds.rollback();
+        ds.execRaw("create temporary table jdbc_describe_test (id integer not null, name varchar(20), "
+            "price numeric(10,2), units numeric(12,0), flag boolean, ratio double precision, data bytea, "
+            "created timestamp, uid uuid)");
+        ds.exec("insert into jdbc_describe_test values (1, 'name', 1.50, 12, true, 0.5, %v, %v, "
+            "'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')", <0102>, 2026-10-21T10:15:30);
+
+        SQLStatement stmt(ds);
+        on_exit stmt.close();
+        stmt.prepare("select * from jdbc_describe_test");
+        stmt.exec();
+        hash<auto> desc = stmt.describe();
+        assertEq(("id", "name", "price", "units", "flag", "ratio", "data", "created", "uid"), keys desc);
+        assertEq({"name": "id", "type": NT_INT, "maxsize": 10, "native_type": "int4", "internal_id": Types::INTEGER,
+            "nullable": False}, desc.id);
+        assertEq({"name": "name", "type": NT_STRING, "maxsize": 20, "native_type": "varchar",
+            "internal_id": Types::VARCHAR, "nullable": True}, desc.name);
+        assertEq({"name": "price", "type": NT_NUMBER, "maxsize": 10, "native_type": "numeric",
+            "internal_id": Types::NUMERIC, "nullable": True, "precision": 10, "scale": 2}, desc.price);
+        assertEq(NT_INT, desc.units.type);
+        assertEq(NT_BOOLEAN, desc.flag.type);
+        assertEq(NT_FLOAT, desc.ratio.type);
+        assertEq(NT_BINARY, desc.data.type);
+        assertEq(NT_DATE, desc.created.type);
+        # a java.util.UUID is returned as a Java object
+        assertEq(NT_OBJECT, desc.uid.type);
+        assertEq("uuid", desc.uid.native_type);
+        foreach hash<auto> col in (desc.iterator()) {
+            assertEq(("name", "type", "maxsize", "native_type", "internal_id", "nullable")
+                + (col.name =~ /^(price|units)$/ ? ("precision", "scale") : ()), keys col, col.name);
+        }
+
+        # the described type of each column is the type of its value
+        assertTrue(stmt.next());
+        hash<auto> row = stmt.fetchRow();
+        foreach string col in (keys row) {
+            assertEq(row{col}.typeCode(), desc{col}.type, col);
+        }
+        # after the last row, the result set is still described
+        assertFalse(stmt.next());
+        assertEq(desc, stmt.describe());
+
+        # SQL without a result set has no columns
+        stmt.prepare("update jdbc_describe_test set units = 13");
+        stmt.exec();
+        assertEq({}, stmt.describe());
+    }
+
+    private statementRecordType() {
+        # TableMapper builds the input record of a raw SQL statement mapper with SQLStatement::describe()
+        Datasource ds(connection());
+        *hash<string, AbstractDataField> rec = RawSqlStatementOutboundMapper::getStaticInputRecord(ds,
+            "select 1::int4 as id, 'x'::varchar(20) as name, 1.5::numeric(10,2) as price");
+        assertEq({"id": "int", "name": "string", "price": "number"},
+            (map {$1.key: $1.value.getType().getName()}, rec.pairIterator()));
+        assertEq("varchar(20)", rec.name.getDescription());
+        assertFalse(ds.inTransaction());
     }
 
     private duplicateNames() {

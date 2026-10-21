@@ -9,6 +9,8 @@
 %requires QUnit
 %requires FsUtil
 
+%module-cmd(jni) import java.sql.Types
+
 %exec-class Main
 
 public class Main inherits QUnit::Test {
@@ -28,6 +30,7 @@ public class Main inherits QUnit::Test {
         addTestCase("mssqlMultipleResultsTest", \mssqlMultipleResultsTest());
         addTestCase("mssqlLostConnectionTest", \mssqlLostConnectionTest());
         addTestCase("mssqlClassLoadReportTest", \mssqlClassLoadReportTest());
+        addTestCase("mssqlDescribeTest", \mssqlDescribeTest());
 
         # execute tests and set program return value
         set_return_value(main());
@@ -386,6 +389,53 @@ public class Main inherits QUnit::Test {
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
         printOption("-c,--conn=ARG", "set DB connection argument (ex: \"jdbc:user/pass@driver?...\")", OptionColumn);
+    }
+
+    #! SQLStatement::describe() describes the result columns with the type of the values returned
+    private mssqlDescribeTest() {
+        *Datasource ds = getConnection("QORE_DB_CONNSTR_JDBC_MSSQL");
+        if (!ds) {
+            testSkip("no jdbc connection available");
+        }
+        ds.execRaw("if object_id('jdbc_describe_test') is not null drop table jdbc_describe_test; "
+            "create table jdbc_describe_test (id int not null, name varchar(20), price decimal(10,2), flag bit, "
+            "ratio float, data varbinary(16), created datetime2, uid uniqueidentifier, ts datetimeoffset)");
+        ds.exec("insert into jdbc_describe_test values (1, 'name', 1.50, 1, 0.5, %v, %v, newid(), "
+            "sysdatetimeoffset())", <0102>, 2026-10-21T10:15:30);
+        ds.commit();
+        on_exit {
+            ds.rollback();
+            ds.execRaw("drop table jdbc_describe_test");
+            ds.commit();
+        }
+
+        SQLStatement stmt(ds);
+        on_exit stmt.close();
+        stmt.prepare("select * from jdbc_describe_test");
+        stmt.exec();
+        hash<auto> desc = stmt.describe();
+        assertEq(("id", "name", "price", "flag", "ratio", "data", "created", "uid", "ts"), keys desc);
+        assertEq({"name": "id", "type": NT_INT, "maxsize": 10, "native_type": "int", "internal_id": Types::INTEGER,
+            "nullable": False}, desc.id);
+        assertEq(20, desc.name.maxsize);
+        assertEq(("decimal", 10, 2, NT_NUMBER), (desc.price.native_type, desc.price.precision, desc.price.scale,
+            desc.price.type));
+        assertEq(16, desc.data.maxsize);
+        # datetimeoffset values (microsoft.sql.DateTimeOffset) are dates
+        assertEq(NT_DATE, desc.ts.type);
+
+        # the described type of each column is the type of its value
+        assertTrue(stmt.next());
+        hash<auto> row = stmt.fetchRow();
+        foreach string col in (keys row) {
+            assertEq(row{col}.typeCode(), desc{col}.type, col);
+        }
+        assertFalse(stmt.next());
+        assertEq(desc, stmt.describe());
+
+        stmt.prepare("update jdbc_describe_test set flag = 0");
+        stmt.exec();
+        assertEq({}, stmt.describe());
     }
 
     #! the SQL Server driver's classes are imported without reporting a class that cannot be loaded

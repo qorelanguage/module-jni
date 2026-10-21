@@ -283,8 +283,10 @@ static QoreColumnarResult* jdbc_stmt_fetch_columnar(SQLStatement* stmt, int maxR
 #endif
 
 static QoreHashNode* jdbc_stmt_describe(SQLStatement* stmt, ExceptionSink* xsink) {
-    assert(stmt->getPrivateData<QoreJdbcPreparedStatement>());
-    return nullptr;
+    QoreJdbcPreparedStatement* ps = stmt->getPrivateData<QoreJdbcPreparedStatement>();
+    assert(ps);
+
+    return ps->describe(xsink);
 }
 
 static bool jdbc_stmt_next(SQLStatement* stmt, ExceptionSink* xsink) {

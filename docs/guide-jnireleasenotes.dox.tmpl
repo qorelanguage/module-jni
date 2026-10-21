@@ -263,6 +263,13 @@
       \c SQLStatement skip update counts and raise an exception for more than one result set; and
       \c SQLStatement::affectedRows() returns the total of the update counts.  A statement with a single result
       returns it as before.  See @ref jdbc_multiple_results "statements with several results".
+    - Fixed @ref Qore::SQL::SQLStatement::describe() "SQLStatement::describe()" returning nothing with the \c jdbc
+      driver: it describes the columns of the result set as the other DBI drivers do (\c name, \c type, \c maxsize,
+      \c native_type, \c internal_id, \c nullable, and \c precision and \c scale for decimals), with \c type
+      giving the type of the values returned; the last result set is described after its last row, and SQL without
+      a result set is described with an empty hash.  Code that describes statements, such as \c TableMapper's
+      statement mappers, gets the columns of \c jdbc statements.  See
+      @ref jdbc_statement_describe "describing statement results".
     - Fixed the \c jdbc driver naming a duplicate column of a result with the column's original name and a suffix,
       so that its key could differ in case from the others (ex: \c id and \c ID_1 for the columns \c Id and
       \c ID); a duplicate is named with the lower-case name and a suffix, as every column is (\c id and \c id_1).

@@ -111,6 +111,12 @@ public:
     */
     DLLLOCAL bool next(ExceptionSink* xsink);
 
+    //! Describes the columns of the result set, or of the last result set when every result has been read
+    /** @return a hash keyed by column name, as the rows are returned, with a description hash for each column; an
+        empty hash if the statement has no result set
+    */
+    DLLLOCAL QoreHashNode* describe(ExceptionSink* xsink);
+
     //! Releases the JDBC handles after a lost connection; the SQL and bind arguments are kept
     DLLLOCAL int clear(ExceptionSink* xsink);
 

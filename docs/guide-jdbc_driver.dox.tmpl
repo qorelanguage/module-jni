@@ -57,10 +57,45 @@
     Qore versions providing these APIs can use their compatibility conversion paths; applications should
     check the running Qore version as well as the driver capabilities.
 
-    Statement result metadata is available through @ref Qore::SQL::SQLStatement::describe() "SQLStatement::describe()". This is separate from
-    datasource-level @ref Qore::SQL::Datasource::describe() "Datasource::describe()" and its @ref Qore::SQL::DBI_CAP_HAS_DESCRIBE "DBI_CAP_HAS_DESCRIBE" flag.
-
     See @ref jdbc_columnar_results for supported columnar types and examples.
+
+    Statement result metadata is available through
+    @ref Qore::SQL::SQLStatement::describe() "SQLStatement::describe()"; see @ref jdbc_statement_describe.  This is
+    separate from datasource-level @ref Qore::SQL::Datasource::describe() "Datasource::describe()" and its
+    @ref Qore::SQL::DBI_CAP_HAS_DESCRIBE "DBI_CAP_HAS_DESCRIBE" flag.
+
+    @subsection jdbc_statement_describe Describing Statement Results
+
+    @ref Qore::SQL::SQLStatement::describe() "SQLStatement::describe()" returns a hash keyed by column name, as the
+    rows are returned (in lower case, with a suffix for a duplicate name: \c id, \c id_1, ...), describing each
+    column of the statement's result set with these keys, as other %Qore DBI drivers do:
+    - \c name: the name of the column, in lower case
+    - \c type: the type code of the values returned for the column (ex: \c NT_INT), given by the Java class that the
+      JDBC driver reports for its values (\c ResultSetMetaData.getColumnClassName()), or by its SQL type when the
+      driver does not report a class that can be loaded; values of other classes are Java objects (\c NT_OBJECT)
+    - \c maxsize: the size of the column (\c ResultSetMetaData.getPrecision()): its length in characters for
+      character data, in bytes for binary data, its maximum precision for numeric data; 0 if the driver reports none
+    - \c native_type: the database's name of the type (\c ResultSetMetaData.getColumnTypeName())
+    - \c internal_id: the \c java.sql.Types code of the column's SQL type
+    - \c nullable: \c False only if the JDBC driver reports that the column cannot be null
+    - \c precision and \c scale: for \c NUMERIC and \c DECIMAL columns
+
+    For a \c NUMERIC or \c DECIMAL column with the \c optimal-numbers option (the default), \c type is \c NT_INT if
+    the column has no fractional digits and at most 18 digits, otherwise \c NT_NUMBER; a value without fractional
+    digits is returned as an integer in either case.
+
+    After the last row has been read, the last result set is still described; SQL without a result set, such as DML,
+    is described with an empty hash.  A statement that has not been executed yet is executed by \c describe().
+
+    @par Example
+    @code{.py}
+SQLStatement stmt(ds);
+stmt.prepare("select id, name, price from orders");
+stmt.exec();
+foreach hash<auto> col in (stmt.describe().iterator()) {
+    printf("%s: %s(%d), type code %d\n", col.name, col.native_type, col.maxsize, col.type);
+}
+    @endcode
 
     @section jdbc_transaction_boundaries JDBC Transaction Boundaries
 

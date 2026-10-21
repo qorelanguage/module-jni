@@ -37,9 +37,10 @@
 namespace jni {
 
 QoreJdbcColumn::QoreJdbcColumn(std::string&& name, std::string&& qname, jint ctype,
-        std::string&& native_type, jint precision, jint scale, bool nullable) : name(std::move(name)),
-        qname(std::move(qname)), strip(ctype == Globals::typeChar), ctype(ctype),
-        native_type(std::move(native_type)), precision(precision), scale(scale), nullable(nullable) {
+        std::string&& native_type, jint precision, jint scale, bool nullable, std::string&& class_name)
+        : name(std::move(name)), qname(std::move(qname)), strip(ctype == Globals::typeChar), ctype(ctype),
+        native_type(std::move(native_type)), precision(precision), scale(scale), nullable(nullable),
+        class_name(std::move(class_name)) {
 }
 
 QoreJdbcStatement::~QoreJdbcStatement() {
@@ -340,11 +341,189 @@ int QoreJdbcStatement::describeResultSet(Env& env, ExceptionSink* xsink) {
         jint precision = env.callIntMethod(info, Globals::methodResultSetMetaDataGetPrecision, &jarg);
         jint scale = env.callIntMethod(info, Globals::methodResultSetMetaDataGetScale, &jarg);
         jint nullable = env.callIntMethod(info, Globals::methodResultSetMetaDataIsNullable, &jarg);
+        // the class of the values returned by getObject(), for describe(); not every driver reports it
+        std::string class_name;
+        try {
+            LocalReference<jstring> cls = env.callObjectMethod(info,
+                Globals::methodResultSetMetaDataGetColumnClassName, &jarg).as<jstring>();
+            if (cls) {
+                Env::GetStringUtfChars cn(env, cls);
+                class_name = cn.c_str();
+            }
+        } catch (JavaException& e) {
+            // describe() gives the type of the values from the column's SQL type instead
+            e.ignore();
+        }
         cvec.emplace_back(QoreJdbcColumn(qname.c_str(), std::move(unique_qname), ctype,
-            std::move(native_type), precision, scale, nullable != 0));
+            std::move(native_type), precision, scale, nullable != 0, std::move(class_name)));
     }
 
     return 0;
+}
+
+//! Returns true if the column has the SQL type NUMERIC or DECIMAL
+static bool jdbc_is_decimal_type(jint ctype) {
+    return ctype == Globals::typeNumeric || ctype == Globals::typeDecimal;
+}
+
+//! Returns the type code of the values of a NUMERIC or DECIMAL column (java.math.BigDecimal values)
+/** With the optimal-numbers option, a value without fractional digits that fits in 64 bits is an integer: the
+    column is described as an integer column if it has no fractional digits and at most 18 digits, as for columnar
+    results.
+*/
+static qore_type_t jdbc_decimal_type_code(const QoreJdbcColumn& col, NumericOption numeric) {
+    switch (numeric) {
+        case ENO_STRING:
+            return NT_STRING;
+        case ENO_NUMERIC:
+            return NT_NUMBER;
+        default:
+            break;
+    }
+    return !col.scale && col.precision > 0 && col.precision <= 18 ? NT_INT : NT_NUMBER;
+}
+
+//! Returns the type code of the values of a column from its SQL type
+/** Used when the driver does not report the class of the column's values, or when the class cannot be loaded; the
+    classes are those that ResultSet.getObject() returns for the SQL types (JDBC 4.2 table B-3).
+*/
+static qore_type_t jdbc_sql_type_code(const QoreJdbcColumn& col, NumericOption numeric) {
+    jint t = col.ctype;
+    if (t == Globals::typeChar || t == Globals::typeVarchar || t == Globals::typeLongVarchar
+        || t == Globals::typeNChar || t == Globals::typeNVarchar || t == Globals::typeLongNVarchar) {
+        return NT_STRING;
+    }
+    if (jdbc_is_decimal_type(t)) {
+        return jdbc_decimal_type_code(col, numeric);
+    }
+    if (t == Globals::typeBit || t == Globals::typeBoolean) {
+        return NT_BOOLEAN;
+    }
+    if (t == Globals::typeTinyInt || t == Globals::typeSmallInt || t == Globals::typeInteger
+        || t == Globals::typeBigInt) {
+        return NT_INT;
+    }
+    if (t == Globals::typeReal || t == Globals::typeFloat || t == Globals::typeDouble) {
+        return NT_FLOAT;
+    }
+    if (t == Globals::typeBinary || t == Globals::typeVarbinary || t == Globals::typeLongVarbinary) {
+        return NT_BINARY;
+    }
+    if (t == Globals::typeDate || t == Globals::typeTime || t == Globals::typeTimestamp) {
+        return NT_DATE;
+    }
+    if (t == Globals::typeNull) {
+        return NT_NULL;
+    }
+    // ex: CLOB and BLOB (java.sql.Clob and java.sql.Blob), TIMESTAMP_WITH_TIMEZONE (java.time.OffsetDateTime)
+    return NT_OBJECT;
+}
+
+qore_type_t QoreJdbcStatement::getColumnTypeCode(Env& env, const QoreJdbcColumn& col) {
+    NumericOption numeric = conn->getNumericOption();
+    const std::string& name = col.class_name;
+    if (name.empty()) {
+        return jdbc_sql_type_code(col, numeric);
+    }
+    // arrays and the classes that are converted by name, as in JavaToQore::convertToQore() and
+    // QoreJniClassMap::getValue() (getColumnValue() converts with compatibility types disabled)
+    if (name == "[B") {
+        return NT_BINARY;
+    }
+    if (name[0] == '[') {
+        return NT_LIST;
+    }
+    if (name == "microsoft.sql.DateTimeOffset") {
+        return NT_DATE;
+    }
+    JniExternalProgramData* jpc = conn->getQoreJniContext();
+    if (!jpc) {
+        return jdbc_sql_type_code(col, numeric);
+    }
+    LocalReference<jclass> cls;
+    try {
+        LocalReference<jstring> jname = env.newString(name.c_str());
+        jvalue jarg;
+        jarg.l = jname;
+        cls = env.callObjectMethod(jpc->getClassLoader(), Globals::methodClassLoaderLoadClass, &jarg).as<jclass>();
+    } catch (JavaException& e) {
+        // the class is not available to the program
+        e.ignore();
+    }
+    if (!cls) {
+        return jdbc_sql_type_code(col, numeric);
+    }
+
+    // the order of the tests is that of JavaToQore::convertToQore(), for the classes of JDBC values
+    auto is_a = [&env, &cls](jclass base) -> bool {
+        jvalue jarg;
+        jarg.l = cls;
+        return env.callBooleanMethod(base, Globals::methodClassIsAssignableFrom, &jarg);
+    };
+    if (is_a(Globals::classString)) {
+        return NT_STRING;
+    }
+    if (is_a(Globals::classZonedDateTime) || is_a(Globals::classLocalDateTime) || is_a(Globals::classInstant)
+        || is_a(Globals::classTimestamp) || is_a(Globals::classDate) || is_a(Globals::classTime)) {
+        return NT_DATE;
+    }
+    if (is_a(Globals::classBigDecimal)) {
+        return jdbc_decimal_type_code(col, numeric);
+    }
+    if (is_a(Globals::classQoreObjectBase)) {
+        return NT_OBJECT;
+    }
+    if (is_a(Globals::classMap) && !JniExternalProgramData::compatTypes()) {
+        return NT_HASH;
+    }
+    if (is_a(Globals::classList)) {
+        return NT_LIST;
+    }
+    if (is_a(Globals::classQoreRelativeTime)) {
+        return NT_DATE;
+    }
+    // the boxed primitive types are converted when the value has exactly their class
+    if (env.isSameObject(cls, Globals::classInteger) || env.isSameObject(cls, Globals::classLong)
+        || env.isSameObject(cls, Globals::classShort) || env.isSameObject(cls, Globals::classByte)
+        || env.isSameObject(cls, Globals::classCharacter)) {
+        return NT_INT;
+    }
+    if (env.isSameObject(cls, Globals::classBoolean)) {
+        return NT_BOOLEAN;
+    }
+    if (env.isSameObject(cls, Globals::classDouble) || env.isSameObject(cls, Globals::classFloat)) {
+        return NT_FLOAT;
+    }
+    // any other value is a Java object
+    return NT_OBJECT;
+}
+
+QoreHashNode* QoreJdbcStatement::describe(Env& env, ExceptionSink* xsink) {
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
+    for (size_t i = 0, e = cvec.size(); i < e; ++i) {
+        if (i && !(i % 100) && qore_check_cancel(xsink, "describing JDBC result columns")) {
+            return nullptr;
+        }
+        const QoreJdbcColumn& col = cvec[i];
+        ReferenceHolder<QoreHashNode> desc(new QoreHashNode(autoTypeInfo), xsink);
+        desc->setKeyValue("name", new QoreStringNode(col.name), xsink);
+        desc->setKeyValue("type", static_cast<int64>(getColumnTypeCode(env, col)), xsink);
+        // the column size: the length in characters for character data, in bytes for binary data, the maximum
+        // precision for numeric data
+        desc->setKeyValue("maxsize", static_cast<int64>(col.precision), xsink);
+        desc->setKeyValue("native_type", new QoreStringNode(col.native_type), xsink);
+        desc->setKeyValue("internal_id", static_cast<int64>(col.ctype), xsink);
+        desc->setKeyValue("nullable", col.nullable, xsink);
+        if (jdbc_is_decimal_type(col.ctype)) {
+            desc->setKeyValue("precision", static_cast<int64>(col.precision), xsink);
+            desc->setKeyValue("scale", static_cast<int64>(col.scale), xsink);
+        }
+        h->setKeyValue(col.qname.c_str(), desc.release(), xsink);
+        if (*xsink) {
+            return nullptr;
+        }
+    }
+    return h.release();
 }
 
 bool QoreJdbcStatement::next(Env& env, ExceptionSink* xsink) {

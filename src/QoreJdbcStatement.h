@@ -65,9 +65,12 @@ struct QoreJdbcColumn {
     //! True if ResultSetMetaData reports nullable or unknown nullability
     bool nullable = true;
 
+    //! The class of the values that ResultSet.getObject() returns, if the driver reports it
+    std::string class_name;
+
     //! Constructor
     DLLLOCAL QoreJdbcColumn(std::string&& name, std::string&& qname, jint ctype, std::string&& native_type,
-        jint precision, jint scale, bool nullable);
+        jint precision, jint scale, bool nullable, std::string&& class_name);
 };
 
 // column vector
@@ -388,6 +391,15 @@ protected:
 
     //! Describe result set
     DLLLOCAL int describeResultSet(Env& env, ExceptionSink* xsink);
+
+    //! Describes the columns of the current result set, or of the last one if every result has been read
+    /** @return a hash keyed by column name, as the rows are returned, with a description hash for each column (see
+        SQLStatement::describe()); an empty hash if the statement has no result set
+    */
+    DLLLOCAL QoreHashNode* describe(Env& env, ExceptionSink* xsink);
+
+    //! Returns the type code of the %Qore values returned for a column
+    DLLLOCAL qore_type_t getColumnTypeCode(Env& env, const QoreJdbcColumn& col);
 
     DLLLOCAL void populateOutputHash(QoreHashNode& h, ExceptionSink* xsink);
 
