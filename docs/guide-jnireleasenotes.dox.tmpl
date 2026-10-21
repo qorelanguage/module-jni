@@ -40,6 +40,10 @@
       which changes the signatures of the %Qore classes created for Java classes, and a %Qore class's signature
       includes those of its parent classes.  Recompile code compiled with \c qcc that defines %Qore classes inheriting
       Java classes with this version; otherwise its classes do not match the same classes parsed from source.
+    - <b>Review code using the keys of duplicate columns in \c jdbc results.</b> A duplicate column name is the
+      lower-case name with a suffix, as for module-odbc and module-sybase: the columns \c ID and \c ID of a join are
+      returned as \c id and \c id_1, and no longer as \c id and \c ID_1 (the JDBC drivers of Oracle and SQL Server
+      return the names as written, often in upper case).
     - <b>Update handlers of the \c jdbc driver's lost-transaction error.</b> When the connection is lost in a
       transaction, the \c jdbc DBI driver raises \c JDBC-TRANSACTION-ERROR; it raised \c ODBC-TRANSACTION-ERROR
       before.  Code that catches the old error code must catch the new one.  See
@@ -259,6 +263,9 @@
       \c SQLStatement skip update counts and raise an exception for more than one result set; and
       \c SQLStatement::affectedRows() returns the total of the update counts.  A statement with a single result
       returns it as before.  See @ref jdbc_multiple_results "statements with several results".
+    - Fixed the \c jdbc driver naming a duplicate column of a result with the column's original name and a suffix,
+      so that its key could differ in case from the others (ex: \c id and \c ID_1 for the columns \c Id and
+      \c ID); a duplicate is named with the lower-case name and a suffix, as every column is (\c id and \c id_1).
     - Fixed @ref exceldataproviderintro "ExcelDataProvider" reading without header options returning
       no data and rejecting cell ranges past column \c Z.
     - Fixed @ref mqttdataproviderintro "MqttDataProvider" failing to load because the required Paho

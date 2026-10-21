@@ -16,8 +16,13 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 /** Instrumented JDBC driver for transaction-boundary and failure-path tests. */
@@ -172,11 +177,137 @@ public final class JdbcTransactionDriver implements Driver {
             });
     }
 
+    /** A column of a typed result set: its metadata, and its value in the only row; without a class name,
+        getColumnClassName() is not supported for the column */
+    private static final class Column {
+        final String label;
+        final int type;
+        final String typeName;
+        final int precision;
+        final int scale;
+        final int nullable;
+        final String className;
+        final Object value;
+
+        Column(String label, int type, String typeName, int precision, int scale, int nullable, String className,
+                Object value) {
+            this.label = label;
+            this.type = type;
+            this.typeName = typeName;
+            this.precision = precision;
+            this.scale = scale;
+            this.nullable = nullable;
+            this.className = className;
+            this.value = value;
+        }
+    }
+
+    /** The typed result sets, by name ("typed=NAME" in a scripted statement) */
+    private static final Map<String, Column[]> typedResultSets = new HashMap<>();
+    static {
+        typedResultSets.put("all", new Column[] {
+            new Column("Id", Types.INTEGER, "int4", 10, 0, ResultSetMetaData.columnNoNulls, "java.lang.Integer", 1),
+            new Column("Name", Types.VARCHAR, "varchar", 20, 0, ResultSetMetaData.columnNullable,
+                "java.lang.String", "name"),
+            new Column("Price", Types.DECIMAL, "numeric", 10, 2, ResultSetMetaData.columnNullable,
+                "java.math.BigDecimal", new BigDecimal("1.50")),
+            new Column("Units", Types.NUMERIC, "numeric", 12, 0, ResultSetMetaData.columnNullableUnknown,
+                "java.math.BigDecimal", new BigDecimal("12")),
+            new Column("Flag", Types.BIT, "bool", 1, 0, ResultSetMetaData.columnNullable, "java.lang.Boolean",
+                Boolean.TRUE),
+            new Column("Ratio", Types.DOUBLE, "float8", 17, 17, ResultSetMetaData.columnNullable,
+                "java.lang.Double", 0.5),
+            new Column("Data", Types.VARBINARY, "bytea", 16, 0, ResultSetMetaData.columnNullable, "[B",
+                new byte[] {1, 2}),
+            new Column("Created", Types.TIMESTAMP, "timestamp", 29, 6, ResultSetMetaData.columnNullable,
+                "java.sql.Timestamp", Timestamp.valueOf("2026-10-21 10:15:30")),
+            new Column("Uuid", Types.OTHER, "uuid", 0, 0, ResultSetMetaData.columnNullable, "java.util.UUID",
+                UUID.fromString("0f8fad5b-d9cb-469f-a165-70867728950e")),
+            // the driver does not report the class: the type is given by the SQL type
+            new Column("Legacy", Types.VARCHAR, "varchar", 8, 0, ResultSetMetaData.columnNullable, null, "legacy"),
+            // the class is not available to the program: the type is given by the SQL type
+            new Column("Hidden", Types.BIGINT, "int8", 19, 0, ResultSetMetaData.columnNullable,
+                "org.qore.jni.test.NoSuchValueClass", 5L),
+        });
+        // duplicate column labels, in another case than the first
+        typedResultSets.put("duplicates", new Column[] {
+            new Column("Id", Types.INTEGER, "int4", 10, 0, ResultSetMetaData.columnNoNulls, "java.lang.Integer", 1),
+            new Column("ID", Types.INTEGER, "int4", 10, 0, ResultSetMetaData.columnNoNulls, "java.lang.Integer", 2),
+            new Column("id", Types.INTEGER, "int4", 10, 0, ResultSetMetaData.columnNoNulls, "java.lang.Integer", 3),
+        });
+    }
+
+    /** A result set with the given columns and one row */
+    private static ResultSet typedResultSet(Column[] columns) {
+        ResultSetMetaData metadata = (ResultSetMetaData) Proxy.newProxyInstance(
+            JdbcTransactionDriver.class.getClassLoader(), new Class<?>[] {ResultSetMetaData.class},
+            (proxy, method, args) -> {
+                switch (method.getName()) {
+                    case "getColumnCount": return columns.length;
+                    case "hashCode":
+                    case "equals":
+                    case "toString": return objectMethod(proxy, method, args, "test typed result set metadata");
+                    default: break;
+                }
+                if (args == null || args.length != 1 || !(args[0] instanceof Integer)) {
+                    throw new SQLFeatureNotSupportedException(method.getName());
+                }
+                Column col = columns[(Integer) args[0] - 1];
+                switch (method.getName()) {
+                    case "getColumnLabel":
+                    case "getColumnName": return col.label;
+                    case "getColumnType": return col.type;
+                    case "getColumnTypeName": return col.typeName;
+                    case "getPrecision": return col.precision;
+                    case "getScale": return col.scale;
+                    case "isNullable": return col.nullable;
+                    case "getColumnClassName":
+                        if (col.className == null) {
+                            throw new SQLFeatureNotSupportedException("getColumnClassName");
+                        }
+                        return col.className;
+                    default: throw new SQLFeatureNotSupportedException(method.getName());
+                }
+            });
+        // 0 = before the row; 1 = on the row; 2 = after the row
+        int[] row = {0};
+        boolean[] closed = {false};
+        return (ResultSet) Proxy.newProxyInstance(JdbcTransactionDriver.class.getClassLoader(),
+            new Class<?>[] {ResultSet.class}, (proxy, method, args) -> {
+                synchronized (JdbcTransactionDriver.class) {
+                    switch (method.getName()) {
+                        case "next":
+                            if (closed[0]) {
+                                throw new SQLException("result set is closed");
+                            }
+                            if (row[0] < 2) {
+                                ++row[0];
+                            }
+                            return row[0] == 1;
+                        case "getObject":
+                            if (closed[0] || row[0] != 1) {
+                                throw new SQLException("no current row");
+                            }
+                            return columns[(Integer) args[0] - 1].value;
+                        case "wasNull": return false;
+                        case "getMetaData": return metadata;
+                        case "close": closed[0] = true; return null;
+                        case "isClosed": return closed[0];
+                        case "hashCode":
+                        case "equals":
+                        case "toString": return objectMethod(proxy, method, args, "test typed result set");
+                        default: throw new SQLFeatureNotSupportedException(method.getName());
+                    }
+                }
+            });
+    }
+
     /** A statement with scripted results: "multi:" followed by results separated by ";":
         - {@code count=N}: an update count
         - {@code rs=COL:V,V}: a result set with an INTEGER column (no values: an empty result set)
         - {@code fail=MSG}: executing, or moving to this result, raises an SQLException
         - {@code rowsfail=COL:MSG}: a result set whose rows raise an SQLException when read
+        - {@code typed=NAME}: a typed result set with one row (see typedResultSets)
         Moving past the last result records the event "results-read:<sql>".  Like the SQL Server driver,
         executeQuery() and executeUpdate() look only at the first result. */
     private static final class ScriptedStatement implements InvocationHandler {
@@ -224,6 +355,14 @@ public final class JdbcTransactionDriver implements Driver {
                 // an error ends the results
                 index = results.length;
                 throw new SQLException(result.substring(5));
+            }
+            if (result.startsWith("typed=")) {
+                Column[] columns = typedResultSets.get(result.substring(6));
+                if (columns == null) {
+                    throw new SQLException("unknown typed result set: " + result.substring(6));
+                }
+                current = typedResultSet(columns);
+                return true;
             }
             if (result.startsWith("rs=") || result.startsWith("rowsfail=")) {
                 boolean fail = result.startsWith("rowsfail=");

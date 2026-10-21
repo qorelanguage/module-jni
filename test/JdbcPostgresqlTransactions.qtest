@@ -19,7 +19,14 @@ class JdbcPostgresqlTransactionsTest inherits QUnit::Test {
         addTestCase("result sets survive Java native-call boundaries", \cursorLifetime());
         addTestCase("prepared results and batch bindings can be reused", \reuse());
         addTestCase("a lost connection replays only a statement that cannot have taken effect", \lostConnection());
+        addTestCase("duplicate column names are made unique in lower case", \duplicateNames());
         set_return_value(main());
+    }
+
+    private duplicateNames() {
+        Datasource ds(connection());
+        on_exit ds.rollback();
+        assertEq({"id": (1,), "id_1": (2,), "id_2": (3,)}, ds.select("select 1 as \"Id\", 2 as \"ID\", 3 as id"));
     }
 
     private cursorLifetime() {

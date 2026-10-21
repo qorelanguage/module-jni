@@ -1,0 +1,35 @@
+#!/usr/bin/env qore
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+# SPDX-License-Identifier: MIT
+
+%modern
+%prepend-module-path "${SCRIPT_DIR}/../build"
+%requires jni
+%requires QUnit
+%module-cmd(jni) add-relative-classpath qore-jni-test.jar
+%module-cmd(jni) import org.qore.jni.test.JdbcTransactionDriver
+%exec-class JdbcResultMetadataTest
+
+#! The columns of the results of the jdbc driver, with the test JDBC driver's typed result sets
+class JdbcResultMetadataTest inherits QUnit::Test {
+    constructor() : Test("JDBC result metadata", "1.0", \ARGV) {
+        addTestCase("duplicate column names are made unique in lower case", \duplicateNames());
+        set_return_value(main());
+    }
+
+    private Datasource datasource() {
+        JdbcTransactionDriver::reset();
+        return new Datasource("jdbc:@qore-transaction-test:fixture");
+    }
+
+    private duplicateNames() {
+        # the labels "Id", "ID" and "id": every key is the lower-case name, with a suffix for a duplicate
+        Datasource ds = datasource();
+        assertEq({"id": (1,), "id_1": (2,), "id_2": (3,)}, ds.select("multi:typed=duplicates"));
+        SQLStatement stmt(ds);
+        on_exit stmt.close();
+        stmt.prepare("multi:typed=duplicates");
+        assertEq(({"id": 1, "id_1": 2, "id_2": 3},), stmt.fetchRows());
+        ds.rollback();
+    }
+}

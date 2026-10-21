@@ -313,10 +313,10 @@ int QoreJdbcStatement::describeResultSet(Env& env, ExceptionSink* xsink) {
         if (it == strset.end()) {
             unique_qname = qname.c_str();
         } else {
-            // Find a unique column name.
+            // Find a unique column name: the lower-case name with a suffix
             unsigned num = 1;
             while (true) {
-                QoreStringMaker tmp("%s_%d", name.c_str(), num);
+                QoreStringMaker tmp("%s_%d", qname.c_str(), num);
                 it = strset.find(tmp.c_str());
                 if (it == strset.end()) {
                     unique_qname = tmp.c_str();
