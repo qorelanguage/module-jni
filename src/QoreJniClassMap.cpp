@@ -422,6 +422,10 @@ jclass QoreJniClassMap::findLoadClass(const QoreString& name, QoreProgram* pgm) 
 
 // takes an internal name (ex: java/lang/Class)
 jclass QoreJniClassMap::findLoadClass(const char* jpath, QoreProgram* pgm) {
+    // attaches the thread to the JVM: the returned local reference is created on it, also when the class is found
+    // in the cache, which can be the thread's first call into Java (ex: load_class() in a new thread)
+    Env env;
+
     // must be initialized: if there is no Java context below (jpc is nullptr), qc is never assigned
     // before being tested, which would otherwise read an indeterminate value
     JniQoreClass* qc = nullptr;
@@ -467,7 +471,6 @@ jclass QoreJniClassMap::findLoadClass(const char* jpath, QoreProgram* pgm) {
         if (!qc) {
             // create the class with NO global lock held; findCreateQoreClass() coordinates
             // concurrent/recursive creation internally
-            Env env;
             bool base;
             SimpleRefHolder<Class> cls(loadClass(env, jpath, base, jpc));
 

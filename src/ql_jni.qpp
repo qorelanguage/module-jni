@@ -333,6 +333,9 @@ Jni::java::lang::Object implement_interface(Jni::java::lang::ClassLoader[QoreJni
  */
 Jni::org::qore::jni::JavaArray new_array(Jni::java::lang::Class[QoreJniPrivateData] component_class, int size) [flags=NAMED_ARGS] {
     try {
+        // attaches the thread to the JVM before the class reference is used: the Class object can come from another
+        // thread, and this can be this thread's first call into Java
+        jni::Env env;
         return new QoreObject(QC_JAVAARRAY, jni::jni_get_program_context(),
             new Array(component_class->makeLocal().as<jclass>(), size));
     } catch (jni::Exception& e) {

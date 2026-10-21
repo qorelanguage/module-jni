@@ -207,6 +207,10 @@
       exceptions, and the context class loader are preserved, and the declaration is resolved once per
       method.
 
+    - Fixed the process crashing (an assertion failing in Debug builds) when a thread's first call into Java was
+      @ref Jni::org::qore::jni::load_class() "load_class()" for a class already imported, or
+      @ref Jni::org::qore::jni::new_array() "new_array()": neither attached the thread to the JVM.
+
     @par Lifetimes and shutdown
 
     - Fixed crashes from expired Program bindings, callback metadata, and incomplete Java wrapper

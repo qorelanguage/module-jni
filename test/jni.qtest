@@ -298,6 +298,8 @@ public class Main inherits QUnit::Test {
         addTestCase("checked JNI string reference lifetime test", \checkedJniStringReferenceLifetimeTest());
         addTestCase("import builtin-class collision test", \importBuiltinClassCollisionTest());
         addTestCase("blank QORE_JNI_JVM_ARGS values add no JVM option", \blankJvmArgsTest());
+        addTestCase("a thread's first call into Java can be load_class() or new_array()",
+            \threadFirstJavaCallTest());
         addTestCase("injected superclass loader test", \injectedSuperclassLoaderTest());
         addTestCase("loader precedence for cached byte code test", \cachedByteCodeLoaderPrecedenceTest());
         addTestCase("registered sibling classloader identity test", \registeredSiblingClassLoaderIdentityTest());
@@ -376,6 +378,39 @@ System::gc();
                 shellQuote(qoreBin()), shellQuote(tmp.path));
             assertEq("QORE_JNI_EXIT=0", trim(backquote(cmd)), sprintf("QORE_JNI_JVM_ARGS=%y", args));
         }
+    }
+
+    #! A new thread's first call into Java can be load_class() for a class already imported, or new_array()
+    /** Regression test: neither attached the thread to the JVM, so a thread calling either one before any other call
+        into Java crashed the process (an assertion failed in debug builds).  The child runs in its own process, as
+        the failure ends the process. */
+    threadFirstJavaCallTest() {
+        if (!Qore::Option::HAVE_SYSTEM) {
+            testSkip("system() is not available on this platform");
+        }
+        string src = "%modern
+%requires jni
+# imported on the main thread, so the threads below find the class in the cache
+Jni::java::lang::Class cls = load_class(class_name: \"java/lang/String\");
+foreach string what in (\"load_class\", \"new_array\") {
+    Counter c(1);
+    background sub () {
+        on_exit c.dec();
+        if (what == \"load_class\") {
+            printf(\"%s: %s\\n\", what, load_class(class_name: \"java/lang/String\").getName());
+        } else {
+            printf(\"%s: %d\\n\", what, new_array(component_class: cls, size: 2).length());
+        }
+    }();
+    c.waitForZero();
+}
+";
+        TmpFile tmp(NOTHING, ".qr");
+        tmp.file.write(jniModulePath() + src);
+        tmp.file.close();
+        string cmd = sprintf("env -u JAVA_TOOL_OPTIONS -u _JAVA_OPTIONS -u JDK_JAVA_OPTIONS %s -b --enable-debug %s "
+            "2>&1; echo QORE_JNI_EXIT=$?", shellQuote(qoreBin()), shellQuote(tmp.path));
+        assertEq("load_class: java.lang.String\nnew_array: 2\nQORE_JNI_EXIT=0", trim(backquote(cmd)));
     }
 
     #! Importing a Java class that collides with a qpp builtin Qore class must raise cleanly, not crash
