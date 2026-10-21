@@ -138,7 +138,23 @@ System::out.println("testing...");
     |<b><tt>public</tt></b>|<b><tt>public</tt></b>|the %Qore types of the Java types
     |<b><tt>protected</tt></b>|<b><tt>private</tt></b> (or <b><tt>private:hierarchy</tt></b>)|the %Qore types of \
         the Java types
+    |package-private (no modifier)|<b><tt>public</tt></b> (see @ref jni_package_private)|the %Qore types of the \
+        Java types
     |<b><tt>private</tt></b>|<b><tt>private:internal</tt></b>|\c auto (see @ref jni_member_types)
+
+    @subsection jni_package_private Package-Private Java Members
+
+    A package-private Java member, one declared without an access modifier, is \c public in %Qore.  Calling it works
+    when Java allows reflective access to it:
+    - always for a class loaded from the classpath, as all its packages are open
+    - for a class in a named module, such as the JDK's own modules, only if the module opens the class's package to
+      the code of the \c jni module; otherwise the call raises a \c java.lang.IllegalAccessException.  A package is
+      opened when the JVM starts, for example with
+      <tt>QORE_JNI_JVM_ARGS=--add-opens=java.base/java.util=ALL-UNNAMED</tt>, or while it runs, by the module itself
+      (\c Module.addOpens()) or by a Java agent.
+
+    As this access can change while the JVM runs, a package-private member is always \c public in %Qore, whether or
+    not it can be called when its class is imported.
 
     @subsection jni_member_types Declared Types of Java Members
 

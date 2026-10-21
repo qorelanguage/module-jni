@@ -22,7 +22,8 @@
 /** The fixture classes are compiled when the test runs; \c Missing is left out of the classpath, as an optional
     dependency of a driver often is.  \c Helper can then be loaded, but not described, as its members name
     \c Missing.  \c PrivatePath reaches \c Helper only through private members, and \c PublicPath through a public
-    method.
+    method.  Package-private members are public in %Qore; whether Java allows calling them depends on the module of
+    their class.
 */
 class JniPrivateMemberTypesTest inherits QUnit::Test {
     private {
@@ -63,6 +64,11 @@ public class PrivatePath {
         return \"hello\";
     }
 
+    // package-private
+    String internal() {
+        return \"internal\";
+    }
+
     // a private overload whose Qore signature, with auto types, is the same as the public one
     private static String describe(String s) {
         return \"private \" + s;
@@ -92,6 +98,10 @@ public class PublicPath {
             \publicPathReported());
         addTestCase("private members are declared with auto types", \privateMembersAuto());
         addTestCase("a private overload does not replace a public one", \privateOverload());
+        addTestCase("a package-private member of a classpath class is public and can be called",
+            \packagePrivateClasspath());
+        addTestCase("a package-private member of a JDK class is public; Java allows calling it if its package is "
+            "opened", \packagePrivateJdk());
         compileFixtures();
         set_return_value(main());
     }
@@ -199,6 +209,44 @@ public class PublicPath {
         assertEq("public x", cast<StaticMethod>(cls.getStaticMethod("describe")).call("x"));
         # called from Qore code
         assertEq("public x", p.callFunction("call_static_method_args", "PrivatePath", "describe", ("x",)));
+    }
+
+    private packagePrivateClasspath() {
+        Program p = fixtureProgram();
+        Class cls = Class::forName(p, "PrivatePath");
+        hash<auto> internal = variant(cls, "internal");
+        assertEq("public", internal.access);
+        assertEq("string", internal.ret);
+        # the packages of a class loaded from the classpath are open, so the method can be called
+        assertEq("internal", call_object_method(cls.newObject(), "internal"));
+    }
+
+    private packagePrivateJdk() {
+        # ArrayList.elementData(int) is package-private in java.base, which does not open java.util
+        Program p(PO_NEW_STYLE);
+        p.loadModule("jni");
+        p.issueModuleCmd("jni", "import java.util.ArrayList");
+        Class cls = Class::forName(p, "ArrayList");
+        assertEq("public", variant(cls, "elementData").access);
+        object list = cls.newObject();
+        call_object_method(list, "add", "first");
+        assertThrows("JNI-ERROR", "IllegalAccessException", \call_object_method(), (list, "elementData", 0));
+
+        if (!Qore::Option::HAVE_SYSTEM) {
+            testSkip("system() is not available on this platform");
+        }
+        # opened when the JVM starts, the method can be called
+        TmpFile tmp(NOTHING, ".qr");
+        tmp.file.write(sprintf("%%modern\n%%prepend-module-path \"%s\"\n%%requires jni\n"
+            "%%module-cmd(jni) import java.util.ArrayList\n"
+            "ArrayList list();\nlist.add(\"first\");\n"
+            "printf(\"%%s\\n\", call_object_method(list, \"elementData\", 0));\n",
+            dirname(get_module_hash().jni.filename)));
+        tmp.file.close();
+        string output = trim(backquote(sprintf("env -u JAVA_TOOL_OPTIONS -u _JAVA_OPTIONS -u JDK_JAVA_OPTIONS "
+            "QORE_JNI_JVM_ARGS=--add-opens=java.base/java.util=ALL-UNNAMED %s %s 2>&1; echo exit=$?",
+            shellQuote(qoreBin()), shellQuote(tmp.path))));
+        assertEq("first\nexit=0", output);
     }
 
     #! Returns the access, parameter types and return type of the only variant of a method
