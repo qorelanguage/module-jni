@@ -1550,13 +1550,15 @@ static std::vector<JniVariant> jni_get_variants(Env& env, std::vector<std::uniqu
         }
     }
 
-    // the variants for each name and signature, in the order of the methods
-    typedef std::tuple<std::string, bool, type_vec_t> key_t;
+    // the variants for each name and signature, in the order of the methods; a private method, whose types are
+    // auto, is never chosen instead of a method that is not private
+    typedef std::tuple<std::string, bool, bool, type_vec_t> key_t;
     std::map<key_t, std::vector<JniVariant>> groups;
     for (auto& e : entries) {
-        groups[key_t(e->name, is_static(*e), e->params)].push_back(JniVariant{e.get(), false});
+        groups[key_t(e->name, is_static(*e), e->meth->isPrivate(), e->params)].push_back(JniVariant{e.get(), false});
         if (!e->alt_params.empty() && has_alt(*e)) {
-            groups[key_t(e->name, is_static(*e), e->alt_params)].push_back(JniVariant{e.get(), true});
+            groups[key_t(e->name, is_static(*e), e->meth->isPrivate(), e->alt_params)].push_back(
+                JniVariant{e.get(), true});
         }
     }
     std::vector<JniVariant> rv;
@@ -1570,9 +1572,14 @@ static std::vector<JniVariant> jni_get_variants(Env& env, std::vector<std::uniqu
     //   f(ArrayList))
     // - a variant whose Java parameter classes are subclasses of those of another variant is added before it: a Java
     //   object is passed to the method of its class, as in Java (ex: f(TreeMap) rather than f(Map))
+    // - the variants of private methods are added after the others, so that a private variant with the same %Qore
+    //   signature as another one (its types are auto) is the one that is not added
     std::stable_sort(rv.begin(), rv.end(), [](const JniVariant& a, const JniVariant& b) {
         if (a.entry->name != b.entry->name) {
             return a.entry->name < b.entry->name;
+        }
+        if (a.entry->meth->isPrivate() != b.entry->meth->isPrivate()) {
+            return !a.entry->meth->isPrivate();
         }
         size_t al = jni_count_list_params(a.getParams());
         size_t bl = jni_count_list_params(b.getParams());

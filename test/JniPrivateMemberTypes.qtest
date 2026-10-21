@@ -1,0 +1,225 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+# SPDX-License-Identifier: MIT
+
+%modern
+
+%prepend-module-path "${SCRIPT_DIR}/../build"
+%requires jni
+%requires QUnit
+%requires FsUtil
+%requires reflection
+
+%module-cmd(jni) add-relative-classpath ../build/qore-jni.jar
+%module-cmd(jni) add-relative-classpath ../build/qore-jni-compiler.jar
+%module-cmd(jni) import org.qore.jni.compiler.QoreJavaCompiler
+%module-cmd(jni) import org.qore.jni.compiler.CompilerOutput
+
+%exec-class JniPrivateMemberTypesTest
+
+#! The types of private Java members are declared as auto, and the classes they name are not imported
+/** The fixture classes are compiled when the test runs; \c Missing is left out of the classpath, as an optional
+    dependency of a driver often is.  \c Helper can then be loaded, but not described, as its members name
+    \c Missing.  \c PrivatePath reaches \c Helper only through private members, and \c PublicPath through a public
+    method.
+*/
+class JniPrivateMemberTypesTest inherits QUnit::Test {
+    private {
+        const Package = "org.qore.jni.test.members";
+
+        const Sources = {
+            Package + ".Missing": "package " + Package + ";
+public class Missing {
+}
+",
+            Package + ".Helper": "package " + Package + ";
+public class Helper {
+    public void use(Missing m) {
+    }
+}
+",
+            Package + ".PrivatePath": "package " + Package + ";
+public class PrivatePath {
+    private Helper helper;
+    private int count = 1;
+
+    public PrivatePath() {
+    }
+
+    private PrivatePath(Helper helper) {
+        this.helper = helper;
+    }
+
+    private Helper getHelper(int i) {
+        return helper;
+    }
+
+    private String twice(int i) {
+        return String.valueOf(i * 2);
+    }
+
+    public String hello() {
+        return \"hello\";
+    }
+
+    // a private overload whose Qore signature, with auto types, is the same as the public one
+    private static String describe(String s) {
+        return \"private \" + s;
+    }
+
+    public static String describe(Object o) {
+        return \"public \" + o;
+    }
+}
+",
+            Package + ".PublicPath": "package " + Package + ";
+public class PublicPath {
+    public Helper getHelper() {
+        return null;
+    }
+}
+",
+        };
+
+        #! the directory with the compiled fixture classes, without Missing
+        TmpDir classes();
+    }
+
+    constructor() : Test("JNI private member types", "1.0", \ARGV) {
+        addTestCase("a class reached only through private members is not imported", \privatePathNotImported());
+        addTestCase("a class reached through a public member is reported when it cannot be described",
+            \publicPathReported());
+        addTestCase("private members are declared with auto types", \privateMembersAuto());
+        addTestCase("a private overload does not replace a public one", \privateOverload());
+        compileFixtures();
+        set_return_value(main());
+    }
+
+    private compileFixtures() {
+        QoreJavaCompiler compiler();
+        hash<auto> output = compiler.compile(Sources);
+        string dir = classes.path + DirSep + replace(Package, ".", DirSep);
+        mkdir_ex(dir, 0755, True);
+        foreach string name in (keys Sources) {
+            if (name =~ /\.Missing$/) {
+                continue;
+            }
+            CompilerOutput out = output{name};
+            File f();
+            f.open2(dir + DirSep + (name =~ x/([^.]+)$/)[0] + ".class", O_CREAT | O_TRUNC | O_WRONLY);
+            f.write(out.file.openInputStream().readAllBytes());
+        }
+    }
+
+    #! Runs a script importing the given class from the fixture classes in a new process; returns its output
+    /** The jni module reports a class it cannot describe once per process, on stderr, so the report is checked in
+        a process of its own.
+    */
+    private string importInChild(string cls) {
+        TmpFile tmp(NOTHING, ".qr");
+        tmp.file.write(sprintf("%%modern\n%%prepend-module-path \"%s\"\n%%requires jni\n"
+            "%%module-cmd(jni) add-classpath %s\n%%module-cmd(jni) import %s.%s\nprintf(\"imported\\n\");\n",
+            dirname(get_module_hash().jni.filename), classes.path, Package, cls));
+        tmp.file.close();
+        # the JVM launcher must not write its "Picked up ..." banner into the output
+        return trim(backquote(sprintf("env -u JAVA_TOOL_OPTIONS -u _JAVA_OPTIONS -u JDK_JAVA_OPTIONS %s %s 2>&1; "
+            "echo exit=$?", shellQuote(qoreBin()), shellQuote(tmp.path))));
+    }
+
+    private privatePathNotImported() {
+        if (!Qore::Option::HAVE_SYSTEM) {
+            testSkip("system() is not available on this platform");
+        }
+        assertEq("imported\nexit=0", importInChild("PrivatePath"));
+    }
+
+    private publicPathReported() {
+        if (!Qore::Option::HAVE_SYSTEM) {
+            testSkip("system() is not available on this platform");
+        }
+        string output = importInChild("PublicPath");
+        assertRegex("WARNING: jni: Java class '" + Package + ".Helper' could not be loaded", output);
+        assertRegex("NoClassDefFoundError: " + replace(Package, ".", "/") + "/Missing", output);
+        assertRegex("imported\nexit=0$", output);
+    }
+
+    private Program fixtureProgram() {
+        Program p(PO_NEW_STYLE);
+        p.loadModule("jni");
+        p.issueModuleCmd("jni", "add-classpath " + classes.path);
+        p.issueModuleCmd("jni", "import " + Package + ".PrivatePath");
+        return p;
+    }
+
+    private privateMembersAuto() {
+        Program p = fixtureProgram();
+        Class cls = Class::forName(p, "PrivatePath");
+
+        hash<auto> getHelper = variant(cls, "getHelper");
+        assertEq("private:internal", getHelper.access);
+        assertEq(("auto",), getHelper.params);
+        assertEq("auto", getHelper.ret);
+
+        hash<auto> twice = variant(cls, "twice");
+        assertEq(("auto",), twice.params);
+        assertEq("auto", twice.ret);
+
+        # a public method keeps its types
+        hash<auto> hello = variant(cls, "hello");
+        assertEq("public", hello.access);
+        assertEq("string", hello.ret);
+
+        # the private constructor, and the private fields
+        list<hash<auto>> constructors = map (
+            "access": cast<AbstractMethodVariant>($1).getAccessModifierString(),
+            "params": (map $1.getName(), $1.getParamTypes()),
+        ), cls.getConstructorVariants();
+        assertEq(({"access": "public", "params": ()}, {"access": "private:internal", "params": ("auto",)}),
+            constructors);
+        assertEq("auto", cls.getMember("helper").getType().getName());
+        assertEq("auto", cls.getMember("count").getType().getName());
+
+        # the arguments of a private method are converted to its Java parameter types when it is called through
+        # reflection
+        object obj = cls.newObject();
+        assertEq("42", cast<NormalMethod>(cls.getMethod("twice")).call(obj, 21));
+    }
+
+    private privateOverload() {
+        # the private describe(String) has the Qore signature of the public describe(Object), describe(auto), so it is
+        # not added; the public method keeps both its variants, the second taking a Java object
+        Program p = fixtureProgram();
+        Class cls = Class::forName(p, "PrivatePath");
+        list<string> variants = map sprintf("%s describe(%s)",
+            cast<AbstractMethodVariant>($1).getAccessModifierString(),
+            (foldl $1 + ", " + $2, (map $1.getName(), $1.getParamTypes()))),
+            cls.getStaticMethod("describe").getVariants();
+        assertEq(("public describe(auto)", "public describe(*object<Object>)"), variants);
+        assertEq("public x", cast<StaticMethod>(cls.getStaticMethod("describe")).call("x"));
+        # called from Qore code
+        assertEq("public x", p.callFunction("call_static_method_args", "PrivatePath", "describe", ("x",)));
+    }
+
+    #! Returns the access, parameter types and return type of the only variant of a method
+    private hash<auto> variant(Class cls, string name) {
+        list<AbstractVariant> variants = cls.getMethod(name).getVariants();
+        assertEq(1, variants.size(), name);
+        AbstractVariant v = variants[0];
+        return {
+            "access": cast<AbstractMethodVariant>(v).getAccessModifierString(),
+            "params": (map $1.getName(), v.getParamTypes()),
+            "ret": v.getReturnType().getName(),
+        };
+    }
+
+    private string qoreBin() {
+        string qore_bin = ENV.QORE_BIN ?? ENV.QORE_BINARY ?? ENV.QORE_EXECUTABLE ?? QORE_ARGV[0] ?? ARGV[0];
+        assertTrue(exists qore_bin, "no qore binary path available");
+        return qore_bin;
+    }
+
+    private static string shellQuote(string arg) {
+        return "'" + replace(arg, "'", "'\\''") + "'";
+    }
+}

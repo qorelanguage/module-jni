@@ -417,6 +417,15 @@ void BaseMethod::getName(QoreString& str) const {
 int BaseMethod::getParamTypes(Env& env, type_vec_t& paramTypeInfo, type_vec_t& altParamTypeInfo,
         QoreJniClassMap& clsmap, QoreProgram* pgm, bool literal) {
     unsigned len = paramTypes.size();
+    if (isPrivate()) {
+        // A private Java method or constructor can only be called through reflection, so its parameter types are
+        // declared as auto instead of importing the classes they name: building those classes would import every
+        // class reachable from them, and fails where one of them needs an optional dependency that is absent.  The
+        // arguments are still converted to the Java parameter types when it is called.  Being independent of the
+        // classpath, the types also keep the class's signature the same wherever the class is built.
+        paramTypeInfo.assign(len, autoTypeInfo);
+        return 0;
+    }
     if (len) {
         paramTypeInfo.reserve(len);
     }
@@ -450,6 +459,10 @@ int BaseMethod::getParamTypes(Env& env, type_vec_t& paramTypeInfo, type_vec_t& a
 }
 
 const QoreTypeInfo* BaseMethod::getReturnTypeInfo(QoreJniClassMap& clsmap, QoreProgram* pgm) {
+    if (isPrivate()) {
+        // see getParamTypes()
+        return autoTypeInfo;
+    }
     // the generic return type of the method gives the key type of a map
     return clsmap.getQoreType(retValClass, pgm, false, QoreJniClassMap::JavaTypeUse::Value,
         kind == Kind::Method ? (jobject)method : nullptr);

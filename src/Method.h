@@ -200,6 +200,14 @@ public:
         return mods & JVM_ACC_ABSTRACT;
     }
 
+    //! Returns true if the method or constructor is private in Java
+    /** Its %Qore parameter and return types are \c auto, so that the classes it mentions are not imported; see
+        getParamTypes()
+    */
+    bool isPrivate() const {
+        return mods & JVM_ACC_PRIVATE;
+    }
+
     bool isSynthetic() const {
         return mods & ACC_SYNTHETIC;
     }

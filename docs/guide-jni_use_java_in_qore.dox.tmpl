@@ -134,10 +134,31 @@ System::out.println("testing...");
     Java access modifiers are mapped directly to Qore access modifiers as in the following table.
 
     <b>Java to Qore Access Mappings</b>
-    |!Java|!Qore
-    |<b><tt>public</tt></b>|<b><tt>public</tt></b>
-    |<b><tt>protected</tt></b>|<b><tt>private</tt></b> (or <b><tt>private:hierarchy</tt></b>)
-    |<b><tt>private</tt></b>|<b><tt>private:internal</tt></b>
+    |!Java|!Qore|!Declared types
+    |<b><tt>public</tt></b>|<b><tt>public</tt></b>|the %Qore types of the Java types
+    |<b><tt>protected</tt></b>|<b><tt>private</tt></b> (or <b><tt>private:hierarchy</tt></b>)|the %Qore types of \
+        the Java types
+    |<b><tt>private</tt></b>|<b><tt>private:internal</tt></b>|\c auto (see @ref jni_member_types)
+
+    @subsection jni_member_types Declared Types of Java Members
+
+    The %Qore class created for a Java class declares the types of its members' parameters, return values and fields
+    with the %Qore classes created for the Java classes they name, which are imported with it.  A Java class that
+    cannot be loaded or described there, typically because it needs an optional dependency that is not in the
+    classpath, is declared as \c auto; this is reported once per process on \c stderr, naming the class and the
+    Java exception, because a %Qore class built with such a type does not match the same class built where the
+    dependency is available.
+
+    The parameter, return value and field types of \c private Java members are always declared as \c auto, and the
+    classes they name are not imported for them: a private member cannot be called from %Qore code, only through the
+    \c reflection module (ex: \c NormalMethod::call()), where Java allows reflective access to it (always for
+    classes loaded from the classpath).  So an optional dependency that a library uses only
+    internally is not reported either (for example the SQL Server JDBC driver's antlr dependency, needed only for
+    its \c useFmtOnly option).  The \c reflection module therefore shows the variants of private Java methods and
+    constructors, and private fields, with \c auto types; their arguments are converted to the Java parameter types
+    when they are called.  A private Java method whose %Qore signature with \c auto types is the same as that of a
+    non-private method of the same name is not added to the %Qore class.  Private \c static \c final fields are
+    still constants with their values.
 
     @section jni_classloader Java Classloader
 

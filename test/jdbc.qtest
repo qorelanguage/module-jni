@@ -7,6 +7,7 @@
 %prepend-module-path "${SCRIPT_DIR}/../build"
 %requires jni
 %requires QUnit
+%requires FsUtil
 
 %exec-class Main
 
@@ -26,6 +27,7 @@ public class Main inherits QUnit::Test {
         addTestCase("pgsqlMultipleResultsTest", \pgsqlMultipleResultsTest());
         addTestCase("mssqlMultipleResultsTest", \mssqlMultipleResultsTest());
         addTestCase("mssqlLostConnectionTest", \mssqlLostConnectionTest());
+        addTestCase("mssqlClassLoadReportTest", \mssqlClassLoadReportTest());
 
         # execute tests and set program return value
         set_return_value(main());
@@ -384,6 +386,43 @@ public class Main inherits QUnit::Test {
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
         printOption("-c,--conn=ARG", "set DB connection argument (ex: \"jdbc:user/pass@driver?...\")", OptionColumn);
+    }
+
+    #! the SQL Server driver's classes are imported without reporting a class that cannot be loaded
+    /** The driver's antlr dependency (for its \c useFmtOnly option) is optional and usually absent; a class that needs
+        it is reachable from \c SQLServerException only through private members, whose classes are not imported.  The
+        jni module reports a class that cannot be loaded once per process, on stderr, so the import and an SQL error,
+        whose exception argument is a \c SQLServerException, are checked in a process of their own.
+    */
+    private mssqlClassLoadReportTest() {
+        *Datasource ds = getConnection("QORE_DB_CONNSTR_JDBC_MSSQL");
+        if (!ds) {
+            testSkip("no jdbc connection available");
+        }
+        if (!Qore::Option::HAVE_SYSTEM) {
+            testSkip("system() is not available on this platform");
+        }
+        TmpFile tmp(NOTHING, ".qr");
+        tmp.file.write(sprintf("%%modern\n%%prepend-module-path \"%s\"\n%%requires jni\n",
+            dirname(get_module_hash().jni.filename)) + "
+Datasource ds(ENV.QORE_DB_CONNSTR_JDBC_MSSQL);
+try {
+    ds.select(\"select * from jdbc_class_load_report_no_such_table\");
+} catch (hash<ExceptionInfo> ex) {
+    printf(\"error: %s\\n\", ex.arg.fullType());
+}
+Program p(PO_NEW_STYLE);
+p.loadModule(\"jni\");
+p.issueModuleCmd(\"jni\", \"add-classpath \" + parse_datasource(ENV.QORE_DB_CONNSTR_JDBC_MSSQL).options.classpath);
+p.issueModuleCmd(\"jni\", \"import com.microsoft.sqlserver.jdbc.SQLServerException\");
+printf(\"imported\\n\");
+");
+        tmp.file.close();
+        string qore_bin = ENV.QORE_BIN ?? ENV.QORE_BINARY ?? ENV.QORE_EXECUTABLE ?? QORE_ARGV[0] ?? ARGV[0];
+        # the JVM launcher must not write its "Picked up ..." banner into the output
+        string output = trim(backquote(sprintf("env -u JAVA_TOOL_OPTIONS -u _JAVA_OPTIONS -u JDK_JAVA_OPTIONS "
+            "'%s' '%s' 2>&1; echo exit=$?", qore_bin, tmp.path)));
+        assertEq("error: object<SQLServerException>\nimported\nexit=0", output);
     }
 
     private *Datasource getConnection(string var) {

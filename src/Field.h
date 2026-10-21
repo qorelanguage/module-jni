@@ -122,6 +122,11 @@ public:
     */
     DLLLOCAL const QoreTypeInfo* getQoreTypeInfo(QoreJniClassMap& clsmap, const QoreTypeInfo*& altType,
             QoreProgram* pgm) {
+        if (mods & JVM_ACC_PRIVATE) {
+            // a private Java field is declared as auto instead of importing the class of its type, as for private
+            // methods (see BaseMethod::getParamTypes())
+            return autoTypeInfo;
+        }
         return clsmap.getQoreType(typeClass, altType, pgm, false, QoreJniClassMap::JavaTypeUse::Value, field);
     }
 
