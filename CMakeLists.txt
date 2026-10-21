@@ -1225,6 +1225,7 @@ set(JAVA_TEST_JAR_SRC
     test/JavaMethodAccessTest.java
     test/java/src/org/qore/jni/NativeCleanupLifecycleTest.java
     test/java/src/org/qore/jni/ExceptionConversionFixture.java
+    test/java/src/org/qore/jni/test/JavaTimeTypes.java
     test/java/src/org/qore/jni/test/JdbcCursorTest.java
     test/java/src/org/qore/jni/test/JdbcTransactionDriver.java
     test/java/src/org/qore/jni/test/Callbacks.java

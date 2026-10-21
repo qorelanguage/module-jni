@@ -1,0 +1,134 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+# SPDX-License-Identifier: MIT
+
+%modern
+
+%prepend-module-path "${SCRIPT_DIR}/../build"
+%requires jni
+%requires QUnit
+%requires reflection
+
+%module-cmd(jni) add-relative-classpath qore-jni-test.jar
+%module-cmd(jni) import org.qore.jni.test.JavaTimeTypes
+%module-cmd(jni) import java.sql.Timestamp
+%module-cmd(jni) import java.time.Duration
+
+%exec-class JniJavaTimeTest
+
+#! Java date and time values and Qore dates
+class JniJavaTimeTest inherits QUnit::Test {
+    private {
+        #! a format that shows the offset of a date
+        const Fmt = "YYYY-MM-DDTHH:mm:SS.xxZ";
+
+        #! the classes whose values are dates, by the name of the method returning one
+        const Converted = (
+            "offsetDateTime", "offsetTime", "localDate", "localTime", "localDateTime", "zonedDateTime", "instant",
+            "timestamp", "sqlDate", "sqlTime",
+        );
+
+        #! the classes whose values are Java objects, by method name: the class name
+        const NotConverted = {
+            "duration": "Duration",
+            "period": "Period",
+            "year": "Year",
+            "yearMonth": "YearMonth",
+            "monthDay": "MonthDay",
+        };
+    }
+
+    constructor() : Test("Java date and time types", "1.0", \ARGV) {
+        addTestCase("Java date and time values are Qore dates", \values());
+        addTestCase("members of the date and time classes are declared as dates", \declaredTypes());
+        addTestCase("a date is converted to the date and time class of a parameter", \parameters());
+        addTestCase("a Java object of a date and time class can still be passed", \javaObjectParameter());
+        addTestCase("a field of a date and time class is a date", \field());
+        addTestCase("durations, periods and partial dates are Java objects", \notConverted());
+        set_return_value(main());
+    }
+
+    private values() {
+        # absolute values with an offset keep it
+        assertEq("2026-10-21T10:15:30.123456+05:30", JavaTimeTypes::offsetDateTime().format(Fmt));
+        # a time of day is a time on 1970-01-01
+        assertEq("1970-01-01T10:15:30.500000-03:00", JavaTimeTypes::offsetTime().format(Fmt));
+        # local values are in the current time zone
+        assertEq(2026-10-21, JavaTimeTypes::localDate());
+        assertEq(1970-01-01T10:15:00, JavaTimeTypes::localTime());
+        assertEq(2026-10-21T10:15:30, JavaTimeTypes::localDateTime());
+        assertEq(2026-10-21T10:15:30-04:00, JavaTimeTypes::zonedDateTime());
+        assertEq(2026-10-21T10:15:30Z, JavaTimeTypes::instant());
+        assertEq(2026-10-21T10:15:30.25, JavaTimeTypes::timestamp());
+        assertEq(2026-10-21, JavaTimeTypes::sqlDate());
+        assertEq(1970-01-01T10:15:30, JavaTimeTypes::sqlTime());
+        foreach string method in (Converted) {
+            assertEq(NT_DATE, call_static_method("JavaTimeTypes", method).typeCode(), method);
+        }
+    }
+
+    private declaredTypes() {
+        Class cls = Class::forName("JavaTimeTypes");
+        foreach string method in (Converted) {
+            assertEq(("*date",), (map $1.getReturnType().getName(), cls.getStaticMethod(method).getVariants()),
+                method);
+        }
+        foreach hash<auto> i in (NotConverted.pairIterator()) {
+            assertEq(("*object<" + i.value + ">",), (map $1.getReturnType().getName(),
+                cls.getStaticMethod(i.key).getVariants()), i.key);
+        }
+        # a parameter takes a date, or the Java object
+        assertEq(("*date", "*object<OffsetDateTime>"), (map $1.getParamTypes()[0].getName(),
+            cls.getStaticMethod("takeOffsetDateTime").getVariants()));
+    }
+
+    private parameters() {
+        date d = 2026-10-21T10:15:30.123456+05:30;
+        assertEq("java.time.OffsetDateTime 2026-10-21T10:15:30.123456+05:30", JavaTimeTypes::takeOffsetDateTime(d));
+        assertEq("java.time.ZonedDateTime 2026-10-21T10:15:30.123456+05:30", JavaTimeTypes::takeZonedDateTime(d));
+        assertEq("java.time.Instant 2026-10-21T04:45:30.123456Z", JavaTimeTypes::takeInstant(d));
+        # a date or a time of day is taken in the date's time zone
+        assertEq("java.time.OffsetTime 10:15:30.123456+05:30", JavaTimeTypes::takeOffsetTime(d));
+        assertEq("java.time.LocalDateTime 2026-10-21T10:15:30.123456", JavaTimeTypes::takeLocalDateTime(d));
+        assertEq("java.time.LocalDate 2026-10-21", JavaTimeTypes::takeLocalDate(d));
+        assertEq("java.time.LocalTime 10:15:30.123456", JavaTimeTypes::takeLocalTime(d));
+        assertEq("java.sql.Date 2026-10-21", JavaTimeTypes::takeSqlDate(d));
+        assertEq("java.sql.Time 10:15:30", JavaTimeTypes::takeSqlTime(d));
+        # java.sql.Timestamp has no time zone: it is the point in time, shown in the current time zone, which is
+        # that of the JVM
+        assertEq("java.sql.Timestamp 2026-10-21 10:15:30.25", JavaTimeTypes::takeTimestamp(2026-10-21T10:15:30.25));
+        # no value
+        assertEq("null", JavaTimeTypes::takeOffsetDateTime());
+        # a relative date is not a point in time
+        assertThrows("JNI-ERROR", "java.time.OffsetDateTime", \call_static_method(), ("JavaTimeTypes",
+            "takeOffsetDateTime", 2D));
+    }
+
+    private javaObjectParameter() {
+        # a Java object created in Qore is accepted as before
+        # milliseconds since the epoch; shown in the current time zone, which is that of the JVM
+        Jni::java::sql::Timestamp ts(get_epoch_seconds(2026-10-21T10:15:30) * 1000);
+        assertEq("Timestamp", ts.className());
+        assertEq("java.sql.Timestamp 2026-10-21 10:15:30.0", JavaTimeTypes::takeTimestamp(ts));
+    }
+
+    private field() {
+        JavaTimeTypes::when = 2026-10-21T10:15:30+05:30;
+        assertEq("java.time.OffsetDateTime 2026-10-21T10:15:30+05:30", JavaTimeTypes::whenString());
+        assertEq("2026-10-21T10:15:30.000000+05:30", JavaTimeTypes::when.format(Fmt));
+        JavaTimeTypes::when = NOTHING;
+        assertEq("null", JavaTimeTypes::whenString());
+    }
+
+    private notConverted() {
+        foreach hash<auto> i in (NotConverted.pairIterator()) {
+            auto v = call_static_method("JavaTimeTypes", i.key);
+            assertEq(NT_OBJECT, v.typeCode(), i.key);
+            assertEq(i.value, v.className(), i.key);
+        }
+        # a Duration is passed from one Java call to another
+        Duration wait = Duration::ofMillis(1500);
+        assertEq("java.time.Duration PT1.5S", JavaTimeTypes::takeDuration(wait));
+    }
+}

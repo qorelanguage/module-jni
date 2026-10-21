@@ -18,6 +18,11 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -228,6 +233,22 @@ public final class JdbcTransactionDriver implements Driver {
             // the class is not available to the program: the type is given by the SQL type
             new Column("Hidden", Types.BIGINT, "int8", 19, 0, ResultSetMetaData.columnNullable,
                 "org.qore.jni.test.NoSuchValueClass", 5L),
+        });
+        // the java.time values that JDBC 4.2 drivers return (ex: Jaybird for TIMESTAMP WITH TIME ZONE)
+        typedResultSets.put("times", new Column[] {
+            new Column("Odt", Types.TIMESTAMP_WITH_TIMEZONE, "timestamp with time zone", 35, 6,
+                ResultSetMetaData.columnNullable, "java.time.OffsetDateTime",
+                OffsetDateTime.of(2026, 10, 21, 10, 15, 30, 123456000, ZoneOffset.ofHoursMinutes(5, 30))),
+            new Column("Ot", Types.TIME_WITH_TIMEZONE, "time with time zone", 21, 6, ResultSetMetaData.columnNullable,
+                "java.time.OffsetTime", OffsetTime.of(10, 15, 30, 0, ZoneOffset.ofHours(-3))),
+            new Column("Ld", Types.DATE, "date", 10, 0, ResultSetMetaData.columnNullable, "java.time.LocalDate",
+                LocalDate.of(2026, 10, 21)),
+            new Column("Lt", Types.TIME, "time", 8, 0, ResultSetMetaData.columnNullable, "java.time.LocalTime",
+                LocalTime.of(10, 15, 30)),
+            // the driver does not report the class: the SQL type gives the type
+            new Column("Unreported", Types.TIMESTAMP_WITH_TIMEZONE, "timestamp with time zone", 35, 6,
+                ResultSetMetaData.columnNullable, null,
+                OffsetDateTime.of(2026, 10, 21, 10, 15, 30, 0, ZoneOffset.UTC)),
         });
         // duplicate column labels, in another case than the first
         typedResultSets.put("duplicates", new Column[] {

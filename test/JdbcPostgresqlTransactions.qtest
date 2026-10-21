@@ -25,6 +25,7 @@ class JdbcPostgresqlTransactionsTest inherits QUnit::Test {
         addTestCase("duplicate column names are made unique in lower case", \duplicateNames());
         addTestCase("SQLStatement::describe() describes the result columns", \describeColumns());
         addTestCase("a statement mapper gets the record type of a statement", \statementRecordType());
+        addTestCase("java.time values of the PostgreSQL JDBC driver are dates", \pgjdbcJavaTime());
         set_return_value(main());
     }
 
@@ -87,6 +88,44 @@ class JdbcPostgresqlTransactionsTest inherits QUnit::Test {
             (map {$1.key: $1.value.getType().getName()}, rec.pairIterator()));
         assertEq("varchar(20)", rec.name.getDescription());
         assertFalse(ds.inTransaction());
+    }
+
+    private pgjdbcJavaTime() {
+        # the PostgreSQL JDBC driver returns java.time values when they are requested with getObject(int, Class)
+        hash<auto> h = parse_datasource(connection());
+        Program p(PO_NEW_STYLE);
+        p.loadModule("jni");
+        p.issueModuleCmd("jni", "add-classpath " + h.options.classpath);
+        p.issueModuleCmd("jni", "import org.postgresql.Driver");
+        p.parse("hash<auto> sub get(string url, string user, *string pass) {
+    Jni::org::postgresql::Driver driver();
+    # a hash is converted to the java.util.Properties argument
+    hash<string, string> props = {\"user\": user};
+    if (pass) {
+        props.password = pass;
+    }
+    auto c = driver.connect(url, props);
+    on_exit c.close();
+    auto stmt = c.prepareStatement(\"select timestamptz '2026-10-21 10:15:30.123456+05:30', timetz '10:15:30-03', \"
+        \"date '2026-10-21', time '10:15:30'\");
+    on_exit stmt.close();
+    auto rs = stmt.executeQuery();
+    rs.next();
+    return {
+        \"odt\": rs.getObject(1, load_class(class_name: \"java/time/OffsetDateTime\")),
+        \"ot\": rs.getObject(2, load_class(class_name: \"java/time/OffsetTime\")),
+        \"ld\": rs.getObject(3, load_class(class_name: \"java/time/LocalDate\")),
+        \"lt\": rs.getObject(4, load_class(class_name: \"java/time/LocalTime\")),
+    };
+}", "pgjdbc");
+        hash<auto> v = p.callFunction("get", "jdbc:" + h.options.url, h.user, h.pass);
+        # timestamptz is a point in time
+        assertEq(NT_DATE, v.odt.typeCode());
+        assertEq(2026-10-21T10:15:30.123456+05:30, v.odt);
+        # timetz keeps its offset, on 1970-01-01
+        assertEq("1970-01-01T10:15:30.000000-03:00", v.ot.format("YYYY-MM-DDTHH:mm:SS.xxZ"));
+        assertEq(2026-10-21, v.ld);
+        assertEq(1970-01-01T10:15:30, v.lt);
     }
 
     private duplicateNames() {

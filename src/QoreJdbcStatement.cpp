@@ -409,13 +409,15 @@ static qore_type_t jdbc_sql_type_code(const QoreJdbcColumn& col, NumericOption n
     if (t == Globals::typeBinary || t == Globals::typeVarbinary || t == Globals::typeLongVarbinary) {
         return NT_BINARY;
     }
-    if (t == Globals::typeDate || t == Globals::typeTime || t == Globals::typeTimestamp) {
+    // TIMESTAMP_WITH_TIMEZONE and TIME_WITH_TIMEZONE: java.time.OffsetDateTime and java.time.OffsetTime
+    if (t == Globals::typeDate || t == Globals::typeTime || t == Globals::typeTimestamp
+        || t == Globals::typeTimestampWithTimezone || t == Globals::typeTimeWithTimezone) {
         return NT_DATE;
     }
     if (t == Globals::typeNull) {
         return NT_NULL;
     }
-    // ex: CLOB and BLOB (java.sql.Clob and java.sql.Blob), TIMESTAMP_WITH_TIMEZONE (java.time.OffsetDateTime)
+    // ex: CLOB and BLOB (java.sql.Clob and java.sql.Blob)
     return NT_OBJECT;
 }
 
@@ -464,7 +466,9 @@ qore_type_t QoreJdbcStatement::getColumnTypeCode(Env& env, const QoreJdbcColumn&
         return NT_STRING;
     }
     if (is_a(Globals::classZonedDateTime) || is_a(Globals::classLocalDateTime) || is_a(Globals::classInstant)
-        || is_a(Globals::classTimestamp) || is_a(Globals::classDate) || is_a(Globals::classTime)) {
+        || is_a(Globals::classOffsetDateTime) || is_a(Globals::classOffsetTime) || is_a(Globals::classLocalTime)
+        || is_a(Globals::classLocalDate) || is_a(Globals::classTimestamp) || is_a(Globals::classDate)
+        || is_a(Globals::classTime)) {
         return NT_DATE;
     }
     if (is_a(Globals::classBigDecimal)) {

@@ -313,6 +313,27 @@ public:
     DLLLOCAL static GlobalReference<jclass> classInstant;                         // java.time.Instant
     DLLLOCAL static jmethodID methodInstantToString;                              // Instant.toString()
 
+    DLLLOCAL static jmethodID methodZonedDateTimeToOffsetDateTime;                // ZonedDateTime.toOffsetDateTime()
+    DLLLOCAL static jmethodID methodZonedDateTimeToLocalDateTime;                 // ZonedDateTime.toLocalDateTime()
+    DLLLOCAL static jmethodID methodZonedDateTimeToLocalDate;                     // ZonedDateTime.toLocalDate()
+    DLLLOCAL static jmethodID methodZonedDateTimeToLocalTime;                     // ZonedDateTime.toLocalTime()
+    DLLLOCAL static jmethodID methodZonedDateTimeToInstant;                       // ZonedDateTime.toInstant()
+
+    DLLLOCAL static GlobalReference<jclass> classOffsetDateTime;                  // java.time.OffsetDateTime
+    DLLLOCAL static jmethodID methodOffsetDateTimeFormat;                         // OffsetDateTime.format()
+    DLLLOCAL static jmethodID methodOffsetDateTimeToOffsetTime;                   // OffsetDateTime.toOffsetTime()
+
+    DLLLOCAL static GlobalReference<jclass> classOffsetTime;                      // java.time.OffsetTime
+    DLLLOCAL static jmethodID methodOffsetTimeFormat;                             // OffsetTime.format()
+    DLLLOCAL static GlobalReference<jobject> isoOffsetTimeFormatter;              // DateTimeFormatter.ISO_OFFSET_TIME
+
+    DLLLOCAL static GlobalReference<jclass> classLocalDate;                       // java.time.LocalDate
+    DLLLOCAL static jmethodID methodLocalDateToString;                            // LocalDate.toString()
+
+    DLLLOCAL static GlobalReference<jclass> classLocalTime;                       // java.time.LocalTime
+    DLLLOCAL static jmethodID methodLocalTimeFormat;                              // LocalTime.format()
+    DLLLOCAL static GlobalReference<jobject> isoLocalTimeFormatter;               // DateTimeFormatter.ISO_LOCAL_TIME
+
     DLLLOCAL static GlobalReference<jclass> classQoreRelativeTime;                // org.qore.jni.QoreRelativeTime
     DLLLOCAL static jmethodID ctorQoreRelativeTime;                               // QoreRelativeTime(int, int, int, int, int, int, int)
     DLLLOCAL static jfieldID fieldQoreRelativeTimeYear;                           // QoreRelativeTime.year
@@ -422,12 +443,15 @@ public:
     DLLLOCAL static jmethodID ctorTimestamp;                                      // Timestamp(long)
     DLLLOCAL static jmethodID methodTimestampSetNanos;                            // void setNanos(int)
     DLLLOCAL static jmethodID methodTimestampToString;                            // String toString()
+    DLLLOCAL static jmethodID methodTimestampFrom;                                // static Timestamp from(Instant)
 
     DLLLOCAL static GlobalReference<jclass> classDate;                            // java.sql.Date
     DLLLOCAL static jmethodID methodDateToString;                                 // String toString()
+    DLLLOCAL static jmethodID methodDateValueOf;                                  // static Date valueOf(LocalDate)
 
     DLLLOCAL static GlobalReference<jclass> classTime;                            // java.sql.Time
     DLLLOCAL static jmethodID methodTimeToString;                                 // String toString()
+    DLLLOCAL static jmethodID methodTimeValueOf;                                  // static Time valueOf(LocalTime)
 
     DLLLOCAL static GlobalReference<jclass> classResultSet;                       // java.sql.ResultSet
     DLLLOCAL static jmethodID methodResultSetClose;                               // void close()

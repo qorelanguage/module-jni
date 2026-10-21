@@ -123,7 +123,18 @@ QoreJniClassMap::jtmap_t QoreJniClassMap::jtmap = {
     {"java.lang.Long", bigIntTypeInfo},
     {"java.lang.Void", nothingTypeInfo},
     // for complex types, we use "or nothing" types to allow NULL to be passed explicitly
+    // the date and time classes whose values are converted to dates (see JavaToQore::convertToQore()); a date
+    // passed for one of them is converted to it (see QoreToJava::toObject()), and the Java object is accepted as well
     {"java.time.ZonedDateTime", dateOrNothingTypeInfo},
+    {"java.time.OffsetDateTime", dateOrNothingTypeInfo},
+    {"java.time.OffsetTime", dateOrNothingTypeInfo},
+    {"java.time.LocalDateTime", dateOrNothingTypeInfo},
+    {"java.time.LocalDate", dateOrNothingTypeInfo},
+    {"java.time.LocalTime", dateOrNothingTypeInfo},
+    {"java.time.Instant", dateOrNothingTypeInfo},
+    {"java.sql.Timestamp", dateOrNothingTypeInfo},
+    {"java.sql.Date", dateOrNothingTypeInfo},
+    {"java.sql.Time", dateOrNothingTypeInfo},
     {"org.qore.jni.QoreRelativeTime", dateOrNothingTypeInfo},
     {"java.math.BigDecimal", numberOrNothingTypeInfo},
     // Java lists and maps are not mapped here; see jni_get_collection_type()

@@ -35,11 +35,22 @@
       with a Java object return type, now fails when it is parsed; use a list instead.  A raw \c java.util.Map return
       value, declared as \c *hash<auto> before, is declared as \c auto; this only changes parse-time type checks.
       See @ref jni_collection_types "declared types of Java lists and maps".
+    - <b>Review code using Java date and time values.</b> The values of \c java.time.OffsetDateTime,
+      \c java.time.OffsetTime, \c java.time.LocalDate and \c java.time.LocalTime are now %Qore dates, as those of the
+      other Java date and time classes were; code calling Java methods on them must use %Qore date operations
+      instead.  The members of the Java classes whose values are dates, also \c java.time.LocalDateTime,
+      \c java.time.Instant, \c java.sql.Timestamp, \c java.sql.Date and \c java.sql.Time, are declared with the
+      \c date type: a method of one of these types returned a date already but was declared with the Java class, so
+      that a variable declared with the Java class for its value no longer parses (it could only hold \c NOTHING);
+      a parameter of one of them takes a date, as well as the Java object.  See
+      @ref jni_date_time_classes "Java date and time classes".
     - <b>Recompile ahead-of-time compiled code with %Qore classes that inherit Java classes.</b> The types of
       private Java members are now declared as \c auto (see @ref jni_member_types "declared types of Java members"),
-      which changes the signatures of the %Qore classes created for Java classes, and a %Qore class's signature
-      includes those of its parent classes.  Recompile code compiled with \c qcc that defines %Qore classes inheriting
-      Java classes with this version; otherwise its classes do not match the same classes parsed from source.
+      and the members of the Java date and time classes as dates (see
+      @ref jni_date_time_classes "Java date and time classes"), which changes the signatures of the %Qore classes
+      created for Java classes, and a %Qore class's signature includes those of its parent classes.  Recompile code
+      compiled with \c qcc that defines %Qore classes inheriting Java classes with this version; otherwise its
+      classes do not match the same classes parsed from source.
     - <b>Review code using the keys of duplicate columns in \c jdbc results.</b> A duplicate column name is the
       lower-case name with a suffix, as for module-odbc and module-sybase: the columns \c ID and \c ID of a join are
       returned as \c id and \c id_1, and no longer as \c id and \c ID_1 (the JDBC drivers of Oracle and SQL Server
@@ -191,6 +202,15 @@
       for the interface itself instead of using it (for nested interfaces and JDK packages).
 
     @par Type conversions and fields
+
+    - Fixed Java \c java.time.OffsetDateTime, \c java.time.OffsetTime, \c java.time.LocalDate and
+      \c java.time.LocalTime values being returned as Java objects instead of dates, for example the
+      <tt>TIMESTAMP WITH TIME ZONE</tt> values of the Firebird JDBC driver and the \c java.time values that JDBC 4.2
+      drivers return: an \c OffsetDateTime keeps its offset, and a time of day is a time on \c 1970-01-01, as for a
+      \c java.sql.Time.  The members of the Java date and time classes are declared as dates, and a date passed for
+      a parameter or field of one of them is converted to its class; before, a date could only be passed for a
+      \c java.time.ZonedDateTime.  The \c jdbc driver describes such columns as dates.  See
+      @ref jni_date_time_classes "Java date and time classes".
 
     - Mutable Java static fields now stay synchronized with their %Qore static-variable mappings.
       Map and list fields accept both the Java object and its compatible %Qore representation;

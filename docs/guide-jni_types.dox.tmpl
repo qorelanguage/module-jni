@@ -27,8 +27,33 @@
     |\c long|any; conversions are made like with @ref Qore::int() "int()"
     |\c float|any; conversions are made like with @ref Qore::float() "float()"
     |\c double|any; conversions are made like with @ref Qore::float() "float()"
+    |\c java.time.ZonedDateTime|@ref date_type "date" (@ref absolute_dates "absolute date")
+    |\c java.time.OffsetDateTime|@ref date_type "date" (@ref absolute_dates "absolute date"), with its offset
+    |\c java.time.OffsetTime|@ref date_type "date" (@ref absolute_dates "absolute date"): its time and offset
+    |\c java.time.LocalDateTime|@ref date_type "date" (@ref absolute_dates "absolute date"): its date and time in \
+        its time zone
+    |\c java.time.LocalDate|@ref date_type "date" (@ref absolute_dates "absolute date"): its date in its time zone
+    |\c java.time.LocalTime|@ref date_type "date" (@ref absolute_dates "absolute date"): its time in its time zone
+    |\c java.time.Instant|@ref date_type "date" (@ref absolute_dates "absolute date"): its point in time
+    |\c java.sql.Timestamp|@ref date_type "date" (@ref absolute_dates "absolute date"): its point in time
+    |\c java.sql.Date|@ref date_type "date" (@ref absolute_dates "absolute date"): its date in its time zone
+    |\c java.sql.Time|@ref date_type "date" (@ref absolute_dates "absolute date"): its time in its time zone, \
+        without fractional seconds
 
     For other types, @ref jni_qore2java_default "default conversions" are used.
+
+    @subsection jni_date_time_classes Java Date and Time Classes
+
+    The values of the Java date and time classes in the table above, also listed in @ref jni_java_to_qore, are %Qore
+    dates, and the members of Java classes that have these types are declared with the @ref date_type "date" type: a
+    method returning one of them returns a date, and a parameter or a field of one of these classes takes a date,
+    which is converted to the class, or the Java object.
+
+    Other Java classes describing dates and times are not converted, as they do not describe a point in time:
+    \c java.time.Duration and \c java.time.Period (amounts of time, typically passed from one Java call to another,
+    for example a timeout), and \c java.time.Year, \c java.time.YearMonth and \c java.time.MonthDay (partial
+    dates); their values are Java objects.  A \c java.util.Date that is not one of the \c java.sql classes is a
+    Java object as well.
 
     @section jni_qore2java_default Qore to Java Default Type Conversions
 
@@ -90,7 +115,13 @@
     |\c java.sql.Time|@ref date_type "date" (@ref absolute_dates "absolute date" based on \c 1970-01-01)
     |\c java.sql.Timestamp|@ref date_type "date" (@ref absolute_dates "absolute date")
     |\c java.time.ZonedDateTime|@ref date_type "date" (@ref absolute_dates "absolute date")
+    |\c java.time.OffsetDateTime|@ref date_type "date" (@ref absolute_dates "absolute date" with its offset)
+    |\c java.time.OffsetTime|@ref date_type "date" (@ref absolute_dates "absolute date" based on \c 1970-01-01, \
+        with its offset)
     |\c java.time.LocalDateTime|@ref date_type "date" (@ref absolute_dates "absolute date", no timezone)
+    |\c java.time.LocalDate|@ref date_type "date" (@ref absolute_dates "absolute date", no timezone)
+    |\c java.time.LocalTime|@ref date_type "date" (@ref absolute_dates "absolute date" based on \c 1970-01-01, \
+        no timezone)
     |\c java.time.Instant|@ref date_type "date" (@ref absolute_dates "absolute date", UTC)
     |<tt>@ref org.qore.jni.QoreRelativeTime</tt>|@ref date_type "date" (@ref relative_dates "relative date")
     |\c java.math.BigDecimal|@ref number_type "number"
@@ -99,6 +130,9 @@
     |<tt>@ref org.qore.jni.QoreClosure</tt>|@ref code_type "code"
     |<tt>@ref org.qore.jni.QoreClosureMarker</tt>|@ref code_type "code"
     |all other objects|direct conversion
+
+    "No timezone" means that the value is taken in the current time zone.  See @ref jni_date_time_classes for the
+    date and time classes that are not converted.
 
     @note see @ref jni_arrays for more information about conversions between %Qore lists and Java arrays
 

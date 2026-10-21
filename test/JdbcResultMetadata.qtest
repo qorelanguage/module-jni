@@ -22,6 +22,7 @@ class JdbcResultMetadataTest inherits QUnit::Test {
         addTestCase("a statement without a result set has no columns", \describeWithoutResultSet());
         addTestCase("describe() executes a statement that has not been executed", \describeBeforeExec());
         addTestCase("duplicate column names are described with their unique keys", \describeDuplicateNames());
+        addTestCase("java.time column values are dates", \javaTimeValues());
         set_return_value(main());
     }
 
@@ -164,6 +165,28 @@ class JdbcResultMetadataTest inherits QUnit::Test {
         assertEq(("id", "id_1", "id_2"), keys desc);
         # the name is the column's name; the key is the name of the column in the rows
         assertEq(("id", "id", "id"), map $1.name, desc.iterator());
+    }
+
+    private javaTimeValues() {
+        Datasource ds = datasource();
+        on_exit ds.rollback();
+        hash<auto> row = ds.selectRow("multi:typed=times");
+        string fmt = "YYYY-MM-DDTHH:mm:SS.xxZ";
+        # an OffsetDateTime keeps its offset
+        assertEq("2026-10-21T10:15:30.123456+05:30", row.odt.format(fmt));
+        # a time of day is a time on 1970-01-01; an OffsetTime keeps its offset
+        assertEq("1970-01-01T10:15:30.000000-03:00", row.ot.format(fmt));
+        assertEq(2026-10-21, row.ld);
+        assertEq(1970-01-01T10:15:30, row.lt);
+        assertEq(2026-10-21T10:15:30Z, row.unreported);
+
+        # every column is described as a date column, also without the class from the driver
+        SQLStatement stmt(ds);
+        on_exit stmt.close();
+        stmt.prepare("multi:typed=times");
+        stmt.exec();
+        assertEq(("odt": NT_DATE, "ot": NT_DATE, "ld": NT_DATE, "lt": NT_DATE, "unreported": NT_DATE),
+            (map {$1.key: $1.value.type}, stmt.describe().pairIterator()));
     }
 
     private duplicateNames() {

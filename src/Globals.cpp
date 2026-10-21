@@ -287,6 +287,25 @@ jmethodID Globals::methodIteratorHasNext;
 jmethodID Globals::methodIteratorNext;
 
 GlobalReference<jclass> Globals::classZonedDateTime;
+jmethodID Globals::methodZonedDateTimeToOffsetDateTime;
+jmethodID Globals::methodZonedDateTimeToLocalDateTime;
+jmethodID Globals::methodZonedDateTimeToLocalDate;
+jmethodID Globals::methodZonedDateTimeToLocalTime;
+jmethodID Globals::methodZonedDateTimeToInstant;
+GlobalReference<jclass> Globals::classOffsetDateTime;
+jmethodID Globals::methodOffsetDateTimeFormat;
+jmethodID Globals::methodOffsetDateTimeToOffsetTime;
+GlobalReference<jclass> Globals::classOffsetTime;
+jmethodID Globals::methodOffsetTimeFormat;
+GlobalReference<jobject> Globals::isoOffsetTimeFormatter;
+GlobalReference<jclass> Globals::classLocalDate;
+jmethodID Globals::methodLocalDateToString;
+GlobalReference<jclass> Globals::classLocalTime;
+jmethodID Globals::methodLocalTimeFormat;
+GlobalReference<jobject> Globals::isoLocalTimeFormatter;
+jmethodID Globals::methodTimestampFrom;
+jmethodID Globals::methodDateValueOf;
+jmethodID Globals::methodTimeValueOf;
 jmethodID Globals::methodZonedDateTimeParse;
 jmethodID Globals::methodZonedDateTimeToString;
 jmethodID Globals::methodZonedDateTimeFormat;
@@ -3598,6 +3617,41 @@ bool Globals::init() {
     classInstant = env.findClass("java/time/Instant").makeGlobal();
     methodInstantToString = env.getMethod(classInstant, "toString", "()Ljava/lang/String;");
 
+    // a Qore date passed for a parameter of one of the java.time classes is converted from a ZonedDateTime
+    methodZonedDateTimeToOffsetDateTime = env.getMethod(classZonedDateTime, "toOffsetDateTime",
+        "()Ljava/time/OffsetDateTime;");
+    methodZonedDateTimeToLocalDateTime = env.getMethod(classZonedDateTime, "toLocalDateTime",
+        "()Ljava/time/LocalDateTime;");
+    methodZonedDateTimeToLocalDate = env.getMethod(classZonedDateTime, "toLocalDate", "()Ljava/time/LocalDate;");
+    methodZonedDateTimeToLocalTime = env.getMethod(classZonedDateTime, "toLocalTime", "()Ljava/time/LocalTime;");
+    methodZonedDateTimeToInstant = env.getMethod(classZonedDateTime, "toInstant", "()Ljava/time/Instant;");
+
+    classOffsetDateTime = env.findClass("java/time/OffsetDateTime").makeGlobal();
+    methodOffsetDateTimeFormat = env.getMethod(classOffsetDateTime, "format",
+        "(Ljava/time/format/DateTimeFormatter;)Ljava/lang/String;");
+    methodOffsetDateTimeToOffsetTime = env.getMethod(classOffsetDateTime, "toOffsetTime",
+        "()Ljava/time/OffsetTime;");
+
+    classOffsetTime = env.findClass("java/time/OffsetTime").makeGlobal();
+    methodOffsetTimeFormat = env.getMethod(classOffsetTime, "format",
+        "(Ljava/time/format/DateTimeFormatter;)Ljava/lang/String;");
+
+    classLocalDate = env.findClass("java/time/LocalDate").makeGlobal();
+    methodLocalDateToString = env.getMethod(classLocalDate, "toString", "()Ljava/lang/String;");
+
+    classLocalTime = env.findClass("java/time/LocalTime").makeGlobal();
+    methodLocalTimeFormat = env.getMethod(classLocalTime, "format",
+        "(Ljava/time/format/DateTimeFormatter;)Ljava/lang/String;");
+    {
+        LocalReference<jclass> formatter_class = env.findClass("java/time/format/DateTimeFormatter");
+        // both always write the seconds
+        jfieldID iso_field = env.getStaticField(formatter_class, "ISO_OFFSET_TIME",
+            "Ljava/time/format/DateTimeFormatter;");
+        isoOffsetTimeFormatter = env.getStaticObjectField(formatter_class, iso_field).makeGlobal();
+        iso_field = env.getStaticField(formatter_class, "ISO_LOCAL_TIME", "Ljava/time/format/DateTimeFormatter;");
+        isoLocalTimeFormatter = env.getStaticObjectField(formatter_class, iso_field).makeGlobal();
+    }
+
     classQoreRelativeTime = findDefineClass(env, "org.qore.jni.QoreRelativeTime", nullptr,
         java_org_qore_jni_QoreRelativeTime_class, java_org_qore_jni_QoreRelativeTime_class_len).makeGlobal();
     ctorQoreRelativeTime = env.getMethod(classQoreRelativeTime, "<init>", "(IIIIIII)V");
@@ -3722,12 +3776,15 @@ bool Globals::init() {
     ctorTimestamp = env.getMethod(classTimestamp, "<init>", "(J)V");
     methodTimestampSetNanos = env.getMethod(classTimestamp, "setNanos", "(I)V");
     methodTimestampToString = env.getMethod(classTimestamp, "toString", "()Ljava/lang/String;");
+    methodTimestampFrom = env.getStaticMethod(classTimestamp, "from", "(Ljava/time/Instant;)Ljava/sql/Timestamp;");
 
     classDate = env.findClass("java/sql/Date").makeGlobal();
     methodDateToString = env.getMethod(classDate, "toString", "()Ljava/lang/String;");
+    methodDateValueOf = env.getStaticMethod(classDate, "valueOf", "(Ljava/time/LocalDate;)Ljava/sql/Date;");
 
     classTime = env.findClass("java/sql/Time").makeGlobal();
     methodTimeToString = env.getMethod(classTime, "toString", "()Ljava/lang/String;");
+    methodTimeValueOf = env.getStaticMethod(classTime, "valueOf", "(Ljava/time/LocalTime;)Ljava/sql/Time;");
 
     classResultSet = env.findClass("java/sql/ResultSet").makeGlobal();
     methodResultSetClose = env.getMethod(classResultSet, "close", "()V");
@@ -4366,6 +4423,12 @@ void Globals::cleanup() {
     isoOffsetDateTimeFormatter = nullptr;
     classLocalDateTime = nullptr;
     classInstant = nullptr;
+    classOffsetDateTime = nullptr;
+    classOffsetTime = nullptr;
+    isoOffsetTimeFormatter = nullptr;
+    classLocalDate = nullptr;
+    classLocalTime = nullptr;
+    isoLocalTimeFormatter = nullptr;
     classQoreRelativeTime = nullptr;
     classBigDecimal = nullptr;
     classArrays = nullptr;

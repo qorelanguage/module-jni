@@ -62,6 +62,54 @@ static jobject jni_date_to_jobject(const DateTimeNode& qdate) {
     return env.newObject(Globals::classQoreRelativeTime, Globals::ctorQoreRelativeTime, &jargs[0]).release();
 }
 
+//! Converts a ZonedDateTime made from an absolute date to the Java date and time class expected, if it is one
+/** The classes are those whose values are converted to dates (see JavaToQore::convertToQore()): a date or a time of
+    day is taken in the date's own time zone, and an Instant or a java.sql.Timestamp is its point in time.
+
+    @return the converted object, or \a zdt if \a cls is not one of the classes
+*/
+static LocalReference<jobject> jni_zoned_date_time_to(Env& env, LocalReference<jobject>&& zdt, jclass cls) {
+    if (env.isSameObject(cls, Globals::classOffsetDateTime)) {
+        return env.callObjectMethod(zdt, Globals::methodZonedDateTimeToOffsetDateTime, nullptr);
+    }
+    if (env.isSameObject(cls, Globals::classOffsetTime)) {
+        LocalReference<jobject> odt = env.callObjectMethod(zdt, Globals::methodZonedDateTimeToOffsetDateTime,
+            nullptr);
+        return env.callObjectMethod(odt, Globals::methodOffsetDateTimeToOffsetTime, nullptr);
+    }
+    if (env.isSameObject(cls, Globals::classLocalDateTime)) {
+        return env.callObjectMethod(zdt, Globals::methodZonedDateTimeToLocalDateTime, nullptr);
+    }
+    if (env.isSameObject(cls, Globals::classLocalDate)) {
+        return env.callObjectMethod(zdt, Globals::methodZonedDateTimeToLocalDate, nullptr);
+    }
+    if (env.isSameObject(cls, Globals::classLocalTime)) {
+        return env.callObjectMethod(zdt, Globals::methodZonedDateTimeToLocalTime, nullptr);
+    }
+    if (env.isSameObject(cls, Globals::classInstant)) {
+        return env.callObjectMethod(zdt, Globals::methodZonedDateTimeToInstant, nullptr);
+    }
+    if (env.isSameObject(cls, Globals::classTimestamp)) {
+        LocalReference<jobject> instant = env.callObjectMethod(zdt, Globals::methodZonedDateTimeToInstant, nullptr);
+        jvalue jarg;
+        jarg.l = instant;
+        return env.callStaticObjectMethod(Globals::classTimestamp, Globals::methodTimestampFrom, &jarg);
+    }
+    if (env.isSameObject(cls, Globals::classDate)) {
+        LocalReference<jobject> local = env.callObjectMethod(zdt, Globals::methodZonedDateTimeToLocalDate, nullptr);
+        jvalue jarg;
+        jarg.l = local;
+        return env.callStaticObjectMethod(Globals::classDate, Globals::methodDateValueOf, &jarg);
+    }
+    if (env.isSameObject(cls, Globals::classTime)) {
+        LocalReference<jobject> local = env.callObjectMethod(zdt, Globals::methodZonedDateTimeToLocalTime, nullptr);
+        jvalue jarg;
+        jarg.l = local;
+        return env.callStaticObjectMethod(Globals::classTime, Globals::methodTimeValueOf, &jarg);
+    }
+    return std::move(zdt);
+}
+
 jobject QoreToJava::toAnyObject(Env& env, const QoreValue& value_arg, JniExternalProgramData* jpc) {
     // A member assigned with the weak reference operator ":=" or the opaque reference operator
     // "@=" is stored in its container as the reference itself, and converting a hash or a list
@@ -220,7 +268,12 @@ jobject QoreToJava::toObject(Env& env, const QoreValue& value, jclass cls, JniEx
             break;
         }
         case NT_DATE: {
-            javaObjectRef = jni_date_to_jobject(*value.get<const DateTimeNode>());
+            const DateTimeNode* date = value.get<const DateTimeNode>();
+            javaObjectRef = jni_date_to_jobject(*date);
+            // an absolute date is a ZonedDateTime, converted to another date and time class expected
+            if (cls && date->isAbsolute() && !env.isInstanceOf(javaObjectRef, cls)) {
+                javaObjectRef = jni_zoned_date_time_to(env, std::move(javaObjectRef), cls);
+            }
             break;
         }
         case NT_NUMBER: {

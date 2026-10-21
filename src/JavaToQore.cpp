@@ -79,6 +79,46 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v, QoreProgram* pgm,
         return QoreValue(new DateTimeNode(chars.c_str()));
     }
 
+    // an OffsetDateTime is an absolute date that keeps its offset; ISO_OFFSET_DATE_TIME always writes the seconds,
+    // so that the offset is parsed (see ZonedDateTime above)
+    if (env.isInstanceOf(v, Globals::classOffsetDateTime)) {
+        jvalue arg;
+        arg.l = Globals::isoOffsetDateTimeFormatter;
+        LocalReference<jstring> date_str = env.callObjectMethod(v,
+            Globals::methodOffsetDateTimeFormat, &arg).as<jstring>();
+        Env::GetStringUtfChars chars(env, date_str);
+        return QoreValue(new DateTimeNode(chars.c_str()));
+    }
+
+    // a time of day is a time on 1970-01-01, as for java.sql.Time; an OffsetTime keeps its offset
+    if (env.isInstanceOf(v, Globals::classOffsetTime)) {
+        jvalue arg;
+        arg.l = Globals::isoOffsetTimeFormatter;
+        LocalReference<jstring> time_str = env.callObjectMethod(v,
+            Globals::methodOffsetTimeFormat, &arg).as<jstring>();
+        Env::GetStringUtfChars chars(env, time_str);
+        QoreStringMaker date("1970-01-01T%s", chars.c_str());
+        return QoreValue(new DateTimeNode(date.c_str()));
+    }
+
+    if (env.isInstanceOf(v, Globals::classLocalTime)) {
+        jvalue arg;
+        arg.l = Globals::isoLocalTimeFormatter;
+        LocalReference<jstring> time_str = env.callObjectMethod(v,
+            Globals::methodLocalTimeFormat, &arg).as<jstring>();
+        Env::GetStringUtfChars chars(env, time_str);
+        QoreStringMaker date("1970-01-01T%s", chars.c_str());
+        return QoreValue(new DateTimeNode(date.c_str()));
+    }
+
+    // a LocalDate is midnight of that day in the current time zone, as for java.sql.Date
+    if (env.isInstanceOf(v, Globals::classLocalDate)) {
+        LocalReference<jstring> date_str = env.callObjectMethod(v,
+            Globals::methodLocalDateToString, nullptr).as<jstring>();
+        Env::GetStringUtfChars chars(env, date_str);
+        return QoreValue(new DateTimeNode(chars.c_str()));
+    }
+
     if (env.isInstanceOf(v, Globals::classTimestamp)) {
         LocalReference<jstring> date_str = env.callObjectMethod(v,
             Globals::methodTimestampToString, nullptr).as<jstring>();
