@@ -413,6 +413,13 @@ public class OdsWriter implements Closeable {
     private void finish() {
         for (SheetState state : sheets) {
             writeHeaders(state);
+            // ODFDOM's template row is not an exported record. Remove its elements directly:
+            // removeRowsByIndex() recreates row zero to adjust its style after removing the last row.
+            if (state.currentRow == 0) {
+                for (OdfElement row : state.table.getRowElementList()) {
+                    row.getParentNode().removeChild(row);
+                }
+            }
         }
     }
 

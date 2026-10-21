@@ -2853,6 +2853,28 @@ printf(\"RESULT:%%s\\n\", make_json(rv));
         assertEq({"Orders": 0, "Returns": 0, "Other": 0}, output.sheet_counts);
         assertEq({"Orders": (("Id", "Amount (EUR)"),), "Returns": (), "Other": ()}, readWorksheetRows(output.data));
 
+        # Empty tables have no stored data rows, even when the reader preserves blank records.
+        foreach string sheet in (("Returns", "Other")) {
+            OdsReadDataProvider reader({"data": output.data, "worksheet": sheet,
+                "headers": ("Id", "Amount"), "preserve_empty_rows": True});
+            assertEq((), (map $1, reader.searchRecords()), sheet);
+        }
+        dp = new OdsWriteDataProvider({"headers": ("Id", "Amount"), "write_headers": False});
+        OdsReadDataProvider reader({"data": dp.finishCreate().data, "headers": ("Id", "Amount"),
+            "preserve_empty_rows": True});
+        assertEq((), (map $1, reader.searchRecords()), "a headerless export of zero records is empty");
+
+        dp = new OdsWriteDataProvider({"headers": ("Id", "Amount"), "write_headers": False});
+        foreach int i in (xrange(2)) {
+            reader = new OdsReadDataProvider({"data": dp.getData(), "headers": ("Id", "Amount"),
+                "preserve_empty_rows": True});
+            assertEq((), (map $1, reader.searchRecords()), "reading the unfinished empty writer is repeatable");
+        }
+        dp.createRecord({"Id": 9, "Amount": 12});
+        reader = new OdsReadDataProvider({"data": dp.getData(), "headers": ("Id", "Amount"),
+            "preserve_empty_rows": True});
+        assertEq(({"Id": 9, "Amount": 12},), (map $1, reader.searchRecords()));
+
         # a single worksheet with columns and no records has its header row
         dp = new OdsWriteDataProvider({"headers": ("Id", "Amount")});
         output = dp.finishCreate();
