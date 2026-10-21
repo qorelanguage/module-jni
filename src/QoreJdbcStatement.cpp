@@ -166,23 +166,24 @@ bool QoreJdbcStatement::execIntern(Env& env, const QoreString& qstr, ExceptionSi
         } catch (JavaException& e) {
             LocalReference<jthrowable> throwable = e.save();
             assert(throwable);
-            if (env.isInstanceOf(throwable, Globals::classSQLException)) {
-                // check if connection is still valid; 1 second timeout
-                jvalue jarg;
-                jarg.i = 1;
-                bool connected = env.callBooleanMethod(conn->getConnectionObject(), Globals::methodConnectionIsValid,
-                    &jarg);
-                //printd(5, "QoreJdbcStatement::execIntern() connected: %d\n", connected);
-                if (!connected && !reconnectLostConnection(env, xsink) && replay_safe) {
-                    assert(!*xsink);
-                    // execute the statement again on the new connection
-                    prepareAndBindStatement(env, xsink, qstr);
-                    if (*xsink) {
-                        return false;
-                    }
-                    replayed = true;
-                    continue;
+            ExceptionSink check_xsink;
+            if (conn->isConnectionLost(env, throwable, &check_xsink) && !reconnectLostConnection(env, xsink)
+                && replay_safe) {
+                assert(!*xsink);
+                // execute the statement again on the new connection
+                prepareAndBindStatement(env, xsink, qstr);
+                if (*xsink) {
+                    return false;
                 }
+                replayed = true;
+                continue;
+            }
+            if (check_xsink) {
+                // the validity check failed: the original error, then the error of the check
+                e.restore(throwable);
+                e.convert(xsink);
+                xsink->assimilate(check_xsink);
+                return false;
             }
             e.restore(throwable);
             throw;

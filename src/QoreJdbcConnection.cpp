@@ -309,6 +309,23 @@ bool QoreJdbcConnection::areArraysSupported(Env& env) {
 }
 #endif
 
+bool QoreJdbcConnection::isConnectionLost(Env& env, jthrowable error, ExceptionSink* check_xsink) {
+    if (!connection || !env.isInstanceOf(error, Globals::classSQLException)) {
+        return false;
+    }
+    try {
+        // 1 second timeout
+        jvalue jarg{};
+        jarg.i = 1;
+        return !env.callBooleanMethod(connection, Globals::methodConnectionIsValid, &jarg);
+    } catch (JavaException& e) {
+        // the validity check failed, so the connection is not known to be lost; the caller raises the original error,
+        // followed by this one
+        e.convert(check_xsink);
+    }
+    return false;
+}
+
 int QoreJdbcConnection::beginTransaction(ExceptionSink* xsink) {
     assert(connection);
     if (transaction) {
@@ -318,13 +335,76 @@ int QoreJdbcConnection::beginTransaction(ExceptionSink* xsink) {
         Env env;
         jvalue arg{};
         arg.z = false;
-        env.callVoidMethod(connection, Globals::methodConnectionSetAutoCommit, &arg);
+        try {
+            env.callVoidMethod(connection, Globals::methodConnectionSetAutoCommit, &arg);
+        } catch (JavaException& e) {
+            LocalReference<jthrowable> throwable = e.save();
+            assert(throwable);
+            // Recovery rule: a connection found lost when the transaction is started is re-established, and the
+            // transaction is started on the new connection, because nothing can be lost or executed twice:
+            // - the connection was in auto-commit mode (transaction is false), so it had no uncommitted work, and the
+            //   datasource has no active transaction (SQL that starts a transaction by itself, ex: an explicit BEGIN
+            //   TRANSACTION in a select, is outside this guarantee, as it is for the replay rule)
+            // - no statement of the transaction has been sent: the transaction is started before its first statement
+            //   is passed to the driver (Datasource::exec() and execRaw() start it before the driver executes the SQL,
+            //   jdbc_stmt_exec() before the prepared statement is executed, and Datasource::beginTransaction()
+            //   before any statement)
+            // Some JDBC drivers start a transaction with a request to the server (the SQL Server driver sends
+            // "set implicit_transactions on" in setAutoCommit(false)), so they find a lost connection here; others,
+            // such as the PostgreSQL driver, only when the statement is executed, where the replay rule of
+            // QoreJdbcStatement::execIntern() applies. The connection is replaced once: an error on the new
+            // connection, or when releasing the lost connection's statements, is raised after the lost connection's
+            // error, and the caller discards the connection.
+            ExceptionSink check_xsink;
+            if (ds->activeTransaction() || !isConnectionLost(env, throwable, &check_xsink)) {
+                // the original error, then the error of the validity check, if it failed
+                e.restore(throwable);
+                e.convert(xsink);
+                xsink->assimilate(check_xsink);
+                return -1;
+            }
+            assert(!check_xsink);
+            ExceptionSink reconnect_xsink;
+            if (reconnectInTransaction(env, &reconnect_xsink)) {
+                // the lost connection's error first, then the errors of the recovery
+                e.restore(throwable);
+                e.convert(xsink);
+                xsink->assimilate(reconnect_xsink);
+                return -1;
+            }
+            assert(transaction && !reconnect_xsink);
+            return 0;
+        }
         transaction = true;
         return 0;
     } catch (jni::Exception& e) {
         e.convert(xsink);
     }
     return -1;
+}
+
+int QoreJdbcConnection::reconnectInTransaction(Env& env, ExceptionSink* xsink) {
+    assert(!transaction);
+    // release the JDBC handles of the datasource's statements, which belong to the lost connection, while the
+    // driver-specific context data is still present; the statements keep their SQL and bind arguments and are
+    // prepared again on the new connection when they are next executed
+    ds->connectionLost(xsink);
+    if (*xsink) {
+        return -1;
+    }
+    try {
+        close(env);
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        return -1;
+    }
+    // connect() starts the new connection in the transaction
+    transaction = true;
+    if (connect(env, xsink)) {
+        transaction = false;
+        return -1;
+    }
+    return 0;
 }
 
 int QoreJdbcConnection::endTransaction(bool do_commit, ExceptionSink* xsink) {

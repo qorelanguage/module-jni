@@ -63,6 +63,18 @@ public:
         return transaction;
     }
 
+    //! Returns true if an error raised by a call on the connection means that the connection to the server was lost
+    /** @param env the JNI environment
+        @param error the Java exception raised by the call; no Java exception may be pending
+        @param check_xsink receives the error of the validity check if the check itself fails; the caller raises it
+        after \a error
+
+        @return true if \a error is an \c SQLException and the connection is no longer valid
+        (\c Connection.isValid() with a 1 second timeout); false if the validity check itself fails, as the connection
+        is then not known to be lost
+    */
+    DLLLOCAL bool isConnectionLost(Env& env, jthrowable error, ExceptionSink* check_xsink);
+
     //! Set an option for the connection.
     /** @param opt option name
         @param val option value to use
@@ -82,6 +94,9 @@ public:
     DLLLOCAL int close(Env& env);
 
     //! Start a JDBC transaction; ordinary reads outside a transaction use auto-commit.
+    /** If the connection is found lost when the transaction is started, it is re-established and the transaction is
+        started on the new connection; see the implementation for the rule.
+    */
     DLLLOCAL int beginTransaction(ExceptionSink* xsink);
 
     DLLLOCAL int commit(ExceptionSink* xsink);
@@ -197,6 +212,14 @@ private:
     bool transaction = false;
 
     DLLLOCAL int endTransaction(bool commit, ExceptionSink* xsink);
+
+    //! Replaces a connection lost when the transaction was started with a new connection in the transaction
+    /** @param env the JNI environment; no Java exception may be pending
+        @param xsink exception sink for the errors of releasing the lost connection and of the reconnection
+
+        @return 0 if the new connection is in the transaction, -1 if an error was raised in \a xsink
+    */
+    DLLLOCAL int reconnectInTransaction(Env& env, ExceptionSink* xsink);
 
     //! Classpath value
     std::string classpath;

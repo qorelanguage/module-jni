@@ -32,6 +32,19 @@ class JdbcTransactionsTest inherits QUnit::Test {
         addTestCase("lost connection: an auto-commit statement never runs twice", \lostAutoCommit());
         addTestCase("lost connection: an active transaction is reported lost", \lostActiveTransaction());
         addTestCase("lost connection: a released statement is prepared again", \lostReleasedStatement());
+        addTestCase("lost connection at transaction start: the statement runs once on a new connection",
+            \lostAtTransactionStart());
+        addTestCase("lost connection at transaction start: an explicit transaction is started on a new connection",
+            \lostAtExplicitTransactionStart());
+        addTestCase("lost connection at transaction start: a prepared statement runs once on a new connection",
+            \lostAtPreparedTransactionStart());
+        addTestCase("lost connection at transaction start and again when the statement is executed",
+            \lostAtTransactionStartAndExecution());
+        addTestCase("lost connection at transaction start: a failed reconnection is raised",
+            \lostAtTransactionStartReconnectFails());
+        addTestCase("lost connection at transaction start: failed statement cleanup is raised",
+            \lostAtTransactionStartCleanupFails());
+        addTestCase("lost connection: a failed validity check is not a lost connection", \lostValidityCheckFails());
         addTestCase("result sets survive Java native-call boundaries", \cursorLifetime());
         set_return_value(main());
     }
@@ -286,6 +299,149 @@ class JdbcTransactionsTest inherits QUnit::Test {
         # the first write was lost with the transaction; only the second one was committed
         assertEq(1, JdbcTransactionDriver::durable());
         assertEq(2, JdbcTransactionDriver::count("execute:write:false"));
+    }
+
+    private lostAtTransactionStart() {
+        # the request starting the transaction finds the connection lost: the connection was in auto-commit mode, so
+        # no work is pending, and the statement has not been sent, so the transaction is started on a new connection
+        # and the statement runs there, once
+        DatasourcePool ds = pool();
+        JdbcTransactionDriver::loseConnectionAt("auto:false", False);
+        assertEq(1, ds.exec("write"));
+        assertEq(("connect", "auto:true", "auto:false", "close", "connect", "auto:false", "execute:write:false",
+            "statement.close"), JdbcTransactionDriver::events());
+        assertTrue(ds.inTransaction());
+        assertEq(0, JdbcTransactionDriver::durable());
+        ds.commit();
+        assertEq(1, JdbcTransactionDriver::durable());
+        assertEq(1, ds.select("read"));
+        assertFalse(ds.inTransaction());
+    }
+
+    private lostAtExplicitTransactionStart() {
+        JdbcTransactionDriver::reset();
+        Datasource single("jdbc:@qore-transaction-test:fixture");
+        single.open();
+        JdbcTransactionDriver::loseConnectionAt("auto:false", False);
+        single.beginTransaction();
+        assertTrue(single.inTransaction());
+        # the transaction is used on the new connection
+        assertEq(1, single.select("read"));
+        single.execRaw("write");
+        assertEq(("connect", "auto:true", "auto:false", "close", "connect", "auto:false", "execute:read:false",
+            "statement.close", "execute:write:false", "statement.close"), JdbcTransactionDriver::events());
+        single.commit();
+        assertEq(1, JdbcTransactionDriver::durable());
+    }
+
+    private lostAtPreparedTransactionStart() {
+        # the statement's JDBC handles belong to the lost connection: they are released, and the statement is
+        # prepared again on the new connection with its SQL and arguments
+        DatasourcePool ds = pool();
+        SQLStatement stmt(ds);
+        stmt.prepare("write");
+        JdbcTransactionDriver::loseConnectionAt("auto:false", False);
+        stmt.exec();
+        assertEq(1, stmt.affectedRows());
+        assertEq(("connect", "auto:true", "auto:false", "statement.close", "close", "connect", "auto:false",
+            "execute:write:false"), JdbcTransactionDriver::events());
+        assertEq(0, JdbcTransactionDriver::durable());
+        stmt.commit();
+        assertEq(1, JdbcTransactionDriver::durable());
+        # the statement stays usable on the new connection
+        stmt.exec();
+        stmt.commit();
+        assertEq(2, JdbcTransactionDriver::durable());
+        assertEq(2, JdbcTransactionDriver::count("connect"));
+    }
+
+    private lostAtTransactionStartAndExecution() {
+        # the new connection is lost again when the statement is executed: the replay rule applies (the attempt ran
+        # in the transaction, which the server rolls back), so the statement is executed once more, once
+        DatasourcePool ds = pool();
+        JdbcTransactionDriver::loseConnectionAt("auto:false", False);
+        JdbcTransactionDriver::loseConnectionAt("execute:write:false", True);
+        assertEq(1, ds.exec("write"));
+        assertEq(2, JdbcTransactionDriver::count("execute:write:false"));
+        assertEq(3, JdbcTransactionDriver::count("connect"));
+        assertEq(0, JdbcTransactionDriver::durable());
+        ds.commit();
+        assertEq(1, JdbcTransactionDriver::durable());
+    }
+
+    private lostAtTransactionStartReconnectFails() {
+        # the new connection cannot be established: the lost connection's error is raised, followed by the
+        # reconnection error; the statement is not executed and the next call uses a new connection
+        DatasourcePool ds = pool();
+        JdbcTransactionDriver::loseConnectionAt("auto:false", False);
+        JdbcTransactionDriver::failNext("connect");
+        assertErrorChain(sub () { ds.exec("write"); }, ("injected connection loss", "injected connect"));
+        assertFalse(ds.inTransaction());
+        assertEq(0, JdbcTransactionDriver::count("execute:write:false"));
+        assertEq(1, ds.exec("write"));
+        ds.commit();
+        assertEq(1, JdbcTransactionDriver::durable());
+        assertEq(1, JdbcTransactionDriver::count("execute:write:false"));
+    }
+
+    private lostAtTransactionStartCleanupFails() {
+        # releasing the handles of a statement of the lost connection fails: the errors are raised, the statement is
+        # not executed and the connection is discarded
+        DatasourcePool ds = pool();
+        SQLStatement stmt(ds);
+        stmt.prepare("write");
+        JdbcTransactionDriver::loseConnectionAt("auto:false", False);
+        JdbcTransactionDriver::failNext("statement.close");
+        assertErrorChain(\stmt.exec(), ("injected connection loss", "injected statement.close"));
+        assertEq(0, JdbcTransactionDriver::count("execute:write:false"));
+        assertEq(1, JdbcTransactionDriver::count("connect"));
+        assertEq(0, JdbcTransactionDriver::durable());
+        stmt.exec();
+        stmt.commit();
+        assertEq(1, JdbcTransactionDriver::durable());
+        assertEq(1, JdbcTransactionDriver::count("execute:write:false"));
+    }
+
+    private lostValidityCheckFails() {
+        # the connection is lost only if it is reported invalid; if the check itself fails, the original error is
+        # raised, followed by the error of the check, and nothing is executed again
+        DatasourcePool ds = pool();
+        JdbcTransactionDriver::loseConnectionAt("auto:false", False);
+        JdbcTransactionDriver::failNext("isValid");
+        assertErrorChain(sub () { ds.exec("write"); }, ("injected connection loss", "injected isValid"));
+        assertEq(0, JdbcTransactionDriver::count("execute:write:false"));
+        assertEq(1, JdbcTransactionDriver::count("connect"));
+        assertEq(1, ds.exec("write"));
+        ds.commit();
+        assertEq(1, JdbcTransactionDriver::durable());
+
+        # the same for a statement lost when it is executed
+        JdbcTransactionDriver::loseConnectionAt("execute:write:false", True);
+        JdbcTransactionDriver::failNext("isValid");
+        assertErrorChain(sub () { ds.exec("write"); }, ("injected connection loss", "injected isValid"));
+        assertEq(2, JdbcTransactionDriver::count("execute:write:false"));
+        ds.rollback();
+        assertEq(1, JdbcTransactionDriver::durable());
+    }
+
+    #! asserts that the call raises exactly the given chain of JNI-ERROR exceptions, in order
+    /** @param call the call that must raise the errors
+        @param descs a regular expression for the description of each error
+    */
+    private assertErrorChain(code call, list<string> descs) {
+        *hash<ExceptionInfo> ex;
+        # only the call is in the try block, so that a failed assertion is not caught as the expected error
+        try {
+            call();
+        } catch (hash<ExceptionInfo> e) {
+            ex = e;
+        }
+        foreach string desc in (descs) {
+            assertEq("JNI-ERROR", ex.err, desc);
+            assertRegex(desc, ex.desc);
+            ex = ex.next;
+        }
+        assertNothing(ex, "no further errors");
     }
 
     private cursorLifetime() {

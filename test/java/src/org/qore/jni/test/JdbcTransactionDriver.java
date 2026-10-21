@@ -25,9 +25,19 @@ public final class JdbcTransactionDriver implements Driver {
     // All fixture state and proxy callbacks are serialized on this class's monitor.
     private static final ArrayList<String> events = new ArrayList<>();
     private static String failure = "";
-    // execution at which the connection is lost, and whether the server applied the statement first
-    private static String loss = "";
-    private static boolean lossApplied;
+    // a scripted connection loss: the event at which the connection is lost, and for an execution, whether the
+    // server applied the statement first
+    private static final class Loss {
+        final String operation;
+        final boolean applied;
+
+        Loss(String operation, boolean applied) {
+            this.operation = operation;
+            this.applied = applied;
+        }
+    }
+    // scripted connection losses, in order
+    private static final ArrayList<Loss> losses = new ArrayList<>();
     private static int durable;
     private static boolean installed;
 
@@ -38,8 +48,7 @@ public final class JdbcTransactionDriver implements Driver {
         }
         events.clear();
         failure = "";
-        loss = "";
-        lossApplied = false;
+        losses.clear();
         durable = 0;
     }
 
@@ -52,11 +61,20 @@ public final class JdbcTransactionDriver implements Driver {
         failure = operation;
     }
 
-    /** The connection is lost at the given "execute:<sql>:<auto-commit>" event; with {@code applied} the server
-        executed the statement before the connection dropped (committing it in auto-commit mode). */
+    /** The connection is lost at the next "execute:<sql>:<auto-commit>" event, or at the next "auto:<value>" event
+        (a request to change the auto-commit mode, which finds the session gone); with {@code applied} the server
+        executed the statement before the connection dropped (committing it in auto-commit mode).  Each call adds a
+        loss; the losses happen in the order they were added. */
     public static synchronized void loseConnectionAt(String operation, boolean applied) {
-        loss = operation;
-        lossApplied = applied;
+        losses.add(new Loss(operation, applied));
+    }
+
+    // returns null if the connection is not lost at this event, otherwise the loss, which is removed
+    private static Loss takeLoss(String operation) {
+        if (losses.isEmpty() || !losses.get(0).operation.equals(operation)) {
+            return null;
+        }
+        return losses.remove(0);
     }
 
     public static synchronized int count(String operation) {
@@ -295,12 +313,10 @@ public final class JdbcTransactionDriver implements Driver {
                         switch (method.getName()) {
                             case "execute": {
                                 String operation = "execute:" + sql + ":" + autoCommit;
-                                boolean lose = loss.equals(operation);
-                                if (lose) {
-                                    loss = "";
-                                }
+                                Loss loss = takeLoss(operation);
+                                boolean lose = loss != null;
                                 event(operation);
-                                if (sql.equals("write") && (!lose || lossApplied)) {
+                                if (sql.equals("write") && (!lose || loss.applied)) {
                                     if (autoCommit) {
                                         ++durable;
                                     } else {
@@ -349,7 +365,15 @@ public final class JdbcTransactionDriver implements Driver {
                         switch (method.getName()) {
                             case "setAutoCommit":
                                 boolean value = (Boolean) args[0];
-                                event("auto:" + value);
+                                String operation = "auto:" + value;
+                                boolean lose = takeLoss(operation) != null;
+                                event(operation);
+                                if (lose) {
+                                    // the request finds the session gone; the server rolled back its transaction
+                                    pending = 0;
+                                    closed = true;
+                                    throw new SQLException("injected connection loss", "08006");
+                                }
                                 if (value && !autoCommit) {
                                     durable += pending;
                                     pending = 0;
@@ -382,7 +406,14 @@ public final class JdbcTransactionDriver implements Driver {
                                 event("close");
                                 return null;
                             case "isClosed": return closed;
-                            case "isValid": return !closed;
+                            case "isValid":
+                                // not recorded as an event, so that the validity checks of the client do not change
+                                // the event sequence; it fails only when scripted
+                                if (failure.equals("isValid")) {
+                                    failure = "";
+                                    throw new SQLException("injected isValid");
+                                }
+                                return !closed;
                             case "getMetaData": return null;
                             default: throw new SQLFeatureNotSupportedException(method.getName());
                         }
