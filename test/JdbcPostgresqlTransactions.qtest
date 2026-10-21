@@ -8,6 +8,11 @@
 %requires QUnit
 %requires TableMapper
 %requires DataProvider
+%requires FsUtil
+
+%try-module process
+%define NO_PROCESS
+%endtry
 %module-cmd(jni) add-relative-classpath qore-jni-test.jar
 # JdbcCursorTest uses the org.qore.lang wrapper classes, which are provided by qore-jni.jar
 %module-cmd(jni) add-relative-classpath ../build/qore-jni.jar
@@ -16,6 +21,11 @@
 %exec-class JdbcPostgresqlTransactionsTest
 
 class JdbcPostgresqlTransactionsTest inherits QUnit::Test {
+    private {
+        #! the application name of the sessions of this test, which tells them apart from other sessions of the user
+        string app_name = "qore-jni-jdbc-test-" + getpid();
+    }
+
     constructor() : Test("JDBC PostgreSQL transaction integration", "1.0", \ARGV) {
         addTestCase("pooled reads release PostgreSQL locks", \pooledReads());
         addTestCase("commit, rollback, prepared writes and failed reads", \transactions());
@@ -26,6 +36,7 @@ class JdbcPostgresqlTransactionsTest inherits QUnit::Test {
         addTestCase("SQLStatement::describe() describes the result columns", \describeColumns());
         addTestCase("a statement mapper gets the record type of a statement", \statementRecordType());
         addTestCase("java.time values of the PostgreSQL JDBC driver are dates", \pgjdbcJavaTime());
+        addTestCase("the idle transaction check ignores the sessions of other processes", \foreignIdleSession());
         set_return_value(main());
     }
 
@@ -92,7 +103,7 @@ class JdbcPostgresqlTransactionsTest inherits QUnit::Test {
 
     private pgjdbcJavaTime() {
         # the PostgreSQL JDBC driver returns java.time values when they are requested with getObject(int, Class)
-        hash<auto> h = parse_datasource(connection());
+        hash<auto> h = connection();
         Program p(PO_NEW_STYLE);
         p.loadModule("jni");
         p.issueModuleCmd("jni", "add-classpath " + h.options.classpath);
@@ -150,7 +161,7 @@ class JdbcPostgresqlTransactionsTest inherits QUnit::Test {
     }
 
     private lostConnection() {
-        string connstr = connection();
+        hash<auto> connstr = connection();
         Datasource observer(connstr);
         Datasource ds(connstr);
         string table = "jdbc_lost_connection_test_" + getpid();
@@ -185,11 +196,14 @@ class JdbcPostgresqlTransactionsTest inherits QUnit::Test {
         assertEq(1, observer.selectRow(sprintf("select count(*) as count from %s", table)).count);
     }
 
-    private string connection() {
+    #! the configuration of a datasource of this test, whose sessions have the application name of the test
+    private hash<auto> connection() {
         if (!ENV.QORE_DB_CONNSTR_JDBC_PGSQL) {
             testSkip("QORE_DB_CONNSTR_JDBC_PGSQL is not configured");
         }
-        return ENV.QORE_DB_CONNSTR_JDBC_PGSQL;
+        hash<auto> config = parse_datasource(ENV.QORE_DB_CONNSTR_JDBC_PGSQL);
+        config.options.url += (config.options.url =~ /\?/ ? "&" : "?") + "ApplicationName=" + app_name;
+        return config;
     }
 
     private reuse() {
@@ -240,14 +254,56 @@ class JdbcPostgresqlTransactionsTest inherits QUnit::Test {
     }
 
     private assertNoIdleTransactions(AbstractDatasource observer) {
-        # Inspect actual server state, including idle connections returned to the pool.
+        # Inspect actual server state, including idle connections returned to the pool; only the sessions of this
+        # test count, as other processes can use the same user and database.  Every datasource of the test has the
+        # test's application name, as the session of the observer does
+        assertEq(app_name, observer.selectRow("select current_setting('application_name') as name").name);
         assertEq(0, observer.selectRow("select count(*) as count from pg_stat_activity "
-            "where usename = current_user and datname = current_database() "
-            "and state like 'idle in transaction%' and pid <> pg_backend_pid()").count);
+            "where usename = current_user and datname = current_database() and application_name = %v "
+            "and state like 'idle in transaction%' and pid <> pg_backend_pid()", app_name).count);
+    }
+
+    private foreignIdleSession() {
+%ifdef NO_PROCESS
+        testSkip("the process module is not available");
+%else
+        hash<auto> config = connection();
+        Datasource observer(config);
+        on_exit observer.rollback();
+        # another process opens a session of the same user and database and leaves it idle in a transaction
+        TmpFile tmp(NOTHING, ".qr");
+        tmp.file.write(sprintf("%%modern\n%%prepend-module-path \"%s\"\n%%requires jni\n",
+            dirname(get_module_hash().jni.filename)) + "
+Datasource ds(ENV.QORE_DB_CONNSTR_JDBC_PGSQL);
+ds.beginTransaction();
+printf(\"ready %d\\n\", ds.selectRow(\"select pg_backend_pid() as pid\").pid);
+flush();
+# the session stays idle in the transaction until stdin is closed
+while (exists stdin.readLine()) {
+}
+ds.rollback();
+");
+        tmp.file.close();
+        Process child(QORE_ARGV[0], (tmp.path,));
+        on_exit {
+            child.closeStdin();
+            child.wait();
+        }
+        # bounded wait for the child to report its session
+        *string out = child.readStdout(100, 60000);
+        assertRegex("^ready [0-9]+", out ?? "");
+        int pid = (out =~ x/ready ([0-9]+)/)[0].toInt();
+        # the other process's session is idle in a transaction, and is not one of this test's sessions
+        hash<auto> session = observer.selectRow("select state, application_name from pg_stat_activity "
+            "where pid = %v", pid);
+        assertRegex("^idle in transaction", session.state);
+        assertNeq(app_name, session.application_name);
+        assertNoIdleTransactions(observer);
+%endif
     }
 
     private pooledReads() {
-        string connstr = connection();
+        hash<auto> connstr = connection();
         Datasource configuration(connstr);
         hash<auto> options = configuration.getConfigHash();
         options.options += {"min": 2, "max": 2};
@@ -275,7 +331,7 @@ class JdbcPostgresqlTransactionsTest inherits QUnit::Test {
     }
 
     private transactions() {
-        string connstr = connection();
+        hash<auto> connstr = connection();
         Datasource configuration(connstr);
         hash<auto> options = configuration.getConfigHash();
         options.options += {"min": 2, "max": 2};
