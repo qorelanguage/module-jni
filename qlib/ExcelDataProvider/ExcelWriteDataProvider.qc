@@ -47,6 +47,9 @@ hashdecl ExcelWriteSheetInfo {
     #! False if no header row is written
     bool write_headers = True;
 
+    #! The 1-based header row; preceding rows are blank
+    int header_row = 1;
+
     #! The number of records written to the worksheet
     int count = 0;
 }
@@ -189,6 +192,14 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
                     "the worksheet; the default is `true`",
                 "default_value": True,
             },
+            "header_row": <DataProviderOptionInfo>{
+                "display_name": "Header Row Number",
+                "short_desc": "The row containing the column headers",
+                "type": AbstractDataProviderType::get(IntType),
+                "desc": "The 1-based row containing the column headers; `1` by default. Earlier rows are blank, "
+                    "and records follow the header row. A value after row `1` requires `write_headers` to be `true`.",
+                "example_value": 3,
+            },
             "timezone": <DataProviderOptionInfo>{
                 "display_name": "Time Zone",
                 "short_desc": "The time zone whose wall-clock time dates are written in",
@@ -213,16 +224,16 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
                     "`columns`, the fields of the first record written to the worksheet are its columns\n"
                     "- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the "
                     "record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n"
-                    "- `column_headers`, `column_formats`, `column_masks` and `write_headers`: as the options of the "
-                    "same name, for the worksheet\n\n"
+                    "- `column_headers`, `column_formats`, `column_masks`, `header_row` and `write_headers`: as the "
+                    "options of the same name, for the worksheet\n\n"
                     "**Routing**: a record is written to the first worksheet whose condition it matches, or with "
                     "`route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises "
                     "`EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one "
                     "without records, which has its header row if its columns are given.  The `write-data` action "
                     "returns the number of records written to each worksheet in `sheet_counts`.\n\n"
                     "**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, "
-                    "`column_formats`, `column_masks` and `write_headers` options are given for each worksheet "
-                    "instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or "
+                    "`column_formats`, `column_masks`, `header_row` and `write_headers` options are given for each "
+                    "worksheet instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or "
                     "condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
                 "example_value": (
                     {"worksheet": "Orders", "columns": ("Id", "Amount"), "when": "@kind == \"order\""},
@@ -277,6 +288,7 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
             "column_masks": "column_masks",
             "column_headers": "column_headers",
             "write_headers": "write_headers",
+            "header_row": "header_row",
         };
 
         #! The type of each key of a worksheet of the \c sheets option, in the order they are listed in messages
@@ -288,6 +300,7 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
             "column_formats": AbstractDataProviderType::get(new Type("hash<string, string>")),
             "column_masks": AbstractDataProviderType::get(new Type("hash<string, string>")),
             "write_headers": AbstractDataProviderType::get(SoftBoolType),
+            "header_row": AbstractDataProviderType::get(IntType),
         };
     }
 
@@ -390,6 +403,15 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
         setupWriter();
     }
 
+    #! Validates header placement before creating the workbook
+    private checkHeaderRow(int row, bool write_headers) {
+        int maximum = opts.format == "xls" ? 65536 : 1048576;
+        if (row < 1 || row > maximum || (!write_headers && row != 1)) {
+            error("EXCEL-WRITE-OPTION-ERROR", "invalid header_row %d: expected a row from 1 to %d; "
+                "a header row after row 1 requires write_headers", row, maximum);
+        }
+    }
+
     #! Sets up the writer
     /** @throw EXCEL-WRITE-OPTION-ERROR an invalid format code in \c column_formats, a mask without a display format
         in \c column_masks, a column with both, an invalid time zone, an invalid worksheet name, an invalid worksheet
@@ -430,6 +452,7 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
         if (opts.headers) {
             checkColumns(opts{"column_formats", "column_masks", "column_headers"}, opts.headers);
         }
+        checkHeaderRow(opts.header_row ?? 1, opts.write_headers ?? True);
         writer = new ExcelWriter(opts.worksheet ?? "Sheet1", opts.format ?? "xlsx", opts.streaming ?? False);
         # the writer is released if it cannot be set up, as the destructor does not run when a constructor fails
         on_error {
@@ -444,6 +467,9 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
         }
         if (opts.column_headers) {
             writer.setColumnHeaders(opts.column_headers);
+        }
+        if (exists opts.header_row) {
+            writer.setHeaderRow(opts.header_row);
         }
         if (exists opts.write_headers && !opts.write_headers) {
             writer.setWriteHeaders(False);
@@ -486,6 +512,7 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
             if (sheet.column_opts.column_headers) {
                 writer.setColumnHeaders(i, sheet.column_opts.column_headers);
             }
+            writer.setHeaderRow(i, sheet.header_row);
             if (!sheet.write_headers) {
                 writer.setWriteHeaders(i, False);
             }
@@ -538,7 +565,9 @@ public class ExcelWriteDataProvider inherits DataProvider::AbstractDataProvider 
             "when": values.when,
             "column_opts": values{"column_headers", "column_formats", "column_masks"},
             "write_headers": values.write_headers ?? True,
+            "header_row": values.header_row ?? 1,
         };
+        checkHeaderRow(rv.header_row, rv.write_headers);
         if (exists values.when) {
             try {
                 rv.condition = DataProvider::parseDpqlExpression(values.when);

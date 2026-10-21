@@ -606,6 +606,8 @@ module ExcelDataProvider {
     @section ExcelDataProvider_relnotes Release Notes
 
     @subsection ExcelDataProvider_v1_1 ExcelDataProvider v1.1
+    - added the \c header_row write option to place column headers after blank leading rows, including in
+      individual worksheets of a multi-sheet workbook
     - added the \c list-worksheets action and
       @ref ExcelDataProvider::ExcelListWorksheetsDataProvider "ExcelListWorksheetsDataProvider": the worksheets of a
       workbook in order, each with its 0-based index, which the \c worksheet read option accepts, and whether it is

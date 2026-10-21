@@ -66,6 +66,7 @@ public class ExcelWriter implements Closeable {
         CellStyle[] columnStyles;
         ArrayList<String> headers = new ArrayList<String>();
         int currentRow = 0;
+        int rowOffset = 0;
         boolean headersWritten = false;
         // the header text of columns whose header is not their name, by column name
         HashMap<String, String> columnHeaders = new HashMap<String, String>();
@@ -349,6 +350,36 @@ public class ExcelWriter implements Closeable {
     }
 
     /**
+     * Sets the 1-based header row of the first worksheet, leaving preceding rows blank.
+     * @param row the header row, from 1
+     * @throws IllegalArgumentException the row is out of range, headers are disabled, or writing has started
+     * @see #setHeaderRow(int, int)
+     */
+    public void setHeaderRow(int row) {
+        setHeaderRow(0, row);
+    }
+
+    /**
+     * Sets the 1-based header row of a worksheet, leaving preceding rows blank.
+     * @param sheet the 0-based worksheet index
+     * @param row the header row, from 1
+     * @throws IllegalArgumentException the row is out of range, headers are disabled, or writing has started
+     */
+    public void setHeaderRow(int sheet, int row) {
+        SheetState state = getSheet(sheet);
+        if (state.currentRow > 0 || state.headersWritten) {
+            throw new IllegalArgumentException("the header row must be set before any row is written");
+        }
+        if (row < 1 || row > ("xls".equals(format) ? 65536 : 1048576)) {
+            throw new IllegalArgumentException("the header row is outside the worksheet's row range");
+        }
+        if (!state.writeHeaderRow && row != 1) {
+            throw new IllegalArgumentException("a header row after row 1 requires headers to be enabled");
+        }
+        state.rowOffset = row - 1;
+    }
+
+    /**
      * Sets whether a header row is written in the first worksheet
      *
      * @see #setWriteHeaders(int, boolean)
@@ -368,6 +399,9 @@ public class ExcelWriter implements Closeable {
         SheetState state = getSheet(sheet);
         if (state.currentRow > 0) {
             throw new IllegalArgumentException("the header row must be set before any row is written");
+        }
+        if (!write && state.rowOffset != 0) {
+            throw new IllegalArgumentException("a header row after row 1 requires headers to be enabled");
         }
         state.writeHeaderRow = write;
     }
@@ -390,7 +424,7 @@ public class ExcelWriter implements Closeable {
             state.headersWritten = true;
             return;
         }
-        Row row = state.sheet.createRow(state.currentRow++);
+        Row row = state.sheet.createRow(state.rowOffset + state.currentRow++);
         for (int i = 0; i < state.headers.size(); i++) {
             Cell cell = row.createCell(i);
             cell.setCellValue(state.columnHeaders.getOrDefault(state.headers.get(i), state.headers.get(i)));
@@ -429,7 +463,7 @@ public class ExcelWriter implements Closeable {
         resolveColumnStyles(state);
         writeHeaders(state);
 
-        Row row = state.sheet.createRow(state.currentRow++);
+        Row row = state.sheet.createRow(state.rowOffset + state.currentRow++);
         for (int i = 0; i < state.headers.size(); i++) {
             Object value = data.get(state.headers.get(i));
             Cell cell = row.createCell(i);

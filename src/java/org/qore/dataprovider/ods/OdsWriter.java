@@ -80,6 +80,7 @@ public class OdsWriter implements Closeable {
         final OdfTable table;
         ArrayList<String> headers = new ArrayList<String>();
         int currentRow = 0;
+        int rowOffset = 0;
         boolean headersWritten = false;
         // the header text of columns whose header is not their name, by column name
         HashMap<String, String> columnHeaders = new HashMap<String, String>();
@@ -282,6 +283,36 @@ public class OdsWriter implements Closeable {
     }
 
     /**
+     * Sets the 1-based header row of the first worksheet, leaving preceding rows blank.
+     * @param row the header row, from 1
+     * @throws IllegalArgumentException the row is out of range, headers are disabled, or writing has started
+     * @see #setHeaderRow(int, int)
+     */
+    public void setHeaderRow(int row) {
+        setHeaderRow(0, row);
+    }
+
+    /**
+     * Sets the 1-based header row of a worksheet, leaving preceding rows blank.
+     * @param sheet the 0-based worksheet index
+     * @param row the header row, from 1
+     * @throws IllegalArgumentException the row is out of range, headers are disabled, or writing has started
+     */
+    public void setHeaderRow(int sheet, int row) {
+        SheetState state = getSheet(sheet);
+        if (state.currentRow > 0 || state.headersWritten) {
+            throw new IllegalArgumentException("the header row must be set before any row is written");
+        }
+        if (row < 1 || row > 1048576) {
+            throw new IllegalArgumentException("the header row is outside the worksheet's row range");
+        }
+        if (!state.writeHeaderRow && row != 1) {
+            throw new IllegalArgumentException("a header row after row 1 requires headers to be enabled");
+        }
+        state.rowOffset = row - 1;
+    }
+
+    /**
      * Sets whether a header row is written in the first sheet
      *
      * @see #setWriteHeaders(int, boolean)
@@ -301,6 +332,9 @@ public class OdsWriter implements Closeable {
         SheetState state = getSheet(sheet);
         if (state.currentRow > 0) {
             throw new IllegalArgumentException("the header row must be set before any row is written");
+        }
+        if (!write && state.rowOffset != 0) {
+            throw new IllegalArgumentException("a header row after row 1 requires headers to be enabled");
         }
         state.writeHeaderRow = write;
     }
@@ -324,7 +358,7 @@ public class OdsWriter implements Closeable {
             return;
         }
         for (int i = 0; i < state.headers.size(); i++) {
-            OdfTableCell cell = state.table.getCellByPosition(i, state.currentRow);
+            OdfTableCell cell = state.table.getCellByPosition(i, state.rowOffset + state.currentRow);
             cell.setStringValue(state.columnHeaders.getOrDefault(state.headers.get(i), state.headers.get(i)));
         }
         state.currentRow++;
@@ -362,7 +396,7 @@ public class OdsWriter implements Closeable {
 
         for (int i = 0; i < state.headers.size(); i++) {
             Object value = data.get(state.headers.get(i));
-            OdfTableCell cell = state.table.getCellByPosition(i, state.currentRow);
+            OdfTableCell cell = state.table.getCellByPosition(i, state.rowOffset + state.currentRow);
             SpreadsheetFormatCode code = state.columnCodes[i] != null && state.columnCodes[i].shows(value)
                 ? state.columnCodes[i] : null;
             setCellValue(cell, value, code);

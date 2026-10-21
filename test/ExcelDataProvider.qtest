@@ -301,6 +301,7 @@ public class ExcelDataProviderTest inherits QUnit::Test {
         addTestCase("write: negative - masks without a display format", \testWriteNegativeColumnMasks());
         addTestCase("write: column header text", \testWriteColumnHeaders());
         addTestCase("write: no header row", \testWriteNoHeaderRow());
+        addTestCase("write: header row placement", \testWriteHeaderPlacement());
         addTestCase("write: dates as wall-clock time", \testWriteTimeZone());
         addTestCase("write: the write actions offer the output options", \testOutputOptionsAction());
         addTestCase("write: column masks as LibreOffice shows them", \testWriteColumnMasksRendered());
@@ -2571,6 +2572,32 @@ printf(\"RESULT:%%s\\n\", make_json({\"count\": count, \"mismatches\": mismatche
         });
     }
 
+    testWriteHeaderPlacement() {
+        string path = test_data_dir + "/header-placement.xlsx";
+        on_exit unlink(path);
+        ExcelWriteDataProvider dp(path, {"headers": ("sku", "amount"), "header_row": 3,
+            "column_masks": {"amount": "0.00"}});
+        dp.createRecord({"sku": "A-1", "amount": 1.5});
+        dp.finishCreate();
+        ExcelReadDataProvider reader(path, {"header_names": True, "header_cells": "3"});
+        assertEq(({"sku": "A-1", "amount": 1.5},), map $1, reader.searchRecords());
+        foreach int row in ((0, -1, 1048577)) {
+            assertThrows("EXCEL-WRITE-OPTION-ERROR", sub () {
+                ExcelWriteDataProvider bad({"header_row": row});
+            });
+        }
+        assertThrows("EXCEL-WRITE-OPTION-ERROR", sub () {
+            ExcelWriteDataProvider bad({"header_row": 3, "write_headers": False});
+        });
+        ExcelWriteDataProvider multi(path, {"sheets": (
+            {"worksheet": "Orders", "columns": ("sku", "amount"), "header_row": 3},
+        )});
+        multi.createRecord({"sku": "B-2", "amount": 7});
+        multi.finishCreate();
+        reader = new ExcelReadDataProvider(path, {"worksheet": "Orders", "header_names": True, "header_cells": "3"});
+        assertEq(({"sku": "B-2", "amount": 7},), map $1, reader.searchRecords());
+    }
+
     testWriteNoHeaderRow() {
         foreach string format in (("xlsx", "xls")) {
             string path = sprintf("%s/no-header-row.%s", test_data_dir, format);
@@ -2626,7 +2653,7 @@ printf(\"RESULT:%%s\\n\", make_json({\"count\": count, \"mismatches\": mismatche
     testOutputOptionsAction() {
         foreach string action in (("write", "write-data")) {
             hash<DataProviderActionInfo> info = DataProviderActionCatalog::getAppActionEx("Excel", action);
-            foreach string opt in (("column_masks", "column_headers", "write_headers", "timezone")) {
+            foreach string opt in (("column_masks", "column_headers", "write_headers", "header_row", "timezone")) {
                 assertTrue(exists info.options{opt}, action + ": " + opt);
             }
         }
@@ -2926,6 +2953,7 @@ printf(\"RESULT:%%s\\n\", make_json({\"count\": count, \"mismatches\": mismatche
                 "column_masks": "column_masks",
                 "column_headers": "column_headers",
                 "write_headers": "write_headers",
+                "header_row": "header_row",
             }.pairIterator()) {
             auto value = {
                 "worksheet": "Data",
@@ -2934,6 +2962,7 @@ printf(\"RESULT:%%s\\n\", make_json({\"count\": count, \"mismatches\": mismatche
                 "column_masks": {"Id": "#"},
                 "column_headers": {"Id": "No."},
                 "write_headers": False,
+                "header_row": 3,
             }{i.key};
             assertEq(sprintf("cannot use the \"%s\" option with the \"sheets\" option; give each worksheet its \"%s\" "
                 "instead", i.key, i.value), getErrorDesc("EXCEL-WRITE-OPTION-ERROR", sub () {
@@ -2964,7 +2993,7 @@ printf(\"RESULT:%%s\\n\", make_json({\"count\": count, \"mismatches\": mismatche
                     "\"string\", not \"integer\""},
                 {"sheets": ({"worksheet": "Data", "headers": ("Id",), "where": "x"},), "error":
                     "worksheet \"Data\": unknown keys \"headers\", \"where\"; the keys of a worksheet are: worksheet, "
-                    "columns, when, column_headers, column_formats, column_masks, write_headers"},
+                    "columns, when, column_headers, column_formats, column_masks, write_headers, header_row"},
                 {"sheets": ({"worksheet": "Data", "columns": ("Id", 2)},), "error": "worksheet \"Data\": \"columns\" "
                     "must be a value of type \"softlist<string>\", not \"list<auto>\""},
                 {"sheets": ({"worksheet": "Data", "columns": ()},), "error": "worksheet \"Data\": \"columns\" is "
