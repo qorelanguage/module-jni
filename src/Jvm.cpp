@@ -30,6 +30,7 @@
 #include <dlfcn.h>
 
 #include "defs.h"
+#include "GeneratedBinding.h"
 #include "Globals.h"
 #include "QoreJniClassMap.h"
 
@@ -51,6 +52,28 @@ namespace jni {
 JavaVM* Jvm::vm = nullptr;
 thread_local JNIEnv* Jvm::env;
 bool Jvm::native_access_option_enabled = false;
+bool Jvm::forked_child = false;
+QoreForkHandlerRegistration* Jvm::fork_reg = nullptr;
+
+void Jvm::forkChild(void*) {
+    // runs in the child of fork() before anything else runs in it; takes no lock and allocates nothing (see
+    // QoreForkHandler.h)
+    if (vm) {
+        forked_child = true;
+        generated_bindings_fork_child();
+    }
+}
+
+int Jvm::registerForkHandler() {
+    assert(!fork_reg);
+    fork_reg = qore_register_fork_handler(QFR_MODULE_LEAF, "jni_vm", nullptr, nullptr, forkChild, nullptr);
+    return fork_reg ? 0 : -1;
+}
+
+void Jvm::unregisterForkHandler() {
+    qore_unregister_fork_handler(fork_reg);
+    fork_reg = nullptr;
+}
 
 QoreStringNode* Jvm::createVM() {
     assert(vm == nullptr);
@@ -269,6 +292,16 @@ void Jvm::destroyVM() {
         return;
     }
 
+    if (forked_child) {
+        // A child process created with fork(): the threads of the JVM, including the NativeCleanup thread, exist
+        // only in the parent.  Joining the NativeCleanup thread or calling DestroyJavaVM() would wait forever for
+        // threads that do not exist here, and no JNI call can be made, so the JVM is only forgotten; its memory is
+        // released with the process.
+        vm = nullptr;
+        env = nullptr;
+        return;
+    }
+
     // Drain and join the NativeCleanup C++ background thread before the JVM
     // teardown begins.  Must happen before Globals::cleanup() so the JNI ID
     // caches the thread relies on are still valid.
@@ -287,6 +320,9 @@ void Jvm::destroyVM() {
 }
 
 JNIEnv *Jvm::attachAndGetEnv() {
+    if (forked_child) {
+        throw ForkedChildException();
+    }
     if (!vm) {
         throw UnableToAttachException(JNI_ERR);
     }
@@ -302,6 +338,9 @@ JNIEnv *Jvm::attachAndGetEnv() {
 }
 
 JNIEnv* Jvm::attachAndGetEnv(bool& new_attach) {
+    if (forked_child) {
+        throw ForkedChildException();
+    }
     if (!vm) {
         throw UnableToAttachException(JNI_ERR);
     }
@@ -321,8 +360,12 @@ JNIEnv* Jvm::attachAndGetEnv(bool& new_attach) {
 
 void Jvm::threadCleanup() {
     if (vm && env) {
-        printd(LogLevel, "JNI - detaching thread, env: %p\n", env);
-        vm->DetachCurrentThread();
+        // in a child process created with fork(), the thread was attached in the parent, and the JVM cannot be
+        // called
+        if (!forked_child) {
+            printd(LogLevel, "JNI - detaching thread, env: %p\n", env);
+            vm->DetachCurrentThread();
+        }
         env = nullptr;
     }
 }

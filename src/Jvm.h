@@ -110,6 +110,29 @@ public:
     }
 
     /**
+     * \brief Returns true in a child process created with fork() after the JVM was created or set
+     *
+     * Such a process cannot use the JVM: only the thread that called fork() exists in it, while the threads of the
+     * JVM (the VM thread, the garbage collectors, the compilers, the NativeCleanup thread) remain in the parent.
+     */
+    static bool isForkedChild() {
+        return forked_child;
+    }
+
+    /**
+     * \brief Registers the fork handler that marks a child process created with fork() (see isForkedChild())
+     *
+     * Called in the module's initialization function, as fork handlers must be (see QoreForkHandler.h).
+     * \return 0 if successful, -1 if there was no memory for the registration
+     */
+    static int registerForkHandler();
+
+    /**
+     * \brief Removes the registration made with registerForkHandler()
+     */
+    static void unregisterForkHandler();
+
+    /**
      * \brief Returns the JavaVM pointer.  Used by the NativeCleanup C++
      * background thread (Globals::startNativeCleanupThread) to attach
      * itself as a daemon JNI thread.
@@ -124,10 +147,22 @@ private:
      */
     Jvm() = delete;
 
+    /**
+     * \brief The fork handler run in the child of fork(): marks the process if the JVM was created or set
+     */
+    static void forkChild(void*);
+
 private:
     static JavaVM* vm;
     static thread_local JNIEnv* env;
     static bool native_access_option_enabled;
+    //! true in a child process created with fork() after the JVM was created or set; see isForkedChild()
+    /** Set by forkChild() while only the forking thread exists in the child, so every thread created later in the
+        child sees it; never set in the process that created the JVM
+    */
+    static bool forked_child;
+    //! the registration of forkChild()
+    static QoreForkHandlerRegistration* fork_reg;
 };
 
 } // namespace jni

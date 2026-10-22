@@ -1732,6 +1732,11 @@ const QoreNamespace* get_module_root_ns(const char* name, QoreProgram* mod_pgm) 
 static size_t qmnc_purge_count = 0;
 
 void purge_module_root_ns_cache(QoreProgram* mod_pgm) {
+    if (jni::Jvm::isForkedChild()) {
+        // a child process created with fork() after the JVM was started: the cache is used only for Java, which
+        // cannot be used here, and a thread of the parent can have held its lock when the process was created
+        return;
+    }
     AutoLocker al(qmnc_lock_ref());
     ++qmnc_purge_count;
     qmnc_ref().erase(mod_pgm);

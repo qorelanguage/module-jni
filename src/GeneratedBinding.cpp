@@ -30,6 +30,8 @@ using BindingKey = std::array<uintptr_t, 8>;
 std::map<BindingKey, jlong> binding_ids;
 std::map<QoreProgram*, std::shared_ptr<GeneratedProgram>> program_lifetimes;
 bool bindings_shutdown = false;
+// set in a child process created with fork() after the JVM was started; see generated_bindings_fork_child()
+bool bindings_forked_child = false;
 
 constexpr const char* expired_binding = "The Qore Program that generated this class is no longer available, "
     "or the generated binding belongs to another process or an older JNI version; regenerate the class";
@@ -131,6 +133,10 @@ std::shared_ptr<const GeneratedBinding> find_generated_binding(jlong handle, Gen
 }
 
 void purge_generated_bindings(QoreProgram* pgm) {
+    if (bindings_forked_child) {
+        // see generated_bindings_fork_child()
+        return;
+    }
     std::shared_ptr<GeneratedProgram> lifetime;
     {
         std::lock_guard<std::mutex> lock(binding_mutex);
@@ -163,7 +169,15 @@ void purge_generated_bindings(QoreProgram* pgm) {
     program_lifetimes.erase(pgm);
 }
 
+void generated_bindings_fork_child() {
+    bindings_forked_child = true;
+}
+
 void clear_generated_bindings() {
+    if (bindings_forked_child) {
+        // see generated_bindings_fork_child()
+        return;
+    }
     // Close generation before draining, so a concurrent JVM callback cannot
     // repopulate an already-cleared program while the module is shutting down.
     {

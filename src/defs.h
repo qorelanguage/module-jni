@@ -105,6 +105,23 @@ private:
 };
 
 /**
+ * \brief An exception thrown when Java is used in a child process created with fork() after the JVM was started
+ *
+ * The JVM cannot be used in such a process (see Jvm::isForkedChild()); code that ignores attach errors (cleanup
+ * paths) ignores this one too.
+ */
+class ForkedChildException : public UnableToAttachException {
+public:
+    DLLLOCAL ForkedChildException() : UnableToAttachException(JNI_ERR) {
+    }
+
+    DLLLOCAL void convert(ExceptionSink *xsink) override {
+        xsink->raiseException("JNI-FORK-ERROR", "Java cannot be used in this process: it was created with fork() "
+            "after the JVM was started, and the threads of the JVM exist only in the parent process");
+    }
+};
+
+/**
  * \brief An exception thrown when the current thread cannot be registered with Qore.
  */
 class UnableToRegisterException : public IgnorableException {

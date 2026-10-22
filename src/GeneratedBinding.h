@@ -50,6 +50,14 @@ DLLLOCAL jlong register_generated_binding(std::shared_ptr<GeneratedBinding> bind
 DLLLOCAL std::shared_ptr<const GeneratedBinding> find_generated_binding(jlong handle, GeneratedBindingKind kind);
 DLLLOCAL void purge_generated_bindings(QoreProgram* pgm);
 DLLLOCAL void clear_generated_bindings();
+//! Called in a child process created with fork() after the JVM was started, by the module's fork handler
+/** The registry is then left as it is in the child: the leases of the bindings are held by Java threads of the
+    parent, which do not exist in the child and never release them, a thread of the parent can have held the
+    registry's locks when the process was created, and Java, which alone uses the bindings, cannot be used in the
+    child.  Purging the bindings of a Program and clearing the registry do nothing in the child.  Takes no lock and
+    allocates nothing.
+*/
+DLLLOCAL void generated_bindings_fork_child();
 
 class GeneratedBindingLease {
 public:

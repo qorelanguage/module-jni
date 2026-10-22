@@ -15,6 +15,9 @@
       thread: the inner callback detached the thread from %Qore while the outer one was still running
     - fixed a Java method call ending the process when its thread could not be attached to the JVM, as when the
       thread's cancellation was pending; the call now raises the exception (ex: \c THREAD-CANCELLED)
+    - fixed a child process created with \c fork() after the JVM was started waiting forever when it exited or ended
+      its script, or when it deleted a Program whose %Qore code a Java thread was running; Java cannot be used in
+      such a child, and a use of Java there now raises \c JNI-FORK-ERROR (see @ref jni_fork)
     - made Java socket-based JDBC connection establishment cancellable using a joined virtual thread
     - fixed a native abort while converting a Java exception with Qore cancellation pending
     - closed connections after failed metadata/session initialization and cancellation races

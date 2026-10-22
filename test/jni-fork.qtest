@@ -1,0 +1,198 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+# Child processes created with fork() after the JVM has been started.  Only the forking thread exists in a child; the
+# threads of the JVM (the VM thread, the garbage collectors, the module's NativeCleanup thread) remain in the parent,
+# so the child cannot use Java, and the module's cleanup in the child must not wait for any of them.
+#
+# Each child exits with exit() and writes its result to a FIFO that it keeps open until it has exited: the parent
+# reads until the end of the data, so it waits for the child's exit deterministically.  A child that waits forever
+# makes the parent wait forever (the test runner's time limit is only a guard).
+
+%modern
+%no-child-restrictions
+%prepend-module-path "${SCRIPT_DIR}/../build"
+
+%requires jni
+%requires QUnit
+%requires FsUtil
+
+%module-cmd(jni) add-relative-classpath qore-jni-test.jar
+%module-cmd(jni) import org.qore.jni.test.GeneratedBindings
+%module-cmd(jni) import java.lang.StringBuilder
+
+%exec-class JniForkTest
+
+class JniForkTest inherits QUnit::Test {
+    private {
+        #! a Program whose namespace function hold() waits on a Java thread until the parent releases it
+        const BindingSource = "%modern\n%requires jni\n"
+            "%module-cmd(jni) import org.qore.jni.QoreURLClassLoader\n"
+            "our Queue entered();\n"
+            "our Queue gate();\n"
+            "public namespace EmbeddedBindingTest {\n"
+            "    const NsValue = 73;\n"
+            "    public class Constants { public { const Value = 42; } }\n"
+            "    public class Calls {\n"
+            "        int value(int arg) { return arg + 3; }\n"
+            "        static int twice(int arg) { return arg * 2; }\n"
+            "    }\n"
+            "    int sub plus(int arg) { return arg + 1; }\n"
+            "    int sub hold(int arg) { ::entered.push(True); return ::gate.get() + arg; }\n"
+            "}\n"
+            "binary sub bytes(string name) {\n"
+            "    return QoreURLClassLoader::getCurrent().generateByteCode(\"qore.EmbeddedBindingTest.\" + name);\n"
+            "}\n"
+            "sub wait_entered() { entered.get(); }\n"
+            "sub release() { gate.push(1); }\n";
+    }
+
+    constructor() : Test("jni fork test", "1.0", \ARGV) {
+        addTestCase("a child exits with exit()", \exitTest());
+        addTestCase("a child raises JNI-FORK-ERROR when it uses Java", \javaInChildTest());
+        addTestCase("a child deletes a Program whose binding a Java thread is calling", \bindingLeaseTest());
+        addTestCase("a child ends its script, and the module is deleted", \moduleCleanupTest());
+        set_return_value(main());
+    }
+
+    # the child exits with exit(), which runs the module's exit handler; it waited forever for the NativeCleanup
+    # thread, which does not exist in the child
+    exitTest() {
+        checkFork();
+        StringBuilder sb("parent");
+        assertEq("parent", sb.toString());
+        assertEq("exiting", runChild(string sub () { return "exiting"; }));
+        # the parent still uses Java
+        sb.append("-after");
+        assertEq("parent-after", sb.toString());
+    }
+
+    # every use of Java in the child, including the use of a Java object created in the parent and the creation of a
+    # new one, raises JNI-FORK-ERROR, and the child then exits
+    javaInChildTest() {
+        checkFork();
+        StringBuilder sb("parent");
+        string result = runChild(string sub () {
+            list<string> errors;
+            try {
+                sb.append("x");
+                errors += "no error";
+            } catch (hash<ExceptionInfo> ex) {
+                errors += ex.err;
+            }
+            try {
+                StringBuilder child("child");
+                errors += "no error";
+            } catch (hash<ExceptionInfo> ex) {
+                errors += ex.err;
+            }
+            return errors.join(",");
+        });
+        assertEq("JNI-FORK-ERROR,JNI-FORK-ERROR", result);
+        sb.append("-after");
+        assertEq("parent-after", sb.toString());
+    }
+
+    # a Java thread of the parent is in a call of a generated binding of the Program when fork() is called: the
+    # child deletes the Program; it waited forever for the thread to leave the call
+    bindingLeaseTest() {
+        checkFork();
+        Program p(PO_NEW_STYLE);
+        p.parse(BindingSource, "fork-binding-fixture");
+        # initializes the global variables
+        p.run();
+        GeneratedBindings f(p.getProgramId(), p.callFunction("bytes", "Constants"), p.callFunction("bytes", "Calls"),
+            p.callFunction("bytes", "$Functions"), p.callFunction("bytes", "$Constants"));
+        assertEq(8, f.function(7));
+        object thread = f.functionInThread("hold", 1);
+        # the Java thread is in the call when hold() has signaled it
+        p.callFunction("wait_entered");
+        string result = runChild(string sub () {
+            delete p;
+            return "deleted";
+        }, sub () {
+            # the parent's thread leaves the call
+            p.callFunction("release");
+            thread.join();
+        });
+        assertEq("deleted", result);
+        assertEq(8, f.function(7));
+    }
+
+    # the child ends its script normally, so the module is deleted in it; it waited forever for the NativeCleanup
+    # thread, which does not exist in the child.  The script runs in another process, whose output, and the child's,
+    # is read until both have exited.
+    moduleCleanupTest() {
+        checkFork();
+        TmpFile script(NOTHING, ".q");
+        # the processes load the jni module that this test loaded
+        script.file.write(sprintf("%%prepend-module-path \"%s\"\n", dirname(get_module_hash().jni.filename))
+            + "%modern\n%requires jni\n"
+            "%module-cmd(jni) import java.lang.StringBuilder\n"
+            "StringBuilder sb(\"used\");\n"
+            "printf(\"parent: %s\\n\", sb.toString());\n"
+            "flush();\n"
+            "if (!fork()) {\n"
+            "    printf(\"child: done\\n\");\n"
+            "} else {\n"
+            "    printf(\"parent: done\\n\");\n"
+            "}\n");
+        script.file.close();
+        string output = backquote(sprintf("%s -b --enable-debug %s 2>&1", shellQuote(QORE_ARGV[0]),
+            shellQuote(script.path)));
+        assertRegex("parent: used", output);
+        assertRegex("child: done", output);
+        assertRegex("parent: done", output);
+    }
+
+    private checkFork() {
+        if (!Option::HAVE_FORK) {
+            testSkip("fork() is not available");
+        }
+    }
+
+    #! runs the code in a child process created with fork() and returns its result
+    /** The child writes the string that the code returns, or the code of the exception that it raises, to a FIFO and
+        exits with exit() while it holds the FIFO open, so the parent reads the result until the child has exited.
+
+        @param child the code run in the child
+        @param parent code run in the parent after fork(), before the result is read
+    */
+    private string runChild(code child, *code parent) {
+        TmpDir tmp("jni-fork-");
+        string path = tmp.path + DirSep + "result";
+        assertEq(0, mkfifo(path));
+        # the child must not write the parent's buffered output again when it exits
+        flush();
+        int pid = fork();
+        if (!pid) {
+            # the child opens the FIFO first: if it ends before it has written its result, the parent reads to the
+            # end of what it wrote
+            File f();
+            f.open2(path, O_WRONLY);
+            string result;
+            try {
+                result = child();
+            } catch (hash<ExceptionInfo> ex) {
+                result = "exception: " + ex.err;
+            }
+            f.write(result);
+            Qore::exit(0);
+        }
+        assertGt(0, pid);
+        if (parent) {
+            parent();
+        }
+        ReadOnlyFile f(path);
+        string result;
+        while (*binary data = f.readBinary(4096)) {
+            result += data.toString();
+        }
+        return result;
+    }
+
+    private static string shellQuote(string arg) {
+        return "'" + replace(arg, "'", "'\\''") + "'";
+    }
+}

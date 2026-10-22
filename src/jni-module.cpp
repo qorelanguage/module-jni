@@ -231,6 +231,20 @@ static void jni_module_init(QoreModuleInitContext& ctx, ExceptionSink& xsink) {
         return;
     }
 
+    // marks a child process created with fork() after the JVM is started, which cannot use the JVM (see
+    // jni::Jvm::isForkedChild()); registered before the JVM is started, so that no fork() is missed, and removed
+    // when the module is deleted, or here if its initialization fails, as the module is then unloaded
+    if (jni::Jvm::registerForkHandler()) {
+        xsink.outOfMemory();
+        return;
+    }
+    bool init_done = false;
+    ON_BLOCK_EXIT([&init_done]() {
+        if (!init_done) {
+            jni::Jvm::unregisterForkHandler();
+        }
+    });
+
     ValueHolder jvm_ptr(qore_get_module_option("jni", "jvm-ptr"), nullptr);
     if (jvm_ptr->getType() == NT_INT) {
         jni::Jvm::setVmPtr(reinterpret_cast<JavaVM*>(jvm_ptr->getAsBigInt()));
@@ -306,11 +320,14 @@ static void jni_module_init(QoreModuleInitContext& ctx, ExceptionSink& xsink) {
         QoreStringNode* finalize_err = jni_module_init_finalize();
         if (finalize_err) {
             xsink.raiseException("MODULE-INIT-ERROR", finalize_err);
+            return;
         }
+        init_done = true;
         return;
     }
 
     jni::jni_qore_init_done = true;
+    init_done = true;
 }
 
 static void jni_module_ns_init(QoreNamespace* rns, QoreNamespace* qns, ExceptionSink& xsink) {
@@ -348,6 +365,7 @@ static void jni_module_delete() {
     }
     tclist.pop(false);
     jni::Jvm::destroyVM();
+    jni::Jvm::unregisterForkHandler();
 }
 
 static QoreNamespace* qore_jni_wildcard_import(QoreString& arg, QoreProgram* pgm, JniExternalProgramData* jpc) {

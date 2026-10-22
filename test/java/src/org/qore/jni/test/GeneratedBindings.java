@@ -90,6 +90,20 @@ public class GeneratedBindings {
         return classes[2].getMethod("plus", long.class).invoke(null, arg);
     }
 
+    /** Calls the namespace function with the given name on a new Java thread, which holds a lease of the function's
+        binding while the call runs; the result of the call is not returned */
+    public Thread functionInThread(String name, long arg) {
+        Thread thread = new Thread(() -> {
+            try {
+                classes[2].getMethod(name, long.class).invoke(null, arg);
+            } catch (Throwable e) {
+                // the caller checks the effects of the call
+            }
+        });
+        thread.start();
+        return thread;
+    }
+
     public Object staticCall(long arg) throws Throwable {
         return classes[1].getMethod("twice", long.class).invoke(null, arg);
     }
