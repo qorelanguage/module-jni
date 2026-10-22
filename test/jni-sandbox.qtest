@@ -2,10 +2,10 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Copyright (C) 2026 Qore Technologies, s.r.o.
 
-# Java can call Qore code that it was given - a QoreInvocationHandler proxy, or a closure passed to Java as a
-# QoreClosure - on any thread, including a Java thread that Qore did not start and that has no Qore caller.  Such a
-# call, and the release of the Qore code, must run under the sandbox of the code that handed the Qore code to Java,
-# so that it can never do more than that code.
+# Java can call Qore code that it was given - a QoreInvocationHandler proxy, a closure passed to Java as a
+# QoreClosure, or a method of a Qore object passed to Java - on any thread, including a Java thread that Qore did not
+# start and that has no Qore caller.  Such a call, and the release of the Qore code, must run under the sandbox of the
+# code that handed the Qore code to Java, so that it can never do more than that code.
 #
 # The trusted code is modeled by a Program with no sandbox (like a module Program) whose callbacks read a file; the
 # sandboxed code by a Program with a SandboxManager that denies the filesystem.
@@ -42,6 +42,7 @@ class JniSandboxTest inherits QUnit::Test {
 %requires jni
 %module-cmd(jni) add-classpath @TEST_JAR@
 %module-cmd(jni) add-classpath @JNI_JAR@
+%module-cmd(jni) import org.qore.jni.test.Callbacks
 
 string sub read_file(string path) {
     try {
@@ -72,8 +73,54 @@ class ReadOnRelease {
     }
 }
 
-auto sub callbacks_method(string name, string arg_class) {
-    return load_class(\"org/qore/jni/test/Callbacks\").getDeclaredMethod(name, (load_class(arg_class),));
+auto sub callbacks_method(string name, softlist<string> arg_classes) {
+    return load_class(\"org/qore/jni/test/Callbacks\").getDeclaredMethod(name,
+        (map load_class($1), arg_classes));
+}
+
+# reads the file in a method that Java calls, and in its destructor if it has a results queue for it
+class SecretReader {
+    private {
+        string path;
+        Queue results;
+        *Queue destructor_results;
+    }
+
+    constructor(string path, Queue results, *Queue destructor_results) {
+        self.path = path;
+        self.results = results;
+        self.destructor_results = destructor_results;
+    }
+
+    destructor() {
+        if (destructor_results) {
+            destructor_results.push(read_file(path));
+        }
+    }
+
+    nothing readFile() {
+        results.push(read_file(path));
+    }
+}
+
+# hands an object to Java, which calls its method in a new Java thread with QoreObject.callMethod() or, through the
+# generated Java class of the Qore class, by reflection; returns the object, which must stay alive until then
+SecretReader sub run_method_in_java_thread(string path, Queue results, string how) {
+    SecretReader r(path, results);
+    if (how == \"callMethod\") {
+        Callbacks::callReadFileInThread(r);
+    } else {
+        Callbacks::invokeReadFileInThread(r);
+    }
+    return r;
+}
+
+# hands an object to Java, which destroys it in a new Java thread; returns the object, which must stay alive until
+# then
+SecretReader sub destroy_in_java_thread(string path, Queue results) {
+    SecretReader r(path, new Queue(), results);
+    callbacks_method(\"destroyInThread\", \"org/qore/jni/QoreObjectBase\").invoke(NOTHING, r);
+    return r;
 }
 
 # hands a proxy to Java, which calls it in a new Java thread; returns the handler, which must stay alive until then
@@ -101,6 +148,8 @@ code sub get(string name) {
         case \"run_proxy_in_java_thread\": return \\run_proxy_in_java_thread();
         case \"run_closure_in_java_thread\": return \\run_closure_in_java_thread();
         case \"make_handler\": return \\make_handler();
+        case \"run_method_in_java_thread\": return \\run_method_in_java_thread();
+        case \"destroy_in_java_thread\": return \\destroy_in_java_thread();
     }
     throw \"UNKNOWN-FUNCTION\", name;
 }
@@ -118,6 +167,10 @@ auto sub run(code c, ...) {
         addTestCase("a proxy called on a Java thread runs under the sandbox of its registrant", \testProxy());
         addTestCase("a closure called on a Java thread runs under the sandbox of its registrant", \testClosure());
         addTestCase("a proxy's callback is released under the sandbox of its registrant", \testRelease());
+        addTestCase("a method that Java calls on a Java thread runs under the sandbox of the code that handed the "
+            "object to Java", \testObjectMethod());
+        addTestCase("an object that Java destroys on a Java thread is destroyed under the sandbox of the code that "
+            "handed it to Java", \testObjectDestroy());
         set_return_value(main());
     }
 
@@ -201,6 +254,34 @@ auto sub run(code c, ...) {
         Queue results();
         call(u, p, "run_closure_in_java_thread", secret, results);
         assertEq("FILESYSTEM-ACCESS-DENIED", results.get(CallbackTimeout));
+    }
+
+    testObjectMethod() {
+        Program u = getTrusted();
+        Program p = getSandboxed();
+        Queue results();
+        foreach string how in (("callMethod", "reflection")) {
+            # unsandboxed: the method reads the file
+            object r = call(u, NOTHING, "run_method_in_java_thread", secret, results, how);
+            assertEq(SecretContent, results.get(CallbackTimeout), how + " (unsandboxed)");
+            delete r;
+            # handed to Java by trusted code for the sandboxed code
+            r = call(u, p, "run_method_in_java_thread", secret, results, how);
+            assertEq("FILESYSTEM-ACCESS-DENIED", results.get(CallbackTimeout), how);
+            delete r;
+        }
+    }
+
+    testObjectDestroy() {
+        Program u = getTrusted();
+        Program p = getSandboxed();
+        Queue results();
+        object r = call(u, NOTHING, "destroy_in_java_thread", secret, results);
+        assertEq(SecretContent, results.get(CallbackTimeout), "unsandboxed");
+        delete r;
+        r = call(u, p, "destroy_in_java_thread", secret, results);
+        assertEq("FILESYSTEM-ACCESS-DENIED", results.get(CallbackTimeout));
+        delete r;
     }
 
     testRelease() {

@@ -3,6 +3,7 @@ package org.qore.jni.test;
 import java.lang.reflect.*;
 
 import org.qore.jni.QoreClosure;
+import org.qore.jni.QoreObjectBase;
 
 public class Callbacks {
     public static void callNow(Runnable r) {
@@ -22,6 +23,36 @@ public class Callbacks {
                 t.printStackTrace();
             }
         }).start();
+    }
+
+    // calls the readFile() method of a Qore object with QoreObject.callMethod() in a new Java thread; the method is
+    // looked up by reflection, as the class of the object can come from another class loader than this class's
+    // QoreObject
+    public static void callReadFileInThread(Object obj) {
+        new Thread(() -> {
+            try {
+                obj.getClass().getMethod("callMethod", String.class, Object[].class).invoke(obj, "readFile",
+                    new Object[0]);
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }).start();
+    }
+
+    // calls the readFile() method of the Java class of a Qore object by reflection in a new Java thread
+    public static void invokeReadFileInThread(Object obj) {
+        new Thread(() -> {
+            try {
+                obj.getClass().getMethod("readFile").invoke(obj);
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }).start();
+    }
+
+    // destroys a Qore object in a new Java thread
+    public static void destroyInThread(QoreObjectBase obj) {
+        new Thread(() -> obj.destroy()).start();
     }
 
     public static boolean trueIfThrows(Runnable r) {

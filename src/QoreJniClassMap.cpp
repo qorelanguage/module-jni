@@ -3811,17 +3811,16 @@ jobject QoreJniClassMap::getJavaObject(const QoreObject* o) {
         return jo->makeLocal().release();
     }
 
-    // return a new Java QoreObject with a weak reference to the actual Qore object
-    o->tRef();
+    // return a new Java QoreObject with a weak reference to the actual Qore object; the handle also captures the
+    // sandbox of the code that hands the object to Java, which governs the calls that Java makes
+    std::unique_ptr<JniObjectHandle> handle(new JniObjectHandle(const_cast<QoreObject*>(o)));
     jvalue arg;
-    arg.j = reinterpret_cast<jlong>(o);
-    try {
-        Env env;
-        return env.newObject(Globals::classQoreObject, Globals::ctorQoreObject, &arg).release();
-    } catch (jni::Exception& e) {
-        const_cast<QoreObject*>(o)->tDeref();
-        throw;
-    }
+    arg.j = reinterpret_cast<jlong>(handle.get());
+    Env env;
+    jobject rv = env.newObject(Globals::classQoreObject, Globals::ctorQoreObject, &arg).release();
+    // the Java object owns the handle now; if it could not be created, the handle releases the weak reference
+    handle.release();
+    return rv;
 }
 
 LocalReference<jclass> QoreJniClassMap::getPrimitiveType(qore_type_t t) {
@@ -4335,19 +4334,19 @@ LocalReference<jobject> JniExternalProgramData::getJavaObject(const QoreObject* 
     LocalReference<jclass> jcls = getJavaClassForQoreClass(env, o->getSurfaceClass());
     // return a new Java object with a weak reference to the actual Qore object
     jmethodID ctor = env.getMethod(jcls, "<init>", "(Lorg/qore/jni/QoreJavaObjectPtr;)V");
-    o->tRef();
-    try {
-        jvalue arg;
-        arg.j = reinterpret_cast<jlong>(o);
-        LocalReference<jobject> jarg = env.newObject(Globals::classQoreJavaObjectPtr, Globals::ctorQoreJavaObjectPtr,
-            &arg);
+    // the handle makes the weak reference to the object and captures the sandbox of the code that hands the object to
+    // Java, which governs the calls that Java makes
+    std::unique_ptr<JniObjectHandle> handle(new JniObjectHandle(const_cast<QoreObject*>(o)));
+    jvalue arg;
+    arg.j = reinterpret_cast<jlong>(handle.get());
+    LocalReference<jobject> jarg = env.newObject(Globals::classQoreJavaObjectPtr, Globals::ctorQoreJavaObjectPtr,
+        &arg);
 
-        arg.l = jarg;
-        return env.newObject(jcls, ctor, &arg);
-    } catch (jni::Exception& e) {
-        const_cast<QoreObject*>(o)->tDeref();
-        throw;
-    }
+    arg.l = jarg;
+    LocalReference<jobject> rv = env.newObject(jcls, ctor, &arg);
+    // the Java object owns the handle now; if it could not be created, the handle releases the weak reference
+    handle.release();
+    return rv;
 }
 
 bool JniExternalProgramData::addInjectedModule(const char* modstr) {

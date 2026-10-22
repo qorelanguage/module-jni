@@ -111,13 +111,16 @@ class Outer {
     @subsection jni_callback_sandbox Qore Callbacks on Java Threads and Sandboxing
 
     Java can call %Qore code that it has been given - a
-    @ref Jni::org::qore::jni::QoreInvocationHandler "QoreInvocationHandler" proxy, or a closure or call reference
-    passed to Java as an @ref org.qore.jni.QoreClosure - on any thread, including a Java thread that %Qore did not
-    start (a Java executor, a listener thread of a messaging client, a timer thread).  Such a call runs under the
-    sandbox (\c Qore::SandboxManager) of the code that handed the %Qore code to Java: the code that created the
-    \c QoreInvocationHandler, or the code that passed the closure to Java.  The release of the %Qore code, when the
-    handler is destroyed or Java no longer references the closure, runs under the same sandbox.  A callback can
-    therefore never do more than the code that registered it, whatever thread Java calls it on.
+    @ref Jni::org::qore::jni::QoreInvocationHandler "QoreInvocationHandler" proxy, a closure or call reference
+    passed to Java as an @ref org.qore.jni.QoreClosure, or a method of a %Qore object passed to Java - on any thread,
+    including a Java thread that %Qore did not start (a Java executor, a listener thread of a messaging client, a
+    timer thread).  Such a call runs under the sandbox (\c Qore::SandboxManager) of the code that handed the %Qore
+    code to Java: the code that created the \c QoreInvocationHandler, the code that passed the closure or the object
+    to Java (each Java wrapper of an object carries the sandbox of the code that created it), or, for an object that
+    Java creates, the code that runs the Java constructor.  The release of the %Qore code, when the handler is
+    destroyed or Java no longer references the closure, and the destruction of an object that Java destroys, run
+    under the same sandbox.  A callback can therefore never do more than the code that registered it, whatever
+    thread Java calls it on.
 
     @subsection jni_class_fields Java Class Fields to Qore Class Mappings
 

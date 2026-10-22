@@ -272,6 +272,50 @@ private:
     JniClosureHandle& operator=(const JniClosureHandle&) = delete;
 };
 
+//! The native state of a Java \c org.qore.jni.QoreObjectBase object: a weak reference to a Qore object in Java
+/** The pointer to the handle is the \c obj field of the Java object, which the generated Java classes of Qore
+    classes pass to the native methods unchanged.  Java can call the methods of the object on any thread, including
+    a thread that Qore did not start and that has no Qore caller, so they are called, and the object is destroyed,
+    under the sandbox of the code that handed the object to Java, captured when the handle is created (for an object
+    that Java creates, the code that runs the Java constructor).
+*/
+class JniObjectHandle {
+public:
+    //! Makes a weak reference to the object and captures the sandbox of the current thread
+    DLLLOCAL explicit JniObjectHandle(QoreObject* obj) : obj(obj) {
+        obj->tRef();
+    }
+
+    //! Releases the weak reference
+    DLLLOCAL ~JniObjectHandle() {
+        obj->tDeref();
+    }
+
+    //! Returns the handle that a Java object carries
+    DLLLOCAL static JniObjectHandle* fromJava(jlong ptr) {
+        assert(ptr);
+        return reinterpret_cast<JniObjectHandle*>(ptr);
+    }
+
+    //! Returns the object
+    DLLLOCAL QoreObject* getObject() const {
+        return obj;
+    }
+
+    //! Returns the sandbox of the code that handed the object to Java
+    DLLLOCAL const QoreSandboxCapture& getSandbox() const {
+        return sandbox;
+    }
+
+private:
+    QoreObject* obj;
+    QoreSandboxCapture sandbox;
+
+    // non-copyable
+    JniObjectHandle(const JniObjectHandle&) = delete;
+    JniObjectHandle& operator=(const JniObjectHandle&) = delete;
+};
+
 class QoreThreadAttacher {
 public:
     DLLLOCAL QoreThreadAttacher() : attached(false) {

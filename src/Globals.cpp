@@ -1056,16 +1056,14 @@ static jstring JNICALL qore_exception_wrapper_get_message(JNIEnv* jenv, jclass, 
 }
 
 static jstring JNICALL qore_object_class_name(JNIEnv* jenv, jclass, jlong ptr) {
-    assert(ptr);
-    QoreObject* obj = reinterpret_cast<QoreObject*>(ptr);
+    QoreObject* obj = JniObjectHandle::fromJava(ptr)->getObject();
 
     Env env(jenv);
     return env.newString(obj->getClassName()).release();
 }
 
 static jboolean JNICALL qore_object_instance_of(JNIEnv* jenv, jclass, jlong ptr, jstring cname) {
-    assert(ptr);
-    QoreObject* obj = reinterpret_cast<QoreObject*>(ptr);
+    QoreObject* obj = JniObjectHandle::fromJava(ptr)->getObject();
 
     Env env(jenv);
     Env::GetStringUtfChars class_name(env, cname);
@@ -1098,9 +1096,12 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, QoreProgr
 
     QoreJniStackLocationHelper slh;
 
-    // a closure runs under the sandbox of the code that handed it to Java, whatever thread Java calls it on
+    // a method or closure runs under the sandbox of the code that handed the object or the closure to Java,
+    // whatever thread Java calls it on
     std::optional<QoreSandboxCaptureHelper> sch;
-    if (!mname && !m) {
+    if (mname || m) {
+        sch.emplace(JniObjectHandle::fromJava(obj_ptr)->getSandbox());
+    } else {
         sch.emplace(reinterpret_cast<const JniClosureHandle*>(obj_ptr)->getSandbox());
     }
 
@@ -1124,8 +1125,8 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, QoreProgr
 
         ValueHolder val(&xsink);
         if (mname || m) {
-            // this is a method call and "obj" is a QoreObject*
-            obj = reinterpret_cast<QoreObject*>(obj_ptr);
+            // this is a method call and "obj_ptr" is a JniObjectHandle
+            obj = JniObjectHandle::fromJava(obj_ptr)->getObject();
             if (!m) {
                 Env::GetStringUtfChars method_name(env, mname);
                 val = obj->evalMethod(method_name.c_str(), *qore_args, &xsink);
@@ -1204,7 +1205,7 @@ static jobject JNICALL qore_closure_call_save(JNIEnv* jenv, jclass jcls, QorePro
     return qore_object_closure_call_internal(jenv, jcls, pgm, obj_ptr, true, nullptr, args);
 }
 
-static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jobject jobj, QoreObject* obj,
+static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jobject jobj, jlong obj_ptr,
         jstring member) {
     Env env(jenv);
 
@@ -1217,6 +1218,11 @@ static jobject JNICALL qore_object_get_member_value(JNIEnv* jenv, jobject jobj, 
     }
 
     QoreJniStackLocationHelper slh;
+
+    const JniObjectHandle* handle = JniObjectHandle::fromJava(obj_ptr);
+    QoreObject* obj = handle->getObject();
+    // the member is read (a memberGate() method can run) under the sandbox of the code that handed the object to Java
+    QoreSandboxCaptureHelper sch(handle->getSandbox());
 
     QoreProgram* pgm = obj->getProgram();
 
@@ -1350,7 +1356,7 @@ static jobject JNICALL java_class_builder_do_normal_call(JNIEnv* jenv, jclass jc
         if (!qobj || reserved) {
             throw std::runtime_error("Invalid object or variant in generated Qore method call");
         }
-        QoreObject* obj = reinterpret_cast<QoreObject*>(qobj);
+        QoreObject* obj = JniObjectHandle::fromJava(qobj)->getObject();
         QoreProgram* pgm = obj->getProgram();
         if (!pgm) {
             // Builtin objects (for example reflection::Type) need not have an
@@ -2418,15 +2424,15 @@ static jlong JNICALL qore_object_create(JNIEnv* jenv, jclass ignore, jlong class
         }
 
         // Publish a weak reference only after every fallible construction step.
-        // QoreObjectBase leaves its cleanup pointer zero when create0 throws.
-        qobj->tRef();
-        return reinterpret_cast<jlong>(qobj);
+        // QoreObjectBase leaves its cleanup pointer zero when create0 throws.  The handle captures the sandbox of
+        // the code that runs the Java constructor, which governs the calls that Java makes on the object.
+        return reinterpret_cast<jlong>(new JniObjectHandle(qobj));
     });
 }
 
 static void JNICALL qore_object_release(JNIEnv*, jclass, jlong ptr) {
-    assert(ptr);
-    reinterpret_cast<QoreObject*>(ptr)->tDeref();
+    // releases the weak reference
+    delete JniObjectHandle::fromJava(ptr);
 }
 
 static void JNICALL qore_object_destroy(JNIEnv* jenv, jclass, jlong ptr) {
@@ -2444,8 +2450,13 @@ static void JNICALL qore_object_destroy(JNIEnv* jenv, jclass, jlong ptr) {
 
     ExceptionSink xsink;
     try {
-        reinterpret_cast<QoreObject*>(ptr)->doDelete(&xsink);
-        reinterpret_cast<QoreObject*>(ptr)->tDeref();
+        std::unique_ptr<JniObjectHandle> handle(JniObjectHandle::fromJava(ptr));
+        {
+            // the destructor runs under the sandbox of the code that handed the object to Java
+            QoreSandboxCaptureHelper sch(handle->getSandbox());
+            handle->getObject()->doDelete(&xsink);
+        }
+        handle.reset();
         if (xsink) {
             throw XsinkException(xsink);
         }
@@ -4306,7 +4317,8 @@ void native_cleanup_dispatch(jlong ptr, jint kind) {
             break;
         }
         case 3: {  // NativeCleanup.KIND_OBJECT_BASE_WEAK
-            reinterpret_cast<QoreObject*>(ptr)->tDeref();
+            // releases the weak reference
+            delete reinterpret_cast<JniObjectHandle*>(ptr);
             break;
         }
         default:

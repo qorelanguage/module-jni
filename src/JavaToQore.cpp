@@ -172,8 +172,8 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v, QoreProgram* pgm,
     }
 
     if (env.isInstanceOf(v, Globals::classQoreObjectBase)) {
-        QoreObject* obj = reinterpret_cast<QoreObject*>(env.callLongMethod(v,
-            Globals::methodQoreObjectBaseGet, nullptr));
+        QoreObject* obj = JniObjectHandle::fromJava(env.callLongMethod(v,
+            Globals::methodQoreObjectBaseGet, nullptr))->getObject();
         return obj->refSelf();
     }
 

@@ -12,7 +12,8 @@ package org.qore.jni;
     @since 1.2
  */
 public class QoreObjectBase {
-    //! a pointer to the Qore object - kept for ByteBuddy compatibility
+    //! the native handle of the Qore object (a weak reference and the sandbox of the code that handed it to Java) -
+    //! kept for ByteBuddy compatibility
     protected long obj;
 
     /** Native cleanup handle for the weak-reference pointer.  See

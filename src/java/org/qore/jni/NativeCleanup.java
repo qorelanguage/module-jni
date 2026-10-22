@@ -107,7 +107,7 @@ public final class NativeCleanup {
     /** qore_exception_wrapper_finalize: xsink->clear(); delete xsink. */
     public static final int KIND_EXCEPTION_WRAPPER = 2;
 
-    /** qore_object_finalize / pointerRelease0: ((QoreObject*)ptr)->tDeref(). */
+    /** delete (JniObjectHandle*)ptr: releases the weak reference to the Qore object. */
     public static final int KIND_OBJECT_BASE_WEAK = 3;
 
     /** Shared ReferenceQueue.  The C++ cleanup thread blocks on
