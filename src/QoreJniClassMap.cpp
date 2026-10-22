@@ -3917,11 +3917,11 @@ static QoreValue exec_java_method(const QoreMethod& meth, BaseMethod* m, QoreObj
     // NOTE: Java base classes will have no Qore program context
     // always use the current object's Program, otherwise the wrong ClassLoader will be used
     QoreProgram* pgm = self->getProgram();
-    // issue #3585: set context for external java threads
-    JniExternalProgramData::setContext(pgm);
-    QoreProgramContextHelper pch(pgm);
-
     try {
+        // issue #3585: set context for external java threads; this attaches the thread to the JVM, which raises an
+        // exception when the thread is cancelled or cannot be attached
+        JniExternalProgramData::setContext(pgm);
+        QoreProgramContextHelper pch(pgm);
         return m->invoke(jd->getObject(), args, pgm);
     } catch (jni::Exception& e) {
         e.convert(xsink);

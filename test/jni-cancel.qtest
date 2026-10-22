@@ -1,0 +1,57 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+# A Java call made by a thread whose cancellation is pending ends with THREAD-CANCELLED: the module checks for
+# cancellation when it attaches the thread to the JVM for the call.  A Java instance method call did so outside of the
+# code that converts the module's errors to Qore exceptions, so the error left the call as a C++ exception, and the
+# thread never returned from it.
+
+%modern
+%no-child-restrictions
+%prepend-module-path "${SCRIPT_DIR}/../build"
+
+%requires jni
+%requires QUnit
+
+%module-cmd(jni) import java.lang.StringBuilder
+%module-cmd(jni) import java.util.concurrent.CountDownLatch
+
+%exec-class JniCancelTest
+
+class JniCancelTest inherits QUnit::Test {
+    public {
+        #! the longest the test waits for the thread's result; it is a guard against a hang, never an expected time
+        const ResultTimeout = 60s;
+    }
+
+    constructor() : Test("jni cancel test", "1.0", \ARGV) {
+        addTestCase("a thread cancelled during a Java call calls a Java instance method", \instanceMethodTest());
+        set_return_value(main());
+    }
+
+    # the thread waits in a Java call while it is cancelled; its next Java instance method call (or the waiting
+    # call, if the thread had not yet entered it) raises THREAD-CANCELLED
+    instanceMethodTest() {
+        StringBuilder sb("x");
+        CountDownLatch entered(1);
+        CountDownLatch release(1);
+        Queue result();
+        int tid = background sub () {
+            entered.countDown();
+            try {
+                release.await();
+                sb.toString();
+                result.push("no exception");
+            } catch (hash<ExceptionInfo> ex) {
+                result.push(ex.err);
+            }
+        }();
+        entered.await();
+        assertTrue(cancel_thread(tid, "the test cancels the thread"));
+        release.countDown();
+        assertEq("THREAD-CANCELLED", result.get(ResultTimeout));
+        # the thread that created the object still uses it
+        assertEq("x", sb.toString());
+    }
+}

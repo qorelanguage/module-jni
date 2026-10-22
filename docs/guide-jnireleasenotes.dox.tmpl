@@ -13,6 +13,8 @@
       (see @ref jni_callback_sandbox)
     - fixed a crash when a %Qore callback on a Java thread made a Java call that called back into %Qore on the same
       thread: the inner callback detached the thread from %Qore while the outer one was still running
+    - fixed a Java method call ending the process when its thread could not be attached to the JVM, as when the
+      thread's cancellation was pending; the call now raises the exception (ex: \c THREAD-CANCELLED)
     - made Java socket-based JDBC connection establishment cancellable using a joined virtual thread
     - fixed a native abort while converting a Java exception with Qore cancellation pending
     - closed connections after failed metadata/session initialization and cancellation races
