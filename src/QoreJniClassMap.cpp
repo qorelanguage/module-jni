@@ -3833,19 +3833,16 @@ LocalReference<jclass> QoreJniClassMap::getPrimitiveType(qore_type_t t) {
 
 jobject QoreJniClassMap::getJavaClosure(const ResolvedCallReferenceNode* call) {
     // return a new Java QoreClosure; weak references are not needed, as ResolvedCallReferenceNode objects always
-    // implement a weak reference to any captured QoreObject*s
-    call->ref();
+    // implement a weak reference to any captured QoreObject*s; the handle references the closure and captures the
+    // sandbox of the code that hands it to Java, which governs every call that Java makes and the release
+    std::unique_ptr<JniClosureHandle> handle(new JniClosureHandle(call));
     jvalue arg;
-    arg.j = reinterpret_cast<jlong>(call);
-    try {
-        Env env;
-        return env.newObject(Globals::classQoreClosure, Globals::ctorQoreClosure, &arg).release();
-    } catch (jni::Exception& e) {
-        // NOTE: in the very unlikely case of a Qore exception here, the default exception handler will handle it
-        ExceptionSink xsink;
-        const_cast<ResolvedCallReferenceNode*>(call)->deref(&xsink);
-        throw;
-    }
+    arg.j = reinterpret_cast<jlong>(handle.get());
+    Env env;
+    jobject rv = env.newObject(Globals::classQoreClosure, Globals::ctorQoreClosure, &arg).release();
+    // the Java object owns the handle now; if it could not be created, the handle releases the closure
+    handle.release();
+    return rv;
 }
 
 jarray QoreJniClassMap::getJavaArray(const QoreListNode* l, jclass cls, JniExternalProgramData* jpc) {

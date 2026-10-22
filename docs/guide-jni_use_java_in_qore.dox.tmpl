@@ -108,6 +108,17 @@ class Outer {
     based on Java interfaces; see the documentation for
     @ref Jni::org::qore::jni::QoreInvocationHandler "QoreInvocationHandler" for more information.
 
+    @subsection jni_callback_sandbox Qore Callbacks on Java Threads and Sandboxing
+
+    Java can call %Qore code that it has been given - a
+    @ref Jni::org::qore::jni::QoreInvocationHandler "QoreInvocationHandler" proxy, or a closure or call reference
+    passed to Java as an @ref org.qore.jni.QoreClosure - on any thread, including a Java thread that %Qore did not
+    start (a Java executor, a listener thread of a messaging client, a timer thread).  Such a call runs under the
+    sandbox (\c Qore::SandboxManager) of the code that handed the %Qore code to Java: the code that created the
+    \c QoreInvocationHandler, or the code that passed the closure to Java.  The release of the %Qore code, when the
+    handler is destroyed or Java no longer references the closure, runs under the same sandbox.  A callback can
+    therefore never do more than the code that registered it, whatever thread Java calls it on.
+
     @subsection jni_class_fields Java Class Fields to Qore Class Mappings
 
     Java fields are mapped to different %Qore class members according to the Java type according to the following

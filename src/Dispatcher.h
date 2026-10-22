@@ -74,6 +74,10 @@ private:
     // cannot be the thread-current Program
     QoreProgram* pgm = nullptr;
     ResolvedCallReferenceNode* callback;
+    // the sandbox of the code that created the dispatcher (the code that created the QoreInvocationHandler),
+    // captured in the constructor: Java can call the proxy on any thread, including threads that Qore did not
+    // start and that have no Qore caller, so the callback and its release run under this sandbox
+    QoreSandboxCapture sandbox;
 };
 
 } // namespace jni

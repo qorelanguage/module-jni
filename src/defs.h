@@ -233,6 +233,45 @@ private:
    std::unique_ptr<ExceptionSink> sink;
 };
 
+//! The native state of a Java \c org.qore.jni.QoreClosure object: a Qore closure or call reference handed to Java
+/** Java can call the closure on any thread, including a thread that Qore did not start and that has no Qore caller,
+    so the closure is called and released under the sandbox of the code that handed it to Java, captured when the
+    handle is created.
+*/
+class JniClosureHandle {
+public:
+    //! References the closure and captures the sandbox of the current thread
+    DLLLOCAL JniClosureHandle(const ResolvedCallReferenceNode* call) : call(call->refRefSelf()) {
+    }
+
+    //! Releases the closure under the captured sandbox; must be called on a Qore thread
+    DLLLOCAL ~JniClosureHandle() {
+        QoreSandboxCaptureHelper sch(sandbox);
+        ExceptionSink xsink;
+        call->deref(&xsink);
+        // an exception raised by releasing the closure cannot be reported to a caller
+        xsink.clear();
+    }
+
+    //! Returns the closure
+    DLLLOCAL ResolvedCallReferenceNode* getCall() const {
+        return call;
+    }
+
+    //! Returns the sandbox of the code that handed the closure to Java
+    DLLLOCAL const QoreSandboxCapture& getSandbox() const {
+        return sandbox;
+    }
+
+private:
+    ResolvedCallReferenceNode* call;
+    QoreSandboxCapture sandbox;
+
+    // non-copyable
+    JniClosureHandle(const JniClosureHandle&) = delete;
+    JniClosureHandle& operator=(const JniClosureHandle&) = delete;
+};
+
 class QoreThreadAttacher {
 public:
     DLLLOCAL QoreThreadAttacher() : attached(false) {

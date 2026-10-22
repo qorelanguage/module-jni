@@ -1,0 +1,215 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+# Java can call Qore code that it was given - a QoreInvocationHandler proxy, or a closure passed to Java as a
+# QoreClosure - on any thread, including a Java thread that Qore did not start and that has no Qore caller.  Such a
+# call, and the release of the Qore code, must run under the sandbox of the code that handed the Qore code to Java,
+# so that it can never do more than that code.
+#
+# The trusted code is modeled by a Program with no sandbox (like a module Program) whose callbacks read a file; the
+# sandboxed code by a Program with a SandboxManager that denies the filesystem.
+
+%modern
+%no-child-restrictions
+%prepend-module-path "${SCRIPT_DIR}/../build"
+
+%requires jni
+%requires QUnit
+%requires Util
+
+%module-cmd(jni) add-relative-classpath qore-jni-test.jar
+%module-cmd(jni) add-relative-classpath ../build/qore-jni.jar
+
+%exec-class JniSandboxTest
+
+class JniSandboxTest inherits QUnit::Test {
+    private {
+        #! the test directory
+        string dir;
+        #! the file that the sandbox denies
+        string secret;
+    }
+
+    #! the content of the secret file
+    const SecretContent = "the secret content";
+
+    #! the longest a test waits for a callback; it is a guard against a hang, never an expected time
+    const CallbackTimeout = 60s;
+
+    #! the trusted code: Qore code handed to Java that reads a file on its registrant's behalf
+    const TrustedSource = "
+%requires jni
+%module-cmd(jni) add-classpath @TEST_JAR@
+%module-cmd(jni) add-classpath @JNI_JAR@
+
+string sub read_file(string path) {
+    try {
+        return ReadOnlyFile::readTextFile(path);
+    } catch (hash<ExceptionInfo> ex) {
+        return ex.err;
+    }
+}
+
+# reads the file when it is released
+class ReadOnRelease {
+    private {
+        string path;
+        Queue results;
+    }
+
+    constructor(string path, Queue results) {
+        self.path = path;
+        self.results = results;
+    }
+
+    destructor() {
+        results.push(read_file(path));
+    }
+
+    string read() {
+        return read_file(path);
+    }
+}
+
+auto sub callbacks_method(string name, string arg_class) {
+    return load_class(\"org/qore/jni/test/Callbacks\").getDeclaredMethod(name, (load_class(arg_class),));
+}
+
+# hands a proxy to Java, which calls it in a new Java thread; returns the handler, which must stay alive until then
+QoreInvocationHandler sub run_proxy_in_java_thread(string path, Queue results) {
+    QoreInvocationHandler h(sub (auto m, *list<auto> args) { results.push(read_file(path)); });
+    callbacks_method(\"callInThread\", \"java/lang/Runnable\").invoke(NOTHING,
+        implement_interface(h, load_class(\"java/lang/Runnable\")));
+    return h;
+}
+
+# hands a closure to Java, which calls it in a new Java thread
+nothing sub run_closure_in_java_thread(string path, Queue results) {
+    callbacks_method(\"callClosureInThread\", \"org/qore/jni/QoreClosure\").invoke(NOTHING,
+        sub () { results.push(read_file(path)); });
+}
+
+# returns a handler whose callback reads the file when it is released
+QoreInvocationHandler sub make_handler(string path, Queue results) {
+    ReadOnRelease on_release(path, results);
+    return new QoreInvocationHandler(sub (auto m, *list<auto> args) { return on_release.read(); });
+}
+
+code sub get(string name) {
+    switch (name) {
+        case \"run_proxy_in_java_thread\": return \\run_proxy_in_java_thread();
+        case \"run_closure_in_java_thread\": return \\run_closure_in_java_thread();
+        case \"make_handler\": return \\make_handler();
+    }
+    throw \"UNKNOWN-FUNCTION\", name;
+}
+";
+
+    #! the sandboxed code: it calls the trusted code
+    const SandboxedSource = "
+auto sub run(code c, ...) {
+    return call_function_args(c, argv);
+}
+";
+
+    constructor() : QUnit::Test("JniSandboxTest", "1.0", \ARGV) {
+        addTestCase("an unsandboxed registrant's Qore code reads the file on a Java thread", \testUnsandboxed());
+        addTestCase("a proxy called on a Java thread runs under the sandbox of its registrant", \testProxy());
+        addTestCase("a closure called on a Java thread runs under the sandbox of its registrant", \testClosure());
+        addTestCase("a proxy's callback is released under the sandbox of its registrant", \testRelease());
+        set_return_value(main());
+    }
+
+    globalSetUp() {
+        string tmp = tmp_location() + DirSep + "qore-jni-sandbox-" + get_random_string(8);
+        mkdir(tmp);
+        dir = realpath(tmp);
+        secret = dir + DirSep + "secret.txt";
+        File f();
+        f.open2(secret, O_CREAT | O_TRUNC | O_WRONLY);
+        f.write(SecretContent);
+        f.close();
+    }
+
+    globalTearDown() {
+        if (dir.val()) {
+            try {
+                unlink(secret);
+                rmdir(dir);
+            } catch (hash<ExceptionInfo> ex) {
+            }
+        }
+    }
+
+    #! returns the trusted code
+    private Program getTrusted() {
+        Program u(PO_NEW_STYLE);
+        string script_dir = get_script_dir();
+        string src = replace(TrustedSource, "@TEST_JAR@", script_dir + "qore-jni-test.jar");
+        u.parse(replace(src, "@JNI_JAR@", script_dir + "../build/qore-jni.jar"), "trusted");
+        return u;
+    }
+
+    #! returns a sandboxed Program whose manager denies the filesystem
+    private Program getSandboxed() {
+        Program p(PO_NEW_STYLE);
+        p.parse(SandboxedSource, "sandboxed");
+        SandboxManager sm();
+        sm.setFilesystemDefaultPolicy(False);
+        p.setSandboxManager(sm);
+        return p;
+    }
+
+    #! calls a function of the trusted code, directly or from the sandboxed code
+    private auto call(Program u, *Program p, string name, ...) {
+        code c = u.callFunction("get", name);
+        if (p) {
+            return p.callFunctionArgs("run", (c,) + argv);
+        }
+        return call_function_args(c, argv);
+    }
+
+    testUnsandboxed() {
+        Program u = getTrusted();
+        Queue results();
+
+        QoreInvocationHandler h = call(u, NOTHING, "run_proxy_in_java_thread", secret, results);
+        assertEq(SecretContent, results.get(CallbackTimeout), "proxy");
+        h.destroy();
+
+        call(u, NOTHING, "run_closure_in_java_thread", secret, results);
+        assertEq(SecretContent, results.get(CallbackTimeout), "closure");
+
+        h = call(u, NOTHING, "make_handler", secret, results);
+        h.destroy();
+        assertEq(SecretContent, results.get(CallbackTimeout), "release");
+    }
+
+    testProxy() {
+        Program u = getTrusted();
+        Program p = getSandboxed();
+        Queue results();
+        QoreInvocationHandler h = call(u, p, "run_proxy_in_java_thread", secret, results);
+        assertEq("FILESYSTEM-ACCESS-DENIED", results.get(CallbackTimeout));
+        h.destroy();
+    }
+
+    testClosure() {
+        Program u = getTrusted();
+        Program p = getSandboxed();
+        Queue results();
+        call(u, p, "run_closure_in_java_thread", secret, results);
+        assertEq("FILESYSTEM-ACCESS-DENIED", results.get(CallbackTimeout));
+    }
+
+    testRelease() {
+        Program u = getTrusted();
+        Program p = getSandboxed();
+        Queue results();
+        QoreInvocationHandler h = call(u, p, "make_handler", secret, results);
+        # the handler is released by the unsandboxed code here
+        h.destroy();
+        assertEq("FILESYSTEM-ACCESS-DENIED", results.get(CallbackTimeout));
+    }
+}

@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2026 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,9 @@
 using namespace jni;
 
 //! Represents an invocation handler used to implement callback from Java to Qore.
-/**
+/** Java can call the handler on any thread, including a Java thread that %Qore did not start; each call, and the
+    release of the dispatcher closure, runs under the sandbox of the code that created the handler; see
+    @ref jni_callback_sandbox
  */
 qclass QoreInvocationHandler [arg=jni::InvocationHandler* handler; ns=Jni::org::qore::jni; flags=final; vparent=InvocationHandler];
 

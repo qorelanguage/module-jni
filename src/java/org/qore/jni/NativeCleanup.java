@@ -101,7 +101,7 @@ public final class NativeCleanup {
     /** invocation_handler_finalize: delete (Dispatcher*)ptr. */
     public static final int KIND_INVOCATION_HANDLER = 0;
 
-    /** qore_closure_finalize: ((ResolvedCallReferenceNode*)ptr)->deref(&xsink). */
+    /** delete (JniClosureHandle*)ptr: releases the closure under the sandbox of the code that handed it to Java. */
     public static final int KIND_CLOSURE = 1;
 
     /** qore_exception_wrapper_finalize: xsink->clear(); delete xsink. */

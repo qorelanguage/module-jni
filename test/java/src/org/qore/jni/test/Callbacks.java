@@ -2,6 +2,8 @@ package org.qore.jni.test;
 
 import java.lang.reflect.*;
 
+import org.qore.jni.QoreClosure;
+
 public class Callbacks {
     public static void callNow(Runnable r) {
         r.run();
@@ -9,6 +11,17 @@ public class Callbacks {
 
     public static void callInThread(Runnable r) {
         new Thread(r).start();
+    }
+
+    // calls the closure in a new Java thread; the closure reports its result itself
+    public static void callClosureInThread(QoreClosure c) {
+        new Thread(() -> {
+            try {
+                c.call();
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }).start();
     }
 
     public static boolean trueIfThrows(Runnable r) {

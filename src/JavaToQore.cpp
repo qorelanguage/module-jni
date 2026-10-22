@@ -178,9 +178,9 @@ QoreValue JavaToQore::convertToQore(LocalReference<jobject> v, QoreProgram* pgm,
     }
 
     if (env.isInstanceOf(v, Globals::classQoreClosure)) {
-        ResolvedCallReferenceNode* call = reinterpret_cast<ResolvedCallReferenceNode*>(env.callLongMethod(v,
+        const JniClosureHandle* handle = reinterpret_cast<const JniClosureHandle*>(env.callLongMethod(v,
             Globals::methodQoreClosureGet, nullptr));
-        return call->refRefSelf();
+        return handle->getCall()->refRefSelf();
     }
 
     if (env.isInstanceOf(v, Globals::classMap) && !JniExternalProgramData::compatTypes()) {

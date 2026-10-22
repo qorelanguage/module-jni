@@ -83,7 +83,11 @@ void QoreCodeDispatcher::destroy(ExceptionSink& xsink) {
     }
 
     printd(LogLevel, "QoreCodeDispatcher::destroy(), this: %p\n", this);
-    callback->deref(&xsink);
+    {
+        // the callback is released under the sandbox of the code that created the dispatcher, like its calls
+        QoreSandboxCaptureHelper sch(sandbox);
+        callback->deref(&xsink);
+    }
     callback = nullptr;
     pgm->depDeref();
     pgm = nullptr;
@@ -108,6 +112,9 @@ jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jo
     }
 
     QoreJniStackLocationHelper slh;
+
+    // the callback runs under the sandbox of the code that created the dispatcher, whatever thread Java calls it on
+    QoreSandboxCaptureHelper sch(sandbox);
 
     printd(LogLevel, "QoreCodeDispatcher::dispatch(), this: %p pgm: %p\n", this, pgm);
 

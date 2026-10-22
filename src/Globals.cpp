@@ -47,6 +47,7 @@
 #include <bzlib.h>
 #include <dlfcn.h>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <stdexcept>
 
@@ -1097,6 +1098,12 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, QoreProgr
 
     QoreJniStackLocationHelper slh;
 
+    // a closure runs under the sandbox of the code that handed it to Java, whatever thread Java calls it on
+    std::optional<QoreSandboxCaptureHelper> sch;
+    if (!mname && !m) {
+        sch.emplace(reinterpret_cast<const JniClosureHandle*>(obj_ptr)->getSandbox());
+    }
+
     ExceptionSink xsink;
     try {
         // set program context before converting arguments
@@ -1144,8 +1151,8 @@ static jobject qore_object_closure_call_internal(JNIEnv* jenv, jclass, QoreProgr
             }
         } else {
             obj = nullptr;
-            // otherwise must be a closure / call reference; "obj" is a ResolvedCallReferenceNode
-            const ResolvedCallReferenceNode* call = reinterpret_cast<const ResolvedCallReferenceNode*>(obj_ptr);
+            // otherwise must be a closure / call reference; "obj_ptr" is a JniClosureHandle
+            const ResolvedCallReferenceNode* call = reinterpret_cast<const JniClosureHandle*>(obj_ptr)->getCall();
             val = call->execValue(*qore_args, &xsink);
         }
 
@@ -4287,11 +4294,9 @@ void native_cleanup_dispatch(jlong ptr, jint kind) {
             break;
         }
         case 1: {  // NativeCleanup.KIND_CLOSURE
-            ResolvedCallReferenceNode* call = reinterpret_cast<ResolvedCallReferenceNode*>(ptr);
-            ExceptionSink xsink;
-            call->deref(&xsink);
-            // any exception is unrecoverable at this point; drop it
-            xsink.clear();
+            // the closure is released under the sandbox of the code that handed it to Java; any exception is
+            // unrecoverable at this point and is dropped
+            delete reinterpret_cast<JniClosureHandle*>(ptr);
             break;
         }
         case 2: {  // NativeCleanup.KIND_EXCEPTION_WRAPPER
