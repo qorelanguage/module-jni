@@ -6,6 +6,8 @@
 
     @section jni_3_0_0 jni Module Version 3.0.0
 
+    - fixed a crash when a %Qore callback on a Java thread made a Java call that called back into %Qore on the same
+      thread: the inner callback detached the thread from %Qore while the outer one was still running
     - made Java socket-based JDBC connection establishment cancellable using a joined virtual thread
     - fixed a native abort while converting a Java exception with Qore cancellation pending
     - closed connections after failed metadata/session initialization and cancellation races

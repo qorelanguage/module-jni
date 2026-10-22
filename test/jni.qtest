@@ -296,6 +296,7 @@ public class Main inherits QUnit::Test {
         addTestCase("instance fields access test", \testInstanceFields());
         addTestCase("callback test", \testCallback());
         addTestCase("foreign-thread thread resource cleanup test", \testForeignThreadResourceCleanup());
+        addTestCase("nested callback in a Java thread test", \testNestedCallbackInJavaThread());
         addTestCase("constructor test", \testConstructor());
         addTestCase("string test", \testString());
         addTestCase("array test", \testArray());
@@ -2777,6 +2778,41 @@ string sub javaName() {
         assertEq("left-by-java-thread", cleanupArg);
 
         h.destroy();
+    }
+
+    #! A callback on a Java thread makes a Java call that calls back into Qore on the same thread
+    /** The thread is attached to Qore for the outer callback; the inner callback must leave it attached, so that the
+        outer callback can still run Qore code when the inner one returns.
+    */
+    testNestedCallbackInJavaThread() {
+        Queue results();
+
+        lang::Class runnableClass = load_class("java/lang/Runnable");
+        lang::Class clazz = load_class("org/qore/jni/test/Callbacks");
+        Method callNow = clazz.getDeclaredMethod("callNow", (runnableClass, ));
+        Method callInThread = clazz.getDeclaredMethod("callInThread", (runnableClass, ));
+
+        QoreInvocationHandler inner(sub (Method m, *list<auto> args) {
+            results.push("inner");
+        });
+        Object inner_runnable = implement_interface(inner, runnableClass);
+
+        QoreInvocationHandler outer(sub (Method m, *list<auto> args) {
+            try {
+                callNow.invoke(NOTHING, inner_runnable);
+                # Qore code that runs after the nested callback has returned
+                results.push(sprintf("outer after inner in TID %d", gettid()));
+            } catch (hash<ExceptionInfo> ex) {
+                results.push(sprintf("%s: %s", ex.err, ex.desc));
+            }
+        });
+        callInThread.invoke(NOTHING, implement_interface(outer, runnableClass));
+
+        assertEq("inner", results.get(60s));
+        assertRegex("^outer after inner in TID [0-9]+$", results.get(60s));
+
+        outer.destroy();
+        inner.destroy();
     }
 
     testConstructor() {

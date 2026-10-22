@@ -35,8 +35,6 @@ namespace jni {
 
 static const char* this_file = q_basenameptr(__FILE__);
 
-thread_local QoreThreadAttacher qoreThreadAttacher;
-
 class JniCallStack : public QoreCallStack {
 public:
     DLLLOCAL JniCallStack(jobject throwable, QoreExternalProgramLocationWrapper& loc) {

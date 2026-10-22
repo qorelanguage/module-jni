@@ -64,13 +64,6 @@ QoreCodeDispatcher::QoreCodeDispatcher(const ResolvedCallReferenceNode *callback
     printd(LogLevel, "QoreCodeDispatcher::QoreCodeDispatcher(), this: %p pgm: %p\n", this, pgm);
 }
 
-class QoreThreadDetacher {
-public:
-    DLLLOCAL ~QoreThreadDetacher() {
-        qoreThreadAttacher.detach();
-    }
-};
-
 QoreCodeDispatcher::~QoreCodeDispatcher() {
     ExceptionSink xsink;
     destroy(xsink);
@@ -103,13 +96,16 @@ jobject QoreCodeDispatcher::dispatch(Env& env, jobject proxy, jobject method, jo
         return nullptr;
     }
 
+    // attaches a Java thread to Qore for the call, and detaches it at the end only if it was attached here: a
+    // callback on a Java thread can make a Java call that calls back into Qore on the same thread, and the inner
+    // callback must leave the thread attached for the outer one
+    QoreThreadAttachHelper attach_helper;
     try {
-        qoreThreadAttacher.attach();
+        attach_helper.attach();
     } catch (Exception& e) {
         env.throwNew(env.findClass("java/lang/RuntimeException"), "Unable to attach thread to Qore");
         return nullptr;
     }
-    QoreThreadDetacher qtd;
 
     QoreJniStackLocationHelper slh;
 
