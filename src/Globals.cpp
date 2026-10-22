@@ -3152,7 +3152,13 @@ jobject Globals::getCanonicalLoader(Env& env, jobject this_loader, const char* b
                 owner_pgm = caller_pgm;
             }
             if (owner_pgm) {
-                JniExternalProgramData* jpc = JniExternalProgramData::getCreateJniProgramData(owner_pgm);
+                JniExternalProgramData* jpc = nullptr;
+                try {
+                    jpc = JniExternalProgramData::getCreateJniProgramData(owner_pgm);
+                } catch (jni::Exception& e) {
+                    // the owning Program is being deleted: the module programs below are searched instead
+                    e.ignore();
+                }
                 if (jpc) {
                     return jpc->getClassLoader();
                 }
@@ -4636,10 +4642,7 @@ const std::string& QoreJniStackLocationHelper::getCallName() const {
         return jni_no_call_name;
     }
     checkInit();
-    assert((unsigned)current < size());
-    //printd(5, "QoreJniStackLocationHelper::getCallName() this: %p %d/%d '%s'\n", this, (int)current, (int)size,
-    //    stack_call[current].c_str());
-    return stack_call[current];
+    return stack_call[0];
 }
 
 qore_call_t QoreJniStackLocationHelper::getCallType() const {
@@ -4647,8 +4650,7 @@ qore_call_t QoreJniStackLocationHelper::getCallType() const {
         return CT_BUILTIN;
     }
     checkInit();
-    assert((unsigned)current < size());
-    return stack_native[current] ? CT_BUILTIN : CT_USER;
+    return stack_native[0] ? CT_BUILTIN : CT_USER;
 }
 
 const QoreProgramLocation& QoreJniStackLocationHelper::getLocation() const {
@@ -4656,25 +4658,41 @@ const QoreProgramLocation& QoreJniStackLocationHelper::getLocation() const {
         return jni_loc_builtin.get();
     }
     checkInit();
-    assert((unsigned)current < size());
-    //printd(5, "QoreJniStackLocationHelper::getLocation() %s:%d (%s)\n", stack_loc[current].getFile(), stack_loc[current].getStartLine());
-    return stack_loc[current].get();
+    return stack_loc[0].get();
 }
 
 const QoreStackLocation* QoreJniStackLocationHelper::getNext() const {
+    // another thread walking this thread's stack sees only the first Java frame
     if (tid != q_gettid()) {
         return stack_next;
     }
     checkInit();
-    assert((unsigned)current < size());
-    // issue #3169: reset the pointer after iterating all the information in the stack
-    // the exception stack can be iterated multiple times
-    ++current;
-    if ((unsigned)current < size()) {
-        return this;
-    }
-    current = 0;
-    return stack_next;
+    return frames.empty() ? stack_next : frames[0].get();
+}
+
+QoreProgram* QoreJniJavaFrameLocation::getProgram() const {
+    return helper.getProgram();
+}
+
+const AbstractStatement* QoreJniJavaFrameLocation::getStatement() const {
+    return helper.getStatement();
+}
+
+const std::string& QoreJniJavaFrameLocation::getCallName() const {
+    return helper.stack_call[index];
+}
+
+qore_call_t QoreJniJavaFrameLocation::getCallType() const {
+    return helper.stack_native[index] ? CT_BUILTIN : CT_USER;
+}
+
+const QoreProgramLocation& QoreJniJavaFrameLocation::getLocation() const {
+    return helper.stack_loc[index].get();
+}
+
+const QoreStackLocation* QoreJniJavaFrameLocation::getNext() const {
+    // frames[i] is the frame with index i + 1
+    return index < helper.frames.size() ? helper.frames[index].get() : helper.getStackNext();
 }
 
 void QoreJniStackLocationHelper::checkInit() const {
@@ -4732,6 +4750,11 @@ void QoreJniStackLocationHelper::checkInit() const {
         stack_call.push_back(jni_no_call_name);
         stack_native.push_back(true);
         stack_loc.push_back(jni_loc_builtin);
+    }
+
+    frames.reserve(size() - 1);
+    for (size_t i = 1; i < size(); ++i) {
+        frames.push_back(std::make_unique<QoreJniJavaFrameLocation>(*this, i));
     }
 }
 

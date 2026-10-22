@@ -649,7 +649,33 @@ private:
     DLLLOCAL static void defineQoreURLClassLoader(Env& env);
 };
 
+class QoreJniStackLocationHelper;
+
+//! One Java frame below the first of a QoreJniStackLocationHelper
+/** Each Java frame is its own stack location, so walking the stack keeps no state: a walk that stops at a Java frame
+    (runtime_get_parse_options_stack() returns at the frame it was asked for) leaves the next walk unchanged.
+*/
+class QoreJniJavaFrameLocation : public QoreExternalStackLocation {
+public:
+    DLLLOCAL QoreJniJavaFrameLocation(const QoreJniStackLocationHelper& helper, size_t index)
+            : helper(helper), index(index) {
+    }
+
+    DLLLOCAL virtual QoreProgram* getProgram() const;
+    DLLLOCAL virtual const AbstractStatement* getStatement() const;
+    DLLLOCAL virtual const std::string& getCallName() const;
+    DLLLOCAL virtual qore_call_t getCallType() const;
+    DLLLOCAL virtual const QoreProgramLocation& getLocation() const;
+    DLLLOCAL virtual const QoreStackLocation* getNext() const;
+
+private:
+    const QoreJniStackLocationHelper& helper;
+    //! the frame's index in the helper's Java stack (1 or more)
+    size_t index;
+};
+
 class QoreJniStackLocationHelper : public QoreExternalRuntimeStackLocationHelper {
+    friend class QoreJniJavaFrameLocation;
 public:
     DLLLOCAL QoreJniStackLocationHelper();
 
@@ -667,11 +693,12 @@ public:
 
 private:
     int tid = q_gettid();
-    mutable jsize current = 0;
 
     mutable std::vector<std::string> stack_call;
     mutable std::vector<bool> stack_native;
     mutable std::vector<QoreExternalProgramLocationWrapper> stack_loc;
+    //! the Java frames after the first, which this location stands for
+    mutable std::vector<std::unique_ptr<QoreJniJavaFrameLocation>> frames;
 
     mutable bool init = false;
 
@@ -683,6 +710,11 @@ private:
     }
 
     DLLLOCAL void checkInit() const;
+
+    //! returns the location after the Java frames
+    DLLLOCAL const QoreStackLocation* getStackNext() const {
+        return stack_next;
+    }
 };
 
 // find the root namespace for the given module in the given QoreProgram

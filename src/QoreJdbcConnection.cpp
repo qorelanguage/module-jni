@@ -45,7 +45,12 @@ static void set_prop(Env& env, LocalReference<jobject>& props, const char* prop,
 
 QoreJdbcConnection::QoreJdbcConnection(Datasource* ds, ExceptionSink* xsink) : ds(ds) {
     assert(pgm);
-    jpc = JniExternalProgramData::getCreateJniProgramData(pgm);
+    try {
+        jpc = JniExternalProgramData::getCreateJniProgramData(pgm);
+    } catch (jni::Exception& e) {
+        e.convert(xsink);
+        return;
+    }
     assert(jpc);
 
     // Parse options passed through the datasource.

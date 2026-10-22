@@ -215,6 +215,26 @@ list<auto> sub gtcs(int count, list<auto> rv = get_thread_call_stack()) {
     return !--count ? rv : gtcs(count, rv);
 }
 
+#! Reads the capability mask of every frame of the call stack, as QUnit's testIsProgramBeingRun() does
+/** Each read walks the stack to frame n; a walk that stopped at a Java frame left the next walk with fewer frames,
+    and the read of the last frame failed with INVALD-STACK-FRAME.
+*/
+hash<auto> sub caller_capability_masks() {
+    list<hash<CallStackInfo>> cs = get_thread_call_stack();
+    int read = 0;
+    for (int n = 0; n < cs.size(); ++n) {
+        Program::getCallerCapabilityMask(n);
+        ++read;
+    }
+    return {
+        "frames": cs.size(),
+        "java_frames": (select cs, $1.lang == "Java").size(),
+        "read": read,
+        # the stack read again after the walks lists the same frames
+        "same": (map $1.function, get_thread_call_stack()) == (map $1.function, cs),
+    };
+}
+
 public class Main inherits QUnit::Test {
     public {
         #! source: class Test { String get() { return "test"; }}
@@ -253,6 +273,7 @@ public class Main inherits QUnit::Test {
         addTestCase("classloader management test", \classloaderManagementTest());
         addTestCase("qore exception test", \qoreExceptionTest());
         addTestCase("call stack test", \callStackTest());
+        addTestCase("every frame of a call stack with Java frames can be read", \callerFramesTest());
         addTestCase("closure test", \closureTest());
         addTestCase("exception stack", \exceptionStackTest());
         addTestCase("Qore Java API test", \qoreJavaApiTest());
@@ -1772,6 +1793,13 @@ lorem ipsum\r
         } catch (hash<ExceptionInfo> ex) {
             assertEq("Throwable", ex.arg.className());
         }
+    }
+
+    callerFramesTest() {
+        hash<auto> h = QoreJavaApiTest::getCallerCapabilityMasks();
+        assertGt(1, h.java_frames, "the stack has Java frames");
+        assertEq(h.frames, h.read, "every frame's capability mask is read");
+        assertTrue(h.same, "reading the frames leaves the stack unchanged");
     }
 
     closureTest() {

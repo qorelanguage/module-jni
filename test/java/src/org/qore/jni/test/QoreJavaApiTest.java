@@ -259,6 +259,11 @@ public class QoreJavaApiTest {
         return (HashMap<String, Object>[])QoreJavaApi.callFunction("gtcs", 50);
     }
 
+    //! calls back into Qore, which reads the capability mask of every frame of the call stack, Java frames included
+    public static Object getCallerCapabilityMasks() throws Throwable {
+        return QoreJavaApi.callFunction("caller_capability_masks");
+    }
+
     public static void testException(String err, String desc, Object arg) throws QoreException {
         throw new QoreException(err, desc, arg);
     }

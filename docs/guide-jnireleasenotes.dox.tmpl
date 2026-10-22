@@ -244,6 +244,9 @@
       superclass declaration, without \c --add-opens. Virtual dispatch, private access restrictions, target
       exceptions, and the context class loader are preserved, and the declaration is resolved once per
       method.
+    - Fixed \c INVALD-STACK-FRAME errors when %Qore code called from Java reads the frames of its call stack
+      one at a time, as \c QUnit does when a Java program creates a test object: a read that stopped at a
+      Java frame left the next read with fewer frames.
 
     - Fixed the process crashing (an assertion failing in Debug builds) when a thread's first call into Java was
       @ref Jni::org::qore::jni::load_class() "load_class()" for a class already imported, or
@@ -265,6 +268,8 @@
     - Fixed the process aborting when a Program's Java context could not be created, for example because
       a Java class of the module's dynamic API failed to initialize; loading the module, a
       <tt>%module-cmd(jni)</tt> command, or a \c jni import now fails with the Java exception instead.
+    - A Program that is being deleted no longer gets a Java context: creating one there fails with an
+      exception instead of changing the Program.
 
     @par JDBC and data providers
 

@@ -4251,6 +4251,10 @@ JniExternalProgramData* JniExternalProgramData::getCreateJniProgramData(QoreProg
     if (!jpc) {
 #if QORE_VERSION_CODE >= 10013
         ProgramRuntimeExternalParseContextHelper pch(pgm);
+        // the Program is being deleted: its parse lock could not be taken, so nothing may be added to it
+        if (!pch) {
+            throw BasicException("the Program is being deleted; its jni context cannot be created");
+        }
 #endif
         QoreNamespace* jnins = pgm->findNamespace("::Jni");
         if (!jnins) {
