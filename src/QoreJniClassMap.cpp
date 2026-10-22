@@ -745,13 +745,15 @@ JniQoreClass* QoreJniClassMap::findCreateQoreClass(Env& env, const char* name, Q
     {
         JniQoreClass* rv;
         bool need_add_to_program = false;
+        // the Program's jni data is looked up before m is taken: getExternalData() takes the Program's lock, and m
+        // is a leaf (the copy of the data for a child Program takes m, with that lock held in older libraries)
+        if (!jpc && pgm) {
+            jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
+        }
         {
             JniClassMapLocker al;
             rv = findInternal(jpath.c_str());
             if (rv && pgm) {
-                if (!jpc) {
-                    jpc = static_cast<JniExternalProgramData*>(pgm->getExternalData("jni"));
-                }
                 // class is in global cache but NOT in our Program - add it below (outside m)
                 need_add_to_program = jpc && !jpc->find(jpath.c_str());
             }
@@ -4066,8 +4068,7 @@ JniExternalProgramData::JniExternalProgramData(QoreNamespace* jni, QoreProgram* 
 JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& parent, Env& env, QoreProgram* pgm) :
         pgm(pgm),
         classLoader(nullptr),
-        override_compat_types(parent.override_compat_types),
-        compat_types(parent.compat_types) {
+        compat_types_override(parent.compat_types_override.load(std::memory_order_relaxed)) {
     // create the classLoader and set the parent
     {
         jvalue jargs[2];
@@ -4079,8 +4080,12 @@ JniExternalProgramData::JniExternalProgramData(const JniExternalProgramData& par
 
     initDynamicApi(env);
 
-    // copy the parent's class map to this one
-    jcmap = parent.jcmap;
+    // copy the parent's class map to this one; another thread can add a class to the parent's map at the same time
+    // (the writers hold the class-map lock), and the copy for a child Program can run concurrently with them
+    {
+        JniClassMapLocker al;
+        jcmap = parent.jcmap;
+    }
 
 #if QORE_VERSION_CODE >= 10013
     ProgramRuntimeExternalParseContextHelper pch(pgm);

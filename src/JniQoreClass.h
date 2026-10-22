@@ -36,7 +36,9 @@ class JniQoreClass : public QoreBuiltinClass {
 public:
     DLLLOCAL JniQoreClass(QoreProgram* pgm, const char* name, const char* path, const char* jname)
             : QoreBuiltinClass(pgm, name, path, QDOM_UNCONTROLLED_API), jname(jname) {
-        assert(pgm->getExternalData("jni"));
+        // the Program's jni data is not checked here: the class is created under the class-map lock, a leaf, and
+        // QoreProgram::getExternalData() takes the Program's lock
+        assert(pgm);
         addMethod(nullptr, "memberGate", (q_external_method_t)memberGate, Public, 0, QDOM_UNCONTROLLED_API,
             autoTypeInfo, paramTypeInfo);
 

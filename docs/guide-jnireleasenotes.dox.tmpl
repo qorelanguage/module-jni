@@ -13,6 +13,8 @@
       (see @ref jni_callback_sandbox)
     - fixed a crash when a %Qore callback on a Java thread made a Java call that called back into %Qore on the same
       thread: the inner callback detached the thread from %Qore while the outer one was still running
+    - fixed a data race when a child Program was created while another thread imported a Java class into its
+      parent: the child copied the parent's class map without the lock that protects it
     - fixed a Java method call ending the process when its thread could not be attached to the JVM, as when the
       thread's cancellation was pending; the call now raises the exception (ex: \c THREAD-CANCELLED)
     - fixed a child process created with \c fork() after the JVM was started waiting forever when it exited or ended

@@ -1,0 +1,110 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+# A child Program copies the jni data of its parent, including the parent's map of the Java classes that it has
+# imported.  Other threads can import classes into the parent while a child Program is created.  The copy read the
+# map without the class-map lock that the writers hold, a data race (undefined behavior) that ThreadSanitizer reports.
+#
+# The race is not observable from Qore code; the test makes it happen and checks that every thread completes its
+# work; a ThreadSanitizer build of the module shows the race.
+
+%modern
+%no-child-restrictions
+%prepend-module-path "${SCRIPT_DIR}/../build"
+
+%requires jni
+%requires QUnit
+
+%exec-class JniProgramCopyTest
+
+class JniProgramCopyTest inherits QUnit::Test {
+    public {
+        #! JDK classes that the test imports while child Programs are created
+        const Classes = (
+            "java/util/ArrayList", "java/util/LinkedList", "java/util/HashMap", "java/util/TreeMap",
+            "java/util/LinkedHashMap", "java/util/HashSet", "java/util/TreeSet", "java/util/ArrayDeque",
+            "java/util/PriorityQueue", "java/util/Stack", "java/util/Vector", "java/util/Hashtable",
+            "java/util/IdentityHashMap", "java/util/WeakHashMap", "java/util/EnumMap", "java/util/BitSet",
+            "java/util/Random", "java/util/UUID", "java/util/Optional", "java/util/StringJoiner",
+            "java/util/Scanner", "java/util/Locale", "java/util/Currency", "java/util/Base64",
+            "java/util/concurrent/ConcurrentHashMap", "java/util/concurrent/ConcurrentLinkedQueue",
+            "java/util/concurrent/CopyOnWriteArrayList", "java/util/concurrent/LinkedBlockingQueue",
+            "java/util/concurrent/ArrayBlockingQueue", "java/util/concurrent/Semaphore",
+            "java/util/concurrent/CountDownLatch", "java/util/concurrent/CyclicBarrier",
+            "java/util/concurrent/atomic/AtomicInteger", "java/util/concurrent/atomic/AtomicLong",
+            "java/util/concurrent/atomic/AtomicBoolean", "java/util/concurrent/locks/ReentrantLock",
+            "java/util/regex/Pattern", "java/util/zip/CRC32", "java/util/zip/Adler32",
+            "java/io/StringReader", "java/io/StringWriter", "java/io/ByteArrayInputStream",
+            "java/io/ByteArrayOutputStream", "java/io/BufferedReader", "java/io/BufferedWriter",
+            "java/io/PrintWriter", "java/io/CharArrayWriter", "java/io/PushbackInputStream",
+            "java/math/BigDecimal", "java/math/BigInteger", "java/math/MathContext",
+            "java/net/URI", "java/net/InetSocketAddress", "java/nio/ByteBuffer", "java/nio/CharBuffer",
+            "java/time/Instant", "java/time/Duration", "java/time/LocalDate", "java/time/LocalTime",
+            "java/time/LocalDateTime", "java/time/ZonedDateTime", "java/time/Period", "java/time/ZoneOffset",
+            "java/time/format/DateTimeFormatter", "java/text/SimpleDateFormat", "java/text/DecimalFormat",
+            "java/lang/StringBuilder", "java/lang/StringBuffer", "java/lang/ProcessBuilder",
+            "java/lang/ThreadLocal",
+        );
+
+        #! the threads that create child Programs
+        const Copiers = 4;
+    }
+
+    constructor() : Test("jni program copy test", "1.0", \ARGV) {
+        addTestCase("child Programs are created while classes are imported into their parent", \classMapTest());
+        set_return_value(main());
+    }
+
+    # one thread imports classes into this Program while other threads create child Programs of it, each of which
+    # copies this Program's class map
+    classMapTest() {
+        Counter importing(1);
+        list<int> copies = map 0, xrange(Copiers);
+        runAll(sub () {
+            on_exit importing.dec();
+            foreach string cn in (Classes) {
+                load_class(cn);
+            }
+        }, sub (int i) {
+            do {
+                Program child(PO_NEW_STYLE);
+                ++copies[i];
+            } while (importing.getCount());
+        });
+        foreach int n in (copies) {
+            assertGt(0, n, "a thread created child Programs");
+        }
+        # a child Program created now uses the imported classes
+        Program child(PO_NEW_STYLE);
+        child.parse("%requires jni\nauto sub get(string n) { return load_class(n); }", "child");
+        assertEq("java.util.concurrent.ConcurrentHashMap",
+            child.callFunction("get", "java/util/concurrent/ConcurrentHashMap").getName());
+    }
+
+    #! runs the writer in one thread and the copier in Copiers threads, all started at once, and waits for them
+    /** An exception in any thread fails the test case
+    */
+    private runAll(code writer, code copier) {
+        Counter start(1);
+        Counter running(Copiers + 1);
+        Queue errors();
+        code run = sub (code c) {
+            on_exit running.dec();
+            try {
+                start.waitForZero();
+                c();
+            } catch (hash<ExceptionInfo> ex) {
+                errors.push(sprintf("%s: %s", ex.err, ex.desc));
+            }
+        };
+        background run(writer);
+        for (int i = 0; i < Copiers; ++i) {
+            int n = i;
+            background run(sub () { copier(n); });
+        }
+        start.dec();
+        running.waitForZero();
+        assertEq(0, errors.size(), sprintf("errors: %y", map errors.get(), xrange(errors.size())));
+    }
+}

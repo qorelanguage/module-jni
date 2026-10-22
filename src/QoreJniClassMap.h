@@ -30,6 +30,7 @@
 #include "Class.h"
 #include "JniQoreClass.h"
 
+#include <atomic>
 #include <set>
 #include <map>
 #include <mutex>
@@ -486,13 +487,13 @@ public:
         bool generic_position = false);
 
     DLLLOCAL void overrideCompatTypes(bool compat_types) {
-        override_compat_types = true;
-        this->compat_types = compat_types;
+        compat_types_override.store(compat_types ? 1 : 0, std::memory_order_relaxed);
         //printd(5, "JniExternalProgramData::overrideCompatTypes(%d) this: %p\n", compat_types, this);
     }
 
     DLLLOCAL bool getCompatTypes() const {
-        return override_compat_types ? compat_types : jni_compat_types;
+        int setting = compat_types_override.load(std::memory_order_relaxed);
+        return setting < 0 ? jni_compat_types : setting != 0;
     }
 
     DLLLOCAL void setSaveObjectCallback(const ResolvedCallReferenceNode* save_object_callback) {
@@ -606,10 +607,11 @@ protected:
     typedef std::map<std::string, unsigned> in_progress_map_t;
     in_progress_map_t in_progress_set;
 
-    // override compat-types
-    bool override_compat_types = false;
-    // compat-types values
-    bool compat_types = false;
+    //! the compat-types setting of the Program: -1 if it is not set (the module's setting applies), else 0 or 1
+    /** Set by the set-compat-types module command at any time, and read without a lock by every conversion and by
+        the copy for a child Program, so the setting and its value are one atomic value
+    */
+    std::atomic<int> compat_types_override{-1};
 
     // injected module set
     strset_t injected_module_set;
