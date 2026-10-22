@@ -6,9 +6,9 @@
 # threads of the JVM (the VM thread, the garbage collectors, the module's NativeCleanup thread) remain in the parent,
 # so the child cannot use Java, and the module's cleanup in the child must not wait for any of them.
 #
-# Each child exits with exit() and writes its result to a FIFO that it keeps open until it has exited: the parent
-# reads until the end of the data, so it waits for the child's exit deterministically.  A child that waits forever
-# makes the parent wait forever (the test runner's time limit is only a guard).
+# Each child exits with exit() and writes its result to a pipe whose write end it keeps open until it has exited:
+# the parent reads until the end of the data, so it waits for the child's exit deterministically.  A child that
+# waits forever makes the parent wait forever (the test runner's time limit is only a guard).
 
 %modern
 %no-child-restrictions
@@ -153,40 +153,40 @@ class JniForkTest inherits QUnit::Test {
     }
 
     #! runs the code in a child process created with fork() and returns its result
-    /** The child writes the string that the code returns, or the code of the exception that it raises, to a FIFO and
-        exits with exit() while it holds the FIFO open, so the parent reads the result until the child has exited.
+    /** The child writes the string that the code returns, or the code of the exception that it raises, to a pipe and
+        exits with exit() while it holds the write end of the pipe open, so the parent reads the result until the child
+        has exited.
 
         @param child the code run in the child
         @param parent code run in the parent after fork(), before the result is read
     */
     private string runChild(code child, *code parent) {
-        TmpDir tmp("jni-fork-");
-        string path = tmp.path + DirSep + "result";
-        assertEq(0, mkfifo(path));
+        # an anonymous pipe needs no file, and the parent cannot block in the open of a named pipe that a child
+        # ending early never opens
+        hash<PipeInfo> pipe = File::getPipe();
         # the child must not write the parent's buffered output again when it exits
         flush();
         int pid = fork();
         if (!pid) {
-            # the child opens the FIFO first: if it ends before it has written its result, the parent reads to the
-            # end of what it wrote
-            File f();
-            f.open2(path, O_WRONLY);
+            # the child holds the write end until it has exited: if it ends before it has written its result, the
+            # parent reads to the end of what it wrote
+            pipe.read.close();
             string result;
             try {
                 result = child();
             } catch (hash<ExceptionInfo> ex) {
                 result = "exception: " + ex.err;
             }
-            f.write(result);
+            pipe.write.write(result);
             Qore::exit(0);
         }
+        pipe.write.close();
         assertGt(0, pid);
         if (parent) {
             parent();
         }
-        ReadOnlyFile f(path);
         string result;
-        while (*binary data = f.readBinary(4096)) {
+        while (*binary data = pipe.read.readBinary(4096)) {
             result += data.toString();
         }
         return result;
