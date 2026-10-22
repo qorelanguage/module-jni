@@ -2723,7 +2723,14 @@ string sub javaName() {
 
     testCallback() {
         int i = 1;
-        QoreInvocationHandler h(sub(Method m, *list args) { if (++i > 3) throw "CALLBACK-ERROR";});
+        # each call that does not throw reports the count, so that a call in a Java thread can be waited for
+        Queue calls();
+        QoreInvocationHandler h(sub(Method m, *list args) {
+            if (++i > 3) {
+                throw "CALLBACK-ERROR";
+            }
+            calls.push(i);
+        });
         assertEq("org.qore.jni.QoreInvocationHandler", h.getClass().getCanonicalName());
 
         lang::Class runnableClass = load_class("java/lang/Runnable");
@@ -2734,9 +2741,10 @@ string sub javaName() {
         Method trueIfThrows = clazz.getDeclaredMethod("trueIfThrows", (runnableClass, ));
         Method doThrow = clazz.getDeclaredMethod("doThrow");
         callNow.invoke(NOTHING, o);
-        assertEq(2, i);
+        assertEq(2, calls.get());
         callInThread.invoke(NOTHING, o);
-        usleep(200ms);
+        # the timeout is a guard against a hang, never an expected time
+        assertEq(3, calls.get(60s));
         assertEq(3, i);
         assertThrows("CALLBACK-ERROR", \callNow.invoke(), (NOTHING, o));
         assertThrows("CALLBACK-ERROR", \invoke(), (callNow, NOTHING, o));
@@ -2774,7 +2782,8 @@ string sub javaName() {
         Method callInThread = clazz.getDeclaredMethod("callInThread", (runnableClass, ));
 
         callInThread.invoke(NOTHING, o);
-        assertEq(0, cleanupDone.waitForZero(5s));
+        # the timeout is a guard against a hang, never an expected time
+        assertEq(0, cleanupDone.waitForZero(60s));
         assertEq("left-by-java-thread", cleanupArg);
 
         h.destroy();
