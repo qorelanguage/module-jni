@@ -1,0 +1,126 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# Copyright (C) 2026 Qore Technologies, s.r.o.
+
+# The Java class of a Qore class holds the class's constants in static fields, which the static initializer reads
+# from Qore when the class is defined.  A constant that is a list of binary values (or of closures) could not be
+# converted: the conversion of a list to a Java array had no Java element class for these values and raised
+# "cannot create a Java array from a list that contains values of type 'binary'", so the static initializer failed
+# and defining the class raised java.lang.ExceptionInInitializerError.
+#
+# That broke the Qore docs build: qjar issues "define-class" for every class of a module, and
+# HttpClientStreamingIo::SseStreamReader has a private constant that is a list of binary values.  This test defines
+# the Java class of such a class the way qjar does, from a module loaded at run time, and reads the constants back
+# from the Java fields.
+
+%modern
+
+%prepend-module-path "${SCRIPT_DIR}/../build"
+
+%requires QUnit
+%requires FsUtil
+%requires reflection
+%requires jni
+
+%exec-class JniClassConstantsTest
+
+class JniClassConstantsTest inherits QUnit::Test {
+    public {
+        #! module source: a class with binary constants, public and private, as in SseStreamReader
+        const ModuleTemplate = "%modern\n"
+            "module %MODULE% {\n"
+            "    version = \"1.0\";\n"
+            "    desc = \"jni class constant test fixture\";\n"
+            "    author = \"Qore Technologies, s.r.o.\";\n"
+            "    license = \"MIT\";\n"
+            "}\n"
+            "public namespace %MODULE% {\n"
+            "#! holds binary constants\n"
+            "public class ConstHolder {\n"
+            "    public {\n"
+            "        #! a binary value\n"
+            "        const Bytes = <0102>;\n"
+            "        #! a list of binary values\n"
+            "        const ByteList = (<01>, <0203>);\n"
+            "        #! a list of binary values and NULL\n"
+            "        const ByteListWithNull = (NULL, <04>);\n"
+            "    }\n"
+            "    private {\n"
+            "        #! a private list of binary values\n"
+            "        const PrivateByteList = (<0d0a>, <0a>);\n"
+            "    }\n"
+            "    #! returns the private list\n"
+            "    static list<auto> privateByteList() {\n"
+            "        return PrivateByteList;\n"
+            "    }\n"
+            "}\n"
+            "}\n";
+
+        #! consumer source: the fixture module itself is loaded at run time, as qjar loads it
+        const ConsumerTemplate = "%prepend-module-path %DIR%\n"
+            "%requires jni\n"
+            "binary sub byte_code(string path) {\n"
+            "    return Jni::org::qore::jni::get_byte_code(path);\n"
+            "}\n"
+            "string sub java_name(string path) {\n"
+            "    return Jni::org::qore::jni::get_java_name(path);\n"
+            "}\n"
+            "#! Returns the value of the given static field of the given Java class, converted to Qore\n"
+            "auto sub static_field(string bin_name, string field) {\n"
+            "    object cls = get_class_loader().loadClass(bin_name);\n"
+            "    object f = cls.getDeclaredField(field);\n"
+            "    f.setAccessible(True);\n"
+            "    return f.get(NOTHING);\n"
+            "}\n";
+
+        #! the name of the fixture module
+        const ModuleName = "JniClassConstFixture";
+        #! the Java binary name of the fixture class
+        const BinName = "qoremod." + ModuleName + ".ConstHolder";
+    }
+
+    private {
+        TmpDir tmp();
+    }
+
+    constructor() : Test("JniClassConstantsTest", "1.0") {
+        addTestCase("the Java class of a class with binary list constants is defined", \binaryListConstants());
+        set_return_value(main());
+    }
+
+    #! Writes the fixture module source and returns the file path
+    private string writeModule() {
+        string path = tmp.path + DirSep + ModuleName + ".qm";
+        File f();
+        f.open2(path, O_CREAT | O_WRONLY | O_TRUNC);
+        f.write(replace(ModuleTemplate, "%MODULE%", ModuleName));
+        return path;
+    }
+
+    #! Returns a Program that loaded the fixture module at run time and can generate Java byte code for it
+    private Program getConsumer() {
+        Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+        p.parse(replace(ConsumerTemplate, "%DIR%", tmp.path), "consumer");
+        p.loadModule(ModuleName);
+        return p;
+    }
+
+    binaryListConstants() {
+        writeModule();
+        Program p = getConsumer();
+        string cls = "::" + ModuleName + "::ConstHolder";
+        assertEq(BinName, p.callFunction("java_name", cls), "the class has its canonical binary name");
+
+        # qjar fails here: defining the class runs its static initializer, which reads the constants
+        binary b = p.callFunction("byte_code", cls);
+        p.issueModuleCmd("jni", "define-class " + BinName + " " + b.toBase64());
+
+        assertEq(<0102>, p.callFunction("static_field", BinName, "Bytes"), "a binary constant");
+        assertEq((<01>, <0203>), p.callFunction("static_field", BinName, "ByteList"),
+            "a list of binary values is read back");
+        assertEq((NOTHING, <04>), p.callFunction("static_field", BinName, "ByteListWithNull"),
+            "a list of binary values with NULL is read back");
+        assertEq((<0d0a>, <0a>), p.callFunction("static_field", BinName, "PrivateByteList"),
+            "a private list of binary values is read back");
+    }
+}

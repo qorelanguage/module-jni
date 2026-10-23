@@ -224,6 +224,10 @@ LocalReference<jclass> Array::getClassForValue(QoreValue v, JniExternalProgramDa
         case NT_NUMBER: return Globals::classBigDecimal.toLocal();
         case NT_HASH: return Globals::classHash.toLocal();
         case NT_LIST: return Globals::classObject.toLocal();
+        // the classes that QoreToJava::toAnyObject() converts these values to
+        case NT_BINARY: return Globals::arrayClassByte.toLocal();
+        case NT_RUNTIME_CLOSURE:
+        case NT_FUNCREF: return Globals::classQoreClosure.toLocal();
         case NT_OBJECT: {
             Env env;
             if (jpc) {

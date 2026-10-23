@@ -20,6 +20,12 @@
     - fixed a child process created with \c fork() after the JVM was started waiting forever when it exited or ended
       its script, or when it deleted a Program whose %Qore code a Java thread was running; Java cannot be used in
       such a child, and a use of Java there now raises \c JNI-FORK-ERROR (see @ref jni_fork)
+    - fixed converting a list of binary values, closures or call references to Java where the Java type is not
+      given (for example for a Java \c Object parameter, or for a %Qore class constant in the Java class generated
+      for the class): such a list now becomes an array of byte arrays (\c byte[][]) or of
+      \c org.qore.jni.QoreClosure objects; the conversion raised \c JNI-ERROR ("cannot create a Java array from a
+      list that contains values of type 'binary'"), and defining the Java class of a %Qore class with such a
+      constant failed with \c java.lang.ExceptionInInitializerError
     - made Java socket-based JDBC connection establishment cancellable using a joined virtual thread
     - fixed a native abort while converting a Java exception with Qore cancellation pending
     - closed connections after failed metadata/session initialization and cancellation races

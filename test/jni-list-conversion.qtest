@@ -23,6 +23,7 @@ class JniListConversionTest inherits QUnit::Test {
         addTestCase("Varargs retain their component type and offset", \varargs());
         addTestCase("Invalid typed elements throw and subsequent conversions recover", \invalidElements());
         addTestCase("Indirect references convert as their targets", \indirectReferences());
+        addTestCase("Binary values and closures convert to arrays of their Java classes", \binaryAndClosureLists());
         set_return_value(main());
     }
 
@@ -63,6 +64,37 @@ class JniListConversionTest inherits QUnit::Test {
         weak_hash{"l"} := ilist;
         assertEq(ListConversions::roundTrip((plain_hash,)), ListConversions::roundTrip((weak_hash,)),
             "weak references inside a hash round trip as their targets");
+    }
+
+    #! A list of binary values becomes an array of byte arrays, and a list of closures or call references an array
+    #! of QoreClosure objects, the classes that the values convert to; there was no Java element class for them, and
+    #! the conversion raised "cannot create a Java array from a list that contains values of type 'binary'"
+    binaryAndClosureLists() {
+        list<binary> bins = (<01>, <0203>);
+        assertEq("[[B:2", ListConversions::describe(bins));
+        assertEq(bins, ListConversions::roundTrip(bins));
+        assertEq("[[B:2", ListConversions::describe((NULL, <04>)));
+        assertEq((NOTHING, <04>), ListConversions::roundTrip((NULL, <04>)));
+
+        list<code> closures = (int sub () { return 1; }, int sub () { return 2; });
+        assertEq("[Lorg.qore.jni.QoreClosure;:2", ListConversions::describe(closures));
+        list<auto> result = ListConversions::roundTrip(closures);
+        assertEq((1, 2), map $1(), result, "the closures are called after the round trip");
+
+        list<code> refs = (\JniListConversionTest::one(), \JniListConversionTest::two());
+        assertEq("[Lorg.qore.jni.QoreClosure;:2", ListConversions::describe(refs));
+        result = ListConversions::roundTrip(refs);
+        assertEq((1, 2), map $1(), result, "the call references are called after the round trip");
+    }
+
+    #! returns 1, for a call reference
+    static int one() {
+        return 1;
+    }
+
+    #! returns 2, for a call reference
+    static int two() {
+        return 2;
     }
 
     emptyLists() {
