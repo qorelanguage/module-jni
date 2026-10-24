@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "pl": {
+      "messages": {
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.desc": {
+          "source": "A connection to a Jakarta JMS 3.x messaging broker (e.g. ActiveMQ Artemis, TIBCO EMS, IBM MQ, Oracle AQ)",
+          "message": "Połączenie z serwerem komunikatów Jakarta JMS 3.x (np. ActiveMQ Artemis, TIBCO EMS, IBM MQ, Oracle AQ)"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.display_name": {
+          "source": "JMS Connection",
+          "message": "Połączenie JMS"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y29ubmVjdGlvbl90aW1lb3V0X21z.desc": {
+          "source": "Connection timeout in milliseconds; used for ping/connection test",
+          "message": "Czas oczekiwania na połączenie w milisekundach; używany do testu pingu/połączenia"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y29ubmVjdGlvbl90aW1lb3V0X21z.display_name": {
+          "source": "Connection Timeout (ms)",
+          "message": "Czas oczekiwania na połączenie (ms)"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y29ubmVjdGlvbl90aW1lb3V0X21z.short_desc": {
+          "source": "Connection timeout in milliseconds",
+          "message": "Czas wygaśnięcia połączenia w milisekundach"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y29ubmVjdGlvbl9mYWN0b3J5X2NsYXNz.desc": {
+          "source": "Fully-qualified Java class name of the JMS ConnectionFactory implementation (e.g. `org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory`)",
+          "message": "Pełna nazwa klasa Java implementacji ConnectionFactory JMS (np. `org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory`)"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y29ubmVjdGlvbl9mYWN0b3J5X2NsYXNz.display_name": {
+          "source": "Connection Factory Class",
+          "message": "Klasa fabryki połączeń"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y29ubmVjdGlvbl9mYWN0b3J5X2NsYXNz.short_desc": {
+          "source": "Fully-qualified Java class name of the JMS ConnectionFactory",
+          "message": "Pełna nazwa klasa Java implementacji ConnectionFactory JMS"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y2xpZW50X2lk.desc": {
+          "source": "The JMS client ID; required for durable topic subscriptions",
+          "message": "Identyfikator klienta JMS; wymagany dla trwałych subskrypcji tematów"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y2xpZW50X2lk.display_name": {
+          "source": "Client ID",
+          "message": "Identyfikator klienta"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y2xpZW50X2lk.short_desc": {
+          "source": "The JMS client ID for durable subscriptions",
+          "message": "Identyfikator klienta JMS dla trwałych subskrypcji"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.bWF4X3Nlc3Npb25z.desc": {
+          "source": "Maximum number of JMS sessions in the session pool",
+          "message": "Maksymalna liczba sesji JMS w puli sesji"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.bWF4X3Nlc3Npb25z.display_name": {
+          "source": "Max Sessions",
+          "message": "Maks. sesje"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.bWF4X3Nlc3Npb25z.short_desc": {
+          "source": "Maximum number of pooled JMS sessions",
+          "message": "Maksymalna liczba sesji JMS w puli"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkFVVE9fQUNLTk9XTEVER0U.desc": {
+          "source": "The session automatically acknowledges a client's receipt of a message either when the session has successfully returned from a call to receive or when the message listener the session has called to process the message successfully returns",
+          "message": "Sesja automatycznie potwierdza odbiór komunikatu przez klienta, gdy sesja pomyślnie zakończyła wywołanie receive lub gdy nasłuchiwanie komunikatu przez sesję pomyślnie zakończyło się zwróceniem"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkFVVE9fQUNLTk9XTEVER0U.display_name": {
+          "source": "Auto Acknowledge",
+          "message": "Automatyczne potwierdzenie"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkFVVE9fQUNLTk9XTEVER0U.short_desc": {
+          "source": "Automatic message acknowledgment",
+          "message": "Automatyczne potwierdzenie komunikatów"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkNMSUVOVF9BQ0tOT1dMRURHRQ.desc": {
+          "source": "The client acknowledges a consumed message by calling the message's acknowledge method. Acknowledging a consumed message acknowledges all messages that the session has consumed",
+          "message": "Klient potwierdza przesłany komunikat, wywołując metodę acknowledge komunikatu. Potwierdzenie przesłanego komunikatu potwierdza wszystkie komunikaty, które sesja otrzymała"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkNMSUVOVF9BQ0tOT1dMRURHRQ.display_name": {
+          "source": "Client Acknowledge",
+          "message": "Potwierdzenie przez klienta"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkNMSUVOVF9BQ0tOT1dMRURHRQ.short_desc": {
+          "source": "Client explicitly acknowledges messages",
+          "message": "Klient jawnie potwierdza komunikaty"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkRVUFNfT0tfQUNLTk9XTEVER0U.desc": {
+          "source": "The session lazily acknowledges the delivery of messages. This is likely to result in the delivery of some duplicate messages if the JMS provider fails, so it should only be used by consumers that can tolerate duplicate messages",
+          "message": "Sesja opóźnia potwierdzenie dostarczenia komunikatów. W przypadku awarii dostawcy JMS może dojść do dostarczenia niektórych komunikatów podwójnie, więc powinna być używana tylko przez odbiorców, którzy tolerują powielone komunikaty"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkRVUFNfT0tfQUNLTk9XTEVER0U.display_name": {
+          "source": "Dups OK Acknowledge",
+          "message": "Potwierdzenie z dopuszczeniem duplikatów"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkRVUFNfT0tfQUNLTk9XTEVER0U.short_desc": {
+          "source": "Lazy acknowledgment allowing duplicates",
+          "message": "Opóźnione potwierdzenie z dopuszczeniem duplikatów"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOlNFU1NJT05fVFJBTlNBQ1RFRA.desc": {
+          "source": "The session is transacted; messages are delivered in a transaction and must be committed or rolled back",
+          "message": "Sesja jest transakcyjna; komunikaty są dostarczane w transakcji i muszą zostać potwierdzone lub cofnięte"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOlNFU1NJT05fVFJBTlNBQ1RFRA.display_name": {
+          "source": "Session Transacted",
+          "message": "Sesja transakcyjna"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOlNFU1NJT05fVFJBTlNBQ1RFRA.short_desc": {
+          "source": "Transactional session",
+          "message": "Sesja transakcyjna"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.desc": {
+          "source": "The JMS session acknowledgment mode",
+          "message": "Tryb potwierdzania sesji JMS"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.display_name": {
+          "source": "Session Mode",
+          "message": "Tryb sesji"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.short_desc": {
+          "source": "The JMS session acknowledgment mode",
+          "message": "Tryb potwierdzania sesji JMS"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.cGFzc3dvcmQ.desc": {
+          "source": "The password for authentication with the JMS broker; if any",
+          "message": "Hasło do uwierzytelniania w brokerze JMS; jeśli istnieje"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "Hasło"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.cGFzc3dvcmQ.short_desc": {
+          "source": "The password for authentication",
+          "message": "Hasło do uwierzytelniania"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.cHJvdmlkZXJfY2xhc3NwYXRo.desc": {
+          "source": "Comma-separated list of JAR files or directories to add to the classpath for the JMS provider (e.g. the Artemis client JARs)",
+          "message": "Lista rozdzielona przecinkami plików JAR lub katalogów do dodania do classpath dla dostawcy JMS (np. pliki JAR klienta Artemis)"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.cHJvdmlkZXJfY2xhc3NwYXRo.display_name": {
+          "source": "Provider Classpath",
+          "message": "Ścieżka classpath dostawcy"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.cHJvdmlkZXJfY2xhc3NwYXRo.short_desc": {
+          "source": "Comma-separated list of JAR files or directories for the JMS provider",
+          "message": "Lista rozdzielona przecinkami plików JAR lub katalogów dla dostawcy JMS"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.dXNlcm5hbWU.desc": {
+          "source": "The username for authentication with the JMS broker; if any",
+          "message": "Nazwa użytkownika do uwierzytelniania się przy brokercie JMS; jeśli istnieje"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.dXNlcm5hbWU.display_name": {
+          "source": "Username",
+          "message": "Nazwa użytkownika"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.dXNlcm5hbWU.short_desc": {
+          "source": "The username for authentication",
+          "message": "Nazwa użytkownika do uwierzytelniania"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.short_desc": {
+          "source": "A connection to a Jakarta JMS messaging broker",
+          "message": "Połączenie z brokerem komunikatów Jakarta JMS"
+        }
+      }
+    }
+  }
+}

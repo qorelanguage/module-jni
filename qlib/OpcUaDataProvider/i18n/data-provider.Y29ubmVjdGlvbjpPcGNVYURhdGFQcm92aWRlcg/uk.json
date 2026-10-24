@@ -1,0 +1,465 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "uk": {
+      "messages": {
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.desc": {
+          "source": "A connection to an OPC UA server",
+          "message": "Підключення до сервера OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.display_name": {
+          "source": "OPC UA Connection",
+          "message": "Підключення OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.Y29ubmVjdF90aW1lb3V0.desc": {
+          "source": "The connection timeout to the OPC UA server in milliseconds",
+          "message": "Час очікування підключення до сервера OPC UA у мілісекундах"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.Y29ubmVjdF90aW1lb3V0.display_name": {
+          "source": "Connect Timeout",
+          "message": "Тайм-аут з'єднання"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.Y29ubmVjdF90aW1lb3V0.short_desc": {
+          "source": "Connection timeout in milliseconds",
+          "message": "Час очікування підключення в мілісекундах"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fbmFtZQ.desc": {
+          "source": "The application name used to identify this client to the OPC UA server",
+          "message": "Ім'я додатку, яке використовується для ідентифікації цього клієнта на сервері OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fbmFtZQ.display_name": {
+          "source": "Application Name",
+          "message": "Назва додатку"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fbmFtZQ.short_desc": {
+          "source": "The OPC UA client application name",
+          "message": "Назва клієнтської програми OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fdXJp.desc": {
+          "source": "The application URI used to identify this client to the OPC UA server",
+          "message": "URI програми, що використовується для ідентифікації цього клієнта на сервері OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fdXJp.display_name": {
+          "source": "Application URI",
+          "message": "URI програми"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fdXJp.short_desc": {
+          "source": "The OPC UA client application URI",
+          "message": "URI клієнтської програми OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkFub255bW91cw.desc": {
+          "source": "Connect without authentication credentials",
+          "message": "Підключення без облікових даних для автентифікації"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkFub255bW91cw.display_name": {
+          "source": "Anonymous",
+          "message": "Анонімно"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkFub255bW91cw.short_desc": {
+          "source": "No authentication",
+          "message": "Без автентифікації"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkNlcnRpZmljYXRl.desc": {
+          "source": "Authenticate using an X.509 client certificate",
+          "message": "Автентифікація за допомогою сертифіката клієнта X.509"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkNlcnRpZmljYXRl.display_name": {
+          "source": "Certificate",
+          "message": "Сертифікат"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkNlcnRpZmljYXRl.short_desc": {
+          "source": "Authenticate with an X.509 certificate",
+          "message": "Авторизуйтесь за допомогою сертифіката X.509"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOlVzZXJuYW1lUGFzc3dvcmQ.desc": {
+          "source": "Authenticate using a username and password",
+          "message": "Авторизуйтесь за допомогою імені користувача та пароля"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOlVzZXJuYW1lUGFzc3dvcmQ.display_name": {
+          "source": "Username/Password",
+          "message": "Ім’я користувача/Пароль"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOlVzZXJuYW1lUGFzc3dvcmQ.short_desc": {
+          "source": "Authenticate with username and password",
+          "message": "Авторизуйтесь за допомогою імені користувача та пароля"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.desc": {
+          "source": "The authentication method to use when connecting to the OPC UA server",
+          "message": "Спосіб автентифікації, який використовувати під час підключення до сервера OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.display_name": {
+          "source": "Authentication Type",
+          "message": "Тип автентифікації"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.short_desc": {
+          "source": "Authentication method for the OPC UA server",
+          "message": "Спосіб автентифікації для сервера OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0b19yZWNvbm5lY3Q.desc": {
+          "source": "If set to `True`, the client will automatically attempt to reconnect to the server if the connection is lost",
+          "message": "Якщо встановлено на `True`, клієнт автоматично спробує відновити з’єднання з сервером, якщо з’єднання втрачено"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0b19yZWNvbm5lY3Q.display_name": {
+          "source": "Auto Reconnect",
+          "message": "Автоматичне відновлення з'єднання"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0b19yZWNvbm5lY3Q.short_desc": {
+          "source": "Automatically reconnect on connection loss",
+          "message": "Автоматично перепідключатися при втраті з'єднання"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOk5vbmU.desc": {
+          "source": "Messages are neither signed nor encrypted",
+          "message": "Повідомлення не підписуються і не шифруються"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOk5vbmU.display_name": {
+          "source": "None",
+          "message": "Жодного"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOk5vbmU.short_desc": {
+          "source": "No message security",
+          "message": "Немає безпеки повідомлень"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ24.desc": {
+          "source": "Messages are signed but not encrypted",
+          "message": "Повідомлення підписані, але не шифруються"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ24.display_name": {
+          "source": "Sign",
+          "message": "Підписати"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ24.short_desc": {
+          "source": "Messages are signed",
+          "message": "Повідомлення підписані"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ25BbmRFbmNyeXB0.desc": {
+          "source": "Messages are both signed and encrypted",
+          "message": "Повідомлення підписані та зашифровані"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ25BbmRFbmNyeXB0.display_name": {
+          "source": "Sign and Encrypt",
+          "message": "Підписати та зашифрувати"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ25BbmRFbmNyeXB0.short_desc": {
+          "source": "Messages are signed and encrypted",
+          "message": "Повідомлення підписані та зашифровані"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.desc": {
+          "source": "The message security mode for the OPC UA connection",
+          "message": "Режим безпеки повідомлень для з’єднання OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.display_name": {
+          "source": "Message Security Mode",
+          "message": "Режим безпеки повідомлень"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.short_desc": {
+          "source": "Message security mode for the connection",
+          "message": "Режим безпеки повідомлень для з’єднання"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDI.desc": {
+          "source": "Inline OPC UA `NodeSet2` XML to import into the generic schema snapshot contract",
+          "message": "Вбудований XML `NodeSet2` OPC UA для імпорту в контракт снапшоту загального схеми"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDI.display_name": {
+          "source": "OPC UA NodeSet2",
+          "message": "NodeSet2 OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDI.short_desc": {
+          "source": "Inline NodeSet2 XML document",
+          "message": "Вбудований документ XML NodeSet2"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDItbG9jYXRpb24.desc": {
+          "source": "Deprecated hyphenated alias for `nodeset2_location`; accepted for declarative service metadata compatibility",
+          "message": "Застарілий дефісний псевдонім для `nodeset2_location`; приймається для сумісності з метаданими декларативного сервісу"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDItbG9jYXRpb24.display_name": {
+          "source": "OPC UA NodeSet2 Location",
+          "message": "Розташування NodeSet2 OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDItbG9jYXRpb24.short_desc": {
+          "source": "NodeSet2 XML location",
+          "message": "Розташування файлу NodeSet2 XML"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDJfbG9jYXRpb24.desc": {
+          "source": "A `FileLocationHandler` location containing an OPC UA `NodeSet2` XML document",
+          "message": "Місце розташування `FileLocationHandler`, що містить документ XML OPC UA `NodeSet2`"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDJfbG9jYXRpb24.display_name": {
+          "source": "OPC UA NodeSet2 Location",
+          "message": "Розташування NodeSet2 OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDJfbG9jYXRpb24.short_desc": {
+          "source": "NodeSet2 XML location",
+          "message": "Розташування файлу NodeSet2 XML"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1h.desc": {
+          "source": "A generic OPC UA schema snapshot hash used for schema-driven API management. When this option is provided, the provider can expose API-management endpoints without connecting to a remote OPC UA server. The hash must follow the module's schema snapshot contract with `namespaces` and `endpoints` keys",
+          "message": "Загальний хеш зняття зображення схеми OPC UA, що використовується для управління API на основі схеми. Коли цей параметр надано, провайдер може надавати точки входу для управління API без підключення до віддаленого сервера OPC UA. Хеш має відповідати контракту зняття зображення схеми модуля з ключами `namespaces` та `endpoints`"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1h.display_name": {
+          "source": "OPC UA Schema",
+          "message": "Схема OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1h.short_desc": {
+          "source": "Schema snapshot for API management",
+          "message": "Зняття зображення схеми для управління API"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hLWxvY2F0aW9u.desc": {
+          "source": "Deprecated hyphenated alias for `schema_location`; accepted for declarative service metadata compatibility",
+          "message": "Застарілий дефісований псевдонім для `schema_location`; приймається для сумісності з метаданими декларативного сервісу"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hLWxvY2F0aW9u.display_name": {
+          "source": "OPC UA Schema Location",
+          "message": "Розташування схеми OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hLWxvY2F0aW9u.short_desc": {
+          "source": "Schema snapshot or NodeSet2 location",
+          "message": "Розташування снапшоту схеми або NodeSet2"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hX2xvY2F0aW9u.desc": {
+          "source": "A `FileLocationHandler` location containing a `NodeSet2` XML document for schema-driven API management.\n\n**Sandbox note**: sandboxed embedders should restrict this option to `resource://` service resources",
+          "message": "Розташування `FileLocationHandler`, що містить `NodeSet2` XML-документ для управління API на основі схеми.\n\n**Нотатка для середовища**: вбудовані середовища з обмеженнями повинні обмежити цю опцію ресурсами `resource://` служби"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hX2xvY2F0aW9u.display_name": {
+          "source": "OPC UA Schema Location",
+          "message": "Розташування схеми OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hX2xvY2F0aW9u.short_desc": {
+          "source": "Schema snapshot or NodeSet2 location",
+          "message": "Розташування снапшоту схеми або NodeSet2"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOk5vbmU.desc": {
+          "source": "No message security is applied",
+          "message": "Для повідомлень не застосовується безпека"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOk5vbmU.display_name": {
+          "source": "None",
+          "message": "Жодного"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOk5vbmU.short_desc": {
+          "source": "No security",
+          "message": "Без безпеки"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczEyOF9TaGEyNTZfUnNhT2FlcA.desc": {
+          "source": "AES-128 encryption with SHA-256 signatures and RSA-OAEP key wrapping",
+          "message": "Шифрування AES-128 з підписами SHA-256 та обгортанням ключів RSA-OAEP"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczEyOF9TaGEyNTZfUnNhT2FlcA.display_name": {
+          "source": "Aes128_Sha256_RsaOaep",
+          "message": "Aes128_Sha256_RsaOaep"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczEyOF9TaGEyNTZfUnNhT2FlcA.short_desc": {
+          "source": "Aes128_Sha256_RsaOaep security policy",
+          "message": "Політика безпеки Aes128_Sha256_RsaOaep"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczI1Nl9TaGEyNTZfUnNhUHNz.desc": {
+          "source": "AES-256 encryption with SHA-256 signatures and RSA-PSS key wrapping",
+          "message": "Шифрування AES-256 з підписами SHA-256 та обгортанням ключів RSA-PSS"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczI1Nl9TaGEyNTZfUnNhUHNz.display_name": {
+          "source": "Aes256_Sha256_RsaPss",
+          "message": "Aes256_Sha256_RsaPss"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczI1Nl9TaGEyNTZfUnNhUHNz.short_desc": {
+          "source": "Aes256_Sha256_RsaPss security policy",
+          "message": "політика безпеки Aes256_Sha256_RsaPss"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkJhc2ljMjU2U2hhMjU2.desc": {
+          "source": "AES-256 encryption with SHA-256 signatures",
+          "message": "шифрування AES-256 з підписами SHA-256"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkJhc2ljMjU2U2hhMjU2.display_name": {
+          "source": "Basic256Sha256",
+          "message": "Basic256Sha256"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkJhc2ljMjU2U2hhMjU2.short_desc": {
+          "source": "Basic256Sha256 security policy",
+          "message": "політика безпеки Basic256Sha256"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.desc": {
+          "source": "The security policy for the OPC UA connection",
+          "message": "політика безпеки для з’єднання OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.display_name": {
+          "source": "Security Policy",
+          "message": "Політика безпеки"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.short_desc": {
+          "source": "Security policy for the OPC UA connection",
+          "message": "політика безпеки для з’єднання OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2Vzc2lvbl90aW1lb3V0.desc": {
+          "source": "The session timeout in milliseconds; the server will close the session if no activity is detected within this interval",
+          "message": "Час очікування сеансу в мілісекундах; сервер закриє сеанс, якщо протягом цього інтервалу не буде жодної діяльності"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2Vzc2lvbl90aW1lb3V0.display_name": {
+          "source": "Session Timeout",
+          "message": "Таймаут сесії"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2Vzc2lvbl90aW1lb3V0.short_desc": {
+          "source": "Session timeout in milliseconds",
+          "message": "Час очікування сеансу в мілісекундах"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.desc": {
+          "source": "Path to the client keystore file containing the client certificate and private key for mutual TLS authentication",
+          "message": "Шлях до файлу клієнтського хранилища ключів, що містить сертифікат та приватний ключ клієнта для взаємної аутентифікації TLS"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.display_name": {
+          "source": "SSL Keystore Location",
+          "message": "Розташування ключового сховища SSL"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.short_desc": {
+          "source": "Path to the client keystore file",
+          "message": "Шлях до файлу клієнтського хранилища ключів"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.desc": {
+          "source": "Password for the client keystore file",
+          "message": "Пароль до файлу клієнтського хранилища ключів"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.display_name": {
+          "source": "SSL Keystore Password",
+          "message": "Пароль хранилища ключів SSL"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.short_desc": {
+          "source": "Password for the client keystore",
+          "message": "Пароль для клієнтського хранилища ключів"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOkpLUw.desc": {
+          "source": "Java KeyStore format (.jks files)",
+          "message": "Формат Java KeyStore (.jks файли)"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOkpLUw.display_name": {
+          "source": "JKS",
+          "message": "JKS"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOkpLUw.short_desc": {
+          "source": "Java KeyStore format",
+          "message": "Формат Java KeyStore"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOlBLQ1MxMg.desc": {
+          "source": "PKCS#12 keystore format (.p12 / .pfx files)",
+          "message": "Формат хранилища PKCS#12 (.p12 / .pfx файли)"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOlBLQ1MxMg.display_name": {
+          "source": "PKCS12",
+          "message": "PKCS12"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOlBLQ1MxMg.short_desc": {
+          "source": "PKCS#12 keystore format",
+          "message": "Формат хранилища PKCS#12"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.desc": {
+          "source": "Type of the client keystore (e.g., `PKCS12`, `JKS`)",
+          "message": "Тип клієнтського хранилища ключів (наприклад, `PKCS12`, `JKS`)"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.display_name": {
+          "source": "SSL Keystore Type",
+          "message": "Тип хранилища ключів SSL"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.short_desc": {
+          "source": "Type of the client keystore",
+          "message": "Тип клієнтського хранилища ключів"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.desc": {
+          "source": "Path to the truststore file containing trusted CA certificates for verifying the server's certificate",
+          "message": "Шлях до файлу хранилища довіри, що містить сертифікати Центру сертифікації, які довіряються для перевірки сертифіката сервера"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.display_name": {
+          "source": "SSL Truststore Location",
+          "message": "Розташування довіри SSL"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.short_desc": {
+          "source": "Path to the truststore file",
+          "message": "Шлях до файлу хранилища довіри"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.desc": {
+          "source": "Password for the truststore file",
+          "message": "Пароль для файлу хранилища довіри"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.display_name": {
+          "source": "SSL Truststore Password",
+          "message": "Пароль довіри SSL"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.short_desc": {
+          "source": "Password for the truststore",
+          "message": "Пароль для довіреної колекції"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOkpLUw.desc": {
+          "source": "Java KeyStore format (.jks files)",
+          "message": "Формат Java KeyStore (.jks файли)"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOkpLUw.display_name": {
+          "source": "JKS",
+          "message": "JKS"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOkpLUw.short_desc": {
+          "source": "Java KeyStore format",
+          "message": "Формат Java KeyStore"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOlBLQ1MxMg.desc": {
+          "source": "PKCS#12 truststore format (.p12 / .pfx files)",
+          "message": "Формат довіреної скриньки PKCS#12 (.p12 / .pfx файли)"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOlBLQ1MxMg.display_name": {
+          "source": "PKCS12",
+          "message": "PKCS12"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOlBLQ1MxMg.short_desc": {
+          "source": "PKCS#12 truststore format",
+          "message": "Формат довіреної скриньки PKCS#12"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.desc": {
+          "source": "Type of the truststore (e.g., `PKCS12`, `JKS`)",
+          "message": "Тип довіреної колекції (наприклад, `PKCS12`, `JKS`)"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.display_name": {
+          "source": "SSL Truststore Type",
+          "message": "Тип довіри SSL"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.short_desc": {
+          "source": "Type of the truststore",
+          "message": "Тип довіреної колекції"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cGFzc3dvcmQ.desc": {
+          "source": "The password for username/password authentication",
+          "message": "Пароль для автентифікації за користувачем/паролем"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "Пароль"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cGFzc3dvcmQ.short_desc": {
+          "source": "The password for username/password authentication",
+          "message": "Пароль для автентифікації за користувачем/паролем"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cmVxdWVzdF90aW1lb3V0.desc": {
+          "source": "The timeout in milliseconds for OPC UA service requests",
+          "message": "Тайм-аут у мілісекундах для запитів OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cmVxdWVzdF90aW1lb3V0.display_name": {
+          "source": "Request Timeout",
+          "message": "Тайм-аут запиту"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cmVxdWVzdF90aW1lb3V0.short_desc": {
+          "source": "Request timeout in milliseconds",
+          "message": "Тайм-аут запиту у мілісекундах"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.dXNlcm5hbWU.desc": {
+          "source": "The username for username/password authentication",
+          "message": "Ім’я користувача для автентифікації за користувачем/паролем"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.dXNlcm5hbWU.display_name": {
+          "source": "Username",
+          "message": "Ім'я користувача"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.dXNlcm5hbWU.short_desc": {
+          "source": "The username for authentication",
+          "message": "Ім'я користувача для автентифікації"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.short_desc": {
+          "source": "A connection to an OPC UA server",
+          "message": "Підключення до сервера OPC UA"
+        }
+      }
+    }
+  }
+}

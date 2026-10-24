@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "uk": {
+      "messages": {
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.desc": {
+          "source": "A connection for JDBC database access providing JDBC URL, credentials, and optional driver classpath",
+          "message": "Підключення для доступу до бази даних JDBC, що надає JDBC URL, облікові дані та необов'язковий класpath драйвера"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.display_name": {
+          "source": "JDBC Database Connection",
+          "message": "Підключення до бази даних JDBC"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.Y2xhc3NwYXRo.desc": {
+          "source": "JDBC driver JAR file, directory, or classpath list to add to the JNI classpath before opening the connection. Comma-separated entries are also accepted",
+          "message": "JAR-файл драйвера JDBC, каталог або список класpath, який додається до класpath JNI перед відкриттям підключення. Дозволено розділяти комами"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.Y2xhc3NwYXRo.display_name": {
+          "source": "Driver Classpath",
+          "message": "Класpath драйвера"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.Y2xhc3NwYXRo.short_desc": {
+          "source": "Classpath for JDBC driver JAR files",
+          "message": "Шлях класів для JAR-файлів драйвера JDBC"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.ZHJpdmVyX2NsYXNz.desc": {
+          "source": "Optional Java JDBC driver class to instantiate before connecting, for example `org.postgresql.Driver`",
+          "message": "Необов'язковий клас Java JDBC драйвера для ініціалізації перед підключенням, наприклад `org.postgresql.Driver`"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.ZHJpdmVyX2NsYXNz.display_name": {
+          "source": "Driver Class",
+          "message": "Клас драйвера"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.ZHJpdmVyX2NsYXNz.short_desc": {
+          "source": "Java JDBC driver class name",
+          "message": "Назва класу Java JDBC драйвера"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.cGFzc3dvcmQ.desc": {
+          "source": "The password for the database connection",
+          "message": "Пароль для підключення до бази даних"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "Пароль"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.cGFzc3dvcmQ.short_desc": {
+          "source": "The database password",
+          "message": "Пароль бази даних"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXJs.desc": {
+          "source": "The JDBC connection URL for the database (e.g. `jdbc:postgresql://localhost:5432/mydb`)",
+          "message": "URL-адреса підключення JDBC для бази даних (наприклад, `jdbc:postgresql://localhost:5432/mydb`)"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXJs.display_name": {
+          "source": "JDBC URL",
+          "message": "JDBC URL"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXJs.short_desc": {
+          "source": "The JDBC URL for the database connection",
+          "message": "JDBC URL для підключення до бази даних"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXNlcg.desc": {
+          "source": "The username for the database connection",
+          "message": "Ім'я користувача для підключення до бази даних"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXNlcg.display_name": {
+          "source": "Username",
+          "message": "Ім'я користувача"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXNlcg.short_desc": {
+          "source": "The database username",
+          "message": "Ім'я користувача бази даних"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.short_desc": {
+          "source": "A connection for JDBC database access",
+          "message": "Підключення для доступу до бази даних JDBC"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "zh-TW": {
+      "messages": {
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.desc": {
+          "source": "A connection for JDBC database access providing JDBC URL, credentials, and optional driver classpath",
+          "message": "提供 JDBC URL、憑證及可選的驅動程式類路徑的 JDBC 資料庫連線"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.display_name": {
+          "source": "JDBC Database Connection",
+          "message": "JDBC 資料庫連線"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.Y2xhc3NwYXRo.desc": {
+          "source": "JDBC driver JAR file, directory, or classpath list to add to the JNI classpath before opening the connection. Comma-separated entries are also accepted",
+          "message": "在開啟連線前，加入 JNI 類路徑的 JDBC 驅動程式 JAR 檔案、目錄或類路徑清單。支援以逗號分隔的項目"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.Y2xhc3NwYXRo.display_name": {
+          "source": "Driver Classpath",
+          "message": "驅動程式類路徑"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.Y2xhc3NwYXRo.short_desc": {
+          "source": "Classpath for JDBC driver JAR files",
+          "message": "JDBC 驅動程式 JAR 檔案的類路徑"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.ZHJpdmVyX2NsYXNz.desc": {
+          "source": "Optional Java JDBC driver class to instantiate before connecting, for example `org.postgresql.Driver`",
+          "message": "選擇性 Java JDBC 驅動程式類別，用於連接前實例化，例如 `org.postgresql.Driver`"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.ZHJpdmVyX2NsYXNz.display_name": {
+          "source": "Driver Class",
+          "message": "驅動程式類別"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.ZHJpdmVyX2NsYXNz.short_desc": {
+          "source": "Java JDBC driver class name",
+          "message": "Java JDBC 驅動程式類別名稱"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.cGFzc3dvcmQ.desc": {
+          "source": "The password for the database connection",
+          "message": "資料庫連線的密碼"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "密碼"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.cGFzc3dvcmQ.short_desc": {
+          "source": "The database password",
+          "message": "資料庫密碼"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXJs.desc": {
+          "source": "The JDBC connection URL for the database (e.g. `jdbc:postgresql://localhost:5432/mydb`)",
+          "message": "資料庫的 JDBC 連線 URL（例如 `jdbc:postgresql://localhost:5432/mydb`）"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXJs.display_name": {
+          "source": "JDBC URL",
+          "message": "JDBC URL"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXJs.short_desc": {
+          "source": "The JDBC URL for the database connection",
+          "message": "用於資料庫連線的 JDBC URL"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXNlcg.desc": {
+          "source": "The username for the database connection",
+          "message": "資料庫連線的使用者名稱"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXNlcg.display_name": {
+          "source": "Username",
+          "message": "使用者名稱"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXNlcg.short_desc": {
+          "source": "The database username",
+          "message": "資料庫使用者名稱"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.short_desc": {
+          "source": "A connection for JDBC database access",
+          "message": "用於 JDBC 資料庫存取的連接"
+        }
+      }
+    }
+  }
+}

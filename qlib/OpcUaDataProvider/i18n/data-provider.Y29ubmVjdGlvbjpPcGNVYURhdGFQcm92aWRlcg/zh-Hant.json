@@ -1,0 +1,465 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "zh-Hant": {
+      "messages": {
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.desc": {
+          "source": "A connection to an OPC UA server",
+          "message": "連線至 OPC UA 伺服器"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.display_name": {
+          "source": "OPC UA Connection",
+          "message": "OPC UA 連線"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.Y29ubmVjdF90aW1lb3V0.desc": {
+          "source": "The connection timeout to the OPC UA server in milliseconds",
+          "message": "與 OPC UA 伺服器連線的逾時時間（毫秒）"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.Y29ubmVjdF90aW1lb3V0.display_name": {
+          "source": "Connect Timeout",
+          "message": "連線逾時"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.Y29ubmVjdF90aW1lb3V0.short_desc": {
+          "source": "Connection timeout in milliseconds",
+          "message": "連接逾時時間（毫秒）"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fbmFtZQ.desc": {
+          "source": "The application name used to identify this client to the OPC UA server",
+          "message": "用於向 OPC UA 伺服器識別此客戶端的應用程式名稱"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fbmFtZQ.display_name": {
+          "source": "Application Name",
+          "message": "應用程式名稱"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fbmFtZQ.short_desc": {
+          "source": "The OPC UA client application name",
+          "message": "OPC UA 客戶端應用程式名稱"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fdXJp.desc": {
+          "source": "The application URI used to identify this client to the OPC UA server",
+          "message": "用於向 OPC UA 伺服器識別此客戶端的應用程式 URI"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fdXJp.display_name": {
+          "source": "Application URI",
+          "message": "應用程式 URI"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fdXJp.short_desc": {
+          "source": "The OPC UA client application URI",
+          "message": "OPC UA 客戶端應用程式 URI"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkFub255bW91cw.desc": {
+          "source": "Connect without authentication credentials",
+          "message": "不需憑證連接"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkFub255bW91cw.display_name": {
+          "source": "Anonymous",
+          "message": "匿名"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkFub255bW91cw.short_desc": {
+          "source": "No authentication",
+          "message": "無驗證"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkNlcnRpZmljYXRl.desc": {
+          "source": "Authenticate using an X.509 client certificate",
+          "message": "使用 X.509 客戶端憑證驗證"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkNlcnRpZmljYXRl.display_name": {
+          "source": "Certificate",
+          "message": "憑證"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkNlcnRpZmljYXRl.short_desc": {
+          "source": "Authenticate with an X.509 certificate",
+          "message": "使用 X.509 憑證驗證"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOlVzZXJuYW1lUGFzc3dvcmQ.desc": {
+          "source": "Authenticate using a username and password",
+          "message": "使用使用者名稱和密碼驗證"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOlVzZXJuYW1lUGFzc3dvcmQ.display_name": {
+          "source": "Username/Password",
+          "message": "使用者名稱/密碼"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOlVzZXJuYW1lUGFzc3dvcmQ.short_desc": {
+          "source": "Authenticate with username and password",
+          "message": "使用使用者名稱和密碼進行驗證"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.desc": {
+          "source": "The authentication method to use when connecting to the OPC UA server",
+          "message": "連接到 OPC UA 伺服器時要使用的驗證方法"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.display_name": {
+          "source": "Authentication Type",
+          "message": "驗證類型"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.short_desc": {
+          "source": "Authentication method for the OPC UA server",
+          "message": "用於 OPC UA 伺服器的驗證方法"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0b19yZWNvbm5lY3Q.desc": {
+          "source": "If set to `True`, the client will automatically attempt to reconnect to the server if the connection is lost",
+          "message": "如果設定為 `True`，當連線中斷時，用戶端將自動嘗試重新連線至伺服器"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0b19yZWNvbm5lY3Q.display_name": {
+          "source": "Auto Reconnect",
+          "message": "自動重新連線"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0b19yZWNvbm5lY3Q.short_desc": {
+          "source": "Automatically reconnect on connection loss",
+          "message": "連線中斷時自動重新連線"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOk5vbmU.desc": {
+          "source": "Messages are neither signed nor encrypted",
+          "message": "訊息既未簽署也未加密"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOk5vbmU.display_name": {
+          "source": "None",
+          "message": "無"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOk5vbmU.short_desc": {
+          "source": "No message security",
+          "message": "無訊息安全性"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ24.desc": {
+          "source": "Messages are signed but not encrypted",
+          "message": "訊息已簽署但未加密"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ24.display_name": {
+          "source": "Sign",
+          "message": "簽署"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ24.short_desc": {
+          "source": "Messages are signed",
+          "message": "訊息已簽署"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ25BbmRFbmNyeXB0.desc": {
+          "source": "Messages are both signed and encrypted",
+          "message": "訊息同時已簽署並加密"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ25BbmRFbmNyeXB0.display_name": {
+          "source": "Sign and Encrypt",
+          "message": "簽署並加密"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ25BbmRFbmNyeXB0.short_desc": {
+          "source": "Messages are signed and encrypted",
+          "message": "訊息已簽署並加密"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.desc": {
+          "source": "The message security mode for the OPC UA connection",
+          "message": "OPC UA 連接的訊息安全性模式"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.display_name": {
+          "source": "Message Security Mode",
+          "message": "訊息安全性模式"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.short_desc": {
+          "source": "Message security mode for the connection",
+          "message": "連線的訊息安全性模式"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDI.desc": {
+          "source": "Inline OPC UA `NodeSet2` XML to import into the generic schema snapshot contract",
+          "message": "將 OPC UA `NodeSet2` XML 內嵌至通用架構快照合約中"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDI.display_name": {
+          "source": "OPC UA NodeSet2",
+          "message": "OPC UA NodeSet2"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDI.short_desc": {
+          "source": "Inline NodeSet2 XML document",
+          "message": "內嵌的 NodeSet2 XML 文件"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDItbG9jYXRpb24.desc": {
+          "source": "Deprecated hyphenated alias for `nodeset2_location`; accepted for declarative service metadata compatibility",
+          "message": "已棄用的連字號別名 `nodeset2_location`；為宣告式服務元資料相容性而接受"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDItbG9jYXRpb24.display_name": {
+          "source": "OPC UA NodeSet2 Location",
+          "message": "OPC UA NodeSet2 位置"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDItbG9jYXRpb24.short_desc": {
+          "source": "NodeSet2 XML location",
+          "message": "NodeSet2 XML 位置"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDJfbG9jYXRpb24.desc": {
+          "source": "A `FileLocationHandler` location containing an OPC UA `NodeSet2` XML document",
+          "message": "包含 OPC UA `NodeSet2` XML 文件的 `FileLocationHandler` 位置"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDJfbG9jYXRpb24.display_name": {
+          "source": "OPC UA NodeSet2 Location",
+          "message": "OPC UA NodeSet2 位置"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDJfbG9jYXRpb24.short_desc": {
+          "source": "NodeSet2 XML location",
+          "message": "NodeSet2 XML 位置"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1h.desc": {
+          "source": "A generic OPC UA schema snapshot hash used for schema-driven API management. When this option is provided, the provider can expose API-management endpoints without connecting to a remote OPC UA server. The hash must follow the module's schema snapshot contract with `namespaces` and `endpoints` keys",
+          "message": "用於 schema 驅動 API 管理的通用 OPC UA schema 快照雜湊。提供此選項時，提供者可在不連接遠端 OPC UA 伺服器的情況下公開 API 管理端點。雜湊必須符合模組的 schema 快照合約，並包含 `namespaces` 和 `endpoints` 金鑰"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1h.display_name": {
+          "source": "OPC UA Schema",
+          "message": "OPC UA Schema"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1h.short_desc": {
+          "source": "Schema snapshot for API management",
+          "message": "用於 API 管理的 schema 快照"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hLWxvY2F0aW9u.desc": {
+          "source": "Deprecated hyphenated alias for `schema_location`; accepted for declarative service metadata compatibility",
+          "message": "已棄用的連字號別名，用於 `schema_location`；為保持宣告式服務元資料相容性而接受"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hLWxvY2F0aW9u.display_name": {
+          "source": "OPC UA Schema Location",
+          "message": "OPC UA Schema Location"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hLWxvY2F0aW9u.short_desc": {
+          "source": "Schema snapshot or NodeSet2 location",
+          "message": "schema 快照或 NodeSet2 位置"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hX2xvY2F0aW9u.desc": {
+          "source": "A `FileLocationHandler` location containing a `NodeSet2` XML document for schema-driven API management.\n\n**Sandbox note**: sandboxed embedders should restrict this option to `resource://` service resources",
+          "message": "包含用於 schema 驅動 API 管理的 `NodeSet2` XML 文件的 `FileLocationHandler` 位置。\n\n**沙盒注意**：沙盒嵌入器應將此選項限制為 `resource://` 服務資源"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hX2xvY2F0aW9u.display_name": {
+          "source": "OPC UA Schema Location",
+          "message": "OPC UA Schema Location"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hX2xvY2F0aW9u.short_desc": {
+          "source": "Schema snapshot or NodeSet2 location",
+          "message": "schema 快照或 NodeSet2 位置"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOk5vbmU.desc": {
+          "source": "No message security is applied",
+          "message": "未套用任何訊息安全性"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOk5vbmU.display_name": {
+          "source": "None",
+          "message": "無"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOk5vbmU.short_desc": {
+          "source": "No security",
+          "message": "無安全性"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczEyOF9TaGEyNTZfUnNhT2FlcA.desc": {
+          "source": "AES-128 encryption with SHA-256 signatures and RSA-OAEP key wrapping",
+          "message": "使用 SHA-256 摘要與 RSA-OAEP 金鑰包裝的 AES-128 加密"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczEyOF9TaGEyNTZfUnNhT2FlcA.display_name": {
+          "source": "Aes128_Sha256_RsaOaep",
+          "message": "Aes128_Sha256_RsaOaep"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczEyOF9TaGEyNTZfUnNhT2FlcA.short_desc": {
+          "source": "Aes128_Sha256_RsaOaep security policy",
+          "message": "Aes128_Sha256_RsaOaep 安全性原則"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczI1Nl9TaGEyNTZfUnNhUHNz.desc": {
+          "source": "AES-256 encryption with SHA-256 signatures and RSA-PSS key wrapping",
+          "message": "使用 SHA-256 摘要與 RSA-PSS 金鑰包裝的 AES-256 加密"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczI1Nl9TaGEyNTZfUnNhUHNz.display_name": {
+          "source": "Aes256_Sha256_RsaPss",
+          "message": "Aes256_Sha256_RsaPss"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczI1Nl9TaGEyNTZfUnNhUHNz.short_desc": {
+          "source": "Aes256_Sha256_RsaPss security policy",
+          "message": "Aes256_Sha256_RsaPss 安全性原則"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkJhc2ljMjU2U2hhMjU2.desc": {
+          "source": "AES-256 encryption with SHA-256 signatures",
+          "message": "使用 SHA-256 簽章的 AES-256 加密"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkJhc2ljMjU2U2hhMjU2.display_name": {
+          "source": "Basic256Sha256",
+          "message": "Basic256Sha256"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkJhc2ljMjU2U2hhMjU2.short_desc": {
+          "source": "Basic256Sha256 security policy",
+          "message": "Basic256Sha256 安全策略"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.desc": {
+          "source": "The security policy for the OPC UA connection",
+          "message": "OPC UA 連接的安全策略"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.display_name": {
+          "source": "Security Policy",
+          "message": "安全策略"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.short_desc": {
+          "source": "Security policy for the OPC UA connection",
+          "message": "OPC UA 連接的安全策略"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2Vzc2lvbl90aW1lb3V0.desc": {
+          "source": "The session timeout in milliseconds; the server will close the session if no activity is detected within this interval",
+          "message": "會話逾時時間（毫秒）；若在此期間內未檢測到活動，伺服器將關閉會話"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2Vzc2lvbl90aW1lb3V0.display_name": {
+          "source": "Session Timeout",
+          "message": "工作階段超時"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2Vzc2lvbl90aW1lb3V0.short_desc": {
+          "source": "Session timeout in milliseconds",
+          "message": "會話逾時時間（毫秒）"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.desc": {
+          "source": "Path to the client keystore file containing the client certificate and private key for mutual TLS authentication",
+          "message": "包含客戶端憑證與私密金鑰的客戶端金鑰庫檔案路徑，用於相互 TLS 驗證"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.display_name": {
+          "source": "SSL Keystore Location",
+          "message": "SSL 金鑰儲存位置"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.short_desc": {
+          "source": "Path to the client keystore file",
+          "message": "客戶端金鑰庫檔案的路徑"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.desc": {
+          "source": "Password for the client keystore file",
+          "message": "客戶端金鑰庫檔案的密碼"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.display_name": {
+          "source": "SSL Keystore Password",
+          "message": "SSL 金鑰庫密碼"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.short_desc": {
+          "source": "Password for the client keystore",
+          "message": "客戶端金鑰庫的密碼"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOkpLUw.desc": {
+          "source": "Java KeyStore format (.jks files)",
+          "message": "Java 金鑰儲存格式（.jks 檔案）"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOkpLUw.display_name": {
+          "source": "JKS",
+          "message": "JKS"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOkpLUw.short_desc": {
+          "source": "Java KeyStore format",
+          "message": "Java 金鑰儲存格式"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOlBLQ1MxMg.desc": {
+          "source": "PKCS#12 keystore format (.p12 / .pfx files)",
+          "message": "PKCS#12 金鑰儲存格式（.p12 / .pfx 檔案）"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOlBLQ1MxMg.display_name": {
+          "source": "PKCS12",
+          "message": "PKCS12"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOlBLQ1MxMg.short_desc": {
+          "source": "PKCS#12 keystore format",
+          "message": "PKCS#12 金鑰儲存格式"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.desc": {
+          "source": "Type of the client keystore (e.g., `PKCS12`, `JKS`)",
+          "message": "客戶端金鑰庫的類型（例如，`PKCS12`，`JKS`）"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.display_name": {
+          "source": "SSL Keystore Type",
+          "message": "SSL 金鑰庫類型"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.short_desc": {
+          "source": "Type of the client keystore",
+          "message": "客戶端金鑰庫的類型"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.desc": {
+          "source": "Path to the truststore file containing trusted CA certificates for verifying the server's certificate",
+          "message": "包含用於驗證伺服器憑證之受信任 CA 憑證的信任庫檔案路徑"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.display_name": {
+          "source": "SSL Truststore Location",
+          "message": "SSL 信任庫位置"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.short_desc": {
+          "source": "Path to the truststore file",
+          "message": "信任庫檔案的路徑"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.desc": {
+          "source": "Password for the truststore file",
+          "message": "信任庫檔案的密碼"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.display_name": {
+          "source": "SSL Truststore Password",
+          "message": "SSL 信任庫密碼"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.short_desc": {
+          "source": "Password for the truststore",
+          "message": "信任庫的密碼"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOkpLUw.desc": {
+          "source": "Java KeyStore format (.jks files)",
+          "message": "Java 金鑰儲存格式（.jks 檔案）"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOkpLUw.display_name": {
+          "source": "JKS",
+          "message": "JKS"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOkpLUw.short_desc": {
+          "source": "Java KeyStore format",
+          "message": "Java 金鑰儲存格式"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOlBLQ1MxMg.desc": {
+          "source": "PKCS#12 truststore format (.p12 / .pfx files)",
+          "message": "PKCS#12 個人信任儲存格式（.p12 / .pfx 檔案）"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOlBLQ1MxMg.display_name": {
+          "source": "PKCS12",
+          "message": "PKCS12"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOlBLQ1MxMg.short_desc": {
+          "source": "PKCS#12 truststore format",
+          "message": "PKCS#12 個人信任儲存格式"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.desc": {
+          "source": "Type of the truststore (e.g., `PKCS12`, `JKS`)",
+          "message": "信任庫的類型（例如，`PKCS12`，`JKS`）"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.display_name": {
+          "source": "SSL Truststore Type",
+          "message": "SSL 信任庫類型"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.short_desc": {
+          "source": "Type of the truststore",
+          "message": "信任存儲的類型"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cGFzc3dvcmQ.desc": {
+          "source": "The password for username/password authentication",
+          "message": "使用者名稱/密碼驗證的密碼"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "密碼"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cGFzc3dvcmQ.short_desc": {
+          "source": "The password for username/password authentication",
+          "message": "使用者名稱/密碼驗證的密碼"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cmVxdWVzdF90aW1lb3V0.desc": {
+          "source": "The timeout in milliseconds for OPC UA service requests",
+          "message": "OPC UA 服務請求的逾時時間（毫秒）"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cmVxdWVzdF90aW1lb3V0.display_name": {
+          "source": "Request Timeout",
+          "message": "請求逾時"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cmVxdWVzdF90aW1lb3V0.short_desc": {
+          "source": "Request timeout in milliseconds",
+          "message": "請求逾時時間（毫秒）"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.dXNlcm5hbWU.desc": {
+          "source": "The username for username/password authentication",
+          "message": "使用者名稱/密碼驗證的使用者名稱"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.dXNlcm5hbWU.display_name": {
+          "source": "Username",
+          "message": "使用者名稱"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.dXNlcm5hbWU.short_desc": {
+          "source": "The username for authentication",
+          "message": "用於驗證的使用者名稱"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.short_desc": {
+          "source": "A connection to an OPC UA server",
+          "message": "連線至 OPC UA 伺服器"
+        }
+      }
+    }
+  }
+}

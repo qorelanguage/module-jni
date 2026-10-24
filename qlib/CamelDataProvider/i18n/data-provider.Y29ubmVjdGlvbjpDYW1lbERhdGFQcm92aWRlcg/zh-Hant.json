@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "zh-Hant": {
+      "messages": {
+        "connection.Q2FtZWxEYXRhUHJvdmlkZXI.scheme.Q2FtZWxDb25uZWN0aW9u.desc": {
+          "source": "A connection for Apache Camel enterprise integration patterns; the Camel context is self-configuring",
+          "message": "用於 Apache Camel 企業整合模式的連接；Camel 上下文可自行設定"
+        },
+        "connection.Q2FtZWxEYXRhUHJvdmlkZXI.scheme.Q2FtZWxDb25uZWN0aW9u.display_name": {
+          "source": "Apache Camel Connection",
+          "message": "Apache Camel 連接"
+        },
+        "connection.Q2FtZWxEYXRhUHJvdmlkZXI.scheme.Q2FtZWxDb25uZWN0aW9u.short_desc": {
+          "source": "A connection for Apache Camel enterprise integration",
+          "message": "用於 Apache Camel 企業整合的連接"
+        }
+      }
+    }
+  }
+}

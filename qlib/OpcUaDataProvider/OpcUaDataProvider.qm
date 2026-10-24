@@ -525,6 +525,8 @@ module OpcUaDataProvider {
     @section opcuadataproviderrelnotes Release Notes
 
     @subsection opcuadataproviderv110 OpcUaDataProvider v1.10.0
+    - added source-owned connection option catalogs in all twelve standard locales; unchanged inherited
+      presentation keeps its original producer identity, including HTTP/REST options and allowed values
     - added the parse-only @ref OpcUaDataProvider::describeAddressSpace() entry point for validating and
       normalizing native OPC UA address-space documents without constructing a runtime or binding a port;
       invalid documents raise \c OPCUA-SCHEMA-ERROR with a JSON pointer and endpoint identity

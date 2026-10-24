@@ -28,7 +28,8 @@ public namespace FlywayDataProvider {
 public class FlywayConnection inherits ConnectionProvider::AbstractConnectionWithInfo {
     public {
         #! Connection entry info
-        const ConnectionScheme = <ConnectionSchemeInfo>{
+        const ConnectionScheme = ConnectionProvider::connection_scheme_presentation("FlywayDataProvider",
+            "FlywayConnection", "en", <ConnectionSchemeInfo>{
             "display_name": "Flyway Connection",
             "short_desc": "A connection for Flyway database schema migration",
             "desc": "A connection for Flyway database schema migration providing JDBC URL, "
@@ -83,7 +84,7 @@ public class FlywayConnection inherits ConnectionProvider::AbstractConnectionWit
             "schemes": {
                 "flyway": True,
             },
-        };
+        });
     }
 
     #! Creates the object from the arguments

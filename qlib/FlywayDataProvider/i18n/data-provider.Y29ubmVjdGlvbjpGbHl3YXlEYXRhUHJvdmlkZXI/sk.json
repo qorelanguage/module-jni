@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "sk": {
+      "messages": {
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.desc": {
+          "source": "A connection for Flyway database schema migration providing JDBC URL, credentials, and migration locations",
+          "message": "Pripojenie pre migráciu schémy databázy Flyway poskytujúce JDBC URL, prihlasovacie údaje a umiestnenia migrácií"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.display_name": {
+          "source": "Flyway Connection",
+          "message": "Pripojenie Flyway"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.bG9jYXRpb25z.desc": {
+          "source": "A list of filesystem paths to directories containing SQL migration files.\n\nPaths are automatically prefixed with `filesystem:` if no prefix is given",
+          "message": "Zoznam cest k adresárom obsahujúcim súbory SQL migrácií.\n\nCesty sú automaticky predponené `filesystem:` ak nie je zadaná predpona"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.bG9jYXRpb25z.display_name": {
+          "source": "Migration Locations",
+          "message": "Umiestnenia migrácií"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.bG9jYXRpb25z.short_desc": {
+          "source": "Filesystem paths to SQL migration directories",
+          "message": "Cesty v súborovom systéme k adresárom migrácií SQL"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.c2NoZW1hcw.desc": {
+          "source": "An optional list of database schema names to manage with Flyway",
+          "message": "Voliteľný zoznam názvov databázových schém na spravovanie pomocou Flyway"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.c2NoZW1hcw.display_name": {
+          "source": "Schemas",
+          "message": "Schémy"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.c2NoZW1hcw.short_desc": {
+          "source": "Database schemas to manage",
+          "message": "Databázové schémy na spravovanie"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.cGFzc3dvcmQ.desc": {
+          "source": "The password for the database connection",
+          "message": "Heslo pre databázové pripojenie"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "Heslo"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.cGFzc3dvcmQ.short_desc": {
+          "source": "The database password",
+          "message": "Heslo databázy"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dGFibGU.desc": {
+          "source": "The name of the Flyway schema history table; default is `flyway_schema_history`",
+          "message": "Názov tabuľky histórie schémy Flyway; predvolená hodnota je `flyway_schema_history`"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dGFibGU.display_name": {
+          "source": "History Table",
+          "message": "Tabuľka histórie"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dGFibGU.short_desc": {
+          "source": "The name of the Flyway schema history table",
+          "message": "Názov tabuľky histórie schémy Flyway"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXJs.desc": {
+          "source": "The JDBC connection URL for the database (e.g. `jdbc:postgresql://localhost:5432/mydb`)",
+          "message": "URL pripojenia JDBC pre databázu (napr. `jdbc:postgresql://localhost:5432/mydb`)"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXJs.display_name": {
+          "source": "JDBC URL",
+          "message": "JDBC URL"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXJs.short_desc": {
+          "source": "The JDBC URL for the database connection",
+          "message": "JDBC URL pre databázové pripojenie"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXNlcg.desc": {
+          "source": "The username for the database connection",
+          "message": "Používateľské meno pre databázové pripojenie"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXNlcg.display_name": {
+          "source": "Username",
+          "message": "Používateľské meno"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXNlcg.short_desc": {
+          "source": "The database username",
+          "message": "Používateľské meno databázy"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.short_desc": {
+          "source": "A connection for Flyway database schema migration",
+          "message": "Pripojenie pre migráciu schémy databázy Flyway"
+        }
+      }
+    }
+  }
+}

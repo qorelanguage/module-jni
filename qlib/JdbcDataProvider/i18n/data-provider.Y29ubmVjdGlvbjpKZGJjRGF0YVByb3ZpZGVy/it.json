@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "it": {
+      "messages": {
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.desc": {
+          "source": "A connection for JDBC database access providing JDBC URL, credentials, and optional driver classpath",
+          "message": "Una connessione per l'accesso al database JDBC che fornisce l'URL JDBC, le credenziali e un'eventuale classpath del driver"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.display_name": {
+          "source": "JDBC Database Connection",
+          "message": "Connessione al database JDBC"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.Y2xhc3NwYXRo.desc": {
+          "source": "JDBC driver JAR file, directory, or classpath list to add to the JNI classpath before opening the connection. Comma-separated entries are also accepted",
+          "message": "File JAR del driver JDBC, directory o elenco di classpath da aggiungere al classpath JNI prima di aprire la connessione. Sono accettati anche elementi separati da virgola"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.Y2xhc3NwYXRo.display_name": {
+          "source": "Driver Classpath",
+          "message": "Classpath del driver"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.Y2xhc3NwYXRo.short_desc": {
+          "source": "Classpath for JDBC driver JAR files",
+          "message": "Percorso della classe per i file JAR del driver JDBC"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.ZHJpdmVyX2NsYXNz.desc": {
+          "source": "Optional Java JDBC driver class to instantiate before connecting, for example `org.postgresql.Driver`",
+          "message": "Classe Java JDBC opzionale da istanziare prima della connessione, ad esempio `org.postgresql.Driver`"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.ZHJpdmVyX2NsYXNz.display_name": {
+          "source": "Driver Class",
+          "message": "Classe del driver"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.ZHJpdmVyX2NsYXNz.short_desc": {
+          "source": "Java JDBC driver class name",
+          "message": "Nome della classe del driver JDBC Java"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.cGFzc3dvcmQ.desc": {
+          "source": "The password for the database connection",
+          "message": "La password per la connessione al database"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "Password"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.cGFzc3dvcmQ.short_desc": {
+          "source": "The database password",
+          "message": "La password del database"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXJs.desc": {
+          "source": "The JDBC connection URL for the database (e.g. `jdbc:postgresql://localhost:5432/mydb`)",
+          "message": "L'URL di connessione JDBC per il database (ad es. `jdbc:postgresql://localhost:5432/mydb`)"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXJs.display_name": {
+          "source": "JDBC URL",
+          "message": "URL JDBC"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXJs.short_desc": {
+          "source": "The JDBC URL for the database connection",
+          "message": "L'URL JDBC per la connessione al database"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXNlcg.desc": {
+          "source": "The username for the database connection",
+          "message": "Il nome utente per la connessione al database"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXNlcg.display_name": {
+          "source": "Username",
+          "message": "Nome utente"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXNlcg.short_desc": {
+          "source": "The database username",
+          "message": "Il nome utente del database"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.short_desc": {
+          "source": "A connection for JDBC database access",
+          "message": "Una connessione per l'accesso al database JDBC"
+        }
+      }
+    }
+  }
+}

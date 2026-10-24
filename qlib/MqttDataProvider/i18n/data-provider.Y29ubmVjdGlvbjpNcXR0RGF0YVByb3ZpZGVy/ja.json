@@ -1,0 +1,453 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "ja": {
+      "messages": {
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.desc": {
+          "source": "A connection to an MQTT server",
+          "message": "MQTTサーバへの接続"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.display_name": {
+          "source": "MQTT Connection",
+          "message": "MQTT 接続"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF90aW1lb3V0.desc": {
+          "source": "The connect timeout to the MQTT server in seconds",
+          "message": "MQTTサーバーへの接続タイムアウト（秒単位）"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF90aW1lb3V0.display_name": {
+          "source": "Connect Timeout",
+          "message": "接続タイムアウト"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF90aW1lb3V0.short_desc": {
+          "source": "The connect timeout to the MQTT server in seconds",
+          "message": "MQTTサーバーへの接続タイムアウト（秒単位）"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF91c2VyX3Byb3BlcnRpZXM.desc": {
+          "source": "Application-level key-value string metadata to include in the MQTT 5 CONNECT packet. These properties are sent to the broker during connection establishment",
+          "message": "MQTT 5 CONNECTパケットに含めるアプリケーションレベルのキー値文字列メタデータ。これらのプロパティは接続確立時にブローカーに送信されます"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF91c2VyX3Byb3BlcnRpZXM.display_name": {
+          "source": "Connect User Properties",
+          "message": "接続ユーザー属性"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF91c2VyX3Byb3BlcnRpZXM.short_desc": {
+          "source": "User properties on the CONNECT packet",
+          "message": "CONNECTパケットのユーザー属性"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xlYW5fc3RhcnQ.desc": {
+          "source": "Controls whether the server should discard any existing session and start a new one.\n- If set to `True`, the server will discard any existing session state and start a new clean session. Subscriptions and undelivered messages from a previous session will be lost.\n- If set to `False`, the server will resume an existing session if one is available. Subscriptions and undelivered QoS 1/2 messages from the previous session will be retained.\n\nUse in combination with `session_expiry_interval` to control how long the broker retains session state after disconnect",
+          "message": "サーバーが既存のセッションを破棄して新しいセッションを開始するかどうかを制御します。\n- `True` に設定すると、サーバーは既存のセッション状態を破棄し、新しいクリーンセッションを開始します。以前のセッションからのサブスクリプションや未配信メッセージは失われます。\n- `False` に設定すると、利用可能な既存のセッションを再開します。以前のセッションからのサブスクリプションおよびQoS 1/2の未配信メッセージは保持されます。\n\nブローカーが切断後にセッション状態を保持する期間を制御するために `session_expiry_interval` と併用してください"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xlYW5fc3RhcnQ.display_name": {
+          "source": "Clean Start",
+          "message": "クリーンスタート"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xlYW5fc3RhcnQ.short_desc": {
+          "source": "Controls whether the server should use an existing session",
+          "message": "サーバーが既存のセッションを使用するかどうかを制御します"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xpZW50X2lk.desc": {
+          "source": "The MQTT client ID",
+          "message": "MQTTクライアントID"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xpZW50X2lk.display_name": {
+          "source": "Client ID",
+          "message": "クライアント ID"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xpZW50X2lk.short_desc": {
+          "source": "The MQTT client ID",
+          "message": "MQTTクライアントID"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGk.desc": {
+          "source": "AsyncAPI schema URL or file path used to validate outgoing and incoming MQTT payloads. This option conflicts with `validator`",
+          "message": "出力および入力されるMQTTペイロードを検証するために使用されるAsyncAPIスキーマのURLまたはファイルパス。このオプションは `validator` と競合します"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGk.display_name": {
+          "source": "AsyncAPI Schema",
+          "message": "AsyncAPI スキーマ"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGk.short_desc": {
+          "source": "AsyncAPI schema URL or file path",
+          "message": "AsyncAPI スキーマ URL またはファイルパス"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGlfY2hhbm5lbA.desc": {
+          "source": "AsyncAPI channel name to use when `asyncapi` or `validator` is configured",
+          "message": "`asyncapi` または `validator` が設定されている場合に使用する AsyncAPI チャネル名"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGlfY2hhbm5lbA.display_name": {
+          "source": "AsyncAPI Channel",
+          "message": "AsyncAPI チャネル"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGlfY2hhbm5lbA.short_desc": {
+          "source": "AsyncAPI channel for validation",
+          "message": "検証用 AsyncAPI チャネル"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9kYXRh.desc": {
+          "source": "Authentication data for MQTT 5 enhanced authentication. Used in conjunction with `auth_method` for challenge-response authentication flows",
+          "message": "MQTT 5の強化認証用の認証データ。チャレンジ・レスポンス認証フローで `auth_method` と併用されます"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9kYXRh.display_name": {
+          "source": "Auth Data",
+          "message": "認証データ"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9kYXRh.short_desc": {
+          "source": "Enhanced authentication data",
+          "message": "強化認証データ"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9tZXRob2Q.desc": {
+          "source": "The name of the MQTT 5 enhanced authentication method (e.g., `SCRAM-SHA-256`). When set, the broker and client will perform an extended authentication exchange",
+          "message": "MQTT 5の強化認証方法の名前（例： `SCRAM-SHA-256` ）。設定すると、ブローカーとクライアントは拡張認証交換を実行します"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9tZXRob2Q.display_name": {
+          "source": "Auth Method",
+          "message": "認証方法"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9tZXRob2Q.short_desc": {
+          "source": "Enhanced authentication method name",
+          "message": "強化認証方法の名前"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0b19yZWNvbm5lY3Q.desc": {
+          "source": "Sets whether the client will automatically attempt to reconnect to the server if the connection is lost\n- If set to `False`, the client will not attempt to automatically reconnect to the server in the event that the connection is lost\n- If set to `True`, in the event that the connection is lost, the client will attempt to reconnect to the server. It will initially wait 1 second before it attempts to reconnect, for every failed reconnect attempt, the delay will double until it is at 2 minutes at which point the delay will stay at 2 minutes",
+          "message": "クライアントが接続が失われた場合にサーバーに自動的に再接続を試みるかどうかを設定します。\n- `False` に設定すると、接続が失われた場合、クライアントは自動的に再接続を試みません。\n- `True` に設定すると、接続が失われた場合、クライアントはサーバーに再接続を試みます。初回の再接続試行は1秒待機後に行われ、失敗するたびに待機時間は2倍になり、最大2分に達するとそれ以上増加しません"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0b19yZWNvbm5lY3Q.display_name": {
+          "source": "Auto Reconnect",
+          "message": "自動再接続"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0b19yZWNvbm5lY3Q.short_desc": {
+          "source": "Sets whether the client will automatically attempt to reconnect",
+          "message": "クライアントが自動的に再接続を試行するかどうかを設定します"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZGlzYWJsZV9hdXRvbWF0aWNfcGluZ3M.desc": {
+          "source": "Disables automatic pings; useful for rate-limited or metered connections",
+          "message": "自動pingを無効にします。レート制限や従量制の接続に役立ちます"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZGlzYWJsZV9hdXRvbWF0aWNfcGluZ3M.display_name": {
+          "source": "Disable Automatic Pings?",
+          "message": "自動pingを無効にしますか？"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZGlzYWJsZV9hdXRvbWF0aWNfcGluZ3M.short_desc": {
+          "source": "Disables automatic pings",
+          "message": "自動pingを無効にします"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZW5jb2Rpbmc.desc": {
+          "source": "Character encoding for string messages; only applicable if the `message_format` is `string`",
+          "message": "文字列メッセージの文字エンコーディング；`message_format` が `string` の場合にのみ適用されます"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZW5jb2Rpbmc.display_name": {
+          "source": "String Character Encoding",
+          "message": "文字列の文字エンコーディング"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZW5jb2Rpbmc.short_desc": {
+          "source": "The character encoding for the string messages",
+          "message": "文字列メッセージの文字エンコーディング"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.a2VlcF9hbGl2ZV9pbnRlcnZhbA.desc": {
+          "source": "Sets the \"keep alive\" interval. This value, measured in seconds, defines the maximum interval between messages sent or received. It enables the client to detect if the server is no longer available, without having to wait for the TCP/IP timeout. The client will ensure that at least one message travels across the network within each keep alive period. In the absence of a data-related message during the time period, the client sends a very small \"ping\" message, which the server will acknowledge. A value of `0` disables keepalive processing in the client",
+          "message": "\"Keep-Alive\"間隔を設定します。この値は秒単位で、送信または受信するメッセージ間の最大間隔を定義します。これにより、TCP/IPタイムアウトを待たずにサーバーが利用できなくなったかどうかをクライアントが検出できます。クライアントは、各Keep-Alive期間内に少なくとも1つのメッセージがネットワークを通過することを保証します。データ関連のメッセージが期間中に送信されない場合、クライアントは非常に小さな\"ping\"メッセージを送信し、サーバーはそれを確認します。`0` の値はクライアントでのKeepalive処理を無効にします"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.a2VlcF9hbGl2ZV9pbnRlcnZhbA.display_name": {
+          "source": "Keep-Alive Interval",
+          "message": "Keep-Alive間隔"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.a2VlcF9hbGl2ZV9pbnRlcnZhbA.short_desc": {
+          "source": "Sets the keep-alive interval in seconds",
+          "message": "秒単位のKeep-Alive間隔を設定します"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4X3JlY29ubmVjdF9kZWxheQ.desc": {
+          "source": "Maximum delay in milliseconds between automatic reconnection attempts. The client uses exponential backoff starting from 1 second up to this maximum value",
+          "message": "自動再接続試行間の最大遅延（ミリ秒）。クライアントは1秒から始まる指数バックオフを使用します"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4X3JlY29ubmVjdF9kZWxheQ.display_name": {
+          "source": "Max Reconnect Delay",
+          "message": "最大再接続遅延"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4X3JlY29ubmVjdF9kZWxheQ.short_desc": {
+          "source": "Maximum delay in milliseconds for auto-reconnect backoff",
+          "message": "自動再接続のバックオフにおける最大遅延（ミリ秒単位）"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4aW11bV9wYWNrZXRfc2l6ZQ.desc": {
+          "source": "The maximum MQTT packet size in bytes that the client is willing to accept. The server will not send packets larger than this value",
+          "message": "クライアントが受け入れることを許容する最大MQTTパケットサイズ（バイト単位）。サーバーはこの値より大きなパケットを送信しない"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4aW11bV9wYWNrZXRfc2l6ZQ.display_name": {
+          "source": "Maximum Packet Size",
+          "message": "最大パケットサイズ"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4aW11bV9wYWNrZXRfc2l6ZQ.short_desc": {
+          "source": "Maximum MQTT packet size in bytes",
+          "message": "最大MQTTパケットサイズ（バイト単位）"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOm5vbmU.desc": {
+          "source": "No decoding; return message payloads as binary data",
+          "message": "デコードを行わない；メッセージペイロードをバイナリデータとして返す"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOm5vbmU.display_name": {
+          "source": "None",
+          "message": "なし"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOm5vbmU.short_desc": {
+          "source": "No decoding; return message payloads as binary data",
+          "message": "デコードを行わない；メッセージペイロードをバイナリデータとして返す"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOmpzb24.desc": {
+          "source": "Parse messages as JSON strings",
+          "message": "メッセージをJSON文字列として解析する"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOmpzb24.display_name": {
+          "source": "JSON",
+          "message": "JSON"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOmpzb24.short_desc": {
+          "source": "Parse messages as JSON strings",
+          "message": "メッセージをJSON文字列として解析する"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnN0cmluZw.desc": {
+          "source": "Convert messages to strings with no deserialization",
+          "message": "メッセージをデシリアライズせずに文字列に変換する"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnN0cmluZw.display_name": {
+          "source": "String",
+          "message": "String"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnN0cmluZw.short_desc": {
+          "source": "Convert messages to strings with no deserialization",
+          "message": "メッセージをデシリアライズせずに文字列に変換する"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnlhbWw.desc": {
+          "source": "Parse messages as YAML strings",
+          "message": "YAML文字列としてメッセージを解析"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnlhbWw.display_name": {
+          "source": "YAML",
+          "message": "YAML"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnlhbWw.short_desc": {
+          "source": "Parse messages as YAML strings",
+          "message": "YAML文字列としてメッセージを解析"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.desc": {
+          "source": "The data format for messages",
+          "message": "メッセージのデータ形式"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.display_name": {
+          "source": "Message Format",
+          "message": "メッセージ形式"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.short_desc": {
+          "source": "The data format for messages",
+          "message": "メッセージのデータ形式"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2VydmVyX3VyaXM.desc": {
+          "source": "A list of failover server URIs. If the primary URL connection fails, the client will try each URI in this list in order. Each URI should use the format `tcp://host:port` or `ssl://host:port`",
+          "message": "フェイルオーバー用サーバーURIのリスト。プライマリURLへの接続に失敗した場合、クライアントはこのリスト内の各URIを順に試行します。各URIは`tcp://host:port`または`ssl://host:port`の形式を使用する必要があります"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2VydmVyX3VyaXM.display_name": {
+          "source": "Server URIs",
+          "message": "サーバーURI"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2VydmVyX3VyaXM.short_desc": {
+          "source": "List of failover server URIs",
+          "message": "フェイルオーバー用サーバーURIのリスト"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2Vzc2lvbl9leHBpcnlfaW50ZXJ2YWw.desc": {
+          "source": "How long (in seconds) the broker retains session state after the client disconnects.\n- `0`: Session ends immediately on disconnect\n- Omitted/`NOTHING`: Server default applies\n\nUse with `clean_start` set to `False` to resume sessions across reconnections",
+          "message": "クライアントが切断された後、ブローカーがセッション状態を保持する時間（秒単位）。\n- `0`: 切断時に即座にセッションが終了\n- 省略/`NOTHING`: サーバーのデフォルトが適用される\n\n再接続時にセッションを再開するには、`clean_start`を`False`に設定してください"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2Vzc2lvbl9leHBpcnlfaW50ZXJ2YWw.display_name": {
+          "source": "Session Expiry Interval",
+          "message": "セッション有効期限間隔"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2Vzc2lvbl9leHBpcnlfaW50ZXJ2YWw.short_desc": {
+          "source": "How long the broker retains session state after disconnect",
+          "message": "ブローカーが切断後にセッション状態を保持する期間"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmNpcGhlci5zdWl0ZXM.desc": {
+          "source": "Comma-separated list of enabled SSL/TLS cipher suites for the connection",
+          "message": "接続用に有効なSSL/TLS暗号スイートのカンマ区切りリスト"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmNpcGhlci5zdWl0ZXM.display_name": {
+          "source": "SSL Cipher Suites",
+          "message": "SSL暗号スイート"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmNpcGhlci5zdWl0ZXM.short_desc": {
+          "source": "Comma-separated list of enabled cipher suites",
+          "message": "有効な暗号スイートのカンマ区切りリスト"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.desc": {
+          "source": "Path to the client keystore file containing the client certificate and private key for mutual TLS authentication",
+          "message": "相互TLS認証用のクライアント証明書および秘密鍵を含むクライアントキーストアファイルのパス"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.display_name": {
+          "source": "SSL Keystore Location",
+          "message": "SSLキーストア場所"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.short_desc": {
+          "source": "Path to the client keystore file",
+          "message": "クライアントキーストアファイルのパス"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.desc": {
+          "source": "Password for the client keystore file",
+          "message": "クライアントキーストアファイルのパスワード"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.display_name": {
+          "source": "SSL Keystore Password",
+          "message": "SSLキーストアパスワード"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.short_desc": {
+          "source": "Password for the client keystore",
+          "message": "クライアントキーストアのパスワード"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnR5cGU.desc": {
+          "source": "Type of the client keystore (e.g., `PKCS12`, `JKS`)",
+          "message": "クライアントキーストアの種類（例：`PKCS12`、`JKS`）"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnR5cGU.display_name": {
+          "source": "SSL Keystore Type",
+          "message": "SSL キーストアタイプ"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnR5cGU.short_desc": {
+          "source": "Type of the client keystore",
+          "message": "クライアントキーストアの種類"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnByb3RvY29s.desc": {
+          "source": "SSL/TLS protocol version to use for the connection (e.g., `TLSv1.3`, `TLSv1.2`)",
+          "message": "接続に使用するSSL/TLSプロトコルバージョン（例: `TLSv1.3`, `TLSv1.2`）"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnByb3RvY29s.display_name": {
+          "source": "SSL Protocol",
+          "message": "SSL プロトコル"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnByb3RvY29s.short_desc": {
+          "source": "SSL/TLS protocol version to use",
+          "message": "接続に使用するSSL/TLSプロトコルバージョン"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.desc": {
+          "source": "Path to the truststore file containing trusted CA certificates for verifying the server's certificate",
+          "message": "サーバー証明書の検証に使用する信頼されたCA証明書を含むトラストストアファイルのパス"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.display_name": {
+          "source": "SSL Truststore Location",
+          "message": "SSL信頼ストアの場所"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.short_desc": {
+          "source": "Path to the truststore file",
+          "message": "トラストストアファイルのパス"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.desc": {
+          "source": "Password for the truststore file",
+          "message": "トラストストアファイルのパスワード"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.display_name": {
+          "source": "SSL Truststore Password",
+          "message": "SSL 信頼ストア パスワード"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.short_desc": {
+          "source": "Password for the truststore",
+          "message": "トラストストアのパスワード"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUudHlwZQ.desc": {
+          "source": "Type of the truststore (e.g., `PKCS12`, `JKS`)",
+          "message": "トラストストアの種類（例: `PKCS12`, `JKS`）"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUudHlwZQ.display_name": {
+          "source": "SSL Truststore Type",
+          "message": "SSL 信頼ストア タイプ"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUudHlwZQ.short_desc": {
+          "source": "Type of the truststore",
+          "message": "トラストストアの種類"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cGFzc3dvcmQ.desc": {
+          "source": "The password to use for the connection; if any",
+          "message": "接続に使用するパスワード；必要に応じて"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "パスワード"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cGFzc3dvcmQ.short_desc": {
+          "source": "The password to use",
+          "message": "使用するパスワード"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVjZWl2ZV9tYXhpbXVt.desc": {
+          "source": "Maximum number of concurrent QoS 1 and QoS 2 messages that the client is willing to process simultaneously. The server will not send more than this number of unacknowledged messages to the client",
+          "message": "クライアントが同時に処理できるQoS 1およびQoS 2メッセージの最大数。サーバーはこの数を超える未確認メッセージをクライアントに送信しない"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVjZWl2ZV9tYXhpbXVt.display_name": {
+          "source": "Receive Maximum",
+          "message": "受信最大数"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVjZWl2ZV9tYXhpbXVt.short_desc": {
+          "source": "Maximum concurrent unacknowledged QoS 1/2 messages",
+          "message": "同時未確認QoS 1/2メッセージの最大数"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9wcm9ibGVtX2luZm8.desc": {
+          "source": "If set to `True`, the server may send a reason string and user properties in case of failures. If `False`, the server will not send this information",
+          "message": "`True` に設定されている場合、サーバーは障害時に理由文字列とユーザー属性を送信する可能性がある。`False` の場合、この情報は送信されない"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9wcm9ibGVtX2luZm8.display_name": {
+          "source": "Request Problem Info",
+          "message": "問題情報の要求"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9wcm9ibGVtX2luZm8.short_desc": {
+          "source": "Request problem information from the server",
+          "message": "サーバーから問題情報を要求"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9yZXNwb25zZV9pbmZv.desc": {
+          "source": "If set to `True`, the server may return response information in the CONNACK packet. This is used in the request/response interaction model",
+          "message": "`True` に設定すると、サーバーは CONNACK パケットに応答情報を返す可能性があります。これはリクエスト/レスポンス相互作用モデルで使用されます"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9yZXNwb25zZV9pbmZv.display_name": {
+          "source": "Request Response Info",
+          "message": "リクエスト/レスポンス情報"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9yZXNwb25zZV9pbmZv.short_desc": {
+          "source": "Request response information from the server",
+          "message": "サーバーからのリクエスト/レスポンス情報"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dG9waWNfYWxpYXNfbWF4aW11bQ.desc": {
+          "source": "The maximum number of topic aliases that the client is willing to accept from the server. Topic aliases reduce the size of PUBLISH packets by replacing topic strings with short integer identifiers",
+          "message": "クライアントがサーバーから受け入れることを許容するトピックエイリアスの最大数です。トピックエイリアスはトピック文字列を短い整数識別子で置き換えることで、PUBLISH パケットのサイズを小さくします"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dG9waWNfYWxpYXNfbWF4aW11bQ.display_name": {
+          "source": "Topic Alias Maximum",
+          "message": "トピックエイリアス最大数"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dG9waWNfYWxpYXNfbWF4aW11bQ.short_desc": {
+          "source": "Maximum number of topic aliases the client accepts",
+          "message": "クライアントが受け入れるトピックエイリアスの最大数"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dXNlcm5hbWU.desc": {
+          "source": "The username to use for the connection; if any",
+          "message": "接続に使用するユーザー名；存在する場合"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dXNlcm5hbWU.display_name": {
+          "source": "Username",
+          "message": "ユーザー名"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dXNlcm5hbWU.short_desc": {
+          "source": "The username to use",
+          "message": "使用するユーザー名"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dmFsaWRhdG9y.desc": {
+          "source": "An AsyncAPI schema location or schema file data used to validate outgoing and incoming MQTT payloads. This option conflicts with `asyncapi` and requires `asyncapi_channel`",
+          "message": "出力および入力MQTTペイロードを検証するために使用されるAsyncAPIスキーマの場所またはスキーマファイルのデータ。このオプションは`asyncapi`と競合し、`asyncapi_channel`を必要とします。"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dmFsaWRhdG9y.display_name": {
+          "source": "AsyncAPI Validator",
+          "message": "AsyncAPI バリデータ"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dmFsaWRhdG9y.short_desc": {
+          "source": "AsyncAPI schema location or file data",
+          "message": "AsyncAPI スキーマの場所またはファイルデータ"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.short_desc": {
+          "source": "A connection to an MQTT server",
+          "message": "MQTTサーバへの接続"
+        }
+      }
+    }
+  }
+}

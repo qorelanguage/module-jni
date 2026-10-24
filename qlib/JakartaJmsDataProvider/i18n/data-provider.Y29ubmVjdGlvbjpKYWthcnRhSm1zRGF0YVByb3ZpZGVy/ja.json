@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "ja": {
+      "messages": {
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.desc": {
+          "source": "A connection to a Jakarta JMS 3.x messaging broker (e.g. ActiveMQ Artemis, TIBCO EMS, IBM MQ, Oracle AQ)",
+          "message": "Jakarta JMS 3.xメッセージブローカー（例：ActiveMQ Artemis、TIBCO EMS、IBM MQ、Oracle AQ）への接続"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.display_name": {
+          "source": "JMS Connection",
+          "message": "JMS接続"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y29ubmVjdGlvbl90aW1lb3V0X21z.desc": {
+          "source": "Connection timeout in milliseconds; used for ping/connection test",
+          "message": "ミリ秒単位の接続タイムアウト；ピング/接続テストに使用"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y29ubmVjdGlvbl90aW1lb3V0X21z.display_name": {
+          "source": "Connection Timeout (ms)",
+          "message": "接続タイムアウト（ms）"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y29ubmVjdGlvbl90aW1lb3V0X21z.short_desc": {
+          "source": "Connection timeout in milliseconds",
+          "message": "ミリ秒単位の接続タイムアウト"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y29ubmVjdGlvbl9mYWN0b3J5X2NsYXNz.desc": {
+          "source": "Fully-qualified Java class name of the JMS ConnectionFactory implementation (e.g. `org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory`)",
+          "message": "JMS ConnectionFactory実装の完全修飾Javaクラス名（例：`org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory`）"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y29ubmVjdGlvbl9mYWN0b3J5X2NsYXNz.display_name": {
+          "source": "Connection Factory Class",
+          "message": "接続ファクトリクラス"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y29ubmVjdGlvbl9mYWN0b3J5X2NsYXNz.short_desc": {
+          "source": "Fully-qualified Java class name of the JMS ConnectionFactory",
+          "message": "JMS ConnectionFactory の完全修飾 Java クラス名"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y2xpZW50X2lk.desc": {
+          "source": "The JMS client ID; required for durable topic subscriptions",
+          "message": "JMS クライアント ID。耐久性のあるトピックサブスクリプションに必須です"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y2xpZW50X2lk.display_name": {
+          "source": "Client ID",
+          "message": "クライアント ID"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.Y2xpZW50X2lk.short_desc": {
+          "source": "The JMS client ID for durable subscriptions",
+          "message": "耐久性のあるサブスクリプション用の JMS クライアント ID"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.bWF4X3Nlc3Npb25z.desc": {
+          "source": "Maximum number of JMS sessions in the session pool",
+          "message": "セッションプール内の最大 JMS セッション数"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.bWF4X3Nlc3Npb25z.display_name": {
+          "source": "Max Sessions",
+          "message": "最大セッション数"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.bWF4X3Nlc3Npb25z.short_desc": {
+          "source": "Maximum number of pooled JMS sessions",
+          "message": "プール化された JMS セッションの最大数"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkFVVE9fQUNLTk9XTEVER0U.desc": {
+          "source": "The session automatically acknowledges a client's receipt of a message either when the session has successfully returned from a call to receive or when the message listener the session has called to process the message successfully returns",
+          "message": "セッションが receive の呼び出しを正常に返したとき、またはメッセージリスナーがメッセージの処理を正常に完了したときに、クライアントがメッセージを受信したことを自動的に確認する"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkFVVE9fQUNLTk9XTEVER0U.display_name": {
+          "source": "Auto Acknowledge",
+          "message": "自動確認"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkFVVE9fQUNLTk9XTEVER0U.short_desc": {
+          "source": "Automatic message acknowledgment",
+          "message": "メッセージの自動確認"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkNMSUVOVF9BQ0tOT1dMRURHRQ.desc": {
+          "source": "The client acknowledges a consumed message by calling the message's acknowledge method. Acknowledging a consumed message acknowledges all messages that the session has consumed",
+          "message": "クライアントはメッセージのacknowledgeメソッドを呼び出して、受信したメッセージを明示的に確認します。受信したメッセージを確認すると、セッションが受信したすべてのメッセージが確認されます"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkNMSUVOVF9BQ0tOT1dMRURHRQ.display_name": {
+          "source": "Client Acknowledge",
+          "message": "クライアント確認"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkNMSUVOVF9BQ0tOT1dMRURHRQ.short_desc": {
+          "source": "Client explicitly acknowledges messages",
+          "message": "メッセージを明示的に確認"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkRVUFNfT0tfQUNLTk9XTEVER0U.desc": {
+          "source": "The session lazily acknowledges the delivery of messages. This is likely to result in the delivery of some duplicate messages if the JMS provider fails, so it should only be used by consumers that can tolerate duplicate messages",
+          "message": "セッションはメッセージの配信を遅延して確認します。JMSプロバイダが障害した場合、重複メッセージが発生する可能性があるため、重複メッセージを許容できるコンシューマーでのみ使用してください"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkRVUFNfT0tfQUNLTk9XTEVER0U.display_name": {
+          "source": "Dups OK Acknowledge",
+          "message": "重複許容確認"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOkRVUFNfT0tfQUNLTk9XTEVER0U.short_desc": {
+          "source": "Lazy acknowledgment allowing duplicates",
+          "message": "重複を許容する遅延確認"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOlNFU1NJT05fVFJBTlNBQ1RFRA.desc": {
+          "source": "The session is transacted; messages are delivered in a transaction and must be committed or rolled back",
+          "message": "セッションはトランザクションモードです。メッセージはトランザクション内で配信され、明示的にコミットまたはロールバックする必要があります"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOlNFU1NJT05fVFJBTlNBQ1RFRA.display_name": {
+          "source": "Session Transacted",
+          "message": "セッショントランザクション"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.allowed_values.c3RyaW5nOlNFU1NJT05fVFJBTlNBQ1RFRA.short_desc": {
+          "source": "Transactional session",
+          "message": "トランザクショナルセッション"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.desc": {
+          "source": "The JMS session acknowledgment mode",
+          "message": "JMSセッションの確認モード"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.display_name": {
+          "source": "Session Mode",
+          "message": "セッションモード"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.c2Vzc2lvbl9tb2Rl.short_desc": {
+          "source": "The JMS session acknowledgment mode",
+          "message": "JMSセッションの確認モード"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.cGFzc3dvcmQ.desc": {
+          "source": "The password for authentication with the JMS broker; if any",
+          "message": "JMSブローカーへの認証に使用するパスワード（存在する場合）"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "パスワード"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.cGFzc3dvcmQ.short_desc": {
+          "source": "The password for authentication",
+          "message": "認証用パスワード"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.cHJvdmlkZXJfY2xhc3NwYXRo.desc": {
+          "source": "Comma-separated list of JAR files or directories to add to the classpath for the JMS provider (e.g. the Artemis client JARs)",
+          "message": "JMSプロバイダ用のクラスパスに追加するJARファイルまたはディレクトリのカンマ区切りリスト（例：ArtemisクライアントJAR）"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.cHJvdmlkZXJfY2xhc3NwYXRo.display_name": {
+          "source": "Provider Classpath",
+          "message": "プロバイダクラスパス"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.cHJvdmlkZXJfY2xhc3NwYXRo.short_desc": {
+          "source": "Comma-separated list of JAR files or directories for the JMS provider",
+          "message": "JMSプロバイダ用のJARファイルまたはディレクトリのカンマ区切りリスト"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.dXNlcm5hbWU.desc": {
+          "source": "The username for authentication with the JMS broker; if any",
+          "message": "JMSブローカーへの認証に使用するユーザー名（存在する場合）"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.dXNlcm5hbWU.display_name": {
+          "source": "Username",
+          "message": "ユーザー名"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.option.dXNlcm5hbWU.short_desc": {
+          "source": "The username for authentication",
+          "message": "認証用のユーザー名"
+        },
+        "connection.SmFrYXJ0YUptc0RhdGFQcm92aWRlcg.scheme.Sm1zQ29ubmVjdGlvbg.short_desc": {
+          "source": "A connection to a Jakarta JMS messaging broker",
+          "message": "Jakarta JMSメッセージブローカーへの接続"
+        }
+      }
+    }
+  }
+}

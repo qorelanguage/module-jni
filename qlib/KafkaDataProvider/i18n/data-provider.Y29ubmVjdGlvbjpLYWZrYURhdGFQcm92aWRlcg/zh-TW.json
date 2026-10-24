@@ -1,0 +1,441 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "zh-TW": {
+      "messages": {
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.desc": {
+          "source": "A connection to a KAFKA server",
+          "message": "連接到 KAFKA 伺服器的連接"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.display_name": {
+          "source": "Kafka Connection",
+          "message": "Kafka 連接"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGk.desc": {
+          "source": "AsyncAPI schema URL or file path used by child producer and consumer providers to validate Kafka message values. This option conflicts with `validator`",
+          "message": "AsyncAPI 資料結構 URL 或檔案路徑，由子生產者與消費者提供者用來驗證 Kafka 訊息值。此選項與 `validator` 相衝突"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGk.display_name": {
+          "source": "AsyncAPI Schema",
+          "message": "AsyncAPI 結構描述"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGk.short_desc": {
+          "source": "AsyncAPI schema URL or file path",
+          "message": "AsyncAPI 結構描述 URL 或檔案路徑"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGlfY2hhbm5lbA.desc": {
+          "source": "AsyncAPI channel name to use when `asyncapi` or `validator` is configured",
+          "message": "設定 `asyncapi` 或 `validator` 時要使用的 AsyncAPI 通道名稱"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGlfY2hhbm5lbA.display_name": {
+          "source": "AsyncAPI Channel",
+          "message": "AsyncAPI 通道"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGlfY2hhbm5lbA.short_desc": {
+          "source": "AsyncAPI channel for validation",
+          "message": "用於驗證的 AsyncAPI 通道"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.Ym9vdHN0cmFwLnNlcnZlcnM.desc": {
+          "source": "A list of additional `host:port` pair strings to use for establishing the initial connection to the Kafka cluster to be used in addition to the main server provided in the connection URL. The client will make use of all servers irrespective of which servers are specified here for bootstrapping; this list only impacts the initial hosts used to discover the full set of servers.\n\nThis list should be in the form `host1:port1,host2:port2,...`\n\nSince these servers are just used for the initial connection to discover the full cluster membership (which may change dynamically), this list need not contain the full set of servers (you may want more than one, though, in case a server is down).",
+          "message": "用於建立與 Kafka 群集初始連接的額外 `host:port` 對字串清單，將與連接 URL 中提供的主要伺服器一併使用。客戶端將使用所有伺服器，無論此處指定的伺服器為何；此清單僅影響用於發現完整伺服器集合的初始主機。\n\n此清單應為 `host1:port1,host2:port2,...` 格式\n\n由於這些伺服器僅用於初始連接以發現完整的群集成員資格（可能動態變更），因此此清單無需包含全部伺服器（不過建議多於一個，以防某台伺服器離線）"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.Ym9vdHN0cmFwLnNlcnZlcnM.display_name": {
+          "source": "Additional Servers",
+          "message": "額外伺服器"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.Ym9vdHN0cmFwLnNlcnZlcnM.short_desc": {
+          "source": "One or more additional servers to use to connect to the Kafka cluster",
+          "message": "用於連接 Kafka 群集的額外伺服器（一個或多個）"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YmF0Y2guc2l6ZQ.desc": {
+          "source": "The producer will attempt to batch records together into fewer requests whenever multiple records are being sent to the same partition. This helps performance on both the client and the server. This configuration controls the default batch size in bytes.\n\nNo attempt will be made to batch records larger than this size.\n\nRequests sent to brokers will contain multiple batches, one for each partition with data available to be sent.\n\nA small batch size will make batching less common and may reduce throughput (a batch size of zero will disable batching entirely). A very large batch size may use memory a bit more wastefully as we will always allocate a buffer of the specified batch size in anticipation of additional records",
+          "message": "生產者會嘗試將發送到相同分區的多筆記錄合併成較少的請求，以提升客戶端與伺服器的效能。此設定控制預設批次大小（位元組）。\n\n超過此大小的記錄將不會被合併。\n\n發送到代理的請求將包含多個批次，每個批次對應一個有資料可發送的分區。\n\n較小的批次大小會降低合併頻率，可能降低吞吐量（批次大小為零將完全停用合併）。過大的批次大小可能稍微浪費記憶體，因為我們會預先配置指定大小的緩衝區以應付額外的記錄"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YmF0Y2guc2l6ZQ.display_name": {
+          "source": "Batch Size",
+          "message": "批次大小"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YmF0Y2guc2l6ZQ.short_desc": {
+          "source": "The default batch size in bytes",
+          "message": "預設批次大小（位元組）"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5jbGllbnQuY2FsbGJhY2suaGFuZGxlci5jbGFzcw.desc": {
+          "source": "The fully qualified name of a SASL client callback handler class that implements the `AuthenticateCallbackHandler` interface",
+          "message": "實作 `AuthenticateCallbackHandler` 介面的 SASL 客戶端回呼處理程式類別的完整類別名稱"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5jbGllbnQuY2FsbGJhY2suaGFuZGxlci5jbGFzcw.display_name": {
+          "source": "SASL Client Callback Handler Class",
+          "message": "SASL 客戶端回呼處理程式類別"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5jbGllbnQuY2FsbGJhY2suaGFuZGxlci5jbGFzcw.short_desc": {
+          "source": "The fully qualified name of a SASL client callback handler class",
+          "message": "SASL 客戶端回呼處理程式類別的完整類別名稱"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5qYWFzLmNvbmZpZw.desc": {
+          "source": "JAAS login context parameters for SASL connections in the format used by JAAS configuration files.\n\nJAAS configuration file format is described here. The format for the value is: `loginModuleClass controlFlag (optionName=optionValue)*;`.\n\nFor brokers, the config must be prefixed with listener prefix and SASL mechanism name in lower-case.\n\n`listener.name.sasl_ssl.scram-sha-256.sasl.jaas.config=com.example.ScramLoginModule required;`",
+          "message": "SASL 連線使用的 JAAS 登入內容參數，格式與 JAAS 設定檔相同。\n\nJAAS 設定檔格式說明請見此處。值的格式為：`loginModuleClass controlFlag (optionName=optionValue)*;`。\n\n對於代理伺服器，設定必須以監聽器前綴及小寫的 SASL 機制名稱為前綴。\n\n`listener.name.sasl_ssl.scram-sha-256.sasl.jaas.config=com.example.ScramLoginModule required;`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5qYWFzLmNvbmZpZw.display_name": {
+          "source": "SASL JAAS Config",
+          "message": "SASL JAAS 設定"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5qYWFzLmNvbmZpZw.short_desc": {
+          "source": "JAAS login context parameters for SASL connections",
+          "message": "SASL 連線使用的 JAAS 登入內容參數"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcuaml0dGVy.desc": {
+          "source": "Percentage of random jitter added to the renewal time",
+          "message": "新增至重新機制時間的隨機抖動百分比"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcuaml0dGVy.display_name": {
+          "source": "SASL Kerberos Ticket Renew Jitter",
+          "message": "SASL Kerberos 憑證重新機制抖動"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcuaml0dGVy.short_desc": {
+          "source": "Percentage of random jitter added to the renewal time",
+          "message": "新增至重新機制時間的隨機抖動百分比"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcud2luZG93LmZhY3Rvcg.desc": {
+          "source": "Login thread will sleep until the specified window factor of time from last refresh to ticket's expiry has been reached, at which time it will try to renew the ticket",
+          "message": "登入執行緒將持續睡眠，直到從上次重新整理至憑證到期的時間中，已達到指定的視窗係數，此時將嘗試重新機制憑證"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcud2luZG93LmZhY3Rvcg.display_name": {
+          "source": "SASL Kerberos Ticket Renew Window Factor",
+          "message": "SASL Kerberos 憑證重新機制視窗係數"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcud2luZG93LmZhY3Rvcg.short_desc": {
+          "source": "Login thread sleep window factor time from the last ticket expiry",
+          "message": "上次憑證到期後，登入執行緒睡眠的視窗係數時間"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5raW5pdC5jbWQ.desc": {
+          "source": "Kerberos kinit command path",
+          "message": "Kerberos kinit 命令路徑"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5raW5pdC5jbWQ.display_name": {
+          "source": "SASL Kerberos Kinit Command Path",
+          "message": "SASL Kerberos Kinit 命令路徑"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5raW5pdC5jbWQ.short_desc": {
+          "source": "Kerberos kinit command path",
+          "message": "Kerberos kinit 命令路徑"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5taW4udGltZS5iZWZvcmUucmVsb2dpbg.desc": {
+          "source": "Login thread sleep time between refresh attempts in milliseconds",
+          "message": "重新登入嘗試之間的登入執行緒睡眠時間（毫秒）"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5taW4udGltZS5iZWZvcmUucmVsb2dpbg.display_name": {
+          "source": "SASL Kerberos Minimum Relogin Time",
+          "message": "SASL Kerberos 最小重新登入時間"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5taW4udGltZS5iZWZvcmUucmVsb2dpbg.short_desc": {
+          "source": "Login thread sleep time between refresh attempts in milliseconds",
+          "message": "重新登入嘗試之間的登入執行緒睡眠時間（毫秒）"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5zZXJ2aWNlLm5hbWU.desc": {
+          "source": "The Kerberos principal name that Kafka runs as. This can be defined either in Kafka's JAAS config or in Kafka's config",
+          "message": "Kafka 以執行的 Kerberos 主體名稱。此名稱可於 Kafka 的 JAAS 設定或 Kafka 的設定中定義"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5zZXJ2aWNlLm5hbWU.display_name": {
+          "source": "SASL Kerberos Service Name",
+          "message": "SASL Kerberos 服務名稱"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5zZXJ2aWNlLm5hbWU.short_desc": {
+          "source": "The Kerberos principal name that Kafka runs as",
+          "message": "Kafka 以執行的 Kerberos 主體名稱"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jYWxsYmFjay5oYW5kbGVyLmNsYXNz.desc": {
+          "source": "The fully qualified name of a SASL login callback handler class that implements the `AuthenticateCallbackHandler` interface.\n\nFor brokers, the login callback handler config must be prefixed with the listener prefix and the SASL mechanism name in lower-case.\n\nFor example, `listener.name.sasl_ssl.scram-sha-256.sasl.login.callback.handler.class=com.example.CustomScramLoginCallbackHandler`",
+          "message": "實作 `AuthenticateCallbackHandler` 介面的 SASL 登入回呼處理常式類別的完整名稱。\n\n對於 broker，登入回呼處理常式設定必須以 listener 前綴及小寫的 SASL 機制名稱為前綴。\n\n例如，`listener.name.sasl_ssl.scram-sha-256.sasl.login.callback.handler.class=com.example.CustomScramLoginCallbackHandler`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jYWxsYmFjay5oYW5kbGVyLmNsYXNz.display_name": {
+          "source": "SASL Login Callback Handler Class",
+          "message": "SASL 登入回呼處理常式類別"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jYWxsYmFjay5oYW5kbGVyLmNsYXNz.short_desc": {
+          "source": "The fully qualified name of a SASL login callback handler class",
+          "message": "SASL 登入回呼處理常式類別的完整名稱"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jbGFzcw.desc": {
+          "source": "The fully qualified name of a class that implements the Login interface. For brokers, the login config must be prefixed with the listener prefix and the SASL mechanism name in lower-case.\n\nFor example, `listener.name.sasl_ssl.scram-sha-256.sasl.login.class=com.example.CustomScramLogin`",
+          "message": "實作 Login 介面的類別之完整名稱。對於 broker，登入設定必須以 listener 前綴及小寫的 SASL 機制名稱做前置。\n\n例如，`listener.name.sasl_ssl.scram-sha-256.sasl.login.class=com.example.CustomScramLogin`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jbGFzcw.display_name": {
+          "source": "SASL Login Class",
+          "message": "SASL 登入類別"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jbGFzcw.short_desc": {
+          "source": "The fully qualified name of a class that implements the Login interface",
+          "message": "實作 Login 介面的類別之完整名稱"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLm1pbi5wZXJpb2Quc2Vjb25kcw.desc": {
+          "source": "The desired minimum time for the login refresh thread to wait before refreshing a credential, in seconds.\n\nLegal values are between `0` and `900` (15 minutes); a default value of `60` (1 minute) is used if no value is specified.\n\nThis value and `sasl.login.refresh.buffer.seconds` are both ignored if their sum exceeds the remaining lifetime of a credential.\n\nCurrently applies only to `OAUTHBEARER`",
+          "message": "登入重新整理執行緒在重新整理憑證前，希望等待的最短時間（單位：秒）。\n\n合法值介於 `0` 和 `900`（15 分鐘）之間；若未指定值，則預設為 `60`（1 分鐘）。\n\n若此值與 `sasl.login.refresh.buffer.seconds` 之和超過憑證剩餘有效時間，則兩者皆被忽略。\n\n目前僅適用於 `OAUTHBEARER`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLm1pbi5wZXJpb2Quc2Vjb25kcw.display_name": {
+          "source": "SASL Login Refresh Minimum Period Seconds",
+          "message": "SASL 登入重新整理最小間隔（秒）"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLm1pbi5wZXJpb2Quc2Vjb25kcw.short_desc": {
+          "source": "Minimum interval between credential refreshes, in seconds",
+          "message": "憑證重新整理之間的最小間隔（單位：秒）"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLmJ1ZmZlci5zZWNvbmRz.desc": {
+          "source": "The amount of buffer time before credential expiration to maintain when refreshing a credential, in seconds.\n\nIf a refresh would otherwise occur closer to expiration than the number of buffer seconds then the refresh will be moved up to maintain as much of the buffer time as possible.\n\nLegal values are between `0` and `3600` (1 hour); a default value of `300` (5 minutes) is used if no value is specified.\n\nThis value and `sasl.login.refresh.min.period.seconds` are both ignored if their sum exceeds the remaining lifetime of a credential.\n\nCurrently applies only to `OAUTHBEARER`",
+          "message": "重新整理憑證時，於憑證到期前維持的緩衝時間（單位：秒）。\n\n若重新整理時間將接近到期時間，且小於緩衝秒數，則重新整理時間將提前，以盡可能維持緩衝時間。\n\n合法值介於 `0` 和 `3600`（1 小時）之間；若未指定值，則預設為 `300`（5 分鐘）。\n\n若此值與 `sasl.login.refresh.min.period.seconds` 之和超過憑證剩餘有效時間，則兩者皆被忽略。\n\n目前僅適用於 `OAUTHBEARER`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLmJ1ZmZlci5zZWNvbmRz.display_name": {
+          "source": "SASL Login Refresh Buffer Seconds",
+          "message": "SASL 登入重新整理緩衝秒數"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLmJ1ZmZlci5zZWNvbmRz.short_desc": {
+          "source": "Refresh buffer before credentials expire, in seconds",
+          "message": "憑證到期前重新整理緩衝時間（秒）"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5mYWN0b3I.desc": {
+          "source": "Login refresh thread will sleep until the specified window factor relative to the credential's lifetime has been reached, at which time it will try to refresh the credential.\n\nLegal values are between `0.5` (50%) and `1.0` (100%) inclusive; a default value of `0.8` (80%) is used if no value is specified.\n\nCurrently applies only to `OAUTHBEARER`",
+          "message": "登入重新整理執行緒將休眠，直到指定的視窗係數達到憑證有效期間的相對比例，此時將嘗試重新整理憑證。\n\n合法值介於 `0.5`（50%）與 `1.0`（100%）之間（含）；若未指定值，則預設使用 `0.8`（80%）。\n\n目前僅適用於 `OAUTHBEARER`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5mYWN0b3I.display_name": {
+          "source": "SASL Login Refresh Window Factor",
+          "message": "SASL 登入重新整理視窗係數"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5mYWN0b3I.short_desc": {
+          "source": "Credential lifetime fraction before the next login refresh",
+          "message": "下次登入重新整理前的憑證有效期間比例"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5qaXR0ZXI.desc": {
+          "source": "The maximum amount of random jitter relative to the credential's lifetime added to the login refresh thread's sleep time.\n\nLegal values are between `0` and `0.25` (25%) inclusive; a default value of `0.05` (5%) is used if no value is specified.\n\nCurrently applies only to `OAUTHBEARER`",
+          "message": "登入重新整理執行緒休眠時間中，相對於憑證有效期間所加入的最大隨機抖動量。\n\n合法值介於 `0` 與 `0.25`（25%）之間（含）；若未指定值，則預設使用 `0.05`（5%）。\n\n目前僅適用於 `OAUTHBEARER`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5qaXR0ZXI.display_name": {
+          "source": "SASL Login Refresh Window Jitter",
+          "message": "SASL 登入重新整理視窗抖動"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5qaXR0ZXI.short_desc": {
+          "source": "Maximum random refresh delay as a credential lifetime fraction",
+          "message": "以憑證有效期間比例表示的最大隨機重新整理延遲"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5tZWNoYW5pc20.desc": {
+          "source": "SASL mechanism used for client connections. This may be any mechanism for which a security provider is available. GSSAPI is the default mechanism",
+          "message": "用於客戶端連接的 SASL 機制。這可以是任何有安全提供者可用的機制。預設為 GSSAPI"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5tZWNoYW5pc20.display_name": {
+          "source": "SASL Mechanism",
+          "message": "SASL 機制"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5tZWNoYW5pc20.short_desc": {
+          "source": "SASL mechanism used for client connections",
+          "message": "用於客戶端連接的 SASL 機制"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmNpcGhlci5zdWl0ZXM.desc": {
+          "source": "A comma-separated list of cipher suites. This is a named combination of authentication, encryption, MAC and key exchange algorithm used to negotiate the security settings for a network connection using TLS or SSL network protocol.\n\nBy default all the available cipher suites are supported",
+          "message": "以逗號分隔的密碼套件清單。這是用於 TLS 或 SSL 網路協定交談網路連線安全設定的驗證、加密、MAC 和金鑰交換演算法的命名組合。\n\n預設情況下支援所有可用的密碼套件"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmNpcGhlci5zdWl0ZXM.display_name": {
+          "source": "SSL Cipher Suites",
+          "message": "SSL 密碼套件"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmNpcGhlci5zdWl0ZXM.short_desc": {
+          "source": "A comma-separated list of cipher suites",
+          "message": "以逗號分隔的密碼套件清單"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuYWJsZWQucHJvdG9jb2xz.desc": {
+          "source": "A comma-separated list of protocols enabled for SSL connections.\n\nThe default is `TLSv1.2,TLSv1.3`.\n\nWith the default value, clients and servers will prefer `TLSv1.3` if both support it and fallback to `TLSv1.2` otherwise (assuming both support at least `TLSv1.2`). This default should be fine for most cases. Also see the config documentation for `ssl.protocol`",
+          "message": "啟用 SSL 連接的協定清單，以逗號分隔。\n\n預設值為 `TLSv1.2,TLSv1.3`。\n\n使用預設值時，若雙方皆支援 `TLSv1.3`，客戶端與伺服器將優先使用；否則回退至 `TLSv1.2`（假設雙方至少支援 `TLSv1.2`）。此預設值對大多數情況皆適用。另請參閱 `ssl.protocol` 的設定文件"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuYWJsZWQucHJvdG9jb2xz.display_name": {
+          "source": "SSL Protocols",
+          "message": "SSL 協定"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuYWJsZWQucHJvdG9jb2xz.short_desc": {
+          "source": "A comma-separated list of protocols enabled for SSL connections",
+          "message": "用於 SSL 連接的啟用協定清單，以逗號分隔"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZ2luZS5mYWN0b3J5LmNsYXNz.desc": {
+          "source": "The class of type `org.apache.kafka.common.security.auth.SslEngineFactory` to provide `SSLEngine` objects",
+          "message": "提供 `org.apache.kafka.common.security.auth.SslEngineFactory` 物件的 `SSLEngine` 類別"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZ2luZS5mYWN0b3J5LmNsYXNz.display_name": {
+          "source": "SSL Engine Factory Class",
+          "message": "SSL Engine 廠商類別"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZ2luZS5mYWN0b3J5LmNsYXNz.short_desc": {
+          "source": "The class to provide SSLEngine objects",
+          "message": "提供 SSLEngine 物件的類別"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZHBvaW50LmlkZW50aWZpY2F0aW9uLmFsZ29yaXRobQ.desc": {
+          "source": "The endpoint identification algorithm to validate server hostname using server certificate",
+          "message": "用於驗證伺服器主機名稱的端點識別演算法，使用伺服器憑證"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZHBvaW50LmlkZW50aWZpY2F0aW9uLmFsZ29yaXRobQ.display_name": {
+          "source": "SSL Endpoint Identification Algorithm",
+          "message": "SSL 端點識別演算法"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZHBvaW50LmlkZW50aWZpY2F0aW9uLmFsZ29yaXRobQ.short_desc": {
+          "source": "Algorithm for verifying the server hostname in its certificate",
+          "message": "用於驗證憑證中伺服器主機名稱的演算法"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleS5wYXNzd29yZA.desc": {
+          "source": "The password of the private key in the key store file",
+          "message": "金鑰儲存檔中私密金鑰的密碼"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleS5wYXNzd29yZA.display_name": {
+          "source": "SSL Key Password",
+          "message": "SSL 金鑰密碼"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleS5wYXNzd29yZA.short_desc": {
+          "source": "The password of the private key in the key store file",
+          "message": "金鑰儲存檔中私密金鑰的密碼"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleW1hbmFnZXIuYWxnb3JpdGht.desc": {
+          "source": "The algorithm used by key manager factory for SSL connections. The default value is the key manager factory algorithm configured for the Java Virtual Machine",
+          "message": "用於 SSL 連線的金鑰管理員工廠所使用的演算法。預設值為 Java 虛擬機器所設定的金鑰管理員工廠演算法"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleW1hbmFnZXIuYWxnb3JpdGht.display_name": {
+          "source": "SSL Keymanager Algorithm",
+          "message": "SSL 金鑰管理員演算法"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleW1hbmFnZXIuYWxnb3JpdGht.short_desc": {
+          "source": "The algorithm used by key manager factory for SSL connections",
+          "message": "用於 SSL 連線的金鑰管理員工廠所使用的演算法"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.desc": {
+          "source": "The location of the key store file. This is optional for clients and can be used for two-way authentication for clients",
+          "message": "金鑰儲存檔的位置。此項對客戶端為選擇性，可用於客戶端的雙向驗證"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.display_name": {
+          "source": "SSL Keystore Location",
+          "message": "SSL 金鑰儲存位置"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.short_desc": {
+          "source": "The location of the key store file",
+          "message": "金鑰儲存檔的位置"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.desc": {
+          "source": "The store password for the key store file. This is optional for client and only needed if `ssl.keystore.location` is configured.",
+          "message": "金鑰儲存檔的儲存密碼。此項對客戶端為選擇性，僅在 `ssl.keystore.location` 被設定時才需要。"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.display_name": {
+          "source": "SSL Keystore Password",
+          "message": "SSL 金鑰庫密碼"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.short_desc": {
+          "source": "The store password for the key store file",
+          "message": "金鑰庫檔案的存放密碼"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.desc": {
+          "source": "The file format of the key store file",
+          "message": "金鑰庫檔案的檔案格式"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.display_name": {
+          "source": "SSL Keystore Type",
+          "message": "SSL 金鑰庫類型"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.short_desc": {
+          "source": "The file format of the key store file",
+          "message": "金鑰庫檔案的檔案格式"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3RvY29s.desc": {
+          "source": "The SSL protocol used to generate the `SSLContext`.\n\nThe default is `TLSv1.3`. This value should be fine for most use cases.\n\nWith the default value for this config and `ssl.enabled.protocols`, clients will downgrade to `TLSv1.2` if the server does not support `TLSv1.3`.\n\nIf this config is set to `TLSv1.2`, clients will not use `TLSv1.3` even if it is one of the values in `ssl.enabled.protocols` and the server only supports `TLSv1.3`",
+          "message": "用於建立 `SSLContext` 的 SSL 通訊協定。\n\n預設值為 `TLSv1.3`，適用於大多數情況。\n\n此設定與 `ssl.enabled.protocols` 均採用預設值時，若伺服器不支援 `TLSv1.3`，用戶端會降級使用 `TLSv1.2`。\n\n若此設定設為 `TLSv1.2`，用戶端就不會使用 `TLSv1.3`，即使該版本已列入 `ssl.enabled.protocols`，且伺服器僅支援 `TLSv1.3` 也是如此。"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3RvY29s.display_name": {
+          "source": "SSL Protocol",
+          "message": "SSL 協定"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3RvY29s.short_desc": {
+          "source": "The SSL protocol to use",
+          "message": "要用的 SSL 協定"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3ZpZGVy.desc": {
+          "source": "The name of the security provider used for SSL connections. Default value is the default security provider of the JVM",
+          "message": "用於 SSL 連線的安全提供者名稱。預設值為 JVM 的預設安全提供者"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3ZpZGVy.display_name": {
+          "source": "SSL Provider",
+          "message": "SSL 提供者"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3ZpZGVy.short_desc": {
+          "source": "The name of the security provider used for SSL connections",
+          "message": "用於 SSL 連接的安全提供者名稱"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnNlY3VyZS5yYW5kb20uaW1wbGVtZW50YXRpb24.desc": {
+          "source": "The SecureRandom PRNG implementation to use for SSL cryptography operations",
+          "message": "用於 SSL 加密運算的 SecureRandom PRNG 實作"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnNlY3VyZS5yYW5kb20uaW1wbGVtZW50YXRpb24.display_name": {
+          "source": "SSL SecureRandom Implementation",
+          "message": "SSL SecureRandom 實作"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnNlY3VyZS5yYW5kb20uaW1wbGVtZW50YXRpb24.short_desc": {
+          "source": "The SecureRandom PRNG implementation to use for SSL cryptography operations",
+          "message": "用於 SSL 加密運算的 SecureRandom PRNG 實作"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0bWFuYWdlci5hbGdvcml0aG0.desc": {
+          "source": "The algorithm used by trust manager factory for SSL connections. The default value is the trust manager factory algorithm configured for the Java Virtual Machine",
+          "message": "信任管理員工廠用於 SSL 連接的演算法。預設值為 Java 虛擬機器所設定的信任管理員工廠演算法"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0bWFuYWdlci5hbGdvcml0aG0.display_name": {
+          "source": "SSL Trustmanager Algorithm",
+          "message": "SSL 信任管理員演算法"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0bWFuYWdlci5hbGdvcml0aG0.short_desc": {
+          "source": "The algorithm used by trust manager factory for SSL connections",
+          "message": "信任管理員工廠用於 SSL 連接的演算法"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.desc": {
+          "source": "The location of the trust store file",
+          "message": "信任存放區檔案的位置"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.display_name": {
+          "source": "SSL Truststore Location",
+          "message": "SSL 信任存放區位置"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.short_desc": {
+          "source": "The location of the trust store file",
+          "message": "信任存放區檔案的位置"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.desc": {
+          "source": "The password for the trust store file. If a password is not set, access to the truststore is still available, but integrity checking is disabled",
+          "message": "信任存放區檔案的密碼。若未設定密碼，仍可存取信任存放區，但完整性檢查將停用"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.display_name": {
+          "source": "SSL Truststore Password",
+          "message": "SSL 信任存放區密碼"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.short_desc": {
+          "source": "The password for the trust store file",
+          "message": "信任存放區檔案的密碼"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.desc": {
+          "source": "The file format of the trust store file",
+          "message": "信任存放區檔案的檔案格式"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.display_name": {
+          "source": "SSL Truststore Type",
+          "message": "SSL 信任存放區類型"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.short_desc": {
+          "source": "The file format of the trust store file",
+          "message": "信任存放區檔案的檔案格式"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.dmFsaWRhdG9y.desc": {
+          "source": "An AsyncAPI schema location or schema file data used by child producer and consumer providers to validate Kafka message values. This option conflicts with `asyncapi` and requires `asyncapi_channel`",
+          "message": "由子生產者與消費者提供者用於驗證 Kafka 訊息值的 AsyncAPI 資料結構位置或資料。此選項與 `asyncapi` 相衝突，並需要 `asyncapi_channel`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.dmFsaWRhdG9y.display_name": {
+          "source": "AsyncAPI Validator",
+          "message": "AsyncAPI 驗證器"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.dmFsaWRhdG9y.short_desc": {
+          "source": "AsyncAPI schema location or file data",
+          "message": "AsyncAPI 結構描述位置或檔案資料"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.short_desc": {
+          "source": "A connection to a KAFKA server",
+          "message": "連接到 KAFKA 伺服器的連接"
+        }
+      }
+    }
+  }
+}

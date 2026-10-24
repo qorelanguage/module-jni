@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "es": {
+      "messages": {
+        "connection.Q2FtZWxEYXRhUHJvdmlkZXI.scheme.Q2FtZWxDb25uZWN0aW9u.desc": {
+          "source": "A connection for Apache Camel enterprise integration patterns; the Camel context is self-configuring",
+          "message": "Una conexión para patrones de integración empresarial Apache Camel; el contexto Camel se configura automáticamente"
+        },
+        "connection.Q2FtZWxEYXRhUHJvdmlkZXI.scheme.Q2FtZWxDb25uZWN0aW9u.display_name": {
+          "source": "Apache Camel Connection",
+          "message": "Conexión Apache Camel"
+        },
+        "connection.Q2FtZWxEYXRhUHJvdmlkZXI.scheme.Q2FtZWxDb25uZWN0aW9u.short_desc": {
+          "source": "A connection for Apache Camel enterprise integration",
+          "message": "Una conexión para la integración empresarial Apache Camel"
+        }
+      }
+    }
+  }
+}

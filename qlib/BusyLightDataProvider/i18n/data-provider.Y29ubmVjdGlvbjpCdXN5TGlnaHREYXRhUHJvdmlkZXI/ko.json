@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "ko": {
+      "messages": {
+        "connection.QnVzeUxpZ2h0RGF0YVByb3ZpZGVy.scheme.QnVzeUxpZ2h0Q29ubmVjdGlvbg.desc": {
+          "source": "A connection to a BusyLight server",
+          "message": "BusyLight 서버에 대한 연결"
+        },
+        "connection.QnVzeUxpZ2h0RGF0YVByb3ZpZGVy.scheme.QnVzeUxpZ2h0Q29ubmVjdGlvbg.display_name": {
+          "source": "BusyLight Connection",
+          "message": "BusyLight 연결"
+        },
+        "connection.QnVzeUxpZ2h0RGF0YVByb3ZpZGVy.scheme.QnVzeUxpZ2h0Q29ubmVjdGlvbg.short_desc": {
+          "source": "A connection to a BusyLight device",
+          "message": "BusyLight 장치에 대한 연결"
+        }
+      }
+    }
+  }
+}

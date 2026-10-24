@@ -3,341 +3,17 @@
   "locales": {
     "ja": {
       "messages": {
-        "app.RXhjZWw.display_name": {
-          "source": "Excel Spreadsheets",
-          "message": "Excel スプレッドシート"
-        },
-        "app.RXhjZWw.short_desc": {
-          "source": "Read and write Excel spreadsheets",
-          "message": "Excel スプレッドシートの読み込みと書き込み"
-        },
-        "app.RXhjZWw.desc": {
-          "source": "Read and write Excel spreadsheets",
-          "message": "Excel スプレッドシートの読み込みと書き込み"
-        },
-        "app.RXhjZWw.action.cmVhZA.display_name": {
-          "source": "Read Excel Spreadsheet File",
-          "message": "Excel スプレッドシートファイルの読み込み"
-        },
-        "app.RXhjZWw.action.cmVhZA.short_desc": {
-          "source": "Read Excel spreadsheet from a specific file location",
-          "message": "指定されたファイル位置から Excel スプレッドシートを読み込みます"
-        },
-        "app.RXhjZWw.action.cmVhZA.desc": {
-          "source": "Read Excel spreadsheet from a specific file location",
-          "message": "指定されたファイル位置から Excel スプレッドシートを読み込みます"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.cGF0aA.display_name": {
-          "source": "Excel Input Path",
-          "message": "Excel 入力パス"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.cGF0aA.short_desc": {
-          "source": "The location of the Excel data",
-          "message": "Excel データの位置"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.cGF0aA.desc": {
-          "source": "The location of the Excel data; mutually exclusive with `data` and `stream`; resolved with a call to [FileLocationHandler::getBinaryStreamFromLocation()](https://qoretechnologies.com/manual/qorus/current/qore/modules/FileLocationHandler/html/class_file_location_handler_1_1_file_location_handler.html#a29c2338efc901a6b8f24542505e2a094)",
-          "message": "Excel データの位置。`data` および `stream` とは相互排他的です。[FileLocationHandler::getBinaryStreamFromLocation()](https://qoretechnologies.com/manual/qorus/current/qore/modules/FileLocationHandler/html/class_file_location_handler_1_1_file_location_handler.html#a29c2338efc901a6b8f24542505e2a094) の呼び出しで解決されます"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.d29ya3NoZWV0.display_name": {
-          "source": "Worksheet Name",
-          "message": "ワークシート名"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.d29ya3NoZWV0.short_desc": {
-          "source": "The name of the worksheet to iterate",
-          "message": "反復処理するワークシートの名前"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.d29ya3NoZWV0.desc": {
-          "source": "The name of the worksheet to iterate, matched without regard to case, or its 0-based position as a string; if missing, the first worksheet is processed; conflicts with `worksheet_pattern`.  An unknown worksheet raises `EXCEL-WORKSHEET-NOT-FOUND`, which lists the worksheets of the file",
-          "message": "反復処理するワークシートの名前（大文字と小文字を区別せずに照合）、または文字列としての 0 から始まる位置。省略すると最初のワークシートが処理されます。`worksheet_pattern` と競合します。不明なワークシートは `EXCEL-WORKSHEET-NOT-FOUND` を発生させ、ファイルのワークシートを一覧表示します"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZGF0YV9jZWxscw.display_name": {
-          "source": "Data Cells",
-          "message": "データセル"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZGF0YV9jZWxscw.short_desc": {
-          "source": "The range of cells for data to process",
-          "message": "処理するデータのセル範囲"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZGF0YV9jZWxscw.desc": {
-          "source": "The range of cells for data to process",
-          "message": "処理するデータのセル範囲"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVyX2NlbGxz.display_name": {
-          "source": "Header Cells",
-          "message": "ヘッダーセル"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVyX2NlbGxz.short_desc": {
-          "source": "The range of cells for headers or a row number",
-          "message": "ヘッダーのセル範囲または行番号"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVyX2NlbGxz.desc": {
-          "source": "The range of cells for headers or a row number",
-          "message": "ヘッダーのセル範囲または行番号"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVyX25hbWVz.display_name": {
-          "source": "Header Names?",
-          "message": "ヘッダー名を使用しますか？"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVyX25hbWVz.short_desc": {
-          "source": "Should header rows be used as output field names?",
-          "message": "ヘッダー行を出力フィールド名として使用するかどうか"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVyX25hbWVz.desc": {
-          "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
-          "message": "`True` の場合、オブジェクトは最初のヘッダー行からヘッダー名を解析します。この場合、`header_cells` が明示的に設定されていないと、最初の行であるとみなされます"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.Y29sdW1uX3R5cGVz.display_name": {
-          "source": "Column Types",
-          "message": "列の型"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.Y29sdW1uX3R5cGVz.short_desc": {
-          "source": "The type of columns whose type is not inferred from their values",
-          "message": "値から型を推論しない列の型"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.Y29sdW1uX3R5cGVz.desc": {
-          "source": "The type of each column whose type is given rather than inferred from the first rows (see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or `any`.\n\nValues are converted to the column's type: `string` converts numbers, booleans and dates to text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; `float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates; `any` returns every value as stored.  A value that the type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`.  A column that is not a column of the worksheet, or an unknown type, raises `EXCEL-READ-OPTION-ERROR`.  Columns are only typed when the worksheet has headers.",
-          "message": "最初の行から推論する代わりに型を指定する各列の型を列名ごとに指定します (`type_sample_rows` を参照): `string`、`int`、`float`、`number`、`bool`、`date`、または `any`。\n\n値は列の型に変換されます。`string` は数値、ブール値、日付をテキストに変換します (数値として格納された識別子など)。`int` は小数部のない数値を受け入れます。`float` と `number` は数値を受け入れます。`bool` はブール値を受け入れます。`date` は日付を受け入れます。`any` は各値を格納されたとおりに返します。  型が受け入れない値は `EXCEL-COLUMN-TYPE-ERROR` を発生させます。  ワークシートの列ではない列、または不明な型は `EXCEL-READ-OPTION-ERROR` を発生させます。  列に型が付くのは、ワークシートにヘッダーがある場合のみです。"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.display_name": {
-          "source": "Error Cells",
-          "message": "エラー セル"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.short_desc": {
-          "source": "How cells with an error such as #DIV/0! or #N/A are read",
-          "message": "#DIV/0! や #N/A などのエラーがあるセルの読み取り方法"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.desc": {
-          "source": "How cells with an error, such as `#DIV/0!`, `#N/A` or `#VALUE!`, and formulas whose result is an error are read:\n\n- `fail` (the default): the read fails with `EXCEL-CELL-ERROR`, naming the worksheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.",
-          "message": "`#DIV/0!`、`#N/A`、`#VALUE!` などのエラーがあるセル、および結果がエラーになる数式の読み取り方法:\n\n- `fail` (既定値): `error_field` が設定されていない限り、ワークシート、セル、列、エラーを示す `EXCEL-CELL-ERROR` で読み取りが失敗します\n- `null`: セルには値がありません\n- `text`: どの列でも、セルの値は `#DIV/0!` などのエラーのテキストです\n\n`error_field` を指定すると、各レコードのエラーも専用のフィールドで返され、このオプションが `text` でない限り、エラー セルは値なしとして読み取られます。"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
-          "source": "Fail",
-          "message": "失敗"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
-          "source": "The read fails at the first error cell",
-          "message": "最初のエラー セルで読み取りが失敗します"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
-          "source": "The read fails with `EXCEL-CELL-ERROR` at the first error cell, unless `error_field` is set",
-          "message": "`error_field` が設定されていない限り、最初のエラー セルで `EXCEL-CELL-ERROR` により読み取りが失敗します"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
-          "source": "No Value",
-          "message": "値なし"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
-          "source": "Error cells have no value",
-          "message": "エラー セルには値がありません"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
-          "source": "Error cells are read as no value",
-          "message": "エラー セルは値なしとして読み取られます"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
-          "source": "Error Text",
-          "message": "エラー テキスト"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
-          "source": "Error cells are read as the error's text",
-          "message": "エラー セルはエラーのテキストとして読み取られます"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
-          "source": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
-          "message": "エラー セルは、どの列でも `#DIV/0!` などのエラーのテキストとして読み取られます"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfZmllbGQ.display_name": {
-          "source": "Error Field",
-          "message": "エラー フィールド"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfZmllbGQ.short_desc": {
-          "source": "Return the errors of each row's cells in a field with this name",
-          "message": "各行のセルのエラーをこの名前のフィールドで返します"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfZmllbGQ.desc": {
-          "source": "The name of an extra field added to every record with the errors of the row's cells: a hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the record's cells is an error.  Error cells are then accepted: they are read as no value, or as their text if `error_cells` is `text`.  The name must not be the name of a column of the worksheet or of the `formula_field`; a name that is raises `EXCEL-READ-OPTION-ERROR`.",
-          "message": "行のセルのエラーを含む、すべてのレコードに追加されるフィールドの名前です。値は列名をキーとするエラー テキスト (`#DIV/0!` など) のハッシュで、レコードのどのセルもエラーでない場合は `NOTHING` です。  このときエラー セルは受け入れられ、値なしとして、または `error_cells` が `text` の場合はそのテキストとして読み取られます。  名前をワークシートの列の名前や `formula_field` にすることはできません。その場合は `EXCEL-READ-OPTION-ERROR` が発生します。"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.Zm9ybXVsYV9maWVsZA.display_name": {
-          "source": "Formula Field",
-          "message": "数式フィールド"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.Zm9ybXVsYV9maWVsZA.short_desc": {
-          "source": "Return the formulas of each row's cells in a field with this name",
-          "message": "各行のセルの数式をこの名前のフィールドで返します"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.Zm9ybXVsYV9maWVsZA.desc": {
-          "source": "The name of an extra field added to every record with the formulas of the row's cells, so the process reading the file can tell rows calculated by formulas from rows of data.  The most common use is recognizing a **totals row made only of `SUM` formulas**, with no `Total` label, at run time in the same way as the spreadsheet profile does at design time: pass the field's value to `DataProvider::TabularProfiler::hasTotalsFormula()`.\n\n**Value:** a hash of the formula text (as Excel shows it, without the leading `=`) by the cell's reference in the worksheet (for example `{\"B5\": \"SUM(B2:B4)\"}`), with one entry for each cell of the record that holds a formula; `NOTHING` if none of the record's cells holds a formula.  References are those of the worksheet, whatever the `data_cells` range.\n\nValues of formula cells are still returned as their calculated results.  The name must not be the name of a column of the worksheet; a name that is raises `EXCEL-FORMULA-FIELD-ERROR`.  If not set, records have no formula field and formulas are not read.",
-          "message": "行のセルの数式を持つ追加フィールドの名前です。各レコードに追加され、ファイルを読み取る処理が数式で計算された行とデータ行を区別できるようにします。最も一般的な用途は、`Total` ラベルのない **`SUM` 数式だけで構成された合計行** を、設計時のスプレッドシート プロファイルと同じ方法で実行時に認識することです。フィールドの値を `DataProvider::TabularProfiler::hasTotalsFormula()` に渡してください。\n\n**値:** ワークシート内のセル参照をキーとする数式テキスト (Excel の表示どおり、先頭の `=` なし) のハッシュ (例: `{\"B5\": \"SUM(B2:B4)\"}`) で、数式を含むレコードのセルごとに 1 つのエントリがあります。レコードのどのセルにも数式がない場合は `NOTHING` です。参照は `data_cells` の範囲に関係なくワークシートの参照です。\n\n数式セルの値は引き続き計算結果として返されます。名前をワークシートの列の名前にすることはできません。その場合は `EXCEL-FORMULA-FIELD-ERROR` が発生します。設定しない場合、レコードに数式フィールドはなく、数式は読み取られません。"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVycw.display_name": {
-          "source": "Output Headers",
-          "message": "出力ヘッダー"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVycw.short_desc": {
-          "source": "List of header / column names for the data iterated",
-          "message": "反復処理されるデータのヘッダー/列名のリスト"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVycw.desc": {
-          "source": "List of header / column names for the data iterated; if this is present, then `header_names` must be `False`",
-          "message": "反復処理されるデータのヘッダー/列名のリスト。これが存在する場合、`header_names` は `False` である必要があります"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.aWdub3JlX2VtcHR5.display_name": {
-          "source": "Ignore Empty Rows",
-          "message": "空の行を無視"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.aWdub3JlX2VtcHR5.short_desc": {
-          "source": "Skip empty rows instead of stopping at the first one",
-          "message": "最初の空の行で停止せず、空の行をスキップします"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.aWdub3JlX2VtcHR5.desc": {
-          "source": "If `True`, empty rows are skipped and reading continues to the end of `data_cells` or the last row of the worksheet; if `False` (the default), reading stops at the first empty row",
-          "message": "`True` の場合、空の行をスキップし、`data_cells` の末尾またはワークシートの最終行まで読み取りを続行します。`False`（既定値）の場合、最初の空の行で読み取りを停止します"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.dGltZXpvbmU.display_name": {
-          "source": "Timezone Region",
-          "message": "タイムゾーン地域"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.dGltZXpvbmU.short_desc": {
-          "source": "The timezone region to use when parsing dates",
-          "message": "日付の解析時に使用するタイムゾーン地域"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.dGltZXpvbmU.desc": {
-          "source": "The timezone region to use when parsing dates",
-          "message": "日付の解析時に使用するタイムゾーン地域"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.dG9sd3I.display_name": {
-          "source": "Convert Headers to Lower Case",
-          "message": "ヘッダーを小文字に変換"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.dG9sd3I.short_desc": {
-          "source": "Convert all header names to lower case",
-          "message": "すべてのヘッダー名を小文字に変換します"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.dG9sd3I.desc": {
-          "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
-          "message": "`True` の場合 (デフォルト: `False`)、自動検出されたすべてのヘッダー名が小文字に変換されます"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
-          "source": "Type Sample Rows",
-          "message": "型のサンプル行数"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
-          "source": "The number of rows read to infer the type of each column",
-          "message": "各列の型を推論するために読み取る行数"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
-          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the worksheet has headers.",
-          "message": "値から各列の型を推論するために読み取るデータ行の数です。`0` は、すべての値を格納されたとおりに読み取り、列は任意の型になります。\n\nこれらの行の値がすべて整数の列は `int` 列、数値の列は `float` 列、ブール値の列は `bool` 列、日付の列は `date` 列、テキストの列は `string` 列になります。異なる種類の値がある列、または値のない列は、格納されたとおりに返されます (`any`)。  空のセルとエラー セルは数えられません。  型はスプレッドシート プロファイルの型です。  列の型が受け入れない後続の値は `EXCEL-COLUMN-TYPE-ERROR` を発生させ、対処方法として `column_types` で列の型を指定するか、より多くの行をサンプリングすることを示します。  列に型が付くのは、ワークシートにヘッダーがある場合のみです。"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
-          "source": "Worksheet Name Pattern",
-          "message": "ワークシート名のパターン"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.d29ya3NoZWV0X3BhdHRlcm4.short_desc": {
-          "source": "A regular expression matching the name of the worksheet to iterate",
-          "message": "反復処理するワークシートの名前に一致する正規表現"
-        },
-        "app.RXhjZWw.action.cmVhZA.option.d29ya3NoZWV0X3BhdHRlcm4.desc": {
-          "source": "A regular expression that the name of exactly one worksheet must match, for files whose worksheet name changes from file to file, such as `Jan 2026` and `Feb 2026`: use `^\\w+ \\d{4}$`, or `(?i)^export` to match without regard to case; the pattern is searched in the name, so anchor it with `^` and `$` to match the whole name.  No match raises `EXCEL-WORKSHEET-NOT-FOUND` and more than one match raises `EXCEL-WORKSHEET-AMBIGUOUS`, both listing the worksheets of the file; conflicts with `worksheet`",
-          "message": "ファイルごとにワークシート名が変わるファイル（`Jan 2026` と `Feb 2026` など）で、ちょうど 1 つのワークシートの名前が一致する必要がある正規表現。`^\\w+ \\d{4}$` を使用し、大文字と小文字を区別しない場合は `(?i)^export` を使用します。パターンは名前の中で検索されるため、名前全体に一致させるには `^` と `$` で固定してください。一致がない場合は `EXCEL-WORKSHEET-NOT-FOUND`、複数一致した場合は `EXCEL-WORKSHEET-AMBIGUOUS` が発生し、どちらもファイルのワークシートを一覧表示します。`worksheet` と競合します"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.display_name": {
-          "source": "Profile Excel Spreadsheet",
-          "message": "Excel スプレッドシートをプロファイル"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.short_desc": {
-          "source": "Describe the layout and columns of every sheet of an Excel spreadsheet",
-          "message": "Excel スプレッドシートの各シートのレイアウトと列を説明します"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.desc": {
-          "source": "Describes how every sheet of an Excel spreadsheet (`.xlsx` or `.xls`) is laid out, so it can be read correctly before an integration is built around it.\n\n**Detects:**\n- hidden sheets, named ranges, merged cells, and formulas\n- the header row, title rows and banners above it, and the data region\n- totals and subtotal rows and blank-row gaps\n- each column's type with a confidence and counter-examples\n- dates and numbers stored as text in a local format, and identifiers with leading zeros\n\nSample values are redacted to their shape by default (`redact`), so a profile can be shared without the data itself.",
-          "message": "Excel スプレッドシート (`.xlsx` または `.xls`) の各シートのレイアウトを説明します。これにより、統合を構築する前にスプレッドシートを正しく読み取れます。\n\n**検出する内容:**\n- 非表示のシート、名前付き範囲、結合セル、数式\n- ヘッダー行、その上のタイトル行とバナー、データ領域\n- 合計行と小計行、空行のギャップ\n- 各列の型と信頼度、反例\n- ローカル形式でテキストとして保存された日付と数値、先頭にゼロが付いた識別子\n\nサンプル値は既定でその形に置き換えて伏せられる (`redact`) ため、データそのものを含めずにプロファイルを共有できます。"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.option.cGF0aA.display_name": {
-          "source": "Spreadsheet Location",
-          "message": "スプレッドシートの場所"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.option.cGF0aA.short_desc": {
-          "source": "The location of the spreadsheet to profile",
-          "message": "プロファイルするスプレッドシートの場所"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.option.cGF0aA.desc": {
-          "source": "The location of the spreadsheet to profile, for example `file:///data/stock.xlsx` or an `sftp://` location; conflicts with `data`",
-          "message": "プロファイルするスプレッドシートの場所。例: `file:///data/stock.xlsx` や `sftp://` の場所。`data` とは併用できません"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.option.ZGF0YQ.display_name": {
-          "source": "Spreadsheet Data",
-          "message": "スプレッドシートのデータ"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.option.ZGF0YQ.short_desc": {
-          "source": "The spreadsheet content to profile",
-          "message": "プロファイルするスプレッドシートの内容"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.option.ZGF0YQ.desc": {
-          "source": "The spreadsheet content to profile, as bytes or as a Base64 string; conflicts with `path`",
-          "message": "プロファイルするスプレッドシートの内容 (バイトまたは Base64 文字列)。`path` とは併用できません"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.option.bWF4X3Jvd3M.display_name": {
-          "source": "Maximum Rows",
-          "message": "最大行数"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.option.bWF4X3Jvd3M.short_desc": {
-          "source": "The maximum number of rows read per sheet",
-          "message": "シートごとに読み取る最大行数"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.option.bWF4X3Jvd3M.desc": {
-          "source": "The maximum number of rows read and profiled per sheet; the total row count is still reported, and a `partial_profile` finding notes that the sheet has more rows",
-          "message": "シートごとに読み取ってプロファイルする最大行数。合計行数は引き続き報告され、`partial_profile` の検出結果によってシートにさらに行があることが示されます"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.option.c2FtcGxlX3Jvd3M.display_name": {
-          "source": "Sample Rows",
-          "message": "サンプル行"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.option.c2FtcGxlX3Jvd3M.short_desc": {
-          "source": "The number of sample rows returned per sheet",
-          "message": "シートごとに返されるサンプル行の数"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.option.c2FtcGxlX3Jvd3M.desc": {
-          "source": "The number of sample data rows returned per sheet",
-          "message": "シートごとに返されるサンプルデータ行の数"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.option.cmVkYWN0.display_name": {
-          "source": "Redact Samples",
-          "message": "サンプルを伏せる"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.option.cmVkYWN0.short_desc": {
-          "source": "Return sample values redacted to their shape",
-          "message": "サンプル値をその形に置き換えて返す"
-        },
-        "app.RXhjZWw.action.cHJvZmlsZQ.option.cmVkYWN0.desc": {
-          "source": "If `True` (the default), sample values and counter-examples are redacted to their shape: letters become `x` or `X` and digits `9`, so a profile can be shared without the data",
-          "message": "`True` (既定) の場合、サンプル値と反例はその形に置き換えて伏せられます。文字は `x` または `X`、数字は `9` になるため、データを含めずにプロファイルを共有できます"
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.desc": {
+          "source": "Lists the worksheets of an Excel spreadsheet (`.xlsx` or `.xls`) in workbook order, so the worksheet to read can be chosen.\n\nEach worksheet is listed with its name, its 0-based `index`, which the `worksheet` read option accepts as well as the name, and whether it is `hidden`; hidden and very hidden worksheets are listed where they are in the workbook.",
+          "message": "Excel スプレッドシート (`.xlsx` または `.xls`) のワークシートをブック内の順序で一覧表示し、読み取るワークシートを選択できるようにします。\n\n各ワークシートは、名前、0 から始まる `index` (読み取りオプション `worksheet` は名前と同様にこれを受け付けます)、および非表示かどうか (`hidden`) とともに一覧表示されます。非表示および完全に非表示のワークシートは、ブック内の位置に一覧表示されます。"
         },
         "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.display_name": {
           "source": "List Excel Worksheets",
           "message": "Excel ワークシートを一覧表示"
         },
-        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.short_desc": {
-          "source": "List the worksheets of an Excel spreadsheet",
-          "message": "Excel スプレッドシートのワークシートを一覧表示します"
-        },
-        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.desc": {
-          "source": "Lists the worksheets of an Excel spreadsheet (`.xlsx` or `.xls`) in workbook order, so the worksheet to read can be chosen.\n\nEach worksheet is listed with its name, its 0-based `index`, which the `worksheet` read option accepts as well as the name, and whether it is `hidden`; hidden and very hidden worksheets are listed where they are in the workbook.",
-          "message": "Excel スプレッドシート (`.xlsx` または `.xls`) のワークシートをブック内の順序で一覧表示し、読み取るワークシートを選択できるようにします。\n\n各ワークシートは、名前、0 から始まる `index` (読み取りオプション `worksheet` は名前と同様にこれを受け付けます)、および非表示かどうか (`hidden`) とともに一覧表示されます。非表示および完全に非表示のワークシートは、ブック内の位置に一覧表示されます。"
-        },
-        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.display_name": {
-          "source": "Spreadsheet Location",
-          "message": "スプレッドシートの場所"
-        },
-        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.short_desc": {
-          "source": "The location of the Excel spreadsheet",
-          "message": "Excel スプレッドシートの場所"
-        },
-        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.desc": {
-          "source": "The location of the Excel spreadsheet (`.xlsx` or `.xls`), for example `file:///data/stock.xlsx` or an `sftp://` location; conflicts with `data`",
-          "message": "Excel スプレッドシート (`.xlsx` または `.xls`) の場所。例: `file:///data/stock.xlsx` や `sftp://` の場所。`data` とは併用できません"
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.desc": {
+          "source": "The Excel spreadsheet content (`.xlsx` or `.xls`), as bytes or as a Base64 string; conflicts with `path`",
+          "message": "Excel スプレッドシート (`.xlsx` または `.xls`) の内容 (バイトまたは Base64 文字列)。`path` とは併用できません"
         },
         "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.display_name": {
           "source": "Spreadsheet Data",
@@ -347,729 +23,261 @@
           "source": "The Excel spreadsheet content",
           "message": "Excel スプレッドシートの内容"
         },
-        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.ZGF0YQ.desc": {
-          "source": "The Excel spreadsheet content (`.xlsx` or `.xls`), as bytes or as a Base64 string; conflicts with `path`",
-          "message": "Excel スプレッドシート (`.xlsx` または `.xls`) の内容 (バイトまたは Base64 文字列)。`path` とは併用できません"
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.desc": {
+          "source": "The location of the Excel spreadsheet (`.xlsx` or `.xls`), for example `file:///data/stock.xlsx` or an `sftp://` location; conflicts with `data`",
+          "message": "Excel スプレッドシート (`.xlsx` または `.xls`) の場所。例: `file:///data/stock.xlsx` や `sftp://` の場所。`data` とは併用できません"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.display_name": {
-          "source": "Read Excel Spreadsheet Inline Data",
-          "message": "インライン Excel スプレッドシートデータの読み込み"
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.display_name": {
+          "source": "Spreadsheet Location",
+          "message": "スプレッドシートの場所"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.short_desc": {
-          "source": "Read Excel spreadsheet inline data",
-          "message": "インライン Excel スプレッドシートデータの読み込み"
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.option.cGF0aA.short_desc": {
+          "source": "The location of the Excel spreadsheet",
+          "message": "Excel スプレッドシートの場所"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.desc": {
-          "source": "Read Excel spreadsheet inline data",
-          "message": "インライン Excel スプレッドシートデータの読み込み"
+        "app.RXhjZWw.action.bGlzdC13b3Jrc2hlZXRz.short_desc": {
+          "source": "List the worksheets of an Excel spreadsheet",
+          "message": "Excel スプレッドシートのワークシートを一覧表示します"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZGF0YQ.display_name": {
-          "source": "Input Data",
-          "message": "入力データ"
+        "app.RXhjZWw.action.cHJvZmlsZQ.desc": {
+          "source": "Describes how every sheet of an Excel spreadsheet (`.xlsx` or `.xls`) is laid out, so it can be read correctly before an integration is built around it.\n\n**Detects:**\n- hidden sheets, named ranges, merged cells, and formulas\n- the header row, title rows and banners above it, and the data region\n- totals and subtotal rows and blank-row gaps\n- each column's type with a confidence and counter-examples\n- dates and numbers stored as text in a local format, and identifiers with leading zeros\n\nSample values are redacted to their shape by default (`redact`), so a profile can be shared without the data itself.",
+          "message": "Excel スプレッドシート (`.xlsx` または `.xls`) の各シートのレイアウトを説明します。これにより、統合を構築する前にスプレッドシートを正しく読み取れます。\n\n**検出する内容:**\n- 非表示のシート、名前付き範囲、結合セル、数式\n- ヘッダー行、その上のタイトル行とバナー、データ領域\n- 合計行と小計行、空行のギャップ\n- 各列の型と信頼度、反例\n- ローカル形式でテキストとして保存された日付と数値、先頭にゼロが付いた識別子\n\nサンプル値は既定でその形に置き換えて伏せられる (`redact`) ため、データそのものを含めずにプロファイルを共有できます。"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZGF0YQ.short_desc": {
-          "source": "Excel data to process",
-          "message": "処理する Excel データ"
+        "app.RXhjZWw.action.cHJvZmlsZQ.display_name": {
+          "source": "Profile Excel Spreadsheet",
+          "message": "Excel スプレッドシートをプロファイル"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZGF0YQ.desc": {
-          "source": "Excel data to process; conflicts with `stream` and `path`",
-          "message": "処理する Excel データ。`stream` および `path` と競合します"
+        "app.RXhjZWw.action.cHJvZmlsZQ.option.ZGF0YQ.desc": {
+          "source": "The spreadsheet content to profile, as bytes or as a Base64 string; conflicts with `path`",
+          "message": "プロファイルするスプレッドシートの内容 (バイトまたは Base64 文字列)。`path` とは併用できません"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.d29ya3NoZWV0.display_name": {
-          "source": "Worksheet Name",
-          "message": "ワークシート名"
+        "app.RXhjZWw.action.cHJvZmlsZQ.option.ZGF0YQ.display_name": {
+          "source": "Spreadsheet Data",
+          "message": "スプレッドシートのデータ"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.d29ya3NoZWV0.short_desc": {
-          "source": "The name of the worksheet to iterate",
-          "message": "反復処理するワークシートの名前"
+        "app.RXhjZWw.action.cHJvZmlsZQ.option.ZGF0YQ.short_desc": {
+          "source": "The spreadsheet content to profile",
+          "message": "プロファイルするスプレッドシートの内容"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.d29ya3NoZWV0.desc": {
-          "source": "The name of the worksheet to iterate, matched without regard to case, or its 0-based position as a string; if missing, the first worksheet is processed; conflicts with `worksheet_pattern`.  An unknown worksheet raises `EXCEL-WORKSHEET-NOT-FOUND`, which lists the worksheets of the file",
-          "message": "反復処理するワークシートの名前（大文字と小文字を区別せずに照合）、または文字列としての 0 から始まる位置。省略すると最初のワークシートが処理されます。`worksheet_pattern` と競合します。不明なワークシートは `EXCEL-WORKSHEET-NOT-FOUND` を発生させ、ファイルのワークシートを一覧表示します"
+        "app.RXhjZWw.action.cHJvZmlsZQ.option.bWF4X3Jvd3M.desc": {
+          "source": "The maximum number of rows read and profiled per sheet; the total row count is still reported, and a `partial_profile` finding notes that the sheet has more rows",
+          "message": "シートごとに読み取ってプロファイルする最大行数。合計行数は引き続き報告され、`partial_profile` の検出結果によってシートにさらに行があることが示されます"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZGF0YV9jZWxscw.display_name": {
-          "source": "Data Cells",
-          "message": "データセル"
+        "app.RXhjZWw.action.cHJvZmlsZQ.option.bWF4X3Jvd3M.display_name": {
+          "source": "Maximum Rows",
+          "message": "最大行数"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZGF0YV9jZWxscw.short_desc": {
-          "source": "The range of cells for data to process",
-          "message": "処理するデータのセル範囲"
+        "app.RXhjZWw.action.cHJvZmlsZQ.option.bWF4X3Jvd3M.short_desc": {
+          "source": "The maximum number of rows read per sheet",
+          "message": "シートごとに読み取る最大行数"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZGF0YV9jZWxscw.desc": {
-          "source": "The range of cells for data to process",
-          "message": "処理するデータのセル範囲"
+        "app.RXhjZWw.action.cHJvZmlsZQ.option.c2FtcGxlX3Jvd3M.desc": {
+          "source": "The number of sample data rows returned per sheet",
+          "message": "シートごとに返されるサンプルデータ行の数"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVyX2NlbGxz.display_name": {
-          "source": "Header Cells",
-          "message": "ヘッダーセル"
+        "app.RXhjZWw.action.cHJvZmlsZQ.option.c2FtcGxlX3Jvd3M.display_name": {
+          "source": "Sample Rows",
+          "message": "サンプル行"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVyX2NlbGxz.short_desc": {
-          "source": "The range of cells for headers or a row number",
-          "message": "ヘッダーのセル範囲または行番号"
+        "app.RXhjZWw.action.cHJvZmlsZQ.option.c2FtcGxlX3Jvd3M.short_desc": {
+          "source": "The number of sample rows returned per sheet",
+          "message": "シートごとに返されるサンプル行の数"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVyX2NlbGxz.desc": {
-          "source": "The range of cells for headers or a row number",
-          "message": "ヘッダーのセル範囲または行番号"
+        "app.RXhjZWw.action.cHJvZmlsZQ.option.cGF0aA.desc": {
+          "source": "The location of the spreadsheet to profile, for example `file:///data/stock.xlsx` or an `sftp://` location; conflicts with `data`",
+          "message": "プロファイルするスプレッドシートの場所。例: `file:///data/stock.xlsx` や `sftp://` の場所。`data` とは併用できません"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVyX25hbWVz.display_name": {
-          "source": "Header Names?",
-          "message": "ヘッダー名を使用しますか？"
+        "app.RXhjZWw.action.cHJvZmlsZQ.option.cGF0aA.display_name": {
+          "source": "Spreadsheet Location",
+          "message": "スプレッドシートの場所"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVyX25hbWVz.short_desc": {
-          "source": "Should header rows be used as output field names?",
-          "message": "ヘッダー行を出力フィールド名として使用するかどうか"
+        "app.RXhjZWw.action.cHJvZmlsZQ.option.cGF0aA.short_desc": {
+          "source": "The location of the spreadsheet to profile",
+          "message": "プロファイルするスプレッドシートの場所"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVyX25hbWVz.desc": {
-          "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
-          "message": "`True` の場合、オブジェクトは最初のヘッダー行からヘッダー名を解析します。この場合、`header_cells` が明示的に設定されていないと、最初の行であるとみなされます"
+        "app.RXhjZWw.action.cHJvZmlsZQ.option.cmVkYWN0.desc": {
+          "source": "If `True` (the default), sample values and counter-examples are redacted to their shape: letters become `x` or `X` and digits `9`, so a profile can be shared without the data",
+          "message": "`True` (既定) の場合、サンプル値と反例はその形に置き換えて伏せられます。文字は `x` または `X`、数字は `9` になるため、データを含めずにプロファイルを共有できます"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.display_name": {
-          "source": "Column Types",
-          "message": "列の型"
+        "app.RXhjZWw.action.cHJvZmlsZQ.option.cmVkYWN0.display_name": {
+          "source": "Redact Samples",
+          "message": "サンプルを伏せる"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.short_desc": {
-          "source": "The type of columns whose type is not inferred from their values",
-          "message": "値から型を推論しない列の型"
+        "app.RXhjZWw.action.cHJvZmlsZQ.option.cmVkYWN0.short_desc": {
+          "source": "Return sample values redacted to their shape",
+          "message": "サンプル値をその形に置き換えて返す"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.desc": {
+        "app.RXhjZWw.action.cHJvZmlsZQ.short_desc": {
+          "source": "Describe the layout and columns of every sheet of an Excel spreadsheet",
+          "message": "Excel スプレッドシートの各シートのレイアウトと列を説明します"
+        },
+        "app.RXhjZWw.action.cmVhZA.desc": {
+          "source": "Read Excel spreadsheet from a specific file location",
+          "message": "指定されたファイル位置から Excel スプレッドシートを読み込みます"
+        },
+        "app.RXhjZWw.action.cmVhZA.display_name": {
+          "source": "Read Excel Spreadsheet File",
+          "message": "Excel スプレッドシートファイルの読み込み"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.Y29sdW1uX3R5cGVz.desc": {
           "source": "The type of each column whose type is given rather than inferred from the first rows (see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or `any`.\n\nValues are converted to the column's type: `string` converts numbers, booleans and dates to text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; `float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates; `any` returns every value as stored.  A value that the type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`.  A column that is not a column of the worksheet, or an unknown type, raises `EXCEL-READ-OPTION-ERROR`.  Columns are only typed when the worksheet has headers.",
           "message": "最初の行から推論する代わりに型を指定する各列の型を列名ごとに指定します (`type_sample_rows` を参照): `string`、`int`、`float`、`number`、`bool`、`date`、または `any`。\n\n値は列の型に変換されます。`string` は数値、ブール値、日付をテキストに変換します (数値として格納された識別子など)。`int` は小数部のない数値を受け入れます。`float` と `number` は数値を受け入れます。`bool` はブール値を受け入れます。`date` は日付を受け入れます。`any` は各値を格納されたとおりに返します。  型が受け入れない値は `EXCEL-COLUMN-TYPE-ERROR` を発生させます。  ワークシートの列ではない列、または不明な型は `EXCEL-READ-OPTION-ERROR` を発生させます。  列に型が付くのは、ワークシートにヘッダーがある場合のみです。"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.display_name": {
-          "source": "Error Cells",
-          "message": "エラー セル"
+        "app.RXhjZWw.action.cmVhZA.option.Y29sdW1uX3R5cGVz.display_name": {
+          "source": "Column Types",
+          "message": "列の型"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.short_desc": {
-          "source": "How cells with an error such as #DIV/0! or #N/A are read",
-          "message": "#DIV/0! や #N/A などのエラーがあるセルの読み取り方法"
+        "app.RXhjZWw.action.cmVhZA.option.Y29sdW1uX3R5cGVz.short_desc": {
+          "source": "The type of columns whose type is not inferred from their values",
+          "message": "値から型を推論しない列の型"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.desc": {
-          "source": "How cells with an error, such as `#DIV/0!`, `#N/A` or `#VALUE!`, and formulas whose result is an error are read:\n\n- `fail` (the default): the read fails with `EXCEL-CELL-ERROR`, naming the worksheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.",
-          "message": "`#DIV/0!`、`#N/A`、`#VALUE!` などのエラーがあるセル、および結果がエラーになる数式の読み取り方法:\n\n- `fail` (既定値): `error_field` が設定されていない限り、ワークシート、セル、列、エラーを示す `EXCEL-CELL-ERROR` で読み取りが失敗します\n- `null`: セルには値がありません\n- `text`: どの列でも、セルの値は `#DIV/0!` などのエラーのテキストです\n\n`error_field` を指定すると、各レコードのエラーも専用のフィールドで返され、このオプションが `text` でない限り、エラー セルは値なしとして読み取られます。"
+        "app.RXhjZWw.action.cmVhZA.option.ZGF0YV9jZWxscw.desc": {
+          "source": "The range of cells for data to process",
+          "message": "処理するデータのセル範囲"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
-          "source": "Fail",
-          "message": "失敗"
+        "app.RXhjZWw.action.cmVhZA.option.ZGF0YV9jZWxscw.display_name": {
+          "source": "Data Cells",
+          "message": "データセル"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
-          "source": "The read fails at the first error cell",
-          "message": "最初のエラー セルで読み取りが失敗します"
+        "app.RXhjZWw.action.cmVhZA.option.ZGF0YV9jZWxscw.short_desc": {
+          "source": "The range of cells for data to process",
+          "message": "処理するデータのセル範囲"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
-          "source": "The read fails with `EXCEL-CELL-ERROR` at the first error cell, unless `error_field` is set",
-          "message": "`error_field` が設定されていない限り、最初のエラー セルで `EXCEL-CELL-ERROR` により読み取りが失敗します"
-        },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
-          "source": "No Value",
-          "message": "値なし"
-        },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
-          "source": "Error cells have no value",
-          "message": "エラー セルには値がありません"
-        },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
           "source": "Error cells are read as no value",
           "message": "エラー セルは値なしとして読み取られます"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
-          "source": "Error Text",
-          "message": "エラー テキスト"
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
+          "source": "No Value",
+          "message": "値なし"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
-          "source": "Error cells are read as the error's text",
-          "message": "エラー セルはエラーのテキストとして読み取られます"
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
+          "source": "Error cells have no value",
+          "message": "エラー セルには値がありません"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "The read fails with `EXCEL-CELL-ERROR` at the first error cell, unless `error_field` is set",
+          "message": "`error_field` が設定されていない限り、最初のエラー セルで `EXCEL-CELL-ERROR` により読み取りが失敗します"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "失敗"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The read fails at the first error cell",
+          "message": "最初のエラー セルで読み取りが失敗します"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
           "source": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
           "message": "エラー セルは、どの列でも `#DIV/0!` などのエラーのテキストとして読み取られます"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.display_name": {
-          "source": "Error Field",
-          "message": "エラー フィールド"
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Error Text",
+          "message": "エラー テキスト"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.short_desc": {
-          "source": "Return the errors of each row's cells in a field with this name",
-          "message": "各行のセルのエラーをこの名前のフィールドで返します"
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Error cells are read as the error's text",
+          "message": "エラー セルはエラーのテキストとして読み取られます"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.desc": {
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.desc": {
+          "source": "How cells with an error, such as `#DIV/0!`, `#N/A` or `#VALUE!`, and formulas whose result is an error are read:\n\n- `fail` (the default): the read fails with `EXCEL-CELL-ERROR`, naming the worksheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.",
+          "message": "`#DIV/0!`、`#N/A`、`#VALUE!` などのエラーがあるセル、および結果がエラーになる数式の読み取り方法:\n\n- `fail` (既定値): `error_field` が設定されていない限り、ワークシート、セル、列、エラーを示す `EXCEL-CELL-ERROR` で読み取りが失敗します\n- `null`: セルには値がありません\n- `text`: どの列でも、セルの値は `#DIV/0!` などのエラーのテキストです\n\n`error_field` を指定すると、各レコードのエラーも専用のフィールドで返され、このオプションが `text` でない限り、エラー セルは値なしとして読み取られます。"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.display_name": {
+          "source": "Error Cells",
+          "message": "エラー セル"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfY2VsbHM.short_desc": {
+          "source": "How cells with an error such as #DIV/0! or #N/A are read",
+          "message": "#DIV/0! や #N/A などのエラーがあるセルの読み取り方法"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfZmllbGQ.desc": {
           "source": "The name of an extra field added to every record with the errors of the row's cells: a hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the record's cells is an error.  Error cells are then accepted: they are read as no value, or as their text if `error_cells` is `text`.  The name must not be the name of a column of the worksheet or of the `formula_field`; a name that is raises `EXCEL-READ-OPTION-ERROR`.",
           "message": "行のセルのエラーを含む、すべてのレコードに追加されるフィールドの名前です。値は列名をキーとするエラー テキスト (`#DIV/0!` など) のハッシュで、レコードのどのセルもエラーでない場合は `NOTHING` です。  このときエラー セルは受け入れられ、値なしとして、または `error_cells` が `text` の場合はそのテキストとして読み取られます。  名前をワークシートの列の名前や `formula_field` にすることはできません。その場合は `EXCEL-READ-OPTION-ERROR` が発生します。"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Zm9ybXVsYV9maWVsZA.display_name": {
-          "source": "Formula Field",
-          "message": "数式フィールド"
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfZmllbGQ.display_name": {
+          "source": "Error Field",
+          "message": "エラー フィールド"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Zm9ybXVsYV9maWVsZA.short_desc": {
-          "source": "Return the formulas of each row's cells in a field with this name",
-          "message": "各行のセルの数式をこの名前のフィールドで返します"
+        "app.RXhjZWw.action.cmVhZA.option.ZXJyb3JfZmllbGQ.short_desc": {
+          "source": "Return the errors of each row's cells in a field with this name",
+          "message": "各行のセルのエラーをこの名前のフィールドで返します"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Zm9ybXVsYV9maWVsZA.desc": {
+        "app.RXhjZWw.action.cmVhZA.option.Zm9ybXVsYV9maWVsZA.desc": {
           "source": "The name of an extra field added to every record with the formulas of the row's cells, so the process reading the file can tell rows calculated by formulas from rows of data.  The most common use is recognizing a **totals row made only of `SUM` formulas**, with no `Total` label, at run time in the same way as the spreadsheet profile does at design time: pass the field's value to `DataProvider::TabularProfiler::hasTotalsFormula()`.\n\n**Value:** a hash of the formula text (as Excel shows it, without the leading `=`) by the cell's reference in the worksheet (for example `{\"B5\": \"SUM(B2:B4)\"}`), with one entry for each cell of the record that holds a formula; `NOTHING` if none of the record's cells holds a formula.  References are those of the worksheet, whatever the `data_cells` range.\n\nValues of formula cells are still returned as their calculated results.  The name must not be the name of a column of the worksheet; a name that is raises `EXCEL-FORMULA-FIELD-ERROR`.  If not set, records have no formula field and formulas are not read.",
           "message": "行のセルの数式を持つ追加フィールドの名前です。各レコードに追加され、ファイルを読み取る処理が数式で計算された行とデータ行を区別できるようにします。最も一般的な用途は、`Total` ラベルのない **`SUM` 数式だけで構成された合計行** を、設計時のスプレッドシート プロファイルと同じ方法で実行時に認識することです。フィールドの値を `DataProvider::TabularProfiler::hasTotalsFormula()` に渡してください。\n\n**値:** ワークシート内のセル参照をキーとする数式テキスト (Excel の表示どおり、先頭の `=` なし) のハッシュ (例: `{\"B5\": \"SUM(B2:B4)\"}`) で、数式を含むレコードのセルごとに 1 つのエントリがあります。レコードのどのセルにも数式がない場合は `NOTHING` です。参照は `data_cells` の範囲に関係なくワークシートの参照です。\n\n数式セルの値は引き続き計算結果として返されます。名前をワークシートの列の名前にすることはできません。その場合は `EXCEL-FORMULA-FIELD-ERROR` が発生します。設定しない場合、レコードに数式フィールドはなく、数式は読み取られません。"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVycw.display_name": {
-          "source": "Output Headers",
-          "message": "出力ヘッダー"
+        "app.RXhjZWw.action.cmVhZA.option.Zm9ybXVsYV9maWVsZA.display_name": {
+          "source": "Formula Field",
+          "message": "数式フィールド"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVycw.short_desc": {
-          "source": "List of header / column names for the data iterated",
-          "message": "反復処理されるデータのヘッダー/列名のリスト"
+        "app.RXhjZWw.action.cmVhZA.option.Zm9ybXVsYV9maWVsZA.short_desc": {
+          "source": "Return the formulas of each row's cells in a field with this name",
+          "message": "各行のセルの数式をこの名前のフィールドで返します"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVycw.desc": {
+        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVyX25hbWVz.desc": {
+          "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
+          "message": "`True` の場合、オブジェクトは最初のヘッダー行からヘッダー名を解析します。この場合、`header_cells` が明示的に設定されていないと、最初の行であるとみなされます"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVyX25hbWVz.display_name": {
+          "source": "Header Names?",
+          "message": "ヘッダー名を使用しますか？"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVyX25hbWVz.short_desc": {
+          "source": "Should header rows be used as output field names?",
+          "message": "ヘッダー行を出力フィールド名として使用するかどうか"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVyX2NlbGxz.desc": {
+          "source": "The range of cells for headers or a row number",
+          "message": "ヘッダーのセル範囲または行番号"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVyX2NlbGxz.display_name": {
+          "source": "Header Cells",
+          "message": "ヘッダーセル"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVyX2NlbGxz.short_desc": {
+          "source": "The range of cells for headers or a row number",
+          "message": "ヘッダーのセル範囲または行番号"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVycw.desc": {
           "source": "List of header / column names for the data iterated; if this is present, then `header_names` must be `False`",
           "message": "反復処理されるデータのヘッダー/列名のリスト。これが存在する場合、`header_names` は `False` である必要があります"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aWdub3JlX2VtcHR5.display_name": {
-          "source": "Ignore Empty Rows",
-          "message": "空の行を無視"
+        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVycw.display_name": {
+          "source": "Output Headers",
+          "message": "出力ヘッダー"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aWdub3JlX2VtcHR5.short_desc": {
-          "source": "Skip empty rows instead of stopping at the first one",
-          "message": "最初の空の行で停止せず、空の行をスキップします"
+        "app.RXhjZWw.action.cmVhZA.option.aGVhZGVycw.short_desc": {
+          "source": "List of header / column names for the data iterated",
+          "message": "反復処理されるデータのヘッダー/列名のリスト"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aWdub3JlX2VtcHR5.desc": {
+        "app.RXhjZWw.action.cmVhZA.option.aWdub3JlX2VtcHR5.desc": {
           "source": "If `True`, empty rows are skipped and reading continues to the end of `data_cells` or the last row of the worksheet; if `False` (the default), reading stops at the first empty row",
           "message": "`True` の場合、空の行をスキップし、`data_cells` の末尾またはワークシートの最終行まで読み取りを続行します。`False`（既定値）の場合、最初の空の行で読み取りを停止します"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dGltZXpvbmU.display_name": {
-          "source": "Timezone Region",
-          "message": "タイムゾーン地域"
-        },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dGltZXpvbmU.short_desc": {
-          "source": "The timezone region to use when parsing dates",
-          "message": "日付の解析時に使用するタイムゾーン地域"
-        },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dGltZXpvbmU.desc": {
-          "source": "The timezone region to use when parsing dates",
-          "message": "日付の解析時に使用するタイムゾーン地域"
-        },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dG9sd3I.display_name": {
-          "source": "Convert Headers to Lower Case",
-          "message": "ヘッダーを小文字に変換"
-        },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dG9sd3I.short_desc": {
-          "source": "Convert all header names to lower case",
-          "message": "すべてのヘッダー名を小文字に変換します"
-        },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dG9sd3I.desc": {
-          "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
-          "message": "`True` の場合 (デフォルト: `False`)、自動検出されたすべてのヘッダー名が小文字に変換されます"
-        },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
-          "source": "Type Sample Rows",
-          "message": "型のサンプル行数"
-        },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
-          "source": "The number of rows read to infer the type of each column",
-          "message": "各列の型を推論するために読み取る行数"
-        },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
-          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the worksheet has headers.",
-          "message": "値から各列の型を推論するために読み取るデータ行の数です。`0` は、すべての値を格納されたとおりに読み取り、列は任意の型になります。\n\nこれらの行の値がすべて整数の列は `int` 列、数値の列は `float` 列、ブール値の列は `bool` 列、日付の列は `date` 列、テキストの列は `string` 列になります。異なる種類の値がある列、または値のない列は、格納されたとおりに返されます (`any`)。  空のセルとエラー セルは数えられません。  型はスプレッドシート プロファイルの型です。  列の型が受け入れない後続の値は `EXCEL-COLUMN-TYPE-ERROR` を発生させ、対処方法として `column_types` で列の型を指定するか、より多くの行をサンプリングすることを示します。  列に型が付くのは、ワークシートにヘッダーがある場合のみです。"
-        },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
-          "source": "Worksheet Name Pattern",
-          "message": "ワークシート名のパターン"
-        },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.d29ya3NoZWV0X3BhdHRlcm4.short_desc": {
-          "source": "A regular expression matching the name of the worksheet to iterate",
-          "message": "反復処理するワークシートの名前に一致する正規表現"
-        },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.d29ya3NoZWV0X3BhdHRlcm4.desc": {
-          "source": "A regular expression that the name of exactly one worksheet must match, for files whose worksheet name changes from file to file, such as `Jan 2026` and `Feb 2026`: use `^\\w+ \\d{4}$`, or `(?i)^export` to match without regard to case; the pattern is searched in the name, so anchor it with `^` and `$` to match the whole name.  No match raises `EXCEL-WORKSHEET-NOT-FOUND` and more than one match raises `EXCEL-WORKSHEET-AMBIGUOUS`, both listing the worksheets of the file; conflicts with `worksheet`",
-          "message": "ファイルごとにワークシート名が変わるファイル（`Jan 2026` と `Feb 2026` など）で、ちょうど 1 つのワークシートの名前が一致する必要がある正規表現。`^\\w+ \\d{4}$` を使用し、大文字と小文字を区別しない場合は `(?i)^export` を使用します。パターンは名前の中で検索されるため、名前全体に一致させるには `^` と `$` で固定してください。一致がない場合は `EXCEL-WORKSHEET-NOT-FOUND`、複数一致した場合は `EXCEL-WORKSHEET-AMBIGUOUS` が発生し、どちらもファイルのワークシートを一覧表示します。`worksheet` と競合します"
-        },
-        "app.RXhjZWw.action.d3JpdGU.display_name": {
-          "source": "Write Excel Spreadsheet File",
-          "message": "Excel スプレッドシートファイルの書き込み"
-        },
-        "app.RXhjZWw.action.d3JpdGU.short_desc": {
-          "source": "Write data to an Excel spreadsheet file",
-          "message": "Excel スプレッドシートファイルにデータを書き込みます"
-        },
-        "app.RXhjZWw.action.d3JpdGU.desc": {
-          "source": "Write data to an Excel spreadsheet file at a specified path",
-          "message": "指定されたパスの Excel スプレッドシートファイルにデータを書き込みます"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.cGF0aA.display_name": {
-          "source": "Excel Output Path",
-          "message": "Excel 出力パス"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.cGF0aA.short_desc": {
-          "source": "The location to write the Excel file",
-          "message": "Excel ファイルの書き込み先"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.cGF0aA.desc": {
-          "source": "The location for the output Excel data file; mutually exclusive with `stream`; the output location is handled by a call to [FileLocationHandler::getOutputStreamForLocation()](https://qoretechnologies.com/manual/qorus/current/qore/modules/FileLocationHandler/html/class_file_location_handler_1_1_file_location_handler.html#a46f7e9cc0e76e0d7e30cae79513cd35)",
-          "message": "出力 Excel データファイルの位置。`stream` とは相互排他的です。出力位置は [FileLocationHandler::getOutputStreamForLocation()](https://qoretechnologies.com/manual/qorus/current/qore/modules/FileLocationHandler/html/class_file_location_handler_1_1_file_location_handler.html#a46f7e9cc0e76e0d7e30cae79513cd35) の呼び出しによって処理されます"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.d29ya3NoZWV0.display_name": {
-          "source": "Worksheet Name",
-          "message": "ワークシート名"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.d29ya3NoZWV0.short_desc": {
-          "source": "The name of the worksheet to create",
-          "message": "作成するワークシートの名前"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.d29ya3NoZWV0.desc": {
-          "source": "The name of the worksheet to create; default is `Sheet1`",
-          "message": "作成するワークシートの名前。デフォルトは `Sheet1` です"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.aGVhZGVycw.display_name": {
-          "source": "Column Headers",
-          "message": "列ヘッダー"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.aGVhZGVycw.short_desc": {
-          "source": "List of header / column names for the data",
-          "message": "データのヘッダー/列名のリスト"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.aGVhZGVycw.desc": {
-          "source": "List of header / column names for the data; if not provided, headers will be auto-detected from the first record",
-          "message": "データのヘッダー/列名のリスト。指定されない場合、ヘッダーは最初のレコードから自動検出されます"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.display_name": {
-          "source": "Output Format",
-          "message": "出力フォーマット"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.short_desc": {
-          "source": "Excel format to use",
-          "message": "使用する Excel 形式"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.desc": {
-          "source": "Excel format to use: `xlsx` (default, Excel 2007+) or `xls` (Excel 97-2003)",
-          "message": "使用する Excel 形式: `xlsx` (デフォルト、Excel 2007+) または `xls` (Excel 97-2003)"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhsc3g.display_name": {
-          "source": "XLSX",
-          "message": "XLSX"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhsc3g.short_desc": {
-          "source": "Excel 2007+ format (.xlsx)",
-          "message": "Excel 2007+ 形式 (.xlsx)"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhsc3g.desc": {
-          "source": "Excel 2007+ format (`.xlsx`); supports streaming mode for large files",
-          "message": "Excel 2007+ 形式 (`.xlsx`)。大容量ファイル用のストリーミングモードをサポートします"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhscw.display_name": {
-          "source": "XLS",
-          "message": "XLS"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhscw.short_desc": {
-          "source": "Excel 97-2003 format (.xls)",
-          "message": "Excel 97-2003 形式 (.xls)"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhscw.desc": {
-          "source": "Legacy Excel 97-2003 binary format (`.xls`); limited to 65,536 rows and 256 columns per sheet",
-          "message": "レガシー Excel 97-2003 バイナリ形式 (`.xls`)。シートあたり 65,536 行および 256 列に制限されています"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.c3RyZWFtaW5n.display_name": {
-          "source": "Streaming Mode",
-          "message": "ストリーミングモード"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.c3RyZWFtaW5n.short_desc": {
-          "source": "Use streaming mode for large files",
-          "message": "大容量ファイルにストリーミングモードを使用します"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.c3RyZWFtaW5n.desc": {
-          "source": "If `True`, use SXSSF streaming mode for writing large files with reduced memory usage; only applies to `xlsx` format",
-          "message": "`True` の場合、メモリ使用量を削減して大容量ファイルを書き込むための SXSSF ストリーミングモードを使用します。`xlsx` 形式にのみ適用されます"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2Zvcm1hdHM.display_name": {
-          "source": "Column Display Formats",
-          "message": "列の表示形式"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2Zvcm1hdHM.short_desc": {
-          "source": "The display format of each column, such as dd.mm.yyyy or #,##0.00",
-          "message": "各列の表示形式 (dd.mm.yyyy や #,##0.00 など)"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2Zvcm1hdHM.desc": {
-          "source": "The display format of columns by their header name, so that whoever opens the file sees each value as intended: a date as `dd.mm.yyyy`, an amount as `#,##0.00`, or a share as `0.0%`.  The cells keep their real values (a date stays a date and a number a number); only the way they are shown changes.  A column without a format is written as without this option: dates as `yyyy-mm-dd hh:mm:ss` and numbers without a format.\n\nFormat codes are written as in Excel and LibreOffice:\n- **numbers**: `0` (a digit that is always shown), `#` (a digit shown when significant), `,` between digits (thousands grouping), `,` after the last digit (divide by 1000), `.` (the decimal point), and `E+00` (scientific notation); up to three sections for positive, negative and zero values separated by `;`, such as `#,##0.00;(#,##0.00)` or `#,##0.00;#,##0.00-`\n- **percentages**: a `%` in each section, such as `0.0%`; the value is a fraction, so `0.25` is shown as `25.0%`\n- **dates and times**: `yy` or `yyyy` (year), `m`, `mm`, `mmm` or `mmmm` (month as a number or a name), `d` or `dd` (day), `ddd` or `dddd` (weekday name), `h` or `hh` (hour), `m` or `mm` directly after an hour or before a second (minute), `s` or `ss` (second), `.0` to `.000` after the second (fractions of a second), and `AM/PM`, such as `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText in a code is written in double quotes (`\"EUR\"`), escaped with a backslash (`\\x`), as a currency symbol in brackets (`[$€-407]`), or as itself for `$ - + / ( ) :`, spaces and symbols such as `€`; a section can start with a color such as `[Red]`.\n\nA value that its column's code does not show, such as a string in a number column, is written without the format.  An invalid or unsupported code (`General`, fractions, fill characters, conditions, or elapsed times), or a column that is not written, raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the problem",
-          "message": "ファイルを開いたユーザーに各値が意図どおりに表示されるよう、ヘッダー名で指定する列の表示形式です。日付は `dd.mm.yyyy`、金額は `#,##0.00`、割合は `0.0%` のように表示できます。セルは実際の値を保持し (日付は日付、数値は数値のまま)、表示方法のみが変わります。形式を指定しない列は、このオプションがない場合と同様に書き込まれます。日付は `yyyy-mm-dd hh:mm:ss`、数値は形式なしで書き込まれます。\n\n形式コードは Excel および LibreOffice と同じように記述します:\n- **数値**: `0` (常に表示される桁)、`#` (有効な場合に表示される桁)、桁の間の `,` (桁区切り)、最後の桁の後の `,` (1000 で除算)、`.` (小数点)、`E+00` (指数表記)。正の値、負の値、ゼロ値に対して最大 3 つのセクションを `;` で区切って指定できます。例: `#,##0.00;(#,##0.00)` や `#,##0.00;#,##0.00-`\n- **パーセント**: 各セクションに `%` を含めます。例: `0.0%`。値は小数であるため、`0.25` は `25.0%` と表示されます\n- **日付と時刻**: `yy` または `yyyy` (年)、`m`、`mm`、`mmm` または `mmmm` (数値または名前による月)、`d` または `dd` (日)、`ddd` または `dddd` (曜日名)、`h` または `hh` (時)、時の直後または秒の直前の `m` または `mm` (分)、`s` または `ss` (秒)、秒の後の `.0` から `.000` (秒の小数部)、および `AM/PM`。例: `dd.mm.yyyy hh:mm`\n- **テキスト**: `@`\n\nコード内のテキストは、二重引用符で囲む (`\"EUR\"`)、バックスラッシュでエスケープする (`\\x`)、角かっこ内の通貨記号として記述する (`[$€-407]`) のいずれかで記述し、`$ - + / ( ) :`、スペース、`€` などの記号はそのまま記述します。セクションの先頭には `[Red]` などの色を指定できます。\n\n列のコードで表示できない値 (数値列の文字列など) は、形式なしで書き込まれます。無効またはサポートされていないコード (`General`、分数、埋め文字、条件、経過時間) や、書き込まれない列を指定すると、列と問題を示す `EXCEL-WRITE-OPTION-ERROR` が発生します"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.display_name": {
-          "source": "Column Masks",
-          "message": "列マスク"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.short_desc": {
-          "source": "The display format of each column as a mask, such as DD.MM.YYYY or #.##0,00 €",
-          "message": "各列の表示形式をマスクで指定 (例: DD.MM.YYYY、#.##0,00 €)"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.desc": {
-          "source": "The display format of columns by column name as masks of the [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) module, the masks that CSV files and sheet contracts are read and written with: a date as `DD.MM.YYYY`, a time as `hh:mm AM`, an amount as `#.##0,00 €` or a share as `0.#%`.  Each mask becomes the display format code of its column (`DD.MM.YYYY` is `dd\\.mm\\.yyyy`, `#.##0,00 €` is `#,##0.00\" €\"`), so the cells keep their real values (a date stays a date and a number a number) and are shown as the mask describes, with these differences from text:\n- the group separator and decimal mark are shown as the language of whoever opens the file uses them; the mask's separators only say whether digits are grouped and how many decimals are shown\n- `Mon` shows the month name in the language of whoever opens the file\n- a final `#` shows at most 10 decimals, and a whole number with the decimal mark after it (`12.`)\n\nA mask without a display format raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the reason: `ZZ` (a cell holds no UTC offset), `MON` (there is no upper-case month name), `sss` not directly after `SS.`, a minute that is not directly after an hour or before the seconds, and a numeric month that is.  A column cannot have both a mask and a format code in `column_formats`",
-          "message": "列名ごとの列の表示形式を、[ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) モジュールのマスク (CSV ファイルとシートコントラクトの読み書きに使うマスク) で指定します。例: 日付は `DD.MM.YYYY`、時刻は `hh:mm AM`、金額は `#.##0,00 €`、比率は `0.#%`。各マスクはその列の表示形式コードになり (`DD.MM.YYYY` は `dd\\.mm\\.yyyy`、`#.##0,00 €` は `#,##0.00\" €\"`)、セルは実際の値を保持し (日付は日付、数値は数値のまま)、マスクのとおりに表示されます。テキストとの違いは次のとおりです。\n- 桁区切り記号と小数点記号は、ファイルを開く人の言語での使い方で表示されます。マスクの区切り記号は、桁をグループ化するかどうかと表示する小数点以下の桁数だけを決めます\n- `Mon` は、ファイルを開く人の言語で月名を表示します\n- 末尾の `#` は小数点以下を最大 10 桁表示し、整数は後ろに小数点記号を付けて表示します (`12.`)\n\n表示形式のないマスクは、列名と理由を示して `EXCEL-WRITE-OPTION-ERROR` を発生させます: `ZZ` (セルは UTC オフセットを保持しません)、`MON` (大文字の月名はありません)、`SS.` の直後にない `sss`、時の直後または秒の直前にない分、およびそこにある数値の月。1 つの列にマスクと `column_formats` の書式コードの両方を指定することはできません"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.display_name": {
-          "source": "Column Header Text",
-          "message": "列見出しテキスト"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.short_desc": {
-          "source": "The header text of each column whose header is not its name",
-          "message": "見出しが列名と異なる各列の見出しテキスト"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.desc": {
-          "source": "The header text of columns by column name, for columns whose header is not their name.  The records are written by column name, so `headers` and the other column options name the columns as the records do; this option only changes the text of the header row",
-          "message": "見出しが列名と異なる列の、列名ごとの見出しテキスト。レコードは列名で書き込まれるため、`headers` やその他の列オプションはレコードと同じ名前で列を指定します。このオプションは見出し行のテキストだけを変更します"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.display_name": {
-          "source": "Write Header Row",
-          "message": "見出し行を書き込む"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.short_desc": {
-          "source": "Write the column headers as the first row",
-          "message": "列見出しを 1 行目に書き込みます"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.desc": {
-          "source": "Set to `false` to write no header row: the first record is written in the first row of the worksheet; the default is `true`",
-          "message": "`false` に設定すると見出し行を書き込みません。最初のレコードがワークシートの 1 行目に書き込まれます。既定値は `true` です"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.display_name": {
-          "source": "Time Zone",
-          "message": "タイムゾーン"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.short_desc": {
-          "source": "The time zone whose wall-clock time dates are written in",
-          "message": "日付をその現地時刻で書き込むタイムゾーン"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.desc": {
-          "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
-          "message": "日付をその現地時刻で書き込むタイムゾーンの地域 (`Europe/Prague`、`America/New_York` など)。セルはタイムゾーンのない日付と時刻を保持するためです。指定しない場合、日付はそれ自身の現地時刻で書き込まれます"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.display_name": {
-          "source": "Worksheets",
-          "message": "ワークシート"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.short_desc": {
-          "source": "The worksheets to write, each with the condition of its records",
-          "message": "書き込むワークシート。それぞれにそのレコードの条件があります"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.desc": {
-          "source": "The worksheets to write, in workbook order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required): up to 31 characters, none of them `: \\ / ? * [ ]`, not beginning or ending with an apostrophe, and different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks`, `header_row` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks`, `header_row` and `write_headers` options are given for each worksheet instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
-          "message": "レコードを複数のワークシートに書き込むための、ブックの順に書き込むワークシート。各レコードは条件に一致するワークシートに書き込まれます。各ワークシートは次のキーを持つハッシュです。\n- `worksheet`: ワークシートの名前（必須）。31 文字以内で、`: \\ / ? * [ ]` を含まず、アポストロフィで始まったり終わったりせず、大文字と小文字の違いだけでなく他のワークシートの名前と異なる必要があります\n- `columns`: ワークシートの列（順序どおり）。レコードに値がない列は空のセルになり、レコードのその他のフィールドはワークシートに書き込まれません。`columns` がない場合は、ワークシートに最初に書き込まれるレコードのフィールドがその列になります\n- `when`: ワークシートに書き込まれるレコードの条件。レコードのフィールドを使った DPQL で、たとえば `@kind == \"order\"` のように指定します。条件のないワークシートはすべてのレコードを受け取ります\n- `column_headers`、`column_formats`、`column_masks`, `header_row`、`write_headers`: 同じ名前のオプションと同じで、ワークシートに適用されます\n\n**振り分け**: レコードは条件に一致する最初のワークシートに書き込まれます。`route` を `all` に設定すると、一致するすべてのワークシートに書き込まれます。どのワークシートにも一致しないレコードは、`unmatched` が `skip` でない限り `EXCEL-WRITE-ROUTE-ERROR` を発生させます。レコードのないワークシートも含め、すべてのワークシートが作成され、列が指定されていれば見出し行があります。`write-data` アクションは、各ワークシートに書き込まれたレコード数を `sheet_counts` で返します。\n\n**その他のオプション**: このオプションを使う場合、`worksheet`、`headers`、`column_headers`、`column_formats`、`column_masks`, `header_row`、`write_headers` オプションは代わりにワークシートごとに指定します。`format`、`streaming`、`timezone` はブックに適用されます。無効なワークシートまたは条件は、そのワークシートを示して `EXCEL-WRITE-OPTION-ERROR` を発生させます"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.display_name": {
-          "source": "Worksheets of a Record",
-          "message": "レコードのワークシート"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.short_desc": {
-          "source": "Whether a record is written to the first worksheet it matches or to every one",
-          "message": "レコードを一致する最初のワークシートに書き込むか、一致するすべてのワークシートに書き込むか"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.desc": {
-          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
-          "message": "レコードを書き込む `sheets` オプションのワークシート。`first`（既定値）は条件に一致する最初のワークシートで、条件のないワークシートはそれより前のどのワークシートにも書き込まれないすべてのレコードを受け取ります。`all` は条件に一致するすべてのワークシートで、レコードを複数のワークシートに書き込めます。たとえば、すべてのレコードを含むワークシートと返品を含むワークシートに書き込めます"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
-          "source": "First Match",
-          "message": "最初の一致"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
-          "source": "The first worksheet whose condition the record matches",
-          "message": "レコードが条件に一致する最初のワークシート"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
-          "source": "A record is written to the first worksheet whose condition it matches",
-          "message": "レコードは条件に一致する最初のワークシートに書き込まれます"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
-          "source": "Every Match",
-          "message": "すべての一致"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
-          "source": "Every worksheet whose condition the record matches",
-          "message": "レコードが条件に一致するすべてのワークシート"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
-          "source": "A record is written to every worksheet whose condition it matches",
-          "message": "レコードは条件に一致するすべてのワークシートに書き込まれます"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.display_name": {
-          "source": "Records Without a Worksheet",
-          "message": "ワークシートのないレコード"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.short_desc": {
-          "source": "Whether a record that matches no worksheet fails the write or is skipped",
-          "message": "どのワークシートにも一致しないレコードで書き込みを失敗させるか、スキップするか"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.desc": {
-          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `EXCEL-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
-          "message": "`sheets` オプションのどのワークシートの条件にも一致しないレコードの扱い。`fail`（既定値）はレコードとワークシートの条件を示して `EXCEL-WRITE-ROUTE-ERROR` を発生させます。`skip` はレコードをどのワークシートにも書き込まず、数えません"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
-          "source": "Fail",
-          "message": "失敗"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
-          "source": "The write fails",
-          "message": "書き込みが失敗します"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
-          "source": "A record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`",
-          "message": "どのワークシートにも一致しないレコードは `EXCEL-WRITE-ROUTE-ERROR` を発生させます"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
-          "source": "Skip",
-          "message": "スキップ"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
-          "source": "The record is not written",
-          "message": "レコードは書き込まれません"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
-          "source": "A record that matches no worksheet is not written and not counted",
-          "message": "どのワークシートにも一致しないレコードは書き込まれず、数えられません"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.display_name": {
-          "source": "Create Excel Spreadsheet Data",
-          "message": "Excel スプレッドシートデータの作成"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.short_desc": {
-          "source": "Create Excel spreadsheet data and return as binary",
-          "message": "Excel スプレッドシートデータを作成し、バイナリとして返します"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.desc": {
-          "source": "Create Excel spreadsheet data in memory and return it as binary data; useful for generating Excel files without writing to disk",
-          "message": "メモリ上に Excel スプレッドシートデータを作成してバイナリデータとして返します。ディスクに書き込まずに Excel ファイルを生成する際に便利です"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d29ya3NoZWV0.display_name": {
-          "source": "Worksheet Name",
-          "message": "ワークシート名"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d29ya3NoZWV0.short_desc": {
-          "source": "The name of the worksheet to create",
-          "message": "作成するワークシートの名前"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d29ya3NoZWV0.desc": {
-          "source": "The name of the worksheet to create; default is `Sheet1`",
-          "message": "作成するワークシートの名前。デフォルトは `Sheet1` です"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.aGVhZGVycw.display_name": {
-          "source": "Column Headers",
-          "message": "列ヘッダー"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.aGVhZGVycw.short_desc": {
-          "source": "List of header / column names for the data",
-          "message": "データのヘッダー/列名のリスト"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.aGVhZGVycw.desc": {
-          "source": "List of header / column names for the data; if not provided, headers will be auto-detected from the first record",
-          "message": "データのヘッダー/列名のリスト。指定されない場合、ヘッダーは最初のレコードから自動検出されます"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.display_name": {
-          "source": "Output Format",
-          "message": "出力フォーマット"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.short_desc": {
-          "source": "Excel format to use",
-          "message": "使用する Excel 形式"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.desc": {
-          "source": "Excel format to use: `xlsx` (default, Excel 2007+) or `xls` (Excel 97-2003)",
-          "message": "使用する Excel 形式: `xlsx` (デフォルト、Excel 2007+) または `xls` (Excel 97-2003)"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhsc3g.display_name": {
-          "source": "XLSX",
-          "message": "XLSX"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhsc3g.short_desc": {
-          "source": "Excel 2007+ format (.xlsx)",
-          "message": "Excel 2007+ 形式 (.xlsx)"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhsc3g.desc": {
-          "source": "Excel 2007+ format (`.xlsx`); supports streaming mode for large files",
-          "message": "Excel 2007+ 形式 (`.xlsx`)。大容量ファイル用のストリーミングモードをサポートします"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhscw.display_name": {
-          "source": "XLS",
-          "message": "XLS"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhscw.short_desc": {
-          "source": "Excel 97-2003 format (.xls)",
-          "message": "Excel 97-2003 形式 (.xls)"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhscw.desc": {
-          "source": "Legacy Excel 97-2003 binary format (`.xls`); limited to 65,536 rows and 256 columns per sheet",
-          "message": "レガシー Excel 97-2003 バイナリ形式 (`.xls`)。シートあたり 65,536 行および 256 列に制限されています"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c3RyZWFtaW5n.display_name": {
-          "source": "Streaming Mode",
-          "message": "ストリーミングモード"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c3RyZWFtaW5n.short_desc": {
-          "source": "Use streaming mode for large files",
-          "message": "大容量ファイルにストリーミングモードを使用します"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c3RyZWFtaW5n.desc": {
-          "source": "If `True`, use SXSSF streaming mode for writing large files with reduced memory usage; only applies to `xlsx` format",
-          "message": "`True` の場合、メモリ使用量を削減して大容量ファイルを書き込むための SXSSF ストリーミングモードを使用します。`xlsx` 形式にのみ適用されます"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2Zvcm1hdHM.display_name": {
-          "source": "Column Display Formats",
-          "message": "列の表示形式"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2Zvcm1hdHM.short_desc": {
-          "source": "The display format of each column, such as dd.mm.yyyy or #,##0.00",
-          "message": "各列の表示形式 (dd.mm.yyyy や #,##0.00 など)"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2Zvcm1hdHM.desc": {
-          "source": "The display format of columns by their header name, so that whoever opens the file sees each value as intended: a date as `dd.mm.yyyy`, an amount as `#,##0.00`, or a share as `0.0%`.  The cells keep their real values (a date stays a date and a number a number); only the way they are shown changes.  A column without a format is written as without this option: dates as `yyyy-mm-dd hh:mm:ss` and numbers without a format.\n\nFormat codes are written as in Excel and LibreOffice:\n- **numbers**: `0` (a digit that is always shown), `#` (a digit shown when significant), `,` between digits (thousands grouping), `,` after the last digit (divide by 1000), `.` (the decimal point), and `E+00` (scientific notation); up to three sections for positive, negative and zero values separated by `;`, such as `#,##0.00;(#,##0.00)` or `#,##0.00;#,##0.00-`\n- **percentages**: a `%` in each section, such as `0.0%`; the value is a fraction, so `0.25` is shown as `25.0%`\n- **dates and times**: `yy` or `yyyy` (year), `m`, `mm`, `mmm` or `mmmm` (month as a number or a name), `d` or `dd` (day), `ddd` or `dddd` (weekday name), `h` or `hh` (hour), `m` or `mm` directly after an hour or before a second (minute), `s` or `ss` (second), `.0` to `.000` after the second (fractions of a second), and `AM/PM`, such as `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText in a code is written in double quotes (`\"EUR\"`), escaped with a backslash (`\\x`), as a currency symbol in brackets (`[$€-407]`), or as itself for `$ - + / ( ) :`, spaces and symbols such as `€`; a section can start with a color such as `[Red]`.\n\nA value that its column's code does not show, such as a string in a number column, is written without the format.  An invalid or unsupported code (`General`, fractions, fill characters, conditions, or elapsed times), or a column that is not written, raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the problem",
-          "message": "ファイルを開いたユーザーに各値が意図どおりに表示されるよう、ヘッダー名で指定する列の表示形式です。日付は `dd.mm.yyyy`、金額は `#,##0.00`、割合は `0.0%` のように表示できます。セルは実際の値を保持し (日付は日付、数値は数値のまま)、表示方法のみが変わります。形式を指定しない列は、このオプションがない場合と同様に書き込まれます。日付は `yyyy-mm-dd hh:mm:ss`、数値は形式なしで書き込まれます。\n\n形式コードは Excel および LibreOffice と同じように記述します:\n- **数値**: `0` (常に表示される桁)、`#` (有効な場合に表示される桁)、桁の間の `,` (桁区切り)、最後の桁の後の `,` (1000 で除算)、`.` (小数点)、`E+00` (指数表記)。正の値、負の値、ゼロ値に対して最大 3 つのセクションを `;` で区切って指定できます。例: `#,##0.00;(#,##0.00)` や `#,##0.00;#,##0.00-`\n- **パーセント**: 各セクションに `%` を含めます。例: `0.0%`。値は小数であるため、`0.25` は `25.0%` と表示されます\n- **日付と時刻**: `yy` または `yyyy` (年)、`m`、`mm`、`mmm` または `mmmm` (数値または名前による月)、`d` または `dd` (日)、`ddd` または `dddd` (曜日名)、`h` または `hh` (時)、時の直後または秒の直前の `m` または `mm` (分)、`s` または `ss` (秒)、秒の後の `.0` から `.000` (秒の小数部)、および `AM/PM`。例: `dd.mm.yyyy hh:mm`\n- **テキスト**: `@`\n\nコード内のテキストは、二重引用符で囲む (`\"EUR\"`)、バックスラッシュでエスケープする (`\\x`)、角かっこ内の通貨記号として記述する (`[$€-407]`) のいずれかで記述し、`$ - + / ( ) :`、スペース、`€` などの記号はそのまま記述します。セクションの先頭には `[Red]` などの色を指定できます。\n\n列のコードで表示できない値 (数値列の文字列など) は、形式なしで書き込まれます。無効またはサポートされていないコード (`General`、分数、埋め文字、条件、経過時間) や、書き込まれない列を指定すると、列と問題を示す `EXCEL-WRITE-OPTION-ERROR` が発生します"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.display_name": {
-          "source": "Column Masks",
-          "message": "列マスク"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.short_desc": {
-          "source": "The display format of each column as a mask, such as DD.MM.YYYY or #.##0,00 €",
-          "message": "各列の表示形式をマスクで指定 (例: DD.MM.YYYY、#.##0,00 €)"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.desc": {
-          "source": "The display format of columns by column name as masks of the [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) module, the masks that CSV files and sheet contracts are read and written with: a date as `DD.MM.YYYY`, a time as `hh:mm AM`, an amount as `#.##0,00 €` or a share as `0.#%`.  Each mask becomes the display format code of its column (`DD.MM.YYYY` is `dd\\.mm\\.yyyy`, `#.##0,00 €` is `#,##0.00\" €\"`), so the cells keep their real values (a date stays a date and a number a number) and are shown as the mask describes, with these differences from text:\n- the group separator and decimal mark are shown as the language of whoever opens the file uses them; the mask's separators only say whether digits are grouped and how many decimals are shown\n- `Mon` shows the month name in the language of whoever opens the file\n- a final `#` shows at most 10 decimals, and a whole number with the decimal mark after it (`12.`)\n\nA mask without a display format raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the reason: `ZZ` (a cell holds no UTC offset), `MON` (there is no upper-case month name), `sss` not directly after `SS.`, a minute that is not directly after an hour or before the seconds, and a numeric month that is.  A column cannot have both a mask and a format code in `column_formats`",
-          "message": "列名ごとの列の表示形式を、[ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) モジュールのマスク (CSV ファイルとシートコントラクトの読み書きに使うマスク) で指定します。例: 日付は `DD.MM.YYYY`、時刻は `hh:mm AM`、金額は `#.##0,00 €`、比率は `0.#%`。各マスクはその列の表示形式コードになり (`DD.MM.YYYY` は `dd\\.mm\\.yyyy`、`#.##0,00 €` は `#,##0.00\" €\"`)、セルは実際の値を保持し (日付は日付、数値は数値のまま)、マスクのとおりに表示されます。テキストとの違いは次のとおりです。\n- 桁区切り記号と小数点記号は、ファイルを開く人の言語での使い方で表示されます。マスクの区切り記号は、桁をグループ化するかどうかと表示する小数点以下の桁数だけを決めます\n- `Mon` は、ファイルを開く人の言語で月名を表示します\n- 末尾の `#` は小数点以下を最大 10 桁表示し、整数は後ろに小数点記号を付けて表示します (`12.`)\n\n表示形式のないマスクは、列名と理由を示して `EXCEL-WRITE-OPTION-ERROR` を発生させます: `ZZ` (セルは UTC オフセットを保持しません)、`MON` (大文字の月名はありません)、`SS.` の直後にない `sss`、時の直後または秒の直前にない分、およびそこにある数値の月。1 つの列にマスクと `column_formats` の書式コードの両方を指定することはできません"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.display_name": {
-          "source": "Column Header Text",
-          "message": "列見出しテキスト"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.short_desc": {
-          "source": "The header text of each column whose header is not its name",
-          "message": "見出しが列名と異なる各列の見出しテキスト"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.desc": {
-          "source": "The header text of columns by column name, for columns whose header is not their name.  The records are written by column name, so `headers` and the other column options name the columns as the records do; this option only changes the text of the header row",
-          "message": "見出しが列名と異なる列の、列名ごとの見出しテキスト。レコードは列名で書き込まれるため、`headers` やその他の列オプションはレコードと同じ名前で列を指定します。このオプションは見出し行のテキストだけを変更します"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.display_name": {
-          "source": "Write Header Row",
-          "message": "見出し行を書き込む"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.short_desc": {
-          "source": "Write the column headers as the first row",
-          "message": "列見出しを 1 行目に書き込みます"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.desc": {
-          "source": "Set to `false` to write no header row: the first record is written in the first row of the worksheet; the default is `true`",
-          "message": "`false` に設定すると見出し行を書き込みません。最初のレコードがワークシートの 1 行目に書き込まれます。既定値は `true` です"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.display_name": {
-          "source": "Time Zone",
-          "message": "タイムゾーン"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.short_desc": {
-          "source": "The time zone whose wall-clock time dates are written in",
-          "message": "日付をその現地時刻で書き込むタイムゾーン"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.desc": {
-          "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
-          "message": "日付をその現地時刻で書き込むタイムゾーンの地域 (`Europe/Prague`、`America/New_York` など)。セルはタイムゾーンのない日付と時刻を保持するためです。指定しない場合、日付はそれ自身の現地時刻で書き込まれます"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.display_name": {
-          "source": "Worksheets",
-          "message": "ワークシート"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.short_desc": {
-          "source": "The worksheets to write, each with the condition of its records",
-          "message": "書き込むワークシート。それぞれにそのレコードの条件があります"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.desc": {
-          "source": "The worksheets to write, in workbook order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required): up to 31 characters, none of them `: \\ / ? * [ ]`, not beginning or ending with an apostrophe, and different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks`, `header_row` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks`, `header_row` and `write_headers` options are given for each worksheet instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
-          "message": "レコードを複数のワークシートに書き込むための、ブックの順に書き込むワークシート。各レコードは条件に一致するワークシートに書き込まれます。各ワークシートは次のキーを持つハッシュです。\n- `worksheet`: ワークシートの名前（必須）。31 文字以内で、`: \\ / ? * [ ]` を含まず、アポストロフィで始まったり終わったりせず、大文字と小文字の違いだけでなく他のワークシートの名前と異なる必要があります\n- `columns`: ワークシートの列（順序どおり）。レコードに値がない列は空のセルになり、レコードのその他のフィールドはワークシートに書き込まれません。`columns` がない場合は、ワークシートに最初に書き込まれるレコードのフィールドがその列になります\n- `when`: ワークシートに書き込まれるレコードの条件。レコードのフィールドを使った DPQL で、たとえば `@kind == \"order\"` のように指定します。条件のないワークシートはすべてのレコードを受け取ります\n- `column_headers`、`column_formats`、`column_masks`, `header_row`、`write_headers`: 同じ名前のオプションと同じで、ワークシートに適用されます\n\n**振り分け**: レコードは条件に一致する最初のワークシートに書き込まれます。`route` を `all` に設定すると、一致するすべてのワークシートに書き込まれます。どのワークシートにも一致しないレコードは、`unmatched` が `skip` でない限り `EXCEL-WRITE-ROUTE-ERROR` を発生させます。レコードのないワークシートも含め、すべてのワークシートが作成され、列が指定されていれば見出し行があります。`write-data` アクションは、各ワークシートに書き込まれたレコード数を `sheet_counts` で返します。\n\n**その他のオプション**: このオプションを使う場合、`worksheet`、`headers`、`column_headers`、`column_formats`、`column_masks`, `header_row`、`write_headers` オプションは代わりにワークシートごとに指定します。`format`、`streaming`、`timezone` はブックに適用されます。無効なワークシートまたは条件は、そのワークシートを示して `EXCEL-WRITE-OPTION-ERROR` を発生させます"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.display_name": {
-          "source": "Worksheets of a Record",
-          "message": "レコードのワークシート"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.short_desc": {
-          "source": "Whether a record is written to the first worksheet it matches or to every one",
-          "message": "レコードを一致する最初のワークシートに書き込むか、一致するすべてのワークシートに書き込むか"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.desc": {
-          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
-          "message": "レコードを書き込む `sheets` オプションのワークシート。`first`（既定値）は条件に一致する最初のワークシートで、条件のないワークシートはそれより前のどのワークシートにも書き込まれないすべてのレコードを受け取ります。`all` は条件に一致するすべてのワークシートで、レコードを複数のワークシートに書き込めます。たとえば、すべてのレコードを含むワークシートと返品を含むワークシートに書き込めます"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
-          "source": "First Match",
-          "message": "最初の一致"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
-          "source": "The first worksheet whose condition the record matches",
-          "message": "レコードが条件に一致する最初のワークシート"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
-          "source": "A record is written to the first worksheet whose condition it matches",
-          "message": "レコードは条件に一致する最初のワークシートに書き込まれます"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
-          "source": "Every Match",
-          "message": "すべての一致"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
-          "source": "Every worksheet whose condition the record matches",
-          "message": "レコードが条件に一致するすべてのワークシート"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
-          "source": "A record is written to every worksheet whose condition it matches",
-          "message": "レコードは条件に一致するすべてのワークシートに書き込まれます"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.display_name": {
-          "source": "Records Without a Worksheet",
-          "message": "ワークシートのないレコード"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.short_desc": {
-          "source": "Whether a record that matches no worksheet fails the write or is skipped",
-          "message": "どのワークシートにも一致しないレコードで書き込みを失敗させるか、スキップするか"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.desc": {
-          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `EXCEL-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
-          "message": "`sheets` オプションのどのワークシートの条件にも一致しないレコードの扱い。`fail`（既定値）はレコードとワークシートの条件を示して `EXCEL-WRITE-ROUTE-ERROR` を発生させます。`skip` はレコードをどのワークシートにも書き込まず、数えません"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
-          "source": "Fail",
-          "message": "失敗"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
-          "source": "The write fails",
-          "message": "書き込みが失敗します"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
-          "source": "A record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`",
-          "message": "どのワークシートにも一致しないレコードは `EXCEL-WRITE-ROUTE-ERROR` を発生させます"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
-          "source": "Skip",
-          "message": "スキップ"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
-          "source": "The record is not written",
-          "message": "レコードは書き込まれません"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
-          "source": "A record that matches no worksheet is not written and not counted",
-          "message": "どのワークシートにも一致しないレコードは書き込まれず、数えられません"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.aGVhZGVyX3Jvdw.display_name": {
-          "source": "Header Row Number",
-          "message": "ヘッダー行番号"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.aGVhZGVyX3Jvdw.short_desc": {
-          "source": "The row containing the column headers",
-          "message": "列ヘッダーを含む行"
-        },
-        "app.RXhjZWw.action.d3JpdGU.option.aGVhZGVyX3Jvdw.desc": {
-          "source": "The 1-based row containing the column headers; `1` by default. Earlier rows are blank, and records follow the header row. A value after row `1` requires `write_headers` to be `true`.",
-          "message": "列ヘッダーを含む行を1から数えた番号です。デフォルトは `1` です。それより前の行は空白になり、レコードはヘッダー行の後に続きます。`1` より大きい値には `write_headers` を `true` にする必要があります。"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.aGVhZGVyX3Jvdw.display_name": {
-          "source": "Header Row Number",
-          "message": "ヘッダー行番号"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.aGVhZGVyX3Jvdw.short_desc": {
-          "source": "The row containing the column headers",
-          "message": "列ヘッダーを含む行"
-        },
-        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.aGVhZGVyX3Jvdw.desc": {
-          "source": "The 1-based row containing the column headers; `1` by default. Earlier rows are blank, and records follow the header row. A value after row `1` requires `write_headers` to be `true`.",
-          "message": "列ヘッダーを含む行を1から数えた番号です。デフォルトは `1` です。それより前の行は空白になり、レコードはヘッダー行の後に続きます。`1` より大きい値には `write_headers` を `true` にする必要があります。"
+        "app.RXhjZWw.action.cmVhZA.option.aWdub3JlX2VtcHR5.display_name": {
+          "source": "Ignore Empty Rows",
+          "message": "空の行を無視"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.aWdub3JlX2VtcHR5.short_desc": {
+          "source": "Skip empty rows instead of stopping at the first one",
+          "message": "最初の空の行で停止せず、空の行をスキップします"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.cGF0aA.desc": {
+          "source": "The location of the Excel data; mutually exclusive with `data` and `stream`; resolved with a call to [FileLocationHandler::getBinaryStreamFromLocation()](https://qoretechnologies.com/manual/qorus/current/qore/modules/FileLocationHandler/html/class_file_location_handler_1_1_file_location_handler.html#a29c2338efc901a6b8f24542505e2a094)",
+          "message": "Excel データの位置。`data` および `stream` とは相互排他的です。[FileLocationHandler::getBinaryStreamFromLocation()](https://qoretechnologies.com/manual/qorus/current/qore/modules/FileLocationHandler/html/class_file_location_handler_1_1_file_location_handler.html#a29c2338efc901a6b8f24542505e2a094) の呼び出しで解決されます"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.cGF0aA.display_name": {
+          "source": "Excel Input Path",
+          "message": "Excel 入力パス"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.cGF0aA.short_desc": {
+          "source": "The location of the Excel data",
+          "message": "Excel データの位置"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.cHJlc2VydmVfZW1wdHlfcm93cw.desc": {
+          "source": "If `True`, return empty rows through the last stored worksheet row, within `data_cells`. Use this to verify exports containing records whose fields are all empty. Takes precedence over `ignore_empty`; `False` by default.",
+          "message": "`True` の場合、`data_cells` の範囲内で、ワークシートに保存された最後の行まで空の行を返します。すべてのフィールドが空のレコードを含むエクスポートの検証に使用します。`ignore_empty` より優先され、デフォルトは `False` です。"
         },
         "app.RXhjZWw.action.cmVhZA.option.cHJlc2VydmVfZW1wdHlfcm93cw.display_name": {
           "source": "Preserve Empty Rows",
@@ -1079,7 +287,235 @@
           "source": "Return empty rows as records",
           "message": "空の行をレコードとして返す"
         },
-        "app.RXhjZWw.action.cmVhZA.option.cHJlc2VydmVfZW1wdHlfcm93cw.desc": {
+        "app.RXhjZWw.action.cmVhZA.option.d29ya3NoZWV0.desc": {
+          "source": "The name of the worksheet to iterate, matched without regard to case, or its 0-based position as a string; if missing, the first worksheet is processed; conflicts with `worksheet_pattern`.  An unknown worksheet raises `EXCEL-WORKSHEET-NOT-FOUND`, which lists the worksheets of the file",
+          "message": "反復処理するワークシートの名前（大文字と小文字を区別せずに照合）、または文字列としての 0 から始まる位置。省略すると最初のワークシートが処理されます。`worksheet_pattern` と競合します。不明なワークシートは `EXCEL-WORKSHEET-NOT-FOUND` を発生させ、ファイルのワークシートを一覧表示します"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.d29ya3NoZWV0.display_name": {
+          "source": "Worksheet Name",
+          "message": "ワークシート名"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.d29ya3NoZWV0.short_desc": {
+          "source": "The name of the worksheet to iterate",
+          "message": "反復処理するワークシートの名前"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.d29ya3NoZWV0X3BhdHRlcm4.desc": {
+          "source": "A regular expression that the name of exactly one worksheet must match, for files whose worksheet name changes from file to file, such as `Jan 2026` and `Feb 2026`: use `^\\w+ \\d{4}$`, or `(?i)^export` to match without regard to case; the pattern is searched in the name, so anchor it with `^` and `$` to match the whole name.  No match raises `EXCEL-WORKSHEET-NOT-FOUND` and more than one match raises `EXCEL-WORKSHEET-AMBIGUOUS`, both listing the worksheets of the file; conflicts with `worksheet`",
+          "message": "ファイルごとにワークシート名が変わるファイル（`Jan 2026` と `Feb 2026` など）で、ちょうど 1 つのワークシートの名前が一致する必要がある正規表現。`^\\w+ \\d{4}$` を使用し、大文字と小文字を区別しない場合は `(?i)^export` を使用します。パターンは名前の中で検索されるため、名前全体に一致させるには `^` と `$` で固定してください。一致がない場合は `EXCEL-WORKSHEET-NOT-FOUND`、複数一致した場合は `EXCEL-WORKSHEET-AMBIGUOUS` が発生し、どちらもファイルのワークシートを一覧表示します。`worksheet` と競合します"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
+          "source": "Worksheet Name Pattern",
+          "message": "ワークシート名のパターン"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.d29ya3NoZWV0X3BhdHRlcm4.short_desc": {
+          "source": "A regular expression matching the name of the worksheet to iterate",
+          "message": "反復処理するワークシートの名前に一致する正規表現"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dG9sd3I.desc": {
+          "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
+          "message": "`True` の場合 (デフォルト: `False`)、自動検出されたすべてのヘッダー名が小文字に変換されます"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dG9sd3I.display_name": {
+          "source": "Convert Headers to Lower Case",
+          "message": "ヘッダーを小文字に変換"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dG9sd3I.short_desc": {
+          "source": "Convert all header names to lower case",
+          "message": "すべてのヘッダー名を小文字に変換します"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dGltZXpvbmU.desc": {
+          "source": "The timezone region to use when parsing dates",
+          "message": "日付の解析時に使用するタイムゾーン地域"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dGltZXpvbmU.display_name": {
+          "source": "Timezone Region",
+          "message": "タイムゾーン地域"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dGltZXpvbmU.short_desc": {
+          "source": "The timezone region to use when parsing dates",
+          "message": "日付の解析時に使用するタイムゾーン地域"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
+          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the worksheet has headers.",
+          "message": "値から各列の型を推論するために読み取るデータ行の数です。`0` は、すべての値を格納されたとおりに読み取り、列は任意の型になります。\n\nこれらの行の値がすべて整数の列は `int` 列、数値の列は `float` 列、ブール値の列は `bool` 列、日付の列は `date` 列、テキストの列は `string` 列になります。異なる種類の値がある列、または値のない列は、格納されたとおりに返されます (`any`)。  空のセルとエラー セルは数えられません。  型はスプレッドシート プロファイルの型です。  列の型が受け入れない後続の値は `EXCEL-COLUMN-TYPE-ERROR` を発生させ、対処方法として `column_types` で列の型を指定するか、より多くの行をサンプリングすることを示します。  列に型が付くのは、ワークシートにヘッダーがある場合のみです。"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
+          "source": "Type Sample Rows",
+          "message": "型のサンプル行数"
+        },
+        "app.RXhjZWw.action.cmVhZA.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
+          "source": "The number of rows read to infer the type of each column",
+          "message": "各列の型を推論するために読み取る行数"
+        },
+        "app.RXhjZWw.action.cmVhZA.short_desc": {
+          "source": "Read Excel spreadsheet from a specific file location",
+          "message": "指定されたファイル位置から Excel スプレッドシートを読み込みます"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.desc": {
+          "source": "Read Excel spreadsheet inline data",
+          "message": "インライン Excel スプレッドシートデータの読み込み"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.display_name": {
+          "source": "Read Excel Spreadsheet Inline Data",
+          "message": "インライン Excel スプレッドシートデータの読み込み"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.desc": {
+          "source": "The type of each column whose type is given rather than inferred from the first rows (see `type_sample_rows`), by column name: `string`, `int`, `float`, `number`, `bool`, `date`, or `any`.\n\nValues are converted to the column's type: `string` converts numbers, booleans and dates to text (for example identifiers stored as numbers); `int` accepts numbers without a fraction; `float` and `number` accept numbers; `bool` accepts booleans; `date` accepts dates; `any` returns every value as stored.  A value that the type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`.  A column that is not a column of the worksheet, or an unknown type, raises `EXCEL-READ-OPTION-ERROR`.  Columns are only typed when the worksheet has headers.",
+          "message": "最初の行から推論する代わりに型を指定する各列の型を列名ごとに指定します (`type_sample_rows` を参照): `string`、`int`、`float`、`number`、`bool`、`date`、または `any`。\n\n値は列の型に変換されます。`string` は数値、ブール値、日付をテキストに変換します (数値として格納された識別子など)。`int` は小数部のない数値を受け入れます。`float` と `number` は数値を受け入れます。`bool` はブール値を受け入れます。`date` は日付を受け入れます。`any` は各値を格納されたとおりに返します。  型が受け入れない値は `EXCEL-COLUMN-TYPE-ERROR` を発生させます。  ワークシートの列ではない列、または不明な型は `EXCEL-READ-OPTION-ERROR` を発生させます。  列に型が付くのは、ワークシートにヘッダーがある場合のみです。"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.display_name": {
+          "source": "Column Types",
+          "message": "列の型"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Y29sdW1uX3R5cGVz.short_desc": {
+          "source": "The type of columns whose type is not inferred from their values",
+          "message": "値から型を推論しない列の型"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZGF0YQ.desc": {
+          "source": "Excel data to process; conflicts with `stream` and `path`",
+          "message": "処理する Excel データ。`stream` および `path` と競合します"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZGF0YQ.display_name": {
+          "source": "Input Data",
+          "message": "入力データ"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZGF0YQ.short_desc": {
+          "source": "Excel data to process",
+          "message": "処理する Excel データ"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZGF0YV9jZWxscw.desc": {
+          "source": "The range of cells for data to process",
+          "message": "処理するデータのセル範囲"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZGF0YV9jZWxscw.display_name": {
+          "source": "Data Cells",
+          "message": "データセル"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZGF0YV9jZWxscw.short_desc": {
+          "source": "The range of cells for data to process",
+          "message": "処理するデータのセル範囲"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.desc": {
+          "source": "Error cells are read as no value",
+          "message": "エラー セルは値なしとして読み取られます"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.display_name": {
+          "source": "No Value",
+          "message": "値なし"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOm51bGw.short_desc": {
+          "source": "Error cells have no value",
+          "message": "エラー セルには値がありません"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "The read fails with `EXCEL-CELL-ERROR` at the first error cell, unless `error_field` is set",
+          "message": "`error_field` が設定されていない限り、最初のエラー セルで `EXCEL-CELL-ERROR` により読み取りが失敗します"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "失敗"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The read fails at the first error cell",
+          "message": "最初のエラー セルで読み取りが失敗します"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.desc": {
+          "source": "Error cells are read as the error's text, such as `#DIV/0!`, in any column",
+          "message": "エラー セルは、どの列でも `#DIV/0!` などのエラーのテキストとして読み取られます"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.display_name": {
+          "source": "Error Text",
+          "message": "エラー テキスト"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.allowed-value.c3RyaW5nOnRleHQ.short_desc": {
+          "source": "Error cells are read as the error's text",
+          "message": "エラー セルはエラーのテキストとして読み取られます"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.desc": {
+          "source": "How cells with an error, such as `#DIV/0!`, `#N/A` or `#VALUE!`, and formulas whose result is an error are read:\n\n- `fail` (the default): the read fails with `EXCEL-CELL-ERROR`, naming the worksheet, cell, column and error, unless `error_field` is set\n- `null`: the cell has no value\n- `text`: the cell's value is the error's text, such as `#DIV/0!`, in any column\n\nWith `error_field`, the errors of each record are also returned in a field of their own, and error cells are read as no value unless this option is `text`.",
+          "message": "`#DIV/0!`、`#N/A`、`#VALUE!` などのエラーがあるセル、および結果がエラーになる数式の読み取り方法:\n\n- `fail` (既定値): `error_field` が設定されていない限り、ワークシート、セル、列、エラーを示す `EXCEL-CELL-ERROR` で読み取りが失敗します\n- `null`: セルには値がありません\n- `text`: どの列でも、セルの値は `#DIV/0!` などのエラーのテキストです\n\n`error_field` を指定すると、各レコードのエラーも専用のフィールドで返され、このオプションが `text` でない限り、エラー セルは値なしとして読み取られます。"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.display_name": {
+          "source": "Error Cells",
+          "message": "エラー セル"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfY2VsbHM.short_desc": {
+          "source": "How cells with an error such as #DIV/0! or #N/A are read",
+          "message": "#DIV/0! や #N/A などのエラーがあるセルの読み取り方法"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.desc": {
+          "source": "The name of an extra field added to every record with the errors of the row's cells: a hash of the error text (such as `#DIV/0!`) by column name, or `NOTHING` if none of the record's cells is an error.  Error cells are then accepted: they are read as no value, or as their text if `error_cells` is `text`.  The name must not be the name of a column of the worksheet or of the `formula_field`; a name that is raises `EXCEL-READ-OPTION-ERROR`.",
+          "message": "行のセルのエラーを含む、すべてのレコードに追加されるフィールドの名前です。値は列名をキーとするエラー テキスト (`#DIV/0!` など) のハッシュで、レコードのどのセルもエラーでない場合は `NOTHING` です。  このときエラー セルは受け入れられ、値なしとして、または `error_cells` が `text` の場合はそのテキストとして読み取られます。  名前をワークシートの列の名前や `formula_field` にすることはできません。その場合は `EXCEL-READ-OPTION-ERROR` が発生します。"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.display_name": {
+          "source": "Error Field",
+          "message": "エラー フィールド"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.ZXJyb3JfZmllbGQ.short_desc": {
+          "source": "Return the errors of each row's cells in a field with this name",
+          "message": "各行のセルのエラーをこの名前のフィールドで返します"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Zm9ybXVsYV9maWVsZA.desc": {
+          "source": "The name of an extra field added to every record with the formulas of the row's cells, so the process reading the file can tell rows calculated by formulas from rows of data.  The most common use is recognizing a **totals row made only of `SUM` formulas**, with no `Total` label, at run time in the same way as the spreadsheet profile does at design time: pass the field's value to `DataProvider::TabularProfiler::hasTotalsFormula()`.\n\n**Value:** a hash of the formula text (as Excel shows it, without the leading `=`) by the cell's reference in the worksheet (for example `{\"B5\": \"SUM(B2:B4)\"}`), with one entry for each cell of the record that holds a formula; `NOTHING` if none of the record's cells holds a formula.  References are those of the worksheet, whatever the `data_cells` range.\n\nValues of formula cells are still returned as their calculated results.  The name must not be the name of a column of the worksheet; a name that is raises `EXCEL-FORMULA-FIELD-ERROR`.  If not set, records have no formula field and formulas are not read.",
+          "message": "行のセルの数式を持つ追加フィールドの名前です。各レコードに追加され、ファイルを読み取る処理が数式で計算された行とデータ行を区別できるようにします。最も一般的な用途は、`Total` ラベルのない **`SUM` 数式だけで構成された合計行** を、設計時のスプレッドシート プロファイルと同じ方法で実行時に認識することです。フィールドの値を `DataProvider::TabularProfiler::hasTotalsFormula()` に渡してください。\n\n**値:** ワークシート内のセル参照をキーとする数式テキスト (Excel の表示どおり、先頭の `=` なし) のハッシュ (例: `{\"B5\": \"SUM(B2:B4)\"}`) で、数式を含むレコードのセルごとに 1 つのエントリがあります。レコードのどのセルにも数式がない場合は `NOTHING` です。参照は `data_cells` の範囲に関係なくワークシートの参照です。\n\n数式セルの値は引き続き計算結果として返されます。名前をワークシートの列の名前にすることはできません。その場合は `EXCEL-FORMULA-FIELD-ERROR` が発生します。設定しない場合、レコードに数式フィールドはなく、数式は読み取られません。"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Zm9ybXVsYV9maWVsZA.display_name": {
+          "source": "Formula Field",
+          "message": "数式フィールド"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.Zm9ybXVsYV9maWVsZA.short_desc": {
+          "source": "Return the formulas of each row's cells in a field with this name",
+          "message": "各行のセルの数式をこの名前のフィールドで返します"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVyX25hbWVz.desc": {
+          "source": "If `True` then the object will parse the header names from the first header row, in this case if `header_cells` is not set explicitly, it will be assumed to be the first row",
+          "message": "`True` の場合、オブジェクトは最初のヘッダー行からヘッダー名を解析します。この場合、`header_cells` が明示的に設定されていないと、最初の行であるとみなされます"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVyX25hbWVz.display_name": {
+          "source": "Header Names?",
+          "message": "ヘッダー名を使用しますか？"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVyX25hbWVz.short_desc": {
+          "source": "Should header rows be used as output field names?",
+          "message": "ヘッダー行を出力フィールド名として使用するかどうか"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVyX2NlbGxz.desc": {
+          "source": "The range of cells for headers or a row number",
+          "message": "ヘッダーのセル範囲または行番号"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVyX2NlbGxz.display_name": {
+          "source": "Header Cells",
+          "message": "ヘッダーセル"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVyX2NlbGxz.short_desc": {
+          "source": "The range of cells for headers or a row number",
+          "message": "ヘッダーのセル範囲または行番号"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVycw.desc": {
+          "source": "List of header / column names for the data iterated; if this is present, then `header_names` must be `False`",
+          "message": "反復処理されるデータのヘッダー/列名のリスト。これが存在する場合、`header_names` は `False` である必要があります"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVycw.display_name": {
+          "source": "Output Headers",
+          "message": "出力ヘッダー"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aGVhZGVycw.short_desc": {
+          "source": "List of header / column names for the data iterated",
+          "message": "反復処理されるデータのヘッダー/列名のリスト"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aWdub3JlX2VtcHR5.desc": {
+          "source": "If `True`, empty rows are skipped and reading continues to the end of `data_cells` or the last row of the worksheet; if `False` (the default), reading stops at the first empty row",
+          "message": "`True` の場合、空の行をスキップし、`data_cells` の末尾またはワークシートの最終行まで読み取りを続行します。`False`（既定値）の場合、最初の空の行で読み取りを停止します"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aWdub3JlX2VtcHR5.display_name": {
+          "source": "Ignore Empty Rows",
+          "message": "空の行を無視"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.aWdub3JlX2VtcHR5.short_desc": {
+          "source": "Skip empty rows instead of stopping at the first one",
+          "message": "最初の空の行で停止せず、空の行をスキップします"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.cHJlc2VydmVfZW1wdHlfcm93cw.desc": {
           "source": "If `True`, return empty rows through the last stored worksheet row, within `data_cells`. Use this to verify exports containing records whose fields are all empty. Takes precedence over `ignore_empty`; `False` by default.",
           "message": "`True` の場合、`data_cells` の範囲内で、ワークシートに保存された最後の行まで空の行を返します。すべてのフィールドが空のレコードを含むエクスポートの検証に使用します。`ignore_empty` より優先され、デフォルトは `False` です。"
         },
@@ -1091,9 +527,573 @@
           "source": "Return empty rows as records",
           "message": "空の行をレコードとして返す"
         },
-        "app.RXhjZWw.action.cmVhZC1kYXRh.option.cHJlc2VydmVfZW1wdHlfcm93cw.desc": {
-          "source": "If `True`, return empty rows through the last stored worksheet row, within `data_cells`. Use this to verify exports containing records whose fields are all empty. Takes precedence over `ignore_empty`; `False` by default.",
-          "message": "`True` の場合、`data_cells` の範囲内で、ワークシートに保存された最後の行まで空の行を返します。すべてのフィールドが空のレコードを含むエクスポートの検証に使用します。`ignore_empty` より優先され、デフォルトは `False` です。"
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.d29ya3NoZWV0.desc": {
+          "source": "The name of the worksheet to iterate, matched without regard to case, or its 0-based position as a string; if missing, the first worksheet is processed; conflicts with `worksheet_pattern`.  An unknown worksheet raises `EXCEL-WORKSHEET-NOT-FOUND`, which lists the worksheets of the file",
+          "message": "反復処理するワークシートの名前（大文字と小文字を区別せずに照合）、または文字列としての 0 から始まる位置。省略すると最初のワークシートが処理されます。`worksheet_pattern` と競合します。不明なワークシートは `EXCEL-WORKSHEET-NOT-FOUND` を発生させ、ファイルのワークシートを一覧表示します"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.d29ya3NoZWV0.display_name": {
+          "source": "Worksheet Name",
+          "message": "ワークシート名"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.d29ya3NoZWV0.short_desc": {
+          "source": "The name of the worksheet to iterate",
+          "message": "反復処理するワークシートの名前"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.d29ya3NoZWV0X3BhdHRlcm4.desc": {
+          "source": "A regular expression that the name of exactly one worksheet must match, for files whose worksheet name changes from file to file, such as `Jan 2026` and `Feb 2026`: use `^\\w+ \\d{4}$`, or `(?i)^export` to match without regard to case; the pattern is searched in the name, so anchor it with `^` and `$` to match the whole name.  No match raises `EXCEL-WORKSHEET-NOT-FOUND` and more than one match raises `EXCEL-WORKSHEET-AMBIGUOUS`, both listing the worksheets of the file; conflicts with `worksheet`",
+          "message": "ファイルごとにワークシート名が変わるファイル（`Jan 2026` と `Feb 2026` など）で、ちょうど 1 つのワークシートの名前が一致する必要がある正規表現。`^\\w+ \\d{4}$` を使用し、大文字と小文字を区別しない場合は `(?i)^export` を使用します。パターンは名前の中で検索されるため、名前全体に一致させるには `^` と `$` で固定してください。一致がない場合は `EXCEL-WORKSHEET-NOT-FOUND`、複数一致した場合は `EXCEL-WORKSHEET-AMBIGUOUS` が発生し、どちらもファイルのワークシートを一覧表示します。`worksheet` と競合します"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.d29ya3NoZWV0X3BhdHRlcm4.display_name": {
+          "source": "Worksheet Name Pattern",
+          "message": "ワークシート名のパターン"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.d29ya3NoZWV0X3BhdHRlcm4.short_desc": {
+          "source": "A regular expression matching the name of the worksheet to iterate",
+          "message": "反復処理するワークシートの名前に一致する正規表現"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dG9sd3I.desc": {
+          "source": "If `True` (default `False`), all automatically-detected header names will be converted to lower case letters",
+          "message": "`True` の場合 (デフォルト: `False`)、自動検出されたすべてのヘッダー名が小文字に変換されます"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dG9sd3I.display_name": {
+          "source": "Convert Headers to Lower Case",
+          "message": "ヘッダーを小文字に変換"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dG9sd3I.short_desc": {
+          "source": "Convert all header names to lower case",
+          "message": "すべてのヘッダー名を小文字に変換します"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dGltZXpvbmU.desc": {
+          "source": "The timezone region to use when parsing dates",
+          "message": "日付の解析時に使用するタイムゾーン地域"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dGltZXpvbmU.display_name": {
+          "source": "Timezone Region",
+          "message": "タイムゾーン地域"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dGltZXpvbmU.short_desc": {
+          "source": "The timezone region to use when parsing dates",
+          "message": "日付の解析時に使用するタイムゾーン地域"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.desc": {
+          "source": "The number of data rows read to infer the type of each column from its values; `0` reads every value as stored, with columns of any type.\n\nA column whose values in these rows are all whole numbers is an `int` column, numbers a `float` column, booleans a `bool` column, dates a `date` column, and text a `string` column; a column with values of different kinds, or with no values, is returned as stored (`any`).  Empty cells and error cells are not counted.  The types are those of the spreadsheet profile.  A later value that its column's type does not accept raises `EXCEL-COLUMN-TYPE-ERROR`, which names the remedies: giving the column's type with `column_types`, or sampling more rows.  Columns are only typed when the worksheet has headers.",
+          "message": "値から各列の型を推論するために読み取るデータ行の数です。`0` は、すべての値を格納されたとおりに読み取り、列は任意の型になります。\n\nこれらの行の値がすべて整数の列は `int` 列、数値の列は `float` 列、ブール値の列は `bool` 列、日付の列は `date` 列、テキストの列は `string` 列になります。異なる種類の値がある列、または値のない列は、格納されたとおりに返されます (`any`)。  空のセルとエラー セルは数えられません。  型はスプレッドシート プロファイルの型です。  列の型が受け入れない後続の値は `EXCEL-COLUMN-TYPE-ERROR` を発生させ、対処方法として `column_types` で列の型を指定するか、より多くの行をサンプリングすることを示します。  列に型が付くのは、ワークシートにヘッダーがある場合のみです。"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.display_name": {
+          "source": "Type Sample Rows",
+          "message": "型のサンプル行数"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.option.dHlwZV9zYW1wbGVfcm93cw.short_desc": {
+          "source": "The number of rows read to infer the type of each column",
+          "message": "各列の型を推論するために読み取る行数"
+        },
+        "app.RXhjZWw.action.cmVhZC1kYXRh.short_desc": {
+          "source": "Read Excel spreadsheet inline data",
+          "message": "インライン Excel スプレッドシートデータの読み込み"
+        },
+        "app.RXhjZWw.action.d3JpdGU.desc": {
+          "source": "Write data to an Excel spreadsheet file at a specified path",
+          "message": "指定されたパスの Excel スプレッドシートファイルにデータを書き込みます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.display_name": {
+          "source": "Write Excel Spreadsheet File",
+          "message": "Excel スプレッドシートファイルの書き込み"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.desc": {
+          "source": "The display format of columns by column name as masks of the [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) module, the masks that CSV files and sheet contracts are read and written with: a date as `DD.MM.YYYY`, a time as `hh:mm AM`, an amount as `#.##0,00 €` or a share as `0.#%`.  Each mask becomes the display format code of its column (`DD.MM.YYYY` is `dd\\.mm\\.yyyy`, `#.##0,00 €` is `#,##0.00\" €\"`), so the cells keep their real values (a date stays a date and a number a number) and are shown as the mask describes, with these differences from text:\n- the group separator and decimal mark are shown as the language of whoever opens the file uses them; the mask's separators only say whether digits are grouped and how many decimals are shown\n- `Mon` shows the month name in the language of whoever opens the file\n- a final `#` shows at most 10 decimals, and a whole number with the decimal mark after it (`12.`)\n\nA mask without a display format raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the reason: `ZZ` (a cell holds no UTC offset), `MON` (there is no upper-case month name), `sss` not directly after `SS.`, a minute that is not directly after an hour or before the seconds, and a numeric month that is.  A column cannot have both a mask and a format code in `column_formats`",
+          "message": "列名ごとの列の表示形式を、[ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) モジュールのマスク (CSV ファイルとシートコントラクトの読み書きに使うマスク) で指定します。例: 日付は `DD.MM.YYYY`、時刻は `hh:mm AM`、金額は `#.##0,00 €`、比率は `0.#%`。各マスクはその列の表示形式コードになり (`DD.MM.YYYY` は `dd\\.mm\\.yyyy`、`#.##0,00 €` は `#,##0.00\" €\"`)、セルは実際の値を保持し (日付は日付、数値は数値のまま)、マスクのとおりに表示されます。テキストとの違いは次のとおりです。\n- 桁区切り記号と小数点記号は、ファイルを開く人の言語での使い方で表示されます。マスクの区切り記号は、桁をグループ化するかどうかと表示する小数点以下の桁数だけを決めます\n- `Mon` は、ファイルを開く人の言語で月名を表示します\n- 末尾の `#` は小数点以下を最大 10 桁表示し、整数は後ろに小数点記号を付けて表示します (`12.`)\n\n表示形式のないマスクは、列名と理由を示して `EXCEL-WRITE-OPTION-ERROR` を発生させます: `ZZ` (セルは UTC オフセットを保持しません)、`MON` (大文字の月名はありません)、`SS.` の直後にない `sss`、時の直後または秒の直前にない分、およびそこにある数値の月。1 つの列にマスクと `column_formats` の書式コードの両方を指定することはできません"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.display_name": {
+          "source": "Column Masks",
+          "message": "列マスク"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX21hc2tz.short_desc": {
+          "source": "The display format of each column as a mask, such as DD.MM.YYYY or #.##0,00 €",
+          "message": "各列の表示形式をマスクで指定 (例: DD.MM.YYYY、#.##0,00 €)"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2Zvcm1hdHM.desc": {
+          "source": "The display format of columns by their header name, so that whoever opens the file sees each value as intended: a date as `dd.mm.yyyy`, an amount as `#,##0.00`, or a share as `0.0%`.  The cells keep their real values (a date stays a date and a number a number); only the way they are shown changes.  A column without a format is written as without this option: dates as `yyyy-mm-dd hh:mm:ss` and numbers without a format.\n\nFormat codes are written as in Excel and LibreOffice:\n- **numbers**: `0` (a digit that is always shown), `#` (a digit shown when significant), `,` between digits (thousands grouping), `,` after the last digit (divide by 1000), `.` (the decimal point), and `E+00` (scientific notation); up to three sections for positive, negative and zero values separated by `;`, such as `#,##0.00;(#,##0.00)` or `#,##0.00;#,##0.00-`\n- **percentages**: a `%` in each section, such as `0.0%`; the value is a fraction, so `0.25` is shown as `25.0%`\n- **dates and times**: `yy` or `yyyy` (year), `m`, `mm`, `mmm` or `mmmm` (month as a number or a name), `d` or `dd` (day), `ddd` or `dddd` (weekday name), `h` or `hh` (hour), `m` or `mm` directly after an hour or before a second (minute), `s` or `ss` (second), `.0` to `.000` after the second (fractions of a second), and `AM/PM`, such as `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText in a code is written in double quotes (`\"EUR\"`), escaped with a backslash (`\\x`), as a currency symbol in brackets (`[$€-407]`), or as itself for `$ - + / ( ) :`, spaces and symbols such as `€`; a section can start with a color such as `[Red]`.\n\nA value that its column's code does not show, such as a string in a number column, is written without the format.  An invalid or unsupported code (`General`, fractions, fill characters, conditions, or elapsed times), or a column that is not written, raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the problem",
+          "message": "ファイルを開いたユーザーに各値が意図どおりに表示されるよう、ヘッダー名で指定する列の表示形式です。日付は `dd.mm.yyyy`、金額は `#,##0.00`、割合は `0.0%` のように表示できます。セルは実際の値を保持し (日付は日付、数値は数値のまま)、表示方法のみが変わります。形式を指定しない列は、このオプションがない場合と同様に書き込まれます。日付は `yyyy-mm-dd hh:mm:ss`、数値は形式なしで書き込まれます。\n\n形式コードは Excel および LibreOffice と同じように記述します:\n- **数値**: `0` (常に表示される桁)、`#` (有効な場合に表示される桁)、桁の間の `,` (桁区切り)、最後の桁の後の `,` (1000 で除算)、`.` (小数点)、`E+00` (指数表記)。正の値、負の値、ゼロ値に対して最大 3 つのセクションを `;` で区切って指定できます。例: `#,##0.00;(#,##0.00)` や `#,##0.00;#,##0.00-`\n- **パーセント**: 各セクションに `%` を含めます。例: `0.0%`。値は小数であるため、`0.25` は `25.0%` と表示されます\n- **日付と時刻**: `yy` または `yyyy` (年)、`m`、`mm`、`mmm` または `mmmm` (数値または名前による月)、`d` または `dd` (日)、`ddd` または `dddd` (曜日名)、`h` または `hh` (時)、時の直後または秒の直前の `m` または `mm` (分)、`s` または `ss` (秒)、秒の後の `.0` から `.000` (秒の小数部)、および `AM/PM`。例: `dd.mm.yyyy hh:mm`\n- **テキスト**: `@`\n\nコード内のテキストは、二重引用符で囲む (`\"EUR\"`)、バックスラッシュでエスケープする (`\\x`)、角かっこ内の通貨記号として記述する (`[$€-407]`) のいずれかで記述し、`$ - + / ( ) :`、スペース、`€` などの記号はそのまま記述します。セクションの先頭には `[Red]` などの色を指定できます。\n\n列のコードで表示できない値 (数値列の文字列など) は、形式なしで書き込まれます。無効またはサポートされていないコード (`General`、分数、埋め文字、条件、経過時間) や、書き込まれない列を指定すると、列と問題を示す `EXCEL-WRITE-OPTION-ERROR` が発生します"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2Zvcm1hdHM.display_name": {
+          "source": "Column Display Formats",
+          "message": "列の表示形式"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2Zvcm1hdHM.short_desc": {
+          "source": "The display format of each column, such as dd.mm.yyyy or #,##0.00",
+          "message": "各列の表示形式 (dd.mm.yyyy や #,##0.00 など)"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.desc": {
+          "source": "The header text of columns by column name, for columns whose header is not their name.  The records are written by column name, so `headers` and the other column options name the columns as the records do; this option only changes the text of the header row",
+          "message": "見出しが列名と異なる列の、列名ごとの見出しテキスト。レコードは列名で書き込まれるため、`headers` やその他の列オプションはレコードと同じ名前で列を指定します。このオプションは見出し行のテキストだけを変更します"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.display_name": {
+          "source": "Column Header Text",
+          "message": "列見出しテキスト"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Y29sdW1uX2hlYWRlcnM.short_desc": {
+          "source": "The header text of each column whose header is not its name",
+          "message": "見出しが列名と異なる各列の見出しテキスト"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhsc3g.desc": {
+          "source": "Excel 2007+ format (`.xlsx`); supports streaming mode for large files",
+          "message": "Excel 2007+ 形式 (`.xlsx`)。大容量ファイル用のストリーミングモードをサポートします"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhsc3g.display_name": {
+          "source": "XLSX",
+          "message": "XLSX"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhsc3g.short_desc": {
+          "source": "Excel 2007+ format (.xlsx)",
+          "message": "Excel 2007+ 形式 (.xlsx)"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhscw.desc": {
+          "source": "Legacy Excel 97-2003 binary format (`.xls`); limited to 65,536 rows and 256 columns per sheet",
+          "message": "レガシー Excel 97-2003 バイナリ形式 (`.xls`)。シートあたり 65,536 行および 256 列に制限されています"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhscw.display_name": {
+          "source": "XLS",
+          "message": "XLS"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhscw.short_desc": {
+          "source": "Excel 97-2003 format (.xls)",
+          "message": "Excel 97-2003 形式 (.xls)"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.desc": {
+          "source": "Excel format to use: `xlsx` (default, Excel 2007+) or `xls` (Excel 97-2003)",
+          "message": "使用する Excel 形式: `xlsx` (デフォルト、Excel 2007+) または `xls` (Excel 97-2003)"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.display_name": {
+          "source": "Output Format",
+          "message": "出力フォーマット"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.Zm9ybWF0.short_desc": {
+          "source": "Excel format to use",
+          "message": "使用する Excel 形式"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.aGVhZGVyX3Jvdw.desc": {
+          "source": "The 1-based row containing the column headers; `1` by default. Earlier rows are blank, and records follow the header row. A value after row `1` requires `write_headers` to be `true`.",
+          "message": "列ヘッダーを含む行を1から数えた番号です。デフォルトは `1` です。それより前の行は空白になり、レコードはヘッダー行の後に続きます。`1` より大きい値には `write_headers` を `true` にする必要があります。"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.aGVhZGVyX3Jvdw.display_name": {
+          "source": "Header Row Number",
+          "message": "ヘッダー行番号"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.aGVhZGVyX3Jvdw.short_desc": {
+          "source": "The row containing the column headers",
+          "message": "列ヘッダーを含む行"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.aGVhZGVycw.desc": {
+          "source": "List of header / column names for the data; if not provided, headers will be auto-detected from the first record",
+          "message": "データのヘッダー/列名のリスト。指定されない場合、ヘッダーは最初のレコードから自動検出されます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.aGVhZGVycw.display_name": {
+          "source": "Column Headers",
+          "message": "列ヘッダー"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.aGVhZGVycw.short_desc": {
+          "source": "List of header / column names for the data",
+          "message": "データのヘッダー/列名のリスト"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in workbook order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required): up to 31 characters, none of them `: \\ / ? * [ ]`, not beginning or ending with an apostrophe, and different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks`, `header_row` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks`, `header_row` and `write_headers` options are given for each worksheet instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "レコードを複数のワークシートに書き込むための、ブックの順に書き込むワークシート。各レコードは条件に一致するワークシートに書き込まれます。各ワークシートは次のキーを持つハッシュです。\n- `worksheet`: ワークシートの名前（必須）。31 文字以内で、`: \\ / ? * [ ]` を含まず、アポストロフィで始まったり終わったりせず、大文字と小文字の違いだけでなく他のワークシートの名前と異なる必要があります\n- `columns`: ワークシートの列（順序どおり）。レコードに値がない列は空のセルになり、レコードのその他のフィールドはワークシートに書き込まれません。`columns` がない場合は、ワークシートに最初に書き込まれるレコードのフィールドがその列になります\n- `when`: ワークシートに書き込まれるレコードの条件。レコードのフィールドを使った DPQL で、たとえば `@kind == \"order\"` のように指定します。条件のないワークシートはすべてのレコードを受け取ります\n- `column_headers`、`column_formats`、`column_masks`, `header_row`、`write_headers`: 同じ名前のオプションと同じで、ワークシートに適用されます\n\n**振り分け**: レコードは条件に一致する最初のワークシートに書き込まれます。`route` を `all` に設定すると、一致するすべてのワークシートに書き込まれます。どのワークシートにも一致しないレコードは、`unmatched` が `skip` でない限り `EXCEL-WRITE-ROUTE-ERROR` を発生させます。レコードのないワークシートも含め、すべてのワークシートが作成され、列が指定されていれば見出し行があります。`write-data` アクションは、各ワークシートに書き込まれたレコード数を `sheet_counts` で返します。\n\n**その他のオプション**: このオプションを使う場合、`worksheet`、`headers`、`column_headers`、`column_formats`、`column_masks`, `header_row`、`write_headers` オプションは代わりにワークシートごとに指定します。`format`、`streaming`、`timezone` はブックに適用されます。無効なワークシートまたは条件は、そのワークシートを示して `EXCEL-WRITE-OPTION-ERROR` を発生させます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "ワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "書き込むワークシート。それぞれにそのレコードの条件があります"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c3RyZWFtaW5n.desc": {
+          "source": "If `True`, use SXSSF streaming mode for writing large files with reduced memory usage; only applies to `xlsx` format",
+          "message": "`True` の場合、メモリ使用量を削減して大容量ファイルを書き込むための SXSSF ストリーミングモードを使用します。`xlsx` 形式にのみ適用されます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c3RyZWFtaW5n.display_name": {
+          "source": "Streaming Mode",
+          "message": "ストリーミングモード"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.c3RyZWFtaW5n.short_desc": {
+          "source": "Use streaming mode for large files",
+          "message": "大容量ファイルにストリーミングモードを使用します"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cGF0aA.desc": {
+          "source": "The location for the output Excel data file; mutually exclusive with `stream`; the output location is handled by a call to [FileLocationHandler::getOutputStreamForLocation()](https://qoretechnologies.com/manual/qorus/current/qore/modules/FileLocationHandler/html/class_file_location_handler_1_1_file_location_handler.html#a46f7e9cc0e76e0d7e30cae79513cd35)",
+          "message": "出力 Excel データファイルの位置。`stream` とは相互排他的です。出力位置は [FileLocationHandler::getOutputStreamForLocation()](https://qoretechnologies.com/manual/qorus/current/qore/modules/FileLocationHandler/html/class_file_location_handler_1_1_file_location_handler.html#a46f7e9cc0e76e0d7e30cae79513cd35) の呼び出しによって処理されます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cGF0aA.display_name": {
+          "source": "Excel Output Path",
+          "message": "Excel 出力パス"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cGF0aA.short_desc": {
+          "source": "The location to write the Excel file",
+          "message": "Excel ファイルの書き込み先"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "レコードは条件に一致するすべてのワークシートに書き込まれます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "すべての一致"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "レコードが条件に一致するすべてのワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "レコードは条件に一致する最初のワークシートに書き込まれます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "最初の一致"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "レコードが条件に一致する最初のワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "レコードを書き込む `sheets` オプションのワークシート。`first`（既定値）は条件に一致する最初のワークシートで、条件のないワークシートはそれより前のどのワークシートにも書き込まれないすべてのレコードを受け取ります。`all` は条件に一致するすべてのワークシートで、レコードを複数のワークシートに書き込めます。たとえば、すべてのレコードを含むワークシートと返品を含むワークシートに書き込めます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "レコードのワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "一致する最初のシートにレコードを書き込むか、すべてのシートに書き込むか"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d29ya3NoZWV0.desc": {
+          "source": "The name of the worksheet to create; default is `Sheet1`",
+          "message": "作成するワークシートの名前。デフォルトは `Sheet1` です"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d29ya3NoZWV0.display_name": {
+          "source": "Worksheet Name",
+          "message": "ワークシート名"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d29ya3NoZWV0.short_desc": {
+          "source": "The name of the worksheet to create",
+          "message": "作成するワークシートの名前"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.desc": {
+          "source": "Set to `false` to write no header row: the first record is written in the first row of the worksheet; the default is `true`",
+          "message": "`false` に設定すると見出し行を書き込みません。最初のレコードがワークシートの 1 行目に書き込まれます。既定値は `true` です"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.display_name": {
+          "source": "Write Header Row",
+          "message": "見出し行を書き込む"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.d3JpdGVfaGVhZGVycw.short_desc": {
+          "source": "Write the column headers as the first row",
+          "message": "列見出しを 1 行目に書き込みます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.desc": {
+          "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
+          "message": "日付をその現地時刻で書き込むタイムゾーンの地域 (`Europe/Prague`、`America/New_York` など)。セルはタイムゾーンのない日付と時刻を保持するためです。指定しない場合、日付はそれ自身の現地時刻で書き込まれます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.display_name": {
+          "source": "Time Zone",
+          "message": "タイムゾーン"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dGltZXpvbmU.short_desc": {
+          "source": "The time zone whose wall-clock time dates are written in",
+          "message": "日付をその現地時刻で書き込むタイムゾーン"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`",
+          "message": "どのワークシートにも一致しないレコードは `EXCEL-WRITE-ROUTE-ERROR` を発生させます"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "失敗"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "書き込みが失敗します"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "どのワークシートにも一致しないレコードは書き込まれず、数えられません"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "スキップ"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "レコードは書き込まれません"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `EXCEL-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "`sheets` オプションのどのワークシートの条件にも一致しないレコードの扱い。`fail`（既定値）はレコードとワークシートの条件を示して `EXCEL-WRITE-ROUTE-ERROR` を発生させます。`skip` はレコードをどのワークシートにも書き込まず、数えません"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "ワークシートのないレコード"
+        },
+        "app.RXhjZWw.action.d3JpdGU.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "どのワークシートにも一致しないレコードで書き込みを失敗させるか、スキップするか"
+        },
+        "app.RXhjZWw.action.d3JpdGU.short_desc": {
+          "source": "Write data to an Excel spreadsheet file",
+          "message": "Excel スプレッドシートファイルにデータを書き込みます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.desc": {
+          "source": "Create Excel spreadsheet data in memory and return it as binary data; useful for generating Excel files without writing to disk",
+          "message": "メモリ上に Excel スプレッドシートデータを作成してバイナリデータとして返します。ディスクに書き込まずに Excel ファイルを生成する際に便利です"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.display_name": {
+          "source": "Create Excel Spreadsheet Data",
+          "message": "Excel スプレッドシートデータの作成"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.desc": {
+          "source": "The display format of columns by column name as masks of the [ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) module, the masks that CSV files and sheet contracts are read and written with: a date as `DD.MM.YYYY`, a time as `hh:mm AM`, an amount as `#.##0,00 €` or a share as `0.#%`.  Each mask becomes the display format code of its column (`DD.MM.YYYY` is `dd\\.mm\\.yyyy`, `#.##0,00 €` is `#,##0.00\" €\"`), so the cells keep their real values (a date stays a date and a number a number) and are shown as the mask describes, with these differences from text:\n- the group separator and decimal mark are shown as the language of whoever opens the file uses them; the mask's separators only say whether digits are grouped and how many decimals are shown\n- `Mon` shows the month name in the language of whoever opens the file\n- a final `#` shows at most 10 decimals, and a whole number with the decimal mark after it (`12.`)\n\nA mask without a display format raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the reason: `ZZ` (a cell holds no UTC offset), `MON` (there is no upper-case month name), `sss` not directly after `SS.`, a minute that is not directly after an hour or before the seconds, and a numeric month that is.  A column cannot have both a mask and a format code in `column_formats`",
+          "message": "列名ごとの列の表示形式を、[ValueMask](https://qoretechnologies.com/manual/qorus/current/qore/modules/ValueMask/html/index.html) モジュールのマスク (CSV ファイルとシートコントラクトの読み書きに使うマスク) で指定します。例: 日付は `DD.MM.YYYY`、時刻は `hh:mm AM`、金額は `#.##0,00 €`、比率は `0.#%`。各マスクはその列の表示形式コードになり (`DD.MM.YYYY` は `dd\\.mm\\.yyyy`、`#.##0,00 €` は `#,##0.00\" €\"`)、セルは実際の値を保持し (日付は日付、数値は数値のまま)、マスクのとおりに表示されます。テキストとの違いは次のとおりです。\n- 桁区切り記号と小数点記号は、ファイルを開く人の言語での使い方で表示されます。マスクの区切り記号は、桁をグループ化するかどうかと表示する小数点以下の桁数だけを決めます\n- `Mon` は、ファイルを開く人の言語で月名を表示します\n- 末尾の `#` は小数点以下を最大 10 桁表示し、整数は後ろに小数点記号を付けて表示します (`12.`)\n\n表示形式のないマスクは、列名と理由を示して `EXCEL-WRITE-OPTION-ERROR` を発生させます: `ZZ` (セルは UTC オフセットを保持しません)、`MON` (大文字の月名はありません)、`SS.` の直後にない `sss`、時の直後または秒の直前にない分、およびそこにある数値の月。1 つの列にマスクと `column_formats` の書式コードの両方を指定することはできません"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.display_name": {
+          "source": "Column Masks",
+          "message": "列マスク"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX21hc2tz.short_desc": {
+          "source": "The display format of each column as a mask, such as DD.MM.YYYY or #.##0,00 €",
+          "message": "各列の表示形式をマスクで指定 (例: DD.MM.YYYY、#.##0,00 €)"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2Zvcm1hdHM.desc": {
+          "source": "The display format of columns by their header name, so that whoever opens the file sees each value as intended: a date as `dd.mm.yyyy`, an amount as `#,##0.00`, or a share as `0.0%`.  The cells keep their real values (a date stays a date and a number a number); only the way they are shown changes.  A column without a format is written as without this option: dates as `yyyy-mm-dd hh:mm:ss` and numbers without a format.\n\nFormat codes are written as in Excel and LibreOffice:\n- **numbers**: `0` (a digit that is always shown), `#` (a digit shown when significant), `,` between digits (thousands grouping), `,` after the last digit (divide by 1000), `.` (the decimal point), and `E+00` (scientific notation); up to three sections for positive, negative and zero values separated by `;`, such as `#,##0.00;(#,##0.00)` or `#,##0.00;#,##0.00-`\n- **percentages**: a `%` in each section, such as `0.0%`; the value is a fraction, so `0.25` is shown as `25.0%`\n- **dates and times**: `yy` or `yyyy` (year), `m`, `mm`, `mmm` or `mmmm` (month as a number or a name), `d` or `dd` (day), `ddd` or `dddd` (weekday name), `h` or `hh` (hour), `m` or `mm` directly after an hour or before a second (minute), `s` or `ss` (second), `.0` to `.000` after the second (fractions of a second), and `AM/PM`, such as `dd.mm.yyyy hh:mm`\n- **text**: `@`\n\nText in a code is written in double quotes (`\"EUR\"`), escaped with a backslash (`\\x`), as a currency symbol in brackets (`[$€-407]`), or as itself for `$ - + / ( ) :`, spaces and symbols such as `€`; a section can start with a color such as `[Red]`.\n\nA value that its column's code does not show, such as a string in a number column, is written without the format.  An invalid or unsupported code (`General`, fractions, fill characters, conditions, or elapsed times), or a column that is not written, raises `EXCEL-WRITE-OPTION-ERROR` naming the column and the problem",
+          "message": "ファイルを開いたユーザーに各値が意図どおりに表示されるよう、ヘッダー名で指定する列の表示形式です。日付は `dd.mm.yyyy`、金額は `#,##0.00`、割合は `0.0%` のように表示できます。セルは実際の値を保持し (日付は日付、数値は数値のまま)、表示方法のみが変わります。形式を指定しない列は、このオプションがない場合と同様に書き込まれます。日付は `yyyy-mm-dd hh:mm:ss`、数値は形式なしで書き込まれます。\n\n形式コードは Excel および LibreOffice と同じように記述します:\n- **数値**: `0` (常に表示される桁)、`#` (有効な場合に表示される桁)、桁の間の `,` (桁区切り)、最後の桁の後の `,` (1000 で除算)、`.` (小数点)、`E+00` (指数表記)。正の値、負の値、ゼロ値に対して最大 3 つのセクションを `;` で区切って指定できます。例: `#,##0.00;(#,##0.00)` や `#,##0.00;#,##0.00-`\n- **パーセント**: 各セクションに `%` を含めます。例: `0.0%`。値は小数であるため、`0.25` は `25.0%` と表示されます\n- **日付と時刻**: `yy` または `yyyy` (年)、`m`、`mm`、`mmm` または `mmmm` (数値または名前による月)、`d` または `dd` (日)、`ddd` または `dddd` (曜日名)、`h` または `hh` (時)、時の直後または秒の直前の `m` または `mm` (分)、`s` または `ss` (秒)、秒の後の `.0` から `.000` (秒の小数部)、および `AM/PM`。例: `dd.mm.yyyy hh:mm`\n- **テキスト**: `@`\n\nコード内のテキストは、二重引用符で囲む (`\"EUR\"`)、バックスラッシュでエスケープする (`\\x`)、角かっこ内の通貨記号として記述する (`[$€-407]`) のいずれかで記述し、`$ - + / ( ) :`、スペース、`€` などの記号はそのまま記述します。セクションの先頭には `[Red]` などの色を指定できます。\n\n列のコードで表示できない値 (数値列の文字列など) は、形式なしで書き込まれます。無効またはサポートされていないコード (`General`、分数、埋め文字、条件、経過時間) や、書き込まれない列を指定すると、列と問題を示す `EXCEL-WRITE-OPTION-ERROR` が発生します"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2Zvcm1hdHM.display_name": {
+          "source": "Column Display Formats",
+          "message": "列の表示形式"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2Zvcm1hdHM.short_desc": {
+          "source": "The display format of each column, such as dd.mm.yyyy or #,##0.00",
+          "message": "各列の表示形式 (dd.mm.yyyy や #,##0.00 など)"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.desc": {
+          "source": "The header text of columns by column name, for columns whose header is not their name.  The records are written by column name, so `headers` and the other column options name the columns as the records do; this option only changes the text of the header row",
+          "message": "見出しが列名と異なる列の、列名ごとの見出しテキスト。レコードは列名で書き込まれるため、`headers` やその他の列オプションはレコードと同じ名前で列を指定します。このオプションは見出し行のテキストだけを変更します"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.display_name": {
+          "source": "Column Header Text",
+          "message": "列見出しテキスト"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Y29sdW1uX2hlYWRlcnM.short_desc": {
+          "source": "The header text of each column whose header is not its name",
+          "message": "見出しが列名と異なる各列の見出しテキスト"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhsc3g.desc": {
+          "source": "Excel 2007+ format (`.xlsx`); supports streaming mode for large files",
+          "message": "Excel 2007+ 形式 (`.xlsx`)。大容量ファイル用のストリーミングモードをサポートします"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhsc3g.display_name": {
+          "source": "XLSX",
+          "message": "XLSX"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhsc3g.short_desc": {
+          "source": "Excel 2007+ format (.xlsx)",
+          "message": "Excel 2007+ 形式 (.xlsx)"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhscw.desc": {
+          "source": "Legacy Excel 97-2003 binary format (`.xls`); limited to 65,536 rows and 256 columns per sheet",
+          "message": "レガシー Excel 97-2003 バイナリ形式 (`.xls`)。シートあたり 65,536 行および 256 列に制限されています"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhscw.display_name": {
+          "source": "XLS",
+          "message": "XLS"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.allowed-value.c3RyaW5nOnhscw.short_desc": {
+          "source": "Excel 97-2003 format (.xls)",
+          "message": "Excel 97-2003 形式 (.xls)"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.desc": {
+          "source": "Excel format to use: `xlsx` (default, Excel 2007+) or `xls` (Excel 97-2003)",
+          "message": "使用する Excel 形式: `xlsx` (デフォルト、Excel 2007+) または `xls` (Excel 97-2003)"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.display_name": {
+          "source": "Output Format",
+          "message": "出力フォーマット"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.Zm9ybWF0.short_desc": {
+          "source": "Excel format to use",
+          "message": "使用する Excel 形式"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.aGVhZGVyX3Jvdw.desc": {
+          "source": "The 1-based row containing the column headers; `1` by default. Earlier rows are blank, and records follow the header row. A value after row `1` requires `write_headers` to be `true`.",
+          "message": "列ヘッダーを含む行を1から数えた番号です。デフォルトは `1` です。それより前の行は空白になり、レコードはヘッダー行の後に続きます。`1` より大きい値には `write_headers` を `true` にする必要があります。"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.aGVhZGVyX3Jvdw.display_name": {
+          "source": "Header Row Number",
+          "message": "ヘッダー行番号"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.aGVhZGVyX3Jvdw.short_desc": {
+          "source": "The row containing the column headers",
+          "message": "列ヘッダーを含む行"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.aGVhZGVycw.desc": {
+          "source": "List of header / column names for the data; if not provided, headers will be auto-detected from the first record",
+          "message": "データのヘッダー/列名のリスト。指定されない場合、ヘッダーは最初のレコードから自動検出されます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.aGVhZGVycw.display_name": {
+          "source": "Column Headers",
+          "message": "列ヘッダー"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.aGVhZGVycw.short_desc": {
+          "source": "List of header / column names for the data",
+          "message": "データのヘッダー/列名のリスト"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.desc": {
+          "source": "The worksheets to write, in workbook order, to write the records to several worksheets: each record is written to the worksheet whose condition it matches.  Each worksheet is a hash with these keys:\n- `worksheet`: the name of the worksheet (required): up to 31 characters, none of them `: \\ / ? * [ ]`, not beginning or ending with an apostrophe, and different from the names of the other worksheets in more than case\n- `columns`: the columns of the worksheet, in order; a column that a record has no value for is an empty cell, and the other fields of a record are not written to the worksheet; without `columns`, the fields of the first record written to the worksheet are its columns\n- `when`: the condition of the records written to the worksheet, in DPQL with the fields of the record, such as `@kind == \"order\"`; a worksheet without a condition takes every record\n- `column_headers`, `column_formats`, `column_masks`, `header_row` and `write_headers`: as the options of the same name, for the worksheet\n\n**Routing**: a record is written to the first worksheet whose condition it matches, or with `route` set to `all`, to every worksheet it matches; a record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`, unless `unmatched` is `skip`.  Every worksheet is created, also one without records, which has its header row if its columns are given.  The `write-data` action returns the number of records written to each worksheet in `sheet_counts`.\n\n**Other options**: with this option, the `worksheet`, `headers`, `column_headers`, `column_formats`, `column_masks`, `header_row` and `write_headers` options are given for each worksheet instead; `format`, `streaming` and `timezone` apply to the workbook.  An invalid worksheet or condition raises `EXCEL-WRITE-OPTION-ERROR` naming the worksheet",
+          "message": "レコードを複数のワークシートに書き込むための、ブックの順に書き込むワークシート。各レコードは条件に一致するワークシートに書き込まれます。各ワークシートは次のキーを持つハッシュです。\n- `worksheet`: ワークシートの名前（必須）。31 文字以内で、`: \\ / ? * [ ]` を含まず、アポストロフィで始まったり終わったりせず、大文字と小文字の違いだけでなく他のワークシートの名前と異なる必要があります\n- `columns`: ワークシートの列（順序どおり）。レコードに値がない列は空のセルになり、レコードのその他のフィールドはワークシートに書き込まれません。`columns` がない場合は、ワークシートに最初に書き込まれるレコードのフィールドがその列になります\n- `when`: ワークシートに書き込まれるレコードの条件。レコードのフィールドを使った DPQL で、たとえば `@kind == \"order\"` のように指定します。条件のないワークシートはすべてのレコードを受け取ります\n- `column_headers`、`column_formats`、`column_masks`, `header_row`、`write_headers`: 同じ名前のオプションと同じで、ワークシートに適用されます\n\n**振り分け**: レコードは条件に一致する最初のワークシートに書き込まれます。`route` を `all` に設定すると、一致するすべてのワークシートに書き込まれます。どのワークシートにも一致しないレコードは、`unmatched` が `skip` でない限り `EXCEL-WRITE-ROUTE-ERROR` を発生させます。レコードのないワークシートも含め、すべてのワークシートが作成され、列が指定されていれば見出し行があります。`write-data` アクションは、各ワークシートに書き込まれたレコード数を `sheet_counts` で返します。\n\n**その他のオプション**: このオプションを使う場合、`worksheet`、`headers`、`column_headers`、`column_formats`、`column_masks`, `header_row`、`write_headers` オプションは代わりにワークシートごとに指定します。`format`、`streaming`、`timezone` はブックに適用されます。無効なワークシートまたは条件は、そのワークシートを示して `EXCEL-WRITE-OPTION-ERROR` を発生させます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.display_name": {
+          "source": "Worksheets",
+          "message": "ワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c2hlZXRz.short_desc": {
+          "source": "The worksheets to write, each with the condition of its records",
+          "message": "書き込むワークシート。それぞれにそのレコードの条件があります"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c3RyZWFtaW5n.desc": {
+          "source": "If `True`, use SXSSF streaming mode for writing large files with reduced memory usage; only applies to `xlsx` format",
+          "message": "`True` の場合、メモリ使用量を削減して大容量ファイルを書き込むための SXSSF ストリーミングモードを使用します。`xlsx` 形式にのみ適用されます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c3RyZWFtaW5n.display_name": {
+          "source": "Streaming Mode",
+          "message": "ストリーミングモード"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.c3RyZWFtaW5n.short_desc": {
+          "source": "Use streaming mode for large files",
+          "message": "大容量ファイルにストリーミングモードを使用します"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.desc": {
+          "source": "A record is written to every worksheet whose condition it matches",
+          "message": "レコードは条件に一致するすべてのワークシートに書き込まれます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.display_name": {
+          "source": "Every Match",
+          "message": "すべての一致"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmFsbA.short_desc": {
+          "source": "Every worksheet whose condition the record matches",
+          "message": "レコードが条件に一致するすべてのワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.desc": {
+          "source": "A record is written to the first worksheet whose condition it matches",
+          "message": "レコードは条件に一致する最初のワークシートに書き込まれます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.display_name": {
+          "source": "First Match",
+          "message": "最初の一致"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.allowed-value.c3RyaW5nOmZpcnN0.short_desc": {
+          "source": "The first worksheet whose condition the record matches",
+          "message": "レコードが条件に一致する最初のワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.desc": {
+          "source": "The worksheets of the `sheets` option that a record is written to: `first` (the default), the first worksheet whose condition it matches, so a worksheet without a condition takes every record that no worksheet before it takes; or `all`, every worksheet whose condition it matches, so a record can be written to several, such as to a worksheet with every record and to one with the returns",
+          "message": "レコードを書き込む `sheets` オプションのワークシート。`first`（既定値）は条件に一致する最初のワークシートで、条件のないワークシートはそれより前のどのワークシートにも書き込まれないすべてのレコードを受け取ります。`all` は条件に一致するすべてのワークシートで、レコードを複数のワークシートに書き込めます。たとえば、すべてのレコードを含むワークシートと返品を含むワークシートに書き込めます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.display_name": {
+          "source": "Worksheets of a Record",
+          "message": "レコードのワークシート"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.cm91dGU.short_desc": {
+          "source": "Whether a record is written to the first worksheet it matches or to every one",
+          "message": "一致する最初のシートにレコードを書き込むか、すべてのシートに書き込むか"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d29ya3NoZWV0.desc": {
+          "source": "The name of the worksheet to create; default is `Sheet1`",
+          "message": "作成するワークシートの名前。デフォルトは `Sheet1` です"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d29ya3NoZWV0.display_name": {
+          "source": "Worksheet Name",
+          "message": "ワークシート名"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d29ya3NoZWV0.short_desc": {
+          "source": "The name of the worksheet to create",
+          "message": "作成するワークシートの名前"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.desc": {
+          "source": "Set to `false` to write no header row: the first record is written in the first row of the worksheet; the default is `true`",
+          "message": "`false` に設定すると見出し行を書き込みません。最初のレコードがワークシートの 1 行目に書き込まれます。既定値は `true` です"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.display_name": {
+          "source": "Write Header Row",
+          "message": "見出し行を書き込む"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.d3JpdGVfaGVhZGVycw.short_desc": {
+          "source": "Write the column headers as the first row",
+          "message": "列見出しを 1 行目に書き込みます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.desc": {
+          "source": "The time zone region (such as `Europe/Prague` or `America/New_York`) whose wall-clock time dates are written in, as a cell holds a date and time without a time zone; if not given, a date is written as its own wall-clock time",
+          "message": "日付をその現地時刻で書き込むタイムゾーンの地域 (`Europe/Prague`、`America/New_York` など)。セルはタイムゾーンのない日付と時刻を保持するためです。指定しない場合、日付はそれ自身の現地時刻で書き込まれます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.display_name": {
+          "source": "Time Zone",
+          "message": "タイムゾーン"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dGltZXpvbmU.short_desc": {
+          "source": "The time zone whose wall-clock time dates are written in",
+          "message": "日付をその現地時刻で書き込むタイムゾーン"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.desc": {
+          "source": "A record that matches no worksheet raises `EXCEL-WRITE-ROUTE-ERROR`",
+          "message": "どのワークシートにも一致しないレコードは `EXCEL-WRITE-ROUTE-ERROR` を発生させます"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.display_name": {
+          "source": "Fail",
+          "message": "失敗"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOmZhaWw.short_desc": {
+          "source": "The write fails",
+          "message": "書き込みが失敗します"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.desc": {
+          "source": "A record that matches no worksheet is not written and not counted",
+          "message": "どのワークシートにも一致しないレコードは書き込まれず、数えられません"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.display_name": {
+          "source": "Skip",
+          "message": "スキップ"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.allowed-value.c3RyaW5nOnNraXA.short_desc": {
+          "source": "The record is not written",
+          "message": "レコードは書き込まれません"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.desc": {
+          "source": "What happens to a record that matches the condition of no worksheet of the `sheets` option: `fail` (the default) raises `EXCEL-WRITE-ROUTE-ERROR`, naming the record and the conditions of the worksheets; `skip` writes the record to no worksheet and does not count it",
+          "message": "`sheets` オプションのどのワークシートの条件にも一致しないレコードの扱い。`fail`（既定値）はレコードとワークシートの条件を示して `EXCEL-WRITE-ROUTE-ERROR` を発生させます。`skip` はレコードをどのワークシートにも書き込まず、数えません"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.display_name": {
+          "source": "Records Without a Worksheet",
+          "message": "ワークシートのないレコード"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.option.dW5tYXRjaGVk.short_desc": {
+          "source": "Whether a record that matches no worksheet fails the write or is skipped",
+          "message": "どのワークシートにも一致しないレコードで書き込みを失敗させるか、スキップするか"
+        },
+        "app.RXhjZWw.action.d3JpdGUtZGF0YQ.short_desc": {
+          "source": "Create Excel spreadsheet data and return as binary",
+          "message": "Excel スプレッドシートデータを作成し、バイナリとして返します"
+        },
+        "app.RXhjZWw.desc": {
+          "source": "Read and write Excel spreadsheets",
+          "message": "Excel スプレッドシートの読み込みと書き込み"
+        },
+        "app.RXhjZWw.display_name": {
+          "source": "Excel Spreadsheets",
+          "message": "Excel スプレッドシート"
+        },
+        "app.RXhjZWw.short_desc": {
+          "source": "Read and write Excel spreadsheets",
+          "message": "Excel スプレッドシートの読み込みと書き込み"
         }
       }
     }

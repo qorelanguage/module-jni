@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "zh-TW": {
+      "messages": {
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.desc": {
+          "source": "A connection for Flyway database schema migration providing JDBC URL, credentials, and migration locations",
+          "message": "用於 Flyway 資料庫結構遷移的連接，提供 JDBC URL、憑證及遷移位置"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.display_name": {
+          "source": "Flyway Connection",
+          "message": "Flyway 連接"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.bG9jYXRpb25z.desc": {
+          "source": "A list of filesystem paths to directories containing SQL migration files.\n\nPaths are automatically prefixed with `filesystem:` if no prefix is given",
+          "message": "包含 SQL 迁移檔案的檔案系統路徑清單。\n\n若未指定前綴，路徑會自動加上 `filesystem:`"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.bG9jYXRpb25z.display_name": {
+          "source": "Migration Locations",
+          "message": "遷移位置"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.bG9jYXRpb25z.short_desc": {
+          "source": "Filesystem paths to SQL migration directories",
+          "message": "SQL 遷移目錄的檔案系統路徑"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.c2NoZW1hcw.desc": {
+          "source": "An optional list of database schema names to manage with Flyway",
+          "message": "要使用 Flyway 管理的資料庫結構描述名稱選填清單"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.c2NoZW1hcw.display_name": {
+          "source": "Schemas",
+          "message": "結構描述"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.c2NoZW1hcw.short_desc": {
+          "source": "Database schemas to manage",
+          "message": "要管理的資料庫結構描述"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.cGFzc3dvcmQ.desc": {
+          "source": "The password for the database connection",
+          "message": "資料庫連線的密碼"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "密碼"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.cGFzc3dvcmQ.short_desc": {
+          "source": "The database password",
+          "message": "資料庫密碼"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dGFibGU.desc": {
+          "source": "The name of the Flyway schema history table; default is `flyway_schema_history`",
+          "message": "Flyway 結構描述歷史記錄資料表的名稱；預設為 `flyway_schema_history`"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dGFibGU.display_name": {
+          "source": "History Table",
+          "message": "歷史記錄表"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dGFibGU.short_desc": {
+          "source": "The name of the Flyway schema history table",
+          "message": "Flyway 結構描述歷史記錄資料表的名稱"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXJs.desc": {
+          "source": "The JDBC connection URL for the database (e.g. `jdbc:postgresql://localhost:5432/mydb`)",
+          "message": "資料庫的 JDBC 連線 URL（例如 `jdbc:postgresql://localhost:5432/mydb`）"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXJs.display_name": {
+          "source": "JDBC URL",
+          "message": "JDBC URL"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXJs.short_desc": {
+          "source": "The JDBC URL for the database connection",
+          "message": "用於資料庫連線的 JDBC URL"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXNlcg.desc": {
+          "source": "The username for the database connection",
+          "message": "資料庫連線的使用者名稱"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXNlcg.display_name": {
+          "source": "Username",
+          "message": "使用者名稱"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXNlcg.short_desc": {
+          "source": "The database username",
+          "message": "資料庫使用者名稱"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.short_desc": {
+          "source": "A connection for Flyway database schema migration",
+          "message": "用於 Flyway 資料庫結構遷移的連接"
+        }
+      }
+    }
+  }
+}

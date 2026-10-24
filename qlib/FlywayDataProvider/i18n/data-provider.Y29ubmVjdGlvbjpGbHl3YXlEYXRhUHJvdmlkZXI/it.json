@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "it": {
+      "messages": {
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.desc": {
+          "source": "A connection for Flyway database schema migration providing JDBC URL, credentials, and migration locations",
+          "message": "Una connessione per la migrazione dello schema del database Flyway che fornisce l'URL JDBC, le credenziali e le posizioni delle migrazioni"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.display_name": {
+          "source": "Flyway Connection",
+          "message": "Connessione Flyway"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.bG9jYXRpb25z.desc": {
+          "source": "A list of filesystem paths to directories containing SQL migration files.\n\nPaths are automatically prefixed with `filesystem:` if no prefix is given",
+          "message": "Un elenco di percorsi del filesystem per directory contenenti file di migrazione SQL.\n\nI percorsi vengono automaticamente prefissati con `filesystem:` se non viene specificato un prefisso"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.bG9jYXRpb25z.display_name": {
+          "source": "Migration Locations",
+          "message": "Posizioni delle migrazioni"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.bG9jYXRpb25z.short_desc": {
+          "source": "Filesystem paths to SQL migration directories",
+          "message": "Percorsi del file system verso le directory di migrazione SQL"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.c2NoZW1hcw.desc": {
+          "source": "An optional list of database schema names to manage with Flyway",
+          "message": "Un elenco opzionale di nomi di schemi di database da gestire con Flyway"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.c2NoZW1hcw.display_name": {
+          "source": "Schemas",
+          "message": "Schemi"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.c2NoZW1hcw.short_desc": {
+          "source": "Database schemas to manage",
+          "message": "Schemi di database da gestire"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.cGFzc3dvcmQ.desc": {
+          "source": "The password for the database connection",
+          "message": "La password per la connessione al database"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "Password"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.cGFzc3dvcmQ.short_desc": {
+          "source": "The database password",
+          "message": "La password del database"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dGFibGU.desc": {
+          "source": "The name of the Flyway schema history table; default is `flyway_schema_history`",
+          "message": "Il nome della tabella di cronologia degli schemi di Flyway; il valore predefinito è `flyway_schema_history`"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dGFibGU.display_name": {
+          "source": "History Table",
+          "message": "Tabella cronologia"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dGFibGU.short_desc": {
+          "source": "The name of the Flyway schema history table",
+          "message": "Il nome della tabella di cronologia degli schemi di Flyway"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXJs.desc": {
+          "source": "The JDBC connection URL for the database (e.g. `jdbc:postgresql://localhost:5432/mydb`)",
+          "message": "L'URL di connessione JDBC per il database (ad es. `jdbc:postgresql://localhost:5432/mydb`)"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXJs.display_name": {
+          "source": "JDBC URL",
+          "message": "URL JDBC"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXJs.short_desc": {
+          "source": "The JDBC URL for the database connection",
+          "message": "L'URL JDBC per la connessione al database"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXNlcg.desc": {
+          "source": "The username for the database connection",
+          "message": "Il nome utente per la connessione al database"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXNlcg.display_name": {
+          "source": "Username",
+          "message": "Nome utente"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.option.dXNlcg.short_desc": {
+          "source": "The database username",
+          "message": "Il nome utente del database"
+        },
+        "connection.Rmx5d2F5RGF0YVByb3ZpZGVy.scheme.Rmx5d2F5Q29ubmVjdGlvbg.short_desc": {
+          "source": "A connection for Flyway database schema migration",
+          "message": "Una connessione per la migrazione dello schema del database Flyway"
+        }
+      }
+    }
+  }
+}

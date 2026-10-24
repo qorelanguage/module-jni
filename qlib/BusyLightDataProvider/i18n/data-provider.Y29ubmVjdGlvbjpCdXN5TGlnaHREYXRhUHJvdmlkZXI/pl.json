@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "pl": {
+      "messages": {
+        "connection.QnVzeUxpZ2h0RGF0YVByb3ZpZGVy.scheme.QnVzeUxpZ2h0Q29ubmVjdGlvbg.desc": {
+          "source": "A connection to a BusyLight server",
+          "message": "Połączenie z serwerem BusyLight"
+        },
+        "connection.QnVzeUxpZ2h0RGF0YVByb3ZpZGVy.scheme.QnVzeUxpZ2h0Q29ubmVjdGlvbg.display_name": {
+          "source": "BusyLight Connection",
+          "message": "Połączenie BusyLight"
+        },
+        "connection.QnVzeUxpZ2h0RGF0YVByb3ZpZGVy.scheme.QnVzeUxpZ2h0Q29ubmVjdGlvbg.short_desc": {
+          "source": "A connection to a BusyLight device",
+          "message": "Połączenie z urządzeniem BusyLight"
+        }
+      }
+    }
+  }
+}

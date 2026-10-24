@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "cs": {
+      "messages": {
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.desc": {
+          "source": "A connection for JDBC database access providing JDBC URL, credentials, and optional driver classpath",
+          "message": "Připojení pro přístup k databázi JDBC poskytující JDBC URL, přihlašovací údaje a volitelnou třídu třídy třídy JDBC"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.display_name": {
+          "source": "JDBC Database Connection",
+          "message": "Připojení k databázi JDBC"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.Y2xhc3NwYXRo.desc": {
+          "source": "JDBC driver JAR file, directory, or classpath list to add to the JNI classpath before opening the connection. Comma-separated entries are also accepted",
+          "message": "Soubor JAR JDBC ovladače, adresář nebo seznam tříd třídy pro přidání do třídy třídy JNI před otevřením připojení. Oddělené čárkami položky jsou také přijímány"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.Y2xhc3NwYXRo.display_name": {
+          "source": "Driver Classpath",
+          "message": "Třída ovladače"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.Y2xhc3NwYXRo.short_desc": {
+          "source": "Classpath for JDBC driver JAR files",
+          "message": "Třída třídy pro JAR soubory JDBC ovladače"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.ZHJpdmVyX2NsYXNz.desc": {
+          "source": "Optional Java JDBC driver class to instantiate before connecting, for example `org.postgresql.Driver`",
+          "message": "Volitelná třída Java JDBC ovladače, která se má vytvořit před připojením, např. `org.postgresql.Driver`"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.ZHJpdmVyX2NsYXNz.display_name": {
+          "source": "Driver Class",
+          "message": "Třída ovladače"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.ZHJpdmVyX2NsYXNz.short_desc": {
+          "source": "Java JDBC driver class name",
+          "message": "Název třídy Java JDBC ovladače"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.cGFzc3dvcmQ.desc": {
+          "source": "The password for the database connection",
+          "message": "Heslo pro připojení k databázi"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "Heslo"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.cGFzc3dvcmQ.short_desc": {
+          "source": "The database password",
+          "message": "Heslo k databázi"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXJs.desc": {
+          "source": "The JDBC connection URL for the database (e.g. `jdbc:postgresql://localhost:5432/mydb`)",
+          "message": "Připojovací URL JDBC pro databázi (např. `jdbc:postgresql://localhost:5432/mydb`)"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXJs.display_name": {
+          "source": "JDBC URL",
+          "message": "JDBC URL"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXJs.short_desc": {
+          "source": "The JDBC URL for the database connection",
+          "message": "JDBC URL pro připojení k databázi"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXNlcg.desc": {
+          "source": "The username for the database connection",
+          "message": "Uživatelské jméno pro připojení k databázi"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXNlcg.display_name": {
+          "source": "Username",
+          "message": "Uživatelské jméno"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.option.dXNlcg.short_desc": {
+          "source": "The database username",
+          "message": "Uživatelské jméno k databázi"
+        },
+        "connection.SmRiY0RhdGFQcm92aWRlcg.scheme.SmRiY0Nvbm5lY3Rpb24.short_desc": {
+          "source": "A connection for JDBC database access",
+          "message": "Připojení pro přístup k databázi JDBC"
+        }
+      }
+    }
+  }
+}

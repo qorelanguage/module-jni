@@ -30,7 +30,8 @@ public namespace JakartaJmsDataProvider {
 public class JmsConnection inherits ConnectionProvider::AbstractConnectionWithInfo {
     public {
         #! Connection entry info
-        const ConnectionScheme = <ConnectionSchemeInfo>{
+        const ConnectionScheme = ConnectionProvider::connection_scheme_presentation("JakartaJmsDataProvider",
+            "JmsConnection", "en", <ConnectionSchemeInfo>{
             "display_name": "JMS Connection",
             "short_desc": "A connection to a Jakarta JMS messaging broker",
             "desc": "A connection to a Jakarta JMS 3.x messaging broker (e.g. ActiveMQ Artemis, TIBCO EMS, "
@@ -131,7 +132,7 @@ public class JmsConnection inherits ConnectionProvider::AbstractConnectionWithIn
             "schemes": {
                 "jms": True,
             },
-        };
+        });
     }
 
     #! Creates the object from the arguments

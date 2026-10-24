@@ -1,0 +1,453 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "ko": {
+      "messages": {
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.desc": {
+          "source": "A connection to an MQTT server",
+          "message": "MQTT 서버에 대한 연결"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.display_name": {
+          "source": "MQTT Connection",
+          "message": "MQTT 연결"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF90aW1lb3V0.desc": {
+          "source": "The connect timeout to the MQTT server in seconds",
+          "message": "MQTT 서버로의 연결 타임아웃(초 단위)"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF90aW1lb3V0.display_name": {
+          "source": "Connect Timeout",
+          "message": "연결 제한 시간"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF90aW1lb3V0.short_desc": {
+          "source": "The connect timeout to the MQTT server in seconds",
+          "message": "MQTT 서버로의 연결 타임아웃(초 단위)"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF91c2VyX3Byb3BlcnRpZXM.desc": {
+          "source": "Application-level key-value string metadata to include in the MQTT 5 CONNECT packet. These properties are sent to the broker during connection establishment",
+          "message": "MQTT 5 CONNECT 패킷에 포함할 애플리케이션 수준의 키-값 문자열 메타데이터입니다. 이 속성들은 연결 설정 시 브로커에 전송됩니다."
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF91c2VyX3Byb3BlcnRpZXM.display_name": {
+          "source": "Connect User Properties",
+          "message": "연결 사용자 속성"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF91c2VyX3Byb3BlcnRpZXM.short_desc": {
+          "source": "User properties on the CONNECT packet",
+          "message": "CONNECT 패킷의 사용자 속성"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xlYW5fc3RhcnQ.desc": {
+          "source": "Controls whether the server should discard any existing session and start a new one.\n- If set to `True`, the server will discard any existing session state and start a new clean session. Subscriptions and undelivered messages from a previous session will be lost.\n- If set to `False`, the server will resume an existing session if one is available. Subscriptions and undelivered QoS 1/2 messages from the previous session will be retained.\n\nUse in combination with `session_expiry_interval` to control how long the broker retains session state after disconnect",
+          "message": "서버가 기존 세션을 삭제하고 새 세션을 시작할지 여부를 제어합니다.\n- `True`으로 설정하면 서버는 기존 세션 상태를 삭제하고 새 세션을 시작합니다. 이전 세션의 구독 정보와 미전달 메시지는 모두 손실됩니다.\n- `False`으로 설정하면 서버는 사용 가능한 기존 세션을 재개합니다. 이전 세션의 구독 정보와 QoS 1/2 메시지가 유지됩니다.\n\n브로커가 연결 해제 후 세션 상태를 얼마나 오래 유지할지 제어하려면 `session_expiry_interval`와 함께 사용하세요."
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xlYW5fc3RhcnQ.display_name": {
+          "source": "Clean Start",
+          "message": "세션 초기화"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xlYW5fc3RhcnQ.short_desc": {
+          "source": "Controls whether the server should use an existing session",
+          "message": "서버가 기존 세션을 사용할지 여부를 제어합니다."
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xpZW50X2lk.desc": {
+          "source": "The MQTT client ID",
+          "message": "MQTT 클라이언트 ID"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xpZW50X2lk.display_name": {
+          "source": "Client ID",
+          "message": "클라이언트 ID"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xpZW50X2lk.short_desc": {
+          "source": "The MQTT client ID",
+          "message": "MQTT 클라이언트 ID"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGk.desc": {
+          "source": "AsyncAPI schema URL or file path used to validate outgoing and incoming MQTT payloads. This option conflicts with `validator`",
+          "message": "출력 및 입력 MQTT 페이로드를 검증하는 데 사용되는 AsyncAPI 스키마 URL 또는 파일 경로. 이 옵션은 `validator`와 충돌합니다."
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGk.display_name": {
+          "source": "AsyncAPI Schema",
+          "message": "AsyncAPI 스키마"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGk.short_desc": {
+          "source": "AsyncAPI schema URL or file path",
+          "message": "AsyncAPI 스키마 URL 또는 파일 경로"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGlfY2hhbm5lbA.desc": {
+          "source": "AsyncAPI channel name to use when `asyncapi` or `validator` is configured",
+          "message": "`asyncapi` 또는 `validator`이(가) 구성된 경우 사용할 AsyncAPI 채널 이름"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGlfY2hhbm5lbA.display_name": {
+          "source": "AsyncAPI Channel",
+          "message": "AsyncAPI 채널"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGlfY2hhbm5lbA.short_desc": {
+          "source": "AsyncAPI channel for validation",
+          "message": "검증용 AsyncAPI 채널"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9kYXRh.desc": {
+          "source": "Authentication data for MQTT 5 enhanced authentication. Used in conjunction with `auth_method` for challenge-response authentication flows",
+          "message": "MQTT 5 고급 인증을 위한 인증 데이터. `auth_method`와 함께 사용하여 챌린지-응답 인증 흐름을 수행합니다."
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9kYXRh.display_name": {
+          "source": "Auth Data",
+          "message": "인증 데이터"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9kYXRh.short_desc": {
+          "source": "Enhanced authentication data",
+          "message": "고급 인증 데이터"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9tZXRob2Q.desc": {
+          "source": "The name of the MQTT 5 enhanced authentication method (e.g., `SCRAM-SHA-256`). When set, the broker and client will perform an extended authentication exchange",
+          "message": "MQTT 5 고급 인증 방법의 이름 (예: `SCRAM-SHA-256`). 설정 시 브로커와 클라이언트는 확장된 인증 교환을 수행합니다."
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9tZXRob2Q.display_name": {
+          "source": "Auth Method",
+          "message": "인증 방법"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9tZXRob2Q.short_desc": {
+          "source": "Enhanced authentication method name",
+          "message": "고급 인증 방법 이름"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0b19yZWNvbm5lY3Q.desc": {
+          "source": "Sets whether the client will automatically attempt to reconnect to the server if the connection is lost\n- If set to `False`, the client will not attempt to automatically reconnect to the server in the event that the connection is lost\n- If set to `True`, in the event that the connection is lost, the client will attempt to reconnect to the server. It will initially wait 1 second before it attempts to reconnect, for every failed reconnect attempt, the delay will double until it is at 2 minutes at which point the delay will stay at 2 minutes",
+          "message": "클라이언트가 연결이 끊겼을 때 서버에 자동으로 재연결을 시도할지 여부를 설정합니다.\n- `False`으로 설정하면 연결이 끊겼을 때 클라이언트는 자동으로 서버에 재연결을 시도하지 않습니다.\n- `True`으로 설정하면 연결이 끊겼을 때 클라이언트는 서버에 재연결을 시도합니다. 처음 재연결 시도는 1초 후에 이루어지며, 실패할 때마다 지연 시간이 두 배로 증가하여 최대 2분에 도달한 후에는 2분으로 유지됩니다."
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0b19yZWNvbm5lY3Q.display_name": {
+          "source": "Auto Reconnect",
+          "message": "자동 재연결"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0b19yZWNvbm5lY3Q.short_desc": {
+          "source": "Sets whether the client will automatically attempt to reconnect",
+          "message": "클라이언트가 자동으로 다시 연결을 시도할지 여부를 설정합니다"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZGlzYWJsZV9hdXRvbWF0aWNfcGluZ3M.desc": {
+          "source": "Disables automatic pings; useful for rate-limited or metered connections",
+          "message": "자동 ping 비활성화; 속도 제한 또는 종량제 연결에 유용합니다"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZGlzYWJsZV9hdXRvbWF0aWNfcGluZ3M.display_name": {
+          "source": "Disable Automatic Pings?",
+          "message": "자동 Ping 비활성화?"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZGlzYWJsZV9hdXRvbWF0aWNfcGluZ3M.short_desc": {
+          "source": "Disables automatic pings",
+          "message": "자동 핑을 비활성화합니다"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZW5jb2Rpbmc.desc": {
+          "source": "Character encoding for string messages; only applicable if the `message_format` is `string`",
+          "message": "문자열 메시지에 대한 문자 인코딩; `message_format`이 `string`인 경우에만 적용됩니다"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZW5jb2Rpbmc.display_name": {
+          "source": "String Character Encoding",
+          "message": "문자열 문자 인코딩"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZW5jb2Rpbmc.short_desc": {
+          "source": "The character encoding for the string messages",
+          "message": "문자 인코딩은 문자 메시지에 사용됩니다"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.a2VlcF9hbGl2ZV9pbnRlcnZhbA.desc": {
+          "source": "Sets the \"keep alive\" interval. This value, measured in seconds, defines the maximum interval between messages sent or received. It enables the client to detect if the server is no longer available, without having to wait for the TCP/IP timeout. The client will ensure that at least one message travels across the network within each keep alive period. In the absence of a data-related message during the time period, the client sends a very small \"ping\" message, which the server will acknowledge. A value of `0` disables keepalive processing in the client",
+          "message": "\"Keep-Alive\" 간격을 설정합니다. 이 값은 초 단위로 측정되며, 전송 또는 수신되는 메시지 사이의 최대 간격을 정의합니다. 이를 통해 클라이언트는 TCP/IP 타임아웃을 기다리지 않고도 서버가 더 이상 사용 가능한지 확인할 수 있습니다. 클라이언트는 각 keep-alive 기간 내에 최소한 하나의 메시지가 네트워크를 통해 전달되도록 보장합니다. 데이터 관련 메시지가 시간 내에 전송되지 않으면 클라이언트는 매우 작은 \"핑\" 메시지를 보내며, 서버는 이를 확인합니다. `0` 값은 클라이언트에서 keepalive 처리를 비활성화합니다"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.a2VlcF9hbGl2ZV9pbnRlcnZhbA.display_name": {
+          "source": "Keep-Alive Interval",
+          "message": "Keep-Alive 간격"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.a2VlcF9hbGl2ZV9pbnRlcnZhbA.short_desc": {
+          "source": "Sets the keep-alive interval in seconds",
+          "message": "초 단위로 keep-alive 간격을 설정합니다"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4X3JlY29ubmVjdF9kZWxheQ.desc": {
+          "source": "Maximum delay in milliseconds between automatic reconnection attempts. The client uses exponential backoff starting from 1 second up to this maximum value",
+          "message": "자동 재연결 시도 간 최대 지연 시간(밀리초 단위). 클라이언트는 1초에서 시작하여 지수 백오프를 사용하며, 이 최대 값까지 증가합니다."
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4X3JlY29ubmVjdF9kZWxheQ.display_name": {
+          "source": "Max Reconnect Delay",
+          "message": "최대 재연결 지연"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4X3JlY29ubmVjdF9kZWxheQ.short_desc": {
+          "source": "Maximum delay in milliseconds for auto-reconnect backoff",
+          "message": "자동 재연결 백오프에 대한 최대 지연 시간(밀리초 단위)"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4aW11bV9wYWNrZXRfc2l6ZQ.desc": {
+          "source": "The maximum MQTT packet size in bytes that the client is willing to accept. The server will not send packets larger than this value",
+          "message": "클라이언트가 수락할 수 있는 최대 MQTT 패킷 크기(바이트 단위). 서버는 이 값보다 큰 패킷을 전송하지 않습니다."
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4aW11bV9wYWNrZXRfc2l6ZQ.display_name": {
+          "source": "Maximum Packet Size",
+          "message": "최대 패킷 크기"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4aW11bV9wYWNrZXRfc2l6ZQ.short_desc": {
+          "source": "Maximum MQTT packet size in bytes",
+          "message": "최대 MQTT 패킷 크기(바이트 단위)"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOm5vbmU.desc": {
+          "source": "No decoding; return message payloads as binary data",
+          "message": "디코딩 없음; 메시지 페이로드를 바이너리 데이터로 반환합니다."
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOm5vbmU.display_name": {
+          "source": "None",
+          "message": "없음"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOm5vbmU.short_desc": {
+          "source": "No decoding; return message payloads as binary data",
+          "message": "디코딩 없음; 메시지 페이로드를 바이너리 데이터로 반환합니다."
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOmpzb24.desc": {
+          "source": "Parse messages as JSON strings",
+          "message": "메시지를 JSON 문자열로 파싱합니다."
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOmpzb24.display_name": {
+          "source": "JSON",
+          "message": "JSON"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOmpzb24.short_desc": {
+          "source": "Parse messages as JSON strings",
+          "message": "메시지를 JSON 문자열로 파싱합니다."
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnN0cmluZw.desc": {
+          "source": "Convert messages to strings with no deserialization",
+          "message": "메시지를 역직렬화 없이 문자열로 변환"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnN0cmluZw.display_name": {
+          "source": "String",
+          "message": "String"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnN0cmluZw.short_desc": {
+          "source": "Convert messages to strings with no deserialization",
+          "message": "메시지를 역직렬화 없이 문자열로 변환"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnlhbWw.desc": {
+          "source": "Parse messages as YAML strings",
+          "message": "메시지를 YAML 문자열로 파싱"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnlhbWw.display_name": {
+          "source": "YAML",
+          "message": "YAML"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnlhbWw.short_desc": {
+          "source": "Parse messages as YAML strings",
+          "message": "메시지를 YAML 문자열로 파싱"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.desc": {
+          "source": "The data format for messages",
+          "message": "메시지의 데이터 형식"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.display_name": {
+          "source": "Message Format",
+          "message": "메시지 형식"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.short_desc": {
+          "source": "The data format for messages",
+          "message": "메시지의 데이터 형식"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2VydmVyX3VyaXM.desc": {
+          "source": "A list of failover server URIs. If the primary URL connection fails, the client will try each URI in this list in order. Each URI should use the format `tcp://host:port` or `ssl://host:port`",
+          "message": "장애 복구용 서버 URI 목록. 기본 URL 연결이 실패하면 클라이언트는 이 목록의 각 URI를 순서대로 시도합니다. 각 URI는 형식 `tcp://host:port` 또는 `ssl://host:port`을 사용해야 합니다."
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2VydmVyX3VyaXM.display_name": {
+          "source": "Server URIs",
+          "message": "서버 URI"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2VydmVyX3VyaXM.short_desc": {
+          "source": "List of failover server URIs",
+          "message": "장애 복구용 서버 URI 목록"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2Vzc2lvbl9leHBpcnlfaW50ZXJ2YWw.desc": {
+          "source": "How long (in seconds) the broker retains session state after the client disconnects.\n- `0`: Session ends immediately on disconnect\n- Omitted/`NOTHING`: Server default applies\n\nUse with `clean_start` set to `False` to resume sessions across reconnections",
+          "message": "클라이언트가 연결을 끊은 후 브로커가 세션 상태를 유지할 시간(초 단위).\n- `0`: 연결 끊김 시 세션 즉시 종료\n- 생략 또는 `NOTHING`: 서버 기본값 적용\n\n`clean_start`를 `False`로 설정하고 사용하여 재연결 시 세션을 복원"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2Vzc2lvbl9leHBpcnlfaW50ZXJ2YWw.display_name": {
+          "source": "Session Expiry Interval",
+          "message": "세션 만료 간격"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2Vzc2lvbl9leHBpcnlfaW50ZXJ2YWw.short_desc": {
+          "source": "How long the broker retains session state after disconnect",
+          "message": "연결 해제 후 브로커가 세션 상태를 얼마나 오래 유지할지"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmNpcGhlci5zdWl0ZXM.desc": {
+          "source": "Comma-separated list of enabled SSL/TLS cipher suites for the connection",
+          "message": "연결에 대해 활성화된 SSL/TLS 암호화 알고리즘 목록(쉼표로 구분)"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmNpcGhlci5zdWl0ZXM.display_name": {
+          "source": "SSL Cipher Suites",
+          "message": "SSL 암호 세트"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmNpcGhlci5zdWl0ZXM.short_desc": {
+          "source": "Comma-separated list of enabled cipher suites",
+          "message": "활성화된 암호화 알고리즘 목록(쉼표로 구분)"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.desc": {
+          "source": "Path to the client keystore file containing the client certificate and private key for mutual TLS authentication",
+          "message": "상호 TLS 인증을 위한 클라이언트 인증서와 개인 키를 포함한 클라이언트 키스토어 파일 경로"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.display_name": {
+          "source": "SSL Keystore Location",
+          "message": "SSL 키스토어 위치"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.short_desc": {
+          "source": "Path to the client keystore file",
+          "message": "클라이언트 키스토어 파일 경로"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.desc": {
+          "source": "Password for the client keystore file",
+          "message": "클라이언트 키스토어 파일의 암호"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.display_name": {
+          "source": "SSL Keystore Password",
+          "message": "SSL 키스토어 비밀번호"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.short_desc": {
+          "source": "Password for the client keystore",
+          "message": "클라이언트 키스토어의 암호"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnR5cGU.desc": {
+          "source": "Type of the client keystore (e.g., `PKCS12`, `JKS`)",
+          "message": "클라이언트 키스토어의 유형(예: `PKCS12`, `JKS`)"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnR5cGU.display_name": {
+          "source": "SSL Keystore Type",
+          "message": "SSL 키스토어 유형"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnR5cGU.short_desc": {
+          "source": "Type of the client keystore",
+          "message": "클라이언트 keystore의 유형"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnByb3RvY29s.desc": {
+          "source": "SSL/TLS protocol version to use for the connection (e.g., `TLSv1.3`, `TLSv1.2`)",
+          "message": "연결에 사용할 SSL/TLS 프로토콜 버전 (예: `TLSv1.3`, `TLSv1.2`)"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnByb3RvY29s.display_name": {
+          "source": "SSL Protocol",
+          "message": "SSL 프로토콜"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnByb3RvY29s.short_desc": {
+          "source": "SSL/TLS protocol version to use",
+          "message": "사용할 SSL/TLS 프로토콜 버전"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.desc": {
+          "source": "Path to the truststore file containing trusted CA certificates for verifying the server's certificate",
+          "message": "서버 인증서 검증을 위한 신뢰할 수 있는 CA 인증서가 포함된 truststore 파일 경로"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.display_name": {
+          "source": "SSL Truststore Location",
+          "message": "SSL 트러스트스토어 위치"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.short_desc": {
+          "source": "Path to the truststore file",
+          "message": "truststore 파일 경로"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.desc": {
+          "source": "Password for the truststore file",
+          "message": "truststore 파일의 암호"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.display_name": {
+          "source": "SSL Truststore Password",
+          "message": "SSL 트러스트스토어 암호"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.short_desc": {
+          "source": "Password for the truststore",
+          "message": "truststore 암호"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUudHlwZQ.desc": {
+          "source": "Type of the truststore (e.g., `PKCS12`, `JKS`)",
+          "message": "truststore의 유형 (예: `PKCS12`, `JKS`)"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUudHlwZQ.display_name": {
+          "source": "SSL Truststore Type",
+          "message": "SSL 트러스트스토어 유형"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUudHlwZQ.short_desc": {
+          "source": "Type of the truststore",
+          "message": "신뢰 저장소의 유형"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cGFzc3dvcmQ.desc": {
+          "source": "The password to use for the connection; if any",
+          "message": "연결에 사용할 암호; 존재할 경우"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "비밀번호"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cGFzc3dvcmQ.short_desc": {
+          "source": "The password to use",
+          "message": "사용할 암호"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVjZWl2ZV9tYXhpbXVt.desc": {
+          "source": "Maximum number of concurrent QoS 1 and QoS 2 messages that the client is willing to process simultaneously. The server will not send more than this number of unacknowledged messages to the client",
+          "message": "클라이언트가 동시에 처리할 수 있는 최대 QoS 1 및 QoS 2 메시지 수. 서버는 이 수보다 많은 미확인 메시지를 클라이언트에게 전송하지 않음"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVjZWl2ZV9tYXhpbXVt.display_name": {
+          "source": "Receive Maximum",
+          "message": "수신 최대값"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVjZWl2ZV9tYXhpbXVt.short_desc": {
+          "source": "Maximum concurrent unacknowledged QoS 1/2 messages",
+          "message": "동시 최대 미확인 QoS 1/2 메시지"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9wcm9ibGVtX2luZm8.desc": {
+          "source": "If set to `True`, the server may send a reason string and user properties in case of failures. If `False`, the server will not send this information",
+          "message": "`True`로 설정된 경우, 서버는 오류 발생 시 이유 문자열과 사용자 속성을 전송할 수 있음. `False`로 설정된 경우, 서버는 이 정보를 전송하지 않음"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9wcm9ibGVtX2luZm8.display_name": {
+          "source": "Request Problem Info",
+          "message": "문제 정보 요청"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9wcm9ibGVtX2luZm8.short_desc": {
+          "source": "Request problem information from the server",
+          "message": "서버에서 문제 정보를 요청합니다"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9yZXNwb25zZV9pbmZv.desc": {
+          "source": "If set to `True`, the server may return response information in the CONNACK packet. This is used in the request/response interaction model",
+          "message": "`True`로 설정된 경우, 서버는 CONNACK 패킷에 응답 정보를 반환할 수 있습니다. 이는 요청/응답 상호작용 모델에서 사용됩니다"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9yZXNwb25zZV9pbmZv.display_name": {
+          "source": "Request Response Info",
+          "message": "응답 정보 요청"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9yZXNwb25zZV9pbmZv.short_desc": {
+          "source": "Request response information from the server",
+          "message": "서버에서 응답 정보를 요청합니다"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dG9waWNfYWxpYXNfbWF4aW11bQ.desc": {
+          "source": "The maximum number of topic aliases that the client is willing to accept from the server. Topic aliases reduce the size of PUBLISH packets by replacing topic strings with short integer identifiers",
+          "message": "클라이언트가 서버로부터 수락할 수 있는 최대 주제 별칭 수입니다. 주제 별칭은 주제 문자열을 짧은 정수 식별자로 대체하여 PUBLISH 패킷의 크기를 줄입니다"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dG9waWNfYWxpYXNfbWF4aW11bQ.display_name": {
+          "source": "Topic Alias Maximum",
+          "message": "주제 별칭 최대 수"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dG9waWNfYWxpYXNfbWF4aW11bQ.short_desc": {
+          "source": "Maximum number of topic aliases the client accepts",
+          "message": "클라이언트가 수락하는 주제 별칭의 최대 수"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dXNlcm5hbWU.desc": {
+          "source": "The username to use for the connection; if any",
+          "message": "연결에 사용할 사용자 이름입니다; 존재할 경우"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dXNlcm5hbWU.display_name": {
+          "source": "Username",
+          "message": "사용자 이름"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dXNlcm5hbWU.short_desc": {
+          "source": "The username to use",
+          "message": "사용할 사용자 이름"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dmFsaWRhdG9y.desc": {
+          "source": "An AsyncAPI schema location or schema file data used to validate outgoing and incoming MQTT payloads. This option conflicts with `asyncapi` and requires `asyncapi_channel`",
+          "message": "출력 및 입력 MQTT 페이로드를 검증하는 데 사용되는 AsyncAPI 스키마 위치 또는 스키마 파일 데이터입니다. 이 옵션은 `asyncapi`와 충돌하며 `asyncapi_channel`를 필요로 합니다."
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dmFsaWRhdG9y.display_name": {
+          "source": "AsyncAPI Validator",
+          "message": "AsyncAPI 검증기"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dmFsaWRhdG9y.short_desc": {
+          "source": "AsyncAPI schema location or file data",
+          "message": "AsyncAPI 스키마 위치 또는 파일 데이터"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.short_desc": {
+          "source": "A connection to an MQTT server",
+          "message": "MQTT 서버에 대한 연결"
+        }
+      }
+    }
+  }
+}

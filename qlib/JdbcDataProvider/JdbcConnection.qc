@@ -28,7 +28,8 @@ public namespace JdbcDataProvider {
 public class JdbcConnection inherits ConnectionProvider::AbstractConnectionWithInfo {
     public {
         #! Connection entry info
-        const ConnectionScheme = <ConnectionSchemeInfo>{
+        const ConnectionScheme = ConnectionProvider::connection_scheme_presentation("JdbcDataProvider",
+            "JdbcConnection", "en", <ConnectionSchemeInfo>{
             "display_name": "JDBC Database Connection",
             "short_desc": "A connection for JDBC database access",
             "desc": "A connection for JDBC database access providing JDBC URL, credentials, and "
@@ -79,7 +80,7 @@ public class JdbcConnection inherits ConnectionProvider::AbstractConnectionWithI
             "schemes": {
                 "jdbc-dp": True,
             },
-        };
+        });
     }
 
     #! Creates the object from the arguments

@@ -1,0 +1,465 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "pl": {
+      "messages": {
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.desc": {
+          "source": "A connection to an OPC UA server",
+          "message": "Połączenie z serwerem OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.display_name": {
+          "source": "OPC UA Connection",
+          "message": "Połączenie OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.Y29ubmVjdF90aW1lb3V0.desc": {
+          "source": "The connection timeout to the OPC UA server in milliseconds",
+          "message": "Czas oczekiwania na połączenie z serwerem OPC UA w milisekundach"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.Y29ubmVjdF90aW1lb3V0.display_name": {
+          "source": "Connect Timeout",
+          "message": "Limit czasu połączenia"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.Y29ubmVjdF90aW1lb3V0.short_desc": {
+          "source": "Connection timeout in milliseconds",
+          "message": "Czas wygaśnięcia połączenia w milisekundach"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fbmFtZQ.desc": {
+          "source": "The application name used to identify this client to the OPC UA server",
+          "message": "Nazwa aplikacji używana do identyfikacji tego klienta na serwerze OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fbmFtZQ.display_name": {
+          "source": "Application Name",
+          "message": "Nazwa aplikacji"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fbmFtZQ.short_desc": {
+          "source": "The OPC UA client application name",
+          "message": "Nazwa aplikacji klienta OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fdXJp.desc": {
+          "source": "The application URI used to identify this client to the OPC UA server",
+          "message": "Identyfikator URI aplikacji używany do identyfikacji tego klienta na serwerze OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fdXJp.display_name": {
+          "source": "Application URI",
+          "message": "Identyfikator URI aplikacji"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXBwbGljYXRpb25fdXJp.short_desc": {
+          "source": "The OPC UA client application URI",
+          "message": "Identyfikator URI aplikacji klienta OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkFub255bW91cw.desc": {
+          "source": "Connect without authentication credentials",
+          "message": "Połącz bez poświadczeń uwierzytelniających"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkFub255bW91cw.display_name": {
+          "source": "Anonymous",
+          "message": "Anonimowy"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkFub255bW91cw.short_desc": {
+          "source": "No authentication",
+          "message": "Brak uwierzytelniania"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkNlcnRpZmljYXRl.desc": {
+          "source": "Authenticate using an X.509 client certificate",
+          "message": "Uwierzytelnij się przy użyciu certyfikatu klienta X.509"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkNlcnRpZmljYXRl.display_name": {
+          "source": "Certificate",
+          "message": "Certyfikat"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOkNlcnRpZmljYXRl.short_desc": {
+          "source": "Authenticate with an X.509 certificate",
+          "message": "Uwierzytelnij się przy użyciu certyfikatu X.509"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOlVzZXJuYW1lUGFzc3dvcmQ.desc": {
+          "source": "Authenticate using a username and password",
+          "message": "Uwierzytelnij się przy użyciu nazwy użytkownika i hasła"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOlVzZXJuYW1lUGFzc3dvcmQ.display_name": {
+          "source": "Username/Password",
+          "message": "Użytkownik/Hasło"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.allowed_values.c3RyaW5nOlVzZXJuYW1lUGFzc3dvcmQ.short_desc": {
+          "source": "Authenticate with username and password",
+          "message": "Zaloguj się przy użyciu nazwy użytkownika i hasła"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.desc": {
+          "source": "The authentication method to use when connecting to the OPC UA server",
+          "message": "Metoda uwierzytelniania do użycia podczas łączenia się z serwerem OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.display_name": {
+          "source": "Authentication Type",
+          "message": "Typ uwierzytelniania"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0aF90eXBl.short_desc": {
+          "source": "Authentication method for the OPC UA server",
+          "message": "Metoda uwierzytelniania dla serwera OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0b19yZWNvbm5lY3Q.desc": {
+          "source": "If set to `True`, the client will automatically attempt to reconnect to the server if the connection is lost",
+          "message": "Jeśli ustawione na `True`, klient automatycznie spróbuje ponownie połączyć się z serwerem, jeśli połączenie zostanie utracone"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0b19yZWNvbm5lY3Q.display_name": {
+          "source": "Auto Reconnect",
+          "message": "Automatyczne ponowne połączenie"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.YXV0b19yZWNvbm5lY3Q.short_desc": {
+          "source": "Automatically reconnect on connection loss",
+          "message": "Automatyczne ponowne połączenie po utracie połączenia"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOk5vbmU.desc": {
+          "source": "Messages are neither signed nor encrypted",
+          "message": "Komunikaty nie są ani podpisywane, ani szyfrowane"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOk5vbmU.display_name": {
+          "source": "None",
+          "message": "Brak"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOk5vbmU.short_desc": {
+          "source": "No message security",
+          "message": "Brak zabezpieczenia wiadomości"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ24.desc": {
+          "source": "Messages are signed but not encrypted",
+          "message": "Wiadomości są podpisywane, ale nie są szyfrowane"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ24.display_name": {
+          "source": "Sign",
+          "message": "Podpisz"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ24.short_desc": {
+          "source": "Messages are signed",
+          "message": "Wiadomości są podpisywane"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ25BbmRFbmNyeXB0.desc": {
+          "source": "Messages are both signed and encrypted",
+          "message": "Wiadomości są zarówno podpisywane, jak i szyfrowane"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ25BbmRFbmNyeXB0.display_name": {
+          "source": "Sign and Encrypt",
+          "message": "Podpisz i szyfruj"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.allowed_values.c3RyaW5nOlNpZ25BbmRFbmNyeXB0.short_desc": {
+          "source": "Messages are signed and encrypted",
+          "message": "Wiadomości są podpisywane i szyfrowane"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.desc": {
+          "source": "The message security mode for the OPC UA connection",
+          "message": "Tryb zabezpieczenia wiadomości dla połączenia OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.display_name": {
+          "source": "Message Security Mode",
+          "message": "Tryb zabezpieczenia komunikatów"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bWVzc2FnZV9zZWN1cml0eV9tb2Rl.short_desc": {
+          "source": "Message security mode for the connection",
+          "message": "Tryb zabezpieczenia komunikatów dla połączenia"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDI.desc": {
+          "source": "Inline OPC UA `NodeSet2` XML to import into the generic schema snapshot contract",
+          "message": "Wstawiony dokument XML OPC UA `NodeSet2` do zaimportowania do umowy obrazu schematu ogólnego"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDI.display_name": {
+          "source": "OPC UA NodeSet2",
+          "message": "NodeSet2 OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDI.short_desc": {
+          "source": "Inline NodeSet2 XML document",
+          "message": "Dokument XML NodeSet2"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDItbG9jYXRpb24.desc": {
+          "source": "Deprecated hyphenated alias for `nodeset2_location`; accepted for declarative service metadata compatibility",
+          "message": "Przestarzała wersja z myślnikiem dla `nodeset2_location`; akceptowana dla kompatybilności z metadanych deklaratywnych"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDItbG9jYXRpb24.display_name": {
+          "source": "OPC UA NodeSet2 Location",
+          "message": "Lokalizacja NodeSet2 OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDItbG9jYXRpb24.short_desc": {
+          "source": "NodeSet2 XML location",
+          "message": "Lokalizacja dokumentu XML NodeSet2"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDJfbG9jYXRpb24.desc": {
+          "source": "A `FileLocationHandler` location containing an OPC UA `NodeSet2` XML document",
+          "message": "Lokalizacja `FileLocationHandler` zawierająca dokument XML OPC UA `NodeSet2`"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDJfbG9jYXRpb24.display_name": {
+          "source": "OPC UA NodeSet2 Location",
+          "message": "Lokalizacja NodeSet2 OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.bm9kZXNldDJfbG9jYXRpb24.short_desc": {
+          "source": "NodeSet2 XML location",
+          "message": "Lokalizacja dokumentu XML NodeSet2"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1h.desc": {
+          "source": "A generic OPC UA schema snapshot hash used for schema-driven API management. When this option is provided, the provider can expose API-management endpoints without connecting to a remote OPC UA server. The hash must follow the module's schema snapshot contract with `namespaces` and `endpoints` keys",
+          "message": "Ogólny hash zrzutu schematu OPC UA używany do zarządzania interfejsami API opartymi na schemacie. Gdy ta opcja jest podana, dostawca może udostępniać punkty końcowe zarządzania interfejsami API bez łączenia się z zdalnym serwerem OPC UA. Hash musi spełniać kontrakt zrzutu schematu modułu z kluczami `namespaces` i `endpoints`"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1h.display_name": {
+          "source": "OPC UA Schema",
+          "message": "Schemat OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1h.short_desc": {
+          "source": "Schema snapshot for API management",
+          "message": "Zrzut schematu dla zarządzania interfejsem API"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hLWxvY2F0aW9u.desc": {
+          "source": "Deprecated hyphenated alias for `schema_location`; accepted for declarative service metadata compatibility",
+          "message": "Przestarzała wersja z myślnikiem dla `schema_location`; akceptowana dla kompatybilności z metadanych deklaratywnych"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hLWxvY2F0aW9u.display_name": {
+          "source": "OPC UA Schema Location",
+          "message": "Lokalizacja schematu OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hLWxvY2F0aW9u.short_desc": {
+          "source": "Schema snapshot or NodeSet2 location",
+          "message": "Lokalizacja zrzutu schematu lub NodeSet2"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hX2xvY2F0aW9u.desc": {
+          "source": "A `FileLocationHandler` location containing a `NodeSet2` XML document for schema-driven API management.\n\n**Sandbox note**: sandboxed embedders should restrict this option to `resource://` service resources",
+          "message": "Lokalizacja `FileLocationHandler` zawierająca dokument XML `NodeSet2` do zarządzania interfejsem API opartym na schemacie.\n\n**Uwaga sandboxowa**: embedderzy w trybie sandboxowego powinny ograniczyć tę opcję do zasobów usługi `resource://`"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hX2xvY2F0aW9u.display_name": {
+          "source": "OPC UA Schema Location",
+          "message": "Lokalizacja schematu OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2NoZW1hX2xvY2F0aW9u.short_desc": {
+          "source": "Schema snapshot or NodeSet2 location",
+          "message": "Lokalizacja zrzutu schematu lub NodeSet2"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOk5vbmU.desc": {
+          "source": "No message security is applied",
+          "message": "Do zabezpieczenia komunikatów nie stosuje się żadnej zabezpieczenia"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOk5vbmU.display_name": {
+          "source": "None",
+          "message": "Brak"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOk5vbmU.short_desc": {
+          "source": "No security",
+          "message": "Brak zabezpieczeń"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczEyOF9TaGEyNTZfUnNhT2FlcA.desc": {
+          "source": "AES-128 encryption with SHA-256 signatures and RSA-OAEP key wrapping",
+          "message": "Szyfrowanie AES-128 z podpisami SHA-256 i opakowaniem klucza RSA-OAEP"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczEyOF9TaGEyNTZfUnNhT2FlcA.display_name": {
+          "source": "Aes128_Sha256_RsaOaep",
+          "message": "Aes128_Sha256_RsaOaep"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczEyOF9TaGEyNTZfUnNhT2FlcA.short_desc": {
+          "source": "Aes128_Sha256_RsaOaep security policy",
+          "message": "Zasada zabezpieczeń Aes128_Sha256_RsaOaep"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczI1Nl9TaGEyNTZfUnNhUHNz.desc": {
+          "source": "AES-256 encryption with SHA-256 signatures and RSA-PSS key wrapping",
+          "message": "Szyfrowanie AES-256 z podpisami SHA-256 i opakowaniem klucza RSA-PSS"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczI1Nl9TaGEyNTZfUnNhUHNz.display_name": {
+          "source": "Aes256_Sha256_RsaPss",
+          "message": "Aes256_Sha256_RsaPss"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkFlczI1Nl9TaGEyNTZfUnNhUHNz.short_desc": {
+          "source": "Aes256_Sha256_RsaPss security policy",
+          "message": "Zasada zabezpieczeń Aes256_Sha256_RsaPss"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkJhc2ljMjU2U2hhMjU2.desc": {
+          "source": "AES-256 encryption with SHA-256 signatures",
+          "message": "Szyfrowanie AES-256 z podpisami SHA-256"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkJhc2ljMjU2U2hhMjU2.display_name": {
+          "source": "Basic256Sha256",
+          "message": "Basic256Sha256"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.allowed_values.c3RyaW5nOkJhc2ljMjU2U2hhMjU2.short_desc": {
+          "source": "Basic256Sha256 security policy",
+          "message": "Zasada zabezpieczeń Basic256Sha256"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.desc": {
+          "source": "The security policy for the OPC UA connection",
+          "message": "Zasada zabezpieczeń dla połączenia OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.display_name": {
+          "source": "Security Policy",
+          "message": "Zasada zabezpieczeń"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2VjdXJpdHlfcG9saWN5.short_desc": {
+          "source": "Security policy for the OPC UA connection",
+          "message": "Zasada zabezpieczeń dla połączenia OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2Vzc2lvbl90aW1lb3V0.desc": {
+          "source": "The session timeout in milliseconds; the server will close the session if no activity is detected within this interval",
+          "message": "Czas wygaśnięcia sesji w milisekundach; serwer zamknie sesję, jeśli w tym przedziale nie zostanie wykryta żadna aktywność"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2Vzc2lvbl90aW1lb3V0.display_name": {
+          "source": "Session Timeout",
+          "message": "Limit czasu sesji"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c2Vzc2lvbl90aW1lb3V0.short_desc": {
+          "source": "Session timeout in milliseconds",
+          "message": "Czas wygaśnięcia sesji w milisekundach"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.desc": {
+          "source": "Path to the client keystore file containing the client certificate and private key for mutual TLS authentication",
+          "message": "Ścieżka do pliku magazynu certyfikatów klienta zawierającego certyfikat i klucz prywatny do uwierzytelniania wielostronnego TLS"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.display_name": {
+          "source": "SSL Keystore Location",
+          "message": "Lokalizacja magazynu kluczy SSL"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.short_desc": {
+          "source": "Path to the client keystore file",
+          "message": "Ścieżka do pliku magazynu certyfikatów klienta"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.desc": {
+          "source": "Password for the client keystore file",
+          "message": "Hasło do pliku magazynu certyfikatów klienta"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.display_name": {
+          "source": "SSL Keystore Password",
+          "message": "Hasło do magazynu SSL"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.short_desc": {
+          "source": "Password for the client keystore",
+          "message": "Hasło do pliku magazynu certyfikatów klienta"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOkpLUw.desc": {
+          "source": "Java KeyStore format (.jks files)",
+          "message": "Format magazynu kluczy Java (.pliki .jks)"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOkpLUw.display_name": {
+          "source": "JKS",
+          "message": "JKS"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOkpLUw.short_desc": {
+          "source": "Java KeyStore format",
+          "message": "Format magazynu kluczy Java"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOlBLQ1MxMg.desc": {
+          "source": "PKCS#12 keystore format (.p12 / .pfx files)",
+          "message": "Format magazynu kluczy PKCS#12 (.pliki .p12 / .pfx)"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOlBLQ1MxMg.display_name": {
+          "source": "PKCS12",
+          "message": "PKCS12"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.allowed_values.c3RyaW5nOlBLQ1MxMg.short_desc": {
+          "source": "PKCS#12 keystore format",
+          "message": "Format magazynu kluczy PKCS#12"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.desc": {
+          "source": "Type of the client keystore (e.g., `PKCS12`, `JKS`)",
+          "message": "Typ magazynu certyfikatów klienta (np. `PKCS12`, `JKS`)"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.display_name": {
+          "source": "SSL Keystore Type",
+          "message": "Typ magazynu SSL"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.short_desc": {
+          "source": "Type of the client keystore",
+          "message": "Typ skarbnicy klienta"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.desc": {
+          "source": "Path to the truststore file containing trusted CA certificates for verifying the server's certificate",
+          "message": "Ścieżka do pliku truststore zawierającego certyfikaty CA uznane za zaufane do weryfikacji certyfikatu serwera"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.display_name": {
+          "source": "SSL Truststore Location",
+          "message": "Lokalizacja magazynu zaufania SSL"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.short_desc": {
+          "source": "Path to the truststore file",
+          "message": "Ścieżka do pliku truststore"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.desc": {
+          "source": "Password for the truststore file",
+          "message": "Hasło do pliku truststore"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.display_name": {
+          "source": "SSL Truststore Password",
+          "message": "Hasło do magazynu zaufania SSL"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.short_desc": {
+          "source": "Password for the truststore",
+          "message": "Hasło do truststore"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOkpLUw.desc": {
+          "source": "Java KeyStore format (.jks files)",
+          "message": "Format magazynu kluczy Java (.pliki .jks)"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOkpLUw.display_name": {
+          "source": "JKS",
+          "message": "JKS"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOkpLUw.short_desc": {
+          "source": "Java KeyStore format",
+          "message": "Format magazynu kluczy Java"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOlBLQ1MxMg.desc": {
+          "source": "PKCS#12 truststore format (.p12 / .pfx files)",
+          "message": "Format magazynu zaufania PKCS#12 (.pliki .p12 / .pfx)"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOlBLQ1MxMg.display_name": {
+          "source": "PKCS12",
+          "message": "PKCS12"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.allowed_values.c3RyaW5nOlBLQ1MxMg.short_desc": {
+          "source": "PKCS#12 truststore format",
+          "message": "Format magazynu zaufania PKCS#12"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.desc": {
+          "source": "Type of the truststore (e.g., `PKCS12`, `JKS`)",
+          "message": "Typ truststore (np. `PKCS12`, `JKS`)"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.display_name": {
+          "source": "SSL Truststore Type",
+          "message": "Typ magazynu zaufania SSL"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.short_desc": {
+          "source": "Type of the truststore",
+          "message": "Typ magazynu zaufania"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cGFzc3dvcmQ.desc": {
+          "source": "The password for username/password authentication",
+          "message": "Hasło do uwierzytelniania użytkownik/hasło"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "Hasło"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cGFzc3dvcmQ.short_desc": {
+          "source": "The password for username/password authentication",
+          "message": "Hasło do uwierzytelniania użytkownik/hasło"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cmVxdWVzdF90aW1lb3V0.desc": {
+          "source": "The timeout in milliseconds for OPC UA service requests",
+          "message": "Czas wygaśnięcia w milisekundach dla żądań usługi OPC UA"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cmVxdWVzdF90aW1lb3V0.display_name": {
+          "source": "Request Timeout",
+          "message": "Czas oczekiwania na odpowiedź"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.cmVxdWVzdF90aW1lb3V0.short_desc": {
+          "source": "Request timeout in milliseconds",
+          "message": "Limit czasu żądania w milisekundach"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.dXNlcm5hbWU.desc": {
+          "source": "The username for username/password authentication",
+          "message": "Użytkownik do uwierzytelniania użytkownik/hasło"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.dXNlcm5hbWU.display_name": {
+          "source": "Username",
+          "message": "Nazwa użytkownika"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.option.dXNlcm5hbWU.short_desc": {
+          "source": "The username for authentication",
+          "message": "Nazwa użytkownika do uwierzytelniania"
+        },
+        "connection.T3BjVWFEYXRhUHJvdmlkZXI.scheme.T3BjVWFDb25uZWN0aW9u.short_desc": {
+          "source": "A connection to an OPC UA server",
+          "message": "Połączenie z serwerem OPC UA"
+        }
+      }
+    }
+  }
+}

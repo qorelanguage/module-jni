@@ -1,0 +1,453 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "fr": {
+      "messages": {
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.desc": {
+          "source": "A connection to an MQTT server",
+          "message": "Une connexion à un serveur MQTT"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.display_name": {
+          "source": "MQTT Connection",
+          "message": "Connexion MQTT"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF90aW1lb3V0.desc": {
+          "source": "The connect timeout to the MQTT server in seconds",
+          "message": "Le délai d'attente de connexion au serveur MQTT en secondes"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF90aW1lb3V0.display_name": {
+          "source": "Connect Timeout",
+          "message": "Délai d'expiration de connexion"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF90aW1lb3V0.short_desc": {
+          "source": "The connect timeout to the MQTT server in seconds",
+          "message": "Le délai d'attente de connexion au serveur MQTT en secondes"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF91c2VyX3Byb3BlcnRpZXM.desc": {
+          "source": "Application-level key-value string metadata to include in the MQTT 5 CONNECT packet. These properties are sent to the broker during connection establishment",
+          "message": "Métadonnées clé-valeur de chaîne au niveau de l'application à inclure dans le paquet CONNECT MQTT 5. Ces propriétés sont envoyées au serveur pendant l'établissement de la connexion"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF91c2VyX3Byb3BlcnRpZXM.display_name": {
+          "source": "Connect User Properties",
+          "message": "Propriétés de connexion utilisateur"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y29ubmVjdF91c2VyX3Byb3BlcnRpZXM.short_desc": {
+          "source": "User properties on the CONNECT packet",
+          "message": "Propriétés utilisateur dans le paquet CONNECT"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xlYW5fc3RhcnQ.desc": {
+          "source": "Controls whether the server should discard any existing session and start a new one.\n- If set to `True`, the server will discard any existing session state and start a new clean session. Subscriptions and undelivered messages from a previous session will be lost.\n- If set to `False`, the server will resume an existing session if one is available. Subscriptions and undelivered QoS 1/2 messages from the previous session will be retained.\n\nUse in combination with `session_expiry_interval` to control how long the broker retains session state after disconnect",
+          "message": "Contrôle si le serveur doit supprimer toute session existante et en démarrer une nouvelle.\n- Si défini à `True`, le serveur supprimera l’état de session existant et démarrera une nouvelle session propre. Les abonnements et les messages non livrés d’une session précédente seront perdus.\n- Si défini à `False`, le serveur reprendra une session existante si elle est disponible. Les abonnements et les messages QoS 1/2 non livrés de la session précédente seront conservés.\n\nUtilisez en combinaison avec `session_expiry_interval` pour contrôler la durée de rétention de l’état de session par le broker après la déconnexion"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xlYW5fc3RhcnQ.display_name": {
+          "source": "Clean Start",
+          "message": "Démarrage propre"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xlYW5fc3RhcnQ.short_desc": {
+          "source": "Controls whether the server should use an existing session",
+          "message": "Contrôle si le serveur doit utiliser une session existante"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xpZW50X2lk.desc": {
+          "source": "The MQTT client ID",
+          "message": "Identifiant client MQTT"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xpZW50X2lk.display_name": {
+          "source": "Client ID",
+          "message": "ID client"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.Y2xpZW50X2lk.short_desc": {
+          "source": "The MQTT client ID",
+          "message": "Identifiant client MQTT"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGk.desc": {
+          "source": "AsyncAPI schema URL or file path used to validate outgoing and incoming MQTT payloads. This option conflicts with `validator`",
+          "message": "URL ou chemin de fichier de schéma AsyncAPI utilisé pour valider les charges utiles MQTT sortantes et entrantes. Cette option est incompatible avec `validator`"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGk.display_name": {
+          "source": "AsyncAPI Schema",
+          "message": "Schéma AsyncAPI"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGk.short_desc": {
+          "source": "AsyncAPI schema URL or file path",
+          "message": "URL du schéma AsyncAPI ou chemin du fichier"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGlfY2hhbm5lbA.desc": {
+          "source": "AsyncAPI channel name to use when `asyncapi` or `validator` is configured",
+          "message": "Nom de canal AsyncAPI à utiliser lorsque `asyncapi` ou `validator` est configuré"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGlfY2hhbm5lbA.display_name": {
+          "source": "AsyncAPI Channel",
+          "message": "Canal AsyncAPI"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXN5bmNhcGlfY2hhbm5lbA.short_desc": {
+          "source": "AsyncAPI channel for validation",
+          "message": "Canal AsyncAPI pour la validation"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9kYXRh.desc": {
+          "source": "Authentication data for MQTT 5 enhanced authentication. Used in conjunction with `auth_method` for challenge-response authentication flows",
+          "message": "Données d’authentification pour l’authentification améliorée MQTT 5. Utilisé en combinaison avec `auth_method` pour les flux d’authentification par défi-réponse"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9kYXRh.display_name": {
+          "source": "Auth Data",
+          "message": "Données d'authentification"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9kYXRh.short_desc": {
+          "source": "Enhanced authentication data",
+          "message": "Données d’authentification améliorée"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9tZXRob2Q.desc": {
+          "source": "The name of the MQTT 5 enhanced authentication method (e.g., `SCRAM-SHA-256`). When set, the broker and client will perform an extended authentication exchange",
+          "message": "Nom de la méthode d'authentification améliorée MQTT 5 (par exemple, `SCRAM-SHA-256`). Lorsqu'elle est définie, le serveur et le client effectuent un échange d'authentification étendu"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9tZXRob2Q.display_name": {
+          "source": "Auth Method",
+          "message": "Méthode d'authentification"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0aF9tZXRob2Q.short_desc": {
+          "source": "Enhanced authentication method name",
+          "message": "Nom de la méthode d'authentification améliorée"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0b19yZWNvbm5lY3Q.desc": {
+          "source": "Sets whether the client will automatically attempt to reconnect to the server if the connection is lost\n- If set to `False`, the client will not attempt to automatically reconnect to the server in the event that the connection is lost\n- If set to `True`, in the event that the connection is lost, the client will attempt to reconnect to the server. It will initially wait 1 second before it attempts to reconnect, for every failed reconnect attempt, the delay will double until it is at 2 minutes at which point the delay will stay at 2 minutes",
+          "message": "Définit si le client tente automatiquement de se reconnecter au serveur en cas de perte de connexion\n- Si défini à `False`, le client ne tentera pas de se reconnecter automatiquement au serveur en cas de perte de connexion\n- Si défini à `True`, en cas de perte de connexion, le client tentera de se reconnecter au serveur. Il attendra d'abord 1 seconde avant la première tentative ; pour chaque tentative infructueuse, le délai sera doublé jusqu'à atteindre 2 minutes, après quoi il restera fixé à 2 minutes"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0b19yZWNvbm5lY3Q.display_name": {
+          "source": "Auto Reconnect",
+          "message": "Reconnexion automatique"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.YXV0b19yZWNvbm5lY3Q.short_desc": {
+          "source": "Sets whether the client will automatically attempt to reconnect",
+          "message": "Définit si le client tente automatiquement de se reconnecter"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZGlzYWJsZV9hdXRvbWF0aWNfcGluZ3M.desc": {
+          "source": "Disables automatic pings; useful for rate-limited or metered connections",
+          "message": "Désactive les pings automatiques ; utile pour les connexions limitées en débit ou mesurées"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZGlzYWJsZV9hdXRvbWF0aWNfcGluZ3M.display_name": {
+          "source": "Disable Automatic Pings?",
+          "message": "Désactiver les pings automatiques ?"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZGlzYWJsZV9hdXRvbWF0aWNfcGluZ3M.short_desc": {
+          "source": "Disables automatic pings",
+          "message": "Désactive les pings automatiques"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZW5jb2Rpbmc.desc": {
+          "source": "Character encoding for string messages; only applicable if the `message_format` is `string`",
+          "message": "Encodage des caractères pour les messages texte ; applicable uniquement si le `message_format` est `string`"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZW5jb2Rpbmc.display_name": {
+          "source": "String Character Encoding",
+          "message": "Encodage des caractères de chaîne"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.ZW5jb2Rpbmc.short_desc": {
+          "source": "The character encoding for the string messages",
+          "message": "L'encodage des caractères pour les messages de chaîne"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.a2VlcF9hbGl2ZV9pbnRlcnZhbA.desc": {
+          "source": "Sets the \"keep alive\" interval. This value, measured in seconds, defines the maximum interval between messages sent or received. It enables the client to detect if the server is no longer available, without having to wait for the TCP/IP timeout. The client will ensure that at least one message travels across the network within each keep alive period. In the absence of a data-related message during the time period, the client sends a very small \"ping\" message, which the server will acknowledge. A value of `0` disables keepalive processing in the client",
+          "message": "Définit l'intervalle de \"keep alive\". Cette valeur, exprimée en secondes, définit l'intervalle maximal entre les messages envoyés ou reçus. Elle permet au client de détecter si le serveur n'est plus disponible, sans devoir attendre le délai d'expiration TCP/IP. Le client s'assurera qu'au moins un message traverse le réseau pendant chaque période de keep-alive. En l'absence de message lié aux données pendant cette période, le client envoie un petit message \"ping\", que le serveur reconnaît. Une valeur de `0` désactive le traitement du keep-alive dans le client"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.a2VlcF9hbGl2ZV9pbnRlcnZhbA.display_name": {
+          "source": "Keep-Alive Interval",
+          "message": "Intervalle de maintien de connexion"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.a2VlcF9hbGl2ZV9pbnRlcnZhbA.short_desc": {
+          "source": "Sets the keep-alive interval in seconds",
+          "message": "Définit l'intervalle de maintien de connexion en secondes"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4X3JlY29ubmVjdF9kZWxheQ.desc": {
+          "source": "Maximum delay in milliseconds between automatic reconnection attempts. The client uses exponential backoff starting from 1 second up to this maximum value",
+          "message": "Délai maximal en millisecondes entre les tentatives automatiques de reconnexion. Le client utilise un retour exponentiel commençant à 1 seconde jusqu'à cette valeur maximale"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4X3JlY29ubmVjdF9kZWxheQ.display_name": {
+          "source": "Max Reconnect Delay",
+          "message": "Délai maximal de reconnexion"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4X3JlY29ubmVjdF9kZWxheQ.short_desc": {
+          "source": "Maximum delay in milliseconds for auto-reconnect backoff",
+          "message": "Délai maximal en millisecondes pour l'attente exponentielle de reconnexion"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4aW11bV9wYWNrZXRfc2l6ZQ.desc": {
+          "source": "The maximum MQTT packet size in bytes that the client is willing to accept. The server will not send packets larger than this value",
+          "message": "La taille maximale du paquet MQTT en octets que le client est prêt à accepter. Le serveur n'envoie pas de paquets plus grands que cette valeur"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4aW11bV9wYWNrZXRfc2l6ZQ.display_name": {
+          "source": "Maximum Packet Size",
+          "message": "Taille maximale du paquet"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWF4aW11bV9wYWNrZXRfc2l6ZQ.short_desc": {
+          "source": "Maximum MQTT packet size in bytes",
+          "message": "Taille maximale du paquet MQTT en octets"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOm5vbmU.desc": {
+          "source": "No decoding; return message payloads as binary data",
+          "message": "Retourner les charges utiles en tant que données binaires"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOm5vbmU.display_name": {
+          "source": "None",
+          "message": "Aucun"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOm5vbmU.short_desc": {
+          "source": "No decoding; return message payloads as binary data",
+          "message": "Retourner les charges utiles en tant que données binaires"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOmpzb24.desc": {
+          "source": "Parse messages as JSON strings",
+          "message": "Analyser les messages comme des chaînes JSON"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOmpzb24.display_name": {
+          "source": "JSON",
+          "message": "JSON"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOmpzb24.short_desc": {
+          "source": "Parse messages as JSON strings",
+          "message": "Analyser les messages comme des chaînes JSON"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnN0cmluZw.desc": {
+          "source": "Convert messages to strings with no deserialization",
+          "message": "Convertir les messages en chaînes sans désérialisation"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnN0cmluZw.display_name": {
+          "source": "String",
+          "message": "String"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnN0cmluZw.short_desc": {
+          "source": "Convert messages to strings with no deserialization",
+          "message": "Convertir les messages en chaînes sans désérialisation"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnlhbWw.desc": {
+          "source": "Parse messages as YAML strings",
+          "message": "Analyser les messages comme des chaînes YAML"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnlhbWw.display_name": {
+          "source": "YAML",
+          "message": "YAML"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.allowed_values.c3RyaW5nOnlhbWw.short_desc": {
+          "source": "Parse messages as YAML strings",
+          "message": "Analyser les messages comme des chaînes YAML"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.desc": {
+          "source": "The data format for messages",
+          "message": "Le format des données des messages"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.display_name": {
+          "source": "Message Format",
+          "message": "Format du message"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.bWVzc2FnZV9mb3JtYXQ.short_desc": {
+          "source": "The data format for messages",
+          "message": "Le format des données des messages"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2VydmVyX3VyaXM.desc": {
+          "source": "A list of failover server URIs. If the primary URL connection fails, the client will try each URI in this list in order. Each URI should use the format `tcp://host:port` or `ssl://host:port`",
+          "message": "Liste des URI de serveurs de secours. Si la connexion à l’URL principale échoue, le client tentera chaque URI de cette liste dans l’ordre. Chaque URI doit utiliser le format `tcp://host:port` ou `ssl://host:port`"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2VydmVyX3VyaXM.display_name": {
+          "source": "Server URIs",
+          "message": "URI du serveur"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2VydmVyX3VyaXM.short_desc": {
+          "source": "List of failover server URIs",
+          "message": "Liste des URI de serveurs de basculement"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2Vzc2lvbl9leHBpcnlfaW50ZXJ2YWw.desc": {
+          "source": "How long (in seconds) the broker retains session state after the client disconnects.\n- `0`: Session ends immediately on disconnect\n- Omitted/`NOTHING`: Server default applies\n\nUse with `clean_start` set to `False` to resume sessions across reconnections",
+          "message": "Durée (en secondes) pendant laquelle le broker conserve l’état de session après la déconnexion du client.\n- `0`: La session se termine immédiatement à la déconnexion\n- Ommis/`NOTHING`: La valeur par défaut du serveur s’applique\n\nUtilisez avec `clean_start` défini sur `False` pour reprendre les sessions après les reconnectes"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2Vzc2lvbl9leHBpcnlfaW50ZXJ2YWw.display_name": {
+          "source": "Session Expiry Interval",
+          "message": "Intervalle d’expiration de session"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c2Vzc2lvbl9leHBpcnlfaW50ZXJ2YWw.short_desc": {
+          "source": "How long the broker retains session state after disconnect",
+          "message": "Durée pendant laquelle le broker conserve l’état de session après la déconnexion"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmNpcGhlci5zdWl0ZXM.desc": {
+          "source": "Comma-separated list of enabled SSL/TLS cipher suites for the connection",
+          "message": "Liste séparée par des virgules des suites de chiffrement SSL/TLS activées pour la connexion"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmNpcGhlci5zdWl0ZXM.display_name": {
+          "source": "SSL Cipher Suites",
+          "message": "Suites de chiffrement SSL"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmNpcGhlci5zdWl0ZXM.short_desc": {
+          "source": "Comma-separated list of enabled cipher suites",
+          "message": "Liste séparée par des virgules des suites de chiffrement activées"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.desc": {
+          "source": "Path to the client keystore file containing the client certificate and private key for mutual TLS authentication",
+          "message": "Chemin vers le fichier de magasin de clés client contenant le certificat client et la clé privée pour l’authentification TLS mutuelle"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.display_name": {
+          "source": "SSL Keystore Location",
+          "message": "Emplacement du magasin de clés SSL"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.short_desc": {
+          "source": "Path to the client keystore file",
+          "message": "Chemin vers le fichier de magasin de clés client"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.desc": {
+          "source": "Password for the client keystore file",
+          "message": "Mot de passe du fichier de magasin de clés client"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.display_name": {
+          "source": "SSL Keystore Password",
+          "message": "Mot de passe du magasin de clés SSL"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.short_desc": {
+          "source": "Password for the client keystore",
+          "message": "Mot de passe du magasin de clés client"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnR5cGU.desc": {
+          "source": "Type of the client keystore (e.g., `PKCS12`, `JKS`)",
+          "message": "Type du magasin de clés client (par exemple, `PKCS12`, `JKS`)"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnR5cGU.display_name": {
+          "source": "SSL Keystore Type",
+          "message": "Type de magasin de clés SSL"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLmtleXN0b3JlLnR5cGU.short_desc": {
+          "source": "Type of the client keystore",
+          "message": "Type du magasin de clés client"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnByb3RvY29s.desc": {
+          "source": "SSL/TLS protocol version to use for the connection (e.g., `TLSv1.3`, `TLSv1.2`)",
+          "message": "Version du protocole SSL/TLS à utiliser pour la connexion (par exemple, `TLSv1.3`, `TLSv1.2`)"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnByb3RvY29s.display_name": {
+          "source": "SSL Protocol",
+          "message": "Protocole SSL"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnByb3RvY29s.short_desc": {
+          "source": "SSL/TLS protocol version to use",
+          "message": "Version du protocole SSL/TLS à utiliser"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.desc": {
+          "source": "Path to the truststore file containing trusted CA certificates for verifying the server's certificate",
+          "message": "Chemin vers le fichier de magasin de confiance contenant les certificats CA approuvés pour vérifier le certificat du serveur"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.display_name": {
+          "source": "SSL Truststore Location",
+          "message": "Emplacement du magasin de confiance SSL"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.short_desc": {
+          "source": "Path to the truststore file",
+          "message": "Chemin vers le fichier de magasin de confiance"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.desc": {
+          "source": "Password for the truststore file",
+          "message": "Mot de passe pour le fichier de magasin de confiance"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.display_name": {
+          "source": "SSL Truststore Password",
+          "message": "Mot de passe du magasin de confiance SSL"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.short_desc": {
+          "source": "Password for the truststore",
+          "message": "Mot de passe pour le magasin de confiance"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUudHlwZQ.desc": {
+          "source": "Type of the truststore (e.g., `PKCS12`, `JKS`)",
+          "message": "Type du magasin de confiance (par exemple, `PKCS12`, `JKS`)"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUudHlwZQ.display_name": {
+          "source": "SSL Truststore Type",
+          "message": "Type de magasin de confiance SSL"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.c3NsLnRydXN0c3RvcmUudHlwZQ.short_desc": {
+          "source": "Type of the truststore",
+          "message": "Type du magasin de confiance"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cGFzc3dvcmQ.desc": {
+          "source": "The password to use for the connection; if any",
+          "message": "Mot de passe à utiliser pour la connexion ; si présent"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cGFzc3dvcmQ.display_name": {
+          "source": "Password",
+          "message": "Mot de passe"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cGFzc3dvcmQ.short_desc": {
+          "source": "The password to use",
+          "message": "Mot de passe à utiliser"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVjZWl2ZV9tYXhpbXVt.desc": {
+          "source": "Maximum number of concurrent QoS 1 and QoS 2 messages that the client is willing to process simultaneously. The server will not send more than this number of unacknowledged messages to the client",
+          "message": "Nombre maximal de messages QoS 1 et QoS 2 simultanés que le client est prêt à traiter. Le serveur n'envoie pas plus de ce nombre de messages non confirmés au client"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVjZWl2ZV9tYXhpbXVt.display_name": {
+          "source": "Receive Maximum",
+          "message": "Maximum de réception"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVjZWl2ZV9tYXhpbXVt.short_desc": {
+          "source": "Maximum concurrent unacknowledged QoS 1/2 messages",
+          "message": "Nombre maximal de messages QoS 1/2 non confirmés en simultané"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9wcm9ibGVtX2luZm8.desc": {
+          "source": "If set to `True`, the server may send a reason string and user properties in case of failures. If `False`, the server will not send this information",
+          "message": "Si défini à `True`, le serveur peut envoyer une chaîne de raison et des propriétés utilisateur en cas d'échec. Si `False`, le serveur ne transmettra pas ces informations"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9wcm9ibGVtX2luZm8.display_name": {
+          "source": "Request Problem Info",
+          "message": "Informations sur les problèmes de requête"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9wcm9ibGVtX2luZm8.short_desc": {
+          "source": "Request problem information from the server",
+          "message": "Demander des informations sur les problèmes au serveur"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9yZXNwb25zZV9pbmZv.desc": {
+          "source": "If set to `True`, the server may return response information in the CONNACK packet. This is used in the request/response interaction model",
+          "message": "Si défini à `True`, le serveur peut retourner des informations de réponse dans le paquet CONNACK. Cela est utilisé dans le modèle d'interaction requête/réponse"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9yZXNwb25zZV9pbmZv.display_name": {
+          "source": "Request Response Info",
+          "message": "Informations sur la réponse de requête"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.cmVxdWVzdF9yZXNwb25zZV9pbmZv.short_desc": {
+          "source": "Request response information from the server",
+          "message": "Demander des informations sur la réponse au serveur"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dG9waWNfYWxpYXNfbWF4aW11bQ.desc": {
+          "source": "The maximum number of topic aliases that the client is willing to accept from the server. Topic aliases reduce the size of PUBLISH packets by replacing topic strings with short integer identifiers",
+          "message": "Le nombre maximum d'alias de sujet que le client est prêt à accepter du serveur. Les alias de sujet réduisent la taille des paquets PUBLISH en remplaçant les chaînes de sujet par des identifiants entiers courts"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dG9waWNfYWxpYXNfbWF4aW11bQ.display_name": {
+          "source": "Topic Alias Maximum",
+          "message": "Maximum d'alias de sujet"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dG9waWNfYWxpYXNfbWF4aW11bQ.short_desc": {
+          "source": "Maximum number of topic aliases the client accepts",
+          "message": "Nombre maximum d'alias de sujet acceptés par le client"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dXNlcm5hbWU.desc": {
+          "source": "The username to use for the connection; if any",
+          "message": "Le nom d'utilisateur à utiliser pour la connexion ; s'il y en a un"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dXNlcm5hbWU.display_name": {
+          "source": "Username",
+          "message": "Nom d'utilisateur"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dXNlcm5hbWU.short_desc": {
+          "source": "The username to use",
+          "message": "Le nom d'utilisateur à utiliser"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dmFsaWRhdG9y.desc": {
+          "source": "An AsyncAPI schema location or schema file data used to validate outgoing and incoming MQTT payloads. This option conflicts with `asyncapi` and requires `asyncapi_channel`",
+          "message": "Un emplacement de schéma AsyncAPI ou des données de fichier de schéma utilisés pour valider les charges utiles MQTT sortantes et entrantes. Cette option est incompatible avec `asyncapi` et nécessite `asyncapi_channel`"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dmFsaWRhdG9y.display_name": {
+          "source": "AsyncAPI Validator",
+          "message": "Validateur AsyncAPI"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.option.dmFsaWRhdG9y.short_desc": {
+          "source": "AsyncAPI schema location or file data",
+          "message": "Emplacement du schéma AsyncAPI ou données du fichier"
+        },
+        "connection.TXF0dERhdGFQcm92aWRlcg.scheme.TXF0dENvbm5lY3Rpb24.short_desc": {
+          "source": "A connection to an MQTT server",
+          "message": "Une connexion à un serveur MQTT"
+        }
+      }
+    }
+  }
+}

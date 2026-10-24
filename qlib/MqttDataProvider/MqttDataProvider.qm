@@ -211,6 +211,8 @@ mqtt.sendMessage(MqttDataProvider::MESSAGE_MQTT_MESSAGE, {
     @section MqttDataProvider_relnotes Release Notes
 
     @subsection MqttDataProvider_v3_0 MqttDataProvider v3.0
+    - added source-owned connection option catalogs in all twelve standard locales; unchanged inherited
+      presentation keeps its original producer identity, including HTTP/REST options and allowed values
     - added \c getMessageFormat(), so that a consumer of the provider's messages knows whether their payloads were
       decoded
     - errors raised in MQTT callbacks are now always reported; they are logged if a logger is set and

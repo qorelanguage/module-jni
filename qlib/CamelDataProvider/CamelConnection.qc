@@ -28,7 +28,8 @@ public namespace CamelDataProvider {
 public class CamelConnection inherits ConnectionProvider::AbstractConnectionWithInfo {
     public {
         #! Connection entry info
-        const ConnectionScheme = <ConnectionSchemeInfo>{
+        const ConnectionScheme = ConnectionProvider::connection_scheme_presentation("CamelDataProvider",
+            "CamelConnection", "en", <ConnectionSchemeInfo>{
             "display_name": "Apache Camel Connection",
             "short_desc": "A connection for Apache Camel enterprise integration",
             "desc": "A connection for Apache Camel enterprise integration patterns; the Camel "
@@ -38,7 +39,7 @@ public class CamelConnection inherits ConnectionProvider::AbstractConnectionWith
             "schemes": {
                 "camel": True,
             },
-        };
+        });
     }
 
     #! Creates the object from the arguments

@@ -1,0 +1,441 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "fr": {
+      "messages": {
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.desc": {
+          "source": "A connection to a KAFKA server",
+          "message": "Une connexion à un serveur KAFKA"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.display_name": {
+          "source": "Kafka Connection",
+          "message": "Connexion Kafka"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGk.desc": {
+          "source": "AsyncAPI schema URL or file path used by child producer and consumer providers to validate Kafka message values. This option conflicts with `validator`",
+          "message": "URL ou chemin de fichier de schéma AsyncAPI utilisé par les fournisseurs producteurs et consommateurs enfants pour valider les valeurs des messages Kafka. Cette option est incompatible avec `validator`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGk.display_name": {
+          "source": "AsyncAPI Schema",
+          "message": "Schéma AsyncAPI"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGk.short_desc": {
+          "source": "AsyncAPI schema URL or file path",
+          "message": "URL du schéma AsyncAPI ou chemin du fichier"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGlfY2hhbm5lbA.desc": {
+          "source": "AsyncAPI channel name to use when `asyncapi` or `validator` is configured",
+          "message": "Nom de canal AsyncAPI à utiliser lorsque `asyncapi` ou `validator` est configuré"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGlfY2hhbm5lbA.display_name": {
+          "source": "AsyncAPI Channel",
+          "message": "Canal AsyncAPI"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGlfY2hhbm5lbA.short_desc": {
+          "source": "AsyncAPI channel for validation",
+          "message": "Canal AsyncAPI pour la validation"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.Ym9vdHN0cmFwLnNlcnZlcnM.desc": {
+          "source": "A list of additional `host:port` pair strings to use for establishing the initial connection to the Kafka cluster to be used in addition to the main server provided in the connection URL. The client will make use of all servers irrespective of which servers are specified here for bootstrapping; this list only impacts the initial hosts used to discover the full set of servers.\n\nThis list should be in the form `host1:port1,host2:port2,...`\n\nSince these servers are just used for the initial connection to discover the full cluster membership (which may change dynamically), this list need not contain the full set of servers (you may want more than one, though, in case a server is down).",
+          "message": "Une liste de chaînes `host:port` supplémentaires à utiliser pour établir la connexion initiale au cluster Kafka, en complément du serveur principal fourni dans l’URL de connexion. Le client utilisera tous les serveurs, indépendamment de ceux spécifiés ici pour le démarrage ; cette liste n’affecte que les hôtes initiaux utilisés pour découvrir l’ensemble complet des serveurs.\n\nCette liste doit être au format `host1:port1,host2:port2,...`\n\nComme ces serveurs ne sont utilisés que pour la connexion initiale afin de découvrir la composition complète du cluster (qui peut évoluer dynamiquement), cette liste n’a pas besoin de contenir l’ensemble complet des serveurs (vous pouvez en inclure plusieurs, toutefois, au cas où un serveur serait hors ligne)."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.Ym9vdHN0cmFwLnNlcnZlcnM.display_name": {
+          "source": "Additional Servers",
+          "message": "Serveurs supplémentaires"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.Ym9vdHN0cmFwLnNlcnZlcnM.short_desc": {
+          "source": "One or more additional servers to use to connect to the Kafka cluster",
+          "message": "Serveurs supplémentaires pour la connexion au cluster Kafka"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YmF0Y2guc2l6ZQ.desc": {
+          "source": "The producer will attempt to batch records together into fewer requests whenever multiple records are being sent to the same partition. This helps performance on both the client and the server. This configuration controls the default batch size in bytes.\n\nNo attempt will be made to batch records larger than this size.\n\nRequests sent to brokers will contain multiple batches, one for each partition with data available to be sent.\n\nA small batch size will make batching less common and may reduce throughput (a batch size of zero will disable batching entirely). A very large batch size may use memory a bit more wastefully as we will always allocate a buffer of the specified batch size in anticipation of additional records",
+          "message": "Le producteur tentera de regrouper les enregistrements ensemble dans moins de requêtes chaque fois que plusieurs enregistrements sont envoyés vers la même partition. Cela améliore les performances côté client et côté serveur. Cette configuration contrôle la taille par défaut du lot en octets.\n\nAucune tentative ne sera faite pour regrouper des enregistrements plus grands que cette taille.\n\nLes requêtes envoyées aux brokers contiendront plusieurs lots, un par partition ayant des données disponibles à envoyer.\n\nUne petite taille de lot rendra le regroupement moins fréquent et peut réduire le débit (une taille de lot nulle désactive entièrement le regroupement). Une taille de lot très grande peut utiliser un peu plus de mémoire de manière inutile, car nous allouerons toujours un tampon de la taille spécifiée en anticipation d’enregistrements supplémentaires"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YmF0Y2guc2l6ZQ.display_name": {
+          "source": "Batch Size",
+          "message": "Taille du lot"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YmF0Y2guc2l6ZQ.short_desc": {
+          "source": "The default batch size in bytes",
+          "message": "La taille par défaut du lot en octets"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5jbGllbnQuY2FsbGJhY2suaGFuZGxlci5jbGFzcw.desc": {
+          "source": "The fully qualified name of a SASL client callback handler class that implements the `AuthenticateCallbackHandler` interface",
+          "message": "Le nom qualifié complet d'une classe de gestionnaire de rappel client SASL qui implémente l'interface `AuthenticateCallbackHandler`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5jbGllbnQuY2FsbGJhY2suaGFuZGxlci5jbGFzcw.display_name": {
+          "source": "SASL Client Callback Handler Class",
+          "message": "Classe de gestionnaire de rappel client SASL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5jbGllbnQuY2FsbGJhY2suaGFuZGxlci5jbGFzcw.short_desc": {
+          "source": "The fully qualified name of a SASL client callback handler class",
+          "message": "Le nom qualifié complet d'une classe de gestionnaire de rappel client SASL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5qYWFzLmNvbmZpZw.desc": {
+          "source": "JAAS login context parameters for SASL connections in the format used by JAAS configuration files.\n\nJAAS configuration file format is described here. The format for the value is: `loginModuleClass controlFlag (optionName=optionValue)*;`.\n\nFor brokers, the config must be prefixed with listener prefix and SASL mechanism name in lower-case.\n\n`listener.name.sasl_ssl.scram-sha-256.sasl.jaas.config=com.example.ScramLoginModule required;`",
+          "message": "Paramètres de contexte de connexion JAAS pour les connexions SASL au format utilisé dans les fichiers de configuration JAAS.\n\nLa description du format des fichiers de configuration JAAS se trouve ici. Le format de la valeur est : `loginModuleClass controlFlag (optionName=optionValue)*;`.\n\nPour les brokers, la configuration doit être préfixée par le préfixe d'écouteur et le nom du mécanisme SASL en minuscules.\n\n`listener.name.sasl_ssl.scram-sha-256.sasl.jaas.config=com.example.ScramLoginModule required;`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5qYWFzLmNvbmZpZw.display_name": {
+          "source": "SASL JAAS Config",
+          "message": "Configuration JAAS SASL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5qYWFzLmNvbmZpZw.short_desc": {
+          "source": "JAAS login context parameters for SASL connections",
+          "message": "Paramètres de contexte de connexion JAAS pour les connexions SASL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcuaml0dGVy.desc": {
+          "source": "Percentage of random jitter added to the renewal time",
+          "message": "Pourcentage de variation aléatoire ajoutée au moment de renouvellement"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcuaml0dGVy.display_name": {
+          "source": "SASL Kerberos Ticket Renew Jitter",
+          "message": "Jitter de renouvellement du ticket Kerberos SASL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcuaml0dGVy.short_desc": {
+          "source": "Percentage of random jitter added to the renewal time",
+          "message": "Pourcentage de variation aléatoire ajoutée au moment de renouvellement"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcud2luZG93LmZhY3Rvcg.desc": {
+          "source": "Login thread will sleep until the specified window factor of time from last refresh to ticket's expiry has been reached, at which time it will try to renew the ticket",
+          "message": "Le thread de connexion dormira jusqu'à ce que la fenêtre spécifiée de temps entre la dernière actualisation et l'expiration du ticket soit atteinte, moment où il tentera de renouveler le ticket"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcud2luZG93LmZhY3Rvcg.display_name": {
+          "source": "SASL Kerberos Ticket Renew Window Factor",
+          "message": "Facteur de fenêtre de renouvellement du ticket SASL Kerberos"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcud2luZG93LmZhY3Rvcg.short_desc": {
+          "source": "Login thread sleep window factor time from the last ticket expiry",
+          "message": "Facteur de fenêtre de sommeil après expiration du ticket"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5raW5pdC5jbWQ.desc": {
+          "source": "Kerberos kinit command path",
+          "message": "Chemin de la commande kinit Kerberos"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5raW5pdC5jbWQ.display_name": {
+          "source": "SASL Kerberos Kinit Command Path",
+          "message": "Chemin de la commande kinit SASL Kerberos"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5raW5pdC5jbWQ.short_desc": {
+          "source": "Kerberos kinit command path",
+          "message": "Chemin de la commande kinit Kerberos"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5taW4udGltZS5iZWZvcmUucmVsb2dpbg.desc": {
+          "source": "Login thread sleep time between refresh attempts in milliseconds",
+          "message": "Délai de sommeil entre les tentatives de rafraîchissement"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5taW4udGltZS5iZWZvcmUucmVsb2dpbg.display_name": {
+          "source": "SASL Kerberos Minimum Relogin Time",
+          "message": "Temps minimal de reconnexion SASL Kerberos"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5taW4udGltZS5iZWZvcmUucmVsb2dpbg.short_desc": {
+          "source": "Login thread sleep time between refresh attempts in milliseconds",
+          "message": "Délai de sommeil entre les tentatives de rafraîchissement"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5zZXJ2aWNlLm5hbWU.desc": {
+          "source": "The Kerberos principal name that Kafka runs as. This can be defined either in Kafka's JAAS config or in Kafka's config",
+          "message": "Le nom principal Kerberos sous lequel Kafka s'exécute. Ce nom peut être défini soit dans la configuration JAAS de Kafka, soit dans la configuration de Kafka"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5zZXJ2aWNlLm5hbWU.display_name": {
+          "source": "SASL Kerberos Service Name",
+          "message": "Nom du service SASL Kerberos"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5zZXJ2aWNlLm5hbWU.short_desc": {
+          "source": "The Kerberos principal name that Kafka runs as",
+          "message": "Le nom principal Kerberos sous lequel Kafka s'exécute"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jYWxsYmFjay5oYW5kbGVyLmNsYXNz.desc": {
+          "source": "The fully qualified name of a SASL login callback handler class that implements the `AuthenticateCallbackHandler` interface.\n\nFor brokers, the login callback handler config must be prefixed with the listener prefix and the SASL mechanism name in lower-case.\n\nFor example, `listener.name.sasl_ssl.scram-sha-256.sasl.login.callback.handler.class=com.example.CustomScramLoginCallbackHandler`",
+          "message": "Le nom qualifié complet d'une classe de gestionnaire de rappel de connexion SASL qui implémente l'interface `AuthenticateCallbackHandler`.\n\nPour les brokers, la configuration du gestionnaire de rappel de connexion doit être préfixée par le préfixe de l'écouteur et le nom du mécanisme SASL en minuscules.\n\nPar exemple, `listener.name.sasl_ssl.scram-sha-256.sasl.login.callback.handler.class=com.example.CustomScramLoginCallbackHandler`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jYWxsYmFjay5oYW5kbGVyLmNsYXNz.display_name": {
+          "source": "SASL Login Callback Handler Class",
+          "message": "Classe de gestionnaire de rappel de connexion SASL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jYWxsYmFjay5oYW5kbGVyLmNsYXNz.short_desc": {
+          "source": "The fully qualified name of a SASL login callback handler class",
+          "message": "Le nom qualifié complet d'une classe de gestionnaire de rappel de connexion SASL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jbGFzcw.desc": {
+          "source": "The fully qualified name of a class that implements the Login interface. For brokers, the login config must be prefixed with the listener prefix and the SASL mechanism name in lower-case.\n\nFor example, `listener.name.sasl_ssl.scram-sha-256.sasl.login.class=com.example.CustomScramLogin`",
+          "message": "Le nom qualifié complet d'une classe qui implémente l'interface Login. Pour les brokers, la configuration de connexion doit être préfixée par le préfixe de l'écouteur et le nom du mécanisme SASL en minuscules.\n\nPar exemple, `listener.name.sasl_ssl.scram-sha-256.sasl.login.class=com.example.CustomScramLogin`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jbGFzcw.display_name": {
+          "source": "SASL Login Class",
+          "message": "Classe de connexion SASL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jbGFzcw.short_desc": {
+          "source": "The fully qualified name of a class that implements the Login interface",
+          "message": "Le nom qualifié complet d'une classe qui implémente l'interface Login"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLm1pbi5wZXJpb2Quc2Vjb25kcw.desc": {
+          "source": "The desired minimum time for the login refresh thread to wait before refreshing a credential, in seconds.\n\nLegal values are between `0` and `900` (15 minutes); a default value of `60` (1 minute) is used if no value is specified.\n\nThis value and `sasl.login.refresh.buffer.seconds` are both ignored if their sum exceeds the remaining lifetime of a credential.\n\nCurrently applies only to `OAUTHBEARER`",
+          "message": "Le délai minimal souhaité pour que le thread de rafraîchissement des identifiants attende avant de rafraîchir une authentification, en secondes.\n\nLes valeurs autorisées sont comprises entre `0` et `900` (15 minutes) ; une valeur par défaut de `60` (1 minute) est utilisée si aucune valeur n'est spécifiée.\n\nCette valeur et `sasl.login.refresh.buffer.seconds` sont ignorées si leur somme dépasse le temps restant de validité d'une authentification.\n\nS'applique actuellement uniquement à `OAUTHBEARER`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLm1pbi5wZXJpb2Quc2Vjb25kcw.display_name": {
+          "source": "SASL Login Refresh Minimum Period Seconds",
+          "message": "Période minimale de rafraîchissement SASL en secondes"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLm1pbi5wZXJpb2Quc2Vjb25kcw.short_desc": {
+          "source": "Minimum interval between credential refreshes, in seconds",
+          "message": "Intervalle minimal entre les rafraîchissements d'authentification, en secondes"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLmJ1ZmZlci5zZWNvbmRz.desc": {
+          "source": "The amount of buffer time before credential expiration to maintain when refreshing a credential, in seconds.\n\nIf a refresh would otherwise occur closer to expiration than the number of buffer seconds then the refresh will be moved up to maintain as much of the buffer time as possible.\n\nLegal values are between `0` and `3600` (1 hour); a default value of `300` (5 minutes) is used if no value is specified.\n\nThis value and `sasl.login.refresh.min.period.seconds` are both ignored if their sum exceeds the remaining lifetime of a credential.\n\nCurrently applies only to `OAUTHBEARER`",
+          "message": "La durée de marge à maintenir avant l'expiration d'une authentification lors du rafraîchissement, en secondes.\n\nSi un rafraîchissement aurait lieu plus près de l'expiration que le nombre de secondes de marge, il sera décalé en amont pour préserver autant que possible cette marge.\n\nLes valeurs autorisées sont comprises entre `0` et `3600` (1 heure) ; une valeur par défaut de `300` (5 minutes) est utilisée si aucune valeur n'est spécifiée.\n\nCette valeur et `sasl.login.refresh.min.period.seconds` sont ignorées si leur somme dépasse le temps restant de validité d'une authentification.\n\nS'applique actuellement uniquement à `OAUTHBEARER`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLmJ1ZmZlci5zZWNvbmRz.display_name": {
+          "source": "SASL Login Refresh Buffer Seconds",
+          "message": "Durée de marge de rafraîchissement SASL en secondes"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLmJ1ZmZlci5zZWNvbmRz.short_desc": {
+          "source": "Refresh buffer before credentials expire, in seconds",
+          "message": "Marge de rafraîchissement avant expiration des identifiants, en secondes"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5mYWN0b3I.desc": {
+          "source": "Login refresh thread will sleep until the specified window factor relative to the credential's lifetime has been reached, at which time it will try to refresh the credential.\n\nLegal values are between `0.5` (50%) and `1.0` (100%) inclusive; a default value of `0.8` (80%) is used if no value is specified.\n\nCurrently applies only to `OAUTHBEARER`",
+          "message": "Le thread de rafraîchissement des identifiants dormira jusqu'à ce que le facteur de fenêtre spécifié soit atteint par rapport à la durée de vie de l'authentification, moment où il tentera de rafraîchir l'identifiant.\n\nLes valeurs autorisées sont comprises entre `0.5` (50 %) et `1.0` (100 %) inclus ; une valeur par défaut de `0.8` (80 %) est utilisée si aucune valeur n'est spécifiée.\n\nS'applique actuellement uniquement à `OAUTHBEARER`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5mYWN0b3I.display_name": {
+          "source": "SASL Login Refresh Window Factor",
+          "message": "Facteur de fenêtre de rafraîchissement SASL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5mYWN0b3I.short_desc": {
+          "source": "Credential lifetime fraction before the next login refresh",
+          "message": "Fraction de la durée de validité avant actualisation"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5qaXR0ZXI.desc": {
+          "source": "The maximum amount of random jitter relative to the credential's lifetime added to the login refresh thread's sleep time.\n\nLegal values are between `0` and `0.25` (25%) inclusive; a default value of `0.05` (5%) is used if no value is specified.\n\nCurrently applies only to `OAUTHBEARER`",
+          "message": "Quantité maximale de délai aléatoire relative à la durée de validité des identifiants ajoutée au temps d'attente du thread d'actualisation de connexion.\n\nLes valeurs autorisées sont comprises entre `0` et `0.25` (25 %), inclus ; une valeur par défaut de `0.05` (5 %) est utilisée si aucune valeur n'est spécifiée.\n\nS'applique actuellement uniquement à `OAUTHBEARER`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5qaXR0ZXI.display_name": {
+          "source": "SASL Login Refresh Window Jitter",
+          "message": "Jitter de fenêtre d'actualisation de connexion SASL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5qaXR0ZXI.short_desc": {
+          "source": "Maximum random refresh delay as a credential lifetime fraction",
+          "message": "Délai aléatoire maximal en fraction de la durée de validité"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5tZWNoYW5pc20.desc": {
+          "source": "SASL mechanism used for client connections. This may be any mechanism for which a security provider is available. GSSAPI is the default mechanism",
+          "message": "Mécanisme SASL utilisé pour les connexions clientes. Ce peut être n'importe quel mécanisme pour lequel un fournisseur de sécurité est disponible. GSSAPI est le mécanisme par défaut"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5tZWNoYW5pc20.display_name": {
+          "source": "SASL Mechanism",
+          "message": "Mécanisme SASL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5tZWNoYW5pc20.short_desc": {
+          "source": "SASL mechanism used for client connections",
+          "message": "Mécanisme SASL utilisé pour les connexions clientes"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmNpcGhlci5zdWl0ZXM.desc": {
+          "source": "A comma-separated list of cipher suites. This is a named combination of authentication, encryption, MAC and key exchange algorithm used to negotiate the security settings for a network connection using TLS or SSL network protocol.\n\nBy default all the available cipher suites are supported",
+          "message": "Liste séparée par des virgules de suites de chiffrement. Il s'agit d'une combinaison nommée d'algorithmes d'authentification, de chiffrement, de MAC et d'échange de clés utilisée pour négocier les paramètres de sécurité d'une connexion réseau utilisant le protocole TLS ou SSL.\n\nPar défaut, toutes les suites de chiffrement disponibles sont prises en charge"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmNpcGhlci5zdWl0ZXM.display_name": {
+          "source": "SSL Cipher Suites",
+          "message": "Suites de chiffrement SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmNpcGhlci5zdWl0ZXM.short_desc": {
+          "source": "A comma-separated list of cipher suites",
+          "message": "Liste séparée par des virgules des suites de chiffrement"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuYWJsZWQucHJvdG9jb2xz.desc": {
+          "source": "A comma-separated list of protocols enabled for SSL connections.\n\nThe default is `TLSv1.2,TLSv1.3`.\n\nWith the default value, clients and servers will prefer `TLSv1.3` if both support it and fallback to `TLSv1.2` otherwise (assuming both support at least `TLSv1.2`). This default should be fine for most cases. Also see the config documentation for `ssl.protocol`",
+          "message": "Liste séparée par des virgules des protocoles activés pour les connexions SSL.\n\nLa valeur par défaut est `TLSv1.2,TLSv1.3`.\n\nAvec la valeur par défaut, les clients et serveurs privilégieront `TLSv1.3` si les deux la supportent, et passeront à `TLSv1.2` sinon (à condition que les deux supportent au moins `TLSv1.2`). Cette valeur par défaut convient dans la plupart des cas. Voir également la documentation de configuration pour `ssl.protocol`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuYWJsZWQucHJvdG9jb2xz.display_name": {
+          "source": "SSL Protocols",
+          "message": "Protocoles SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuYWJsZWQucHJvdG9jb2xz.short_desc": {
+          "source": "A comma-separated list of protocols enabled for SSL connections",
+          "message": "Liste séparée par des virgules des protocoles activés pour les connexions SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZ2luZS5mYWN0b3J5LmNsYXNz.desc": {
+          "source": "The class of type `org.apache.kafka.common.security.auth.SslEngineFactory` to provide `SSLEngine` objects",
+          "message": "La classe de type `org.apache.kafka.common.security.auth.SslEngineFactory` pour fournir des objets `SSLEngine`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZ2luZS5mYWN0b3J5LmNsYXNz.display_name": {
+          "source": "SSL Engine Factory Class",
+          "message": "Classe de fabrique d'engins SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZ2luZS5mYWN0b3J5LmNsYXNz.short_desc": {
+          "source": "The class to provide SSLEngine objects",
+          "message": "La classe pour fournir des objets SSLEngine"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZHBvaW50LmlkZW50aWZpY2F0aW9uLmFsZ29yaXRobQ.desc": {
+          "source": "The endpoint identification algorithm to validate server hostname using server certificate",
+          "message": "L'algorithme d'identification de l'hôte pour valider le nom d'hôte serveur à l'aide du certificat serveur"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZHBvaW50LmlkZW50aWZpY2F0aW9uLmFsZ29yaXRobQ.display_name": {
+          "source": "SSL Endpoint Identification Algorithm",
+          "message": "Algorithme d'identification de l'hôte SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZHBvaW50LmlkZW50aWZpY2F0aW9uLmFsZ29yaXRobQ.short_desc": {
+          "source": "Algorithm for verifying the server hostname in its certificate",
+          "message": "Algorithme pour vérifier le nom d'hôte serveur dans son certificat"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleS5wYXNzd29yZA.desc": {
+          "source": "The password of the private key in the key store file",
+          "message": "Le mot de passe de la clé privée dans le fichier de magasin de clés"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleS5wYXNzd29yZA.display_name": {
+          "source": "SSL Key Password",
+          "message": "Mot de passe de la clé SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleS5wYXNzd29yZA.short_desc": {
+          "source": "The password of the private key in the key store file",
+          "message": "Le mot de passe de la clé privée dans le fichier de magasin de clés"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleW1hbmFnZXIuYWxnb3JpdGht.desc": {
+          "source": "The algorithm used by key manager factory for SSL connections. The default value is the key manager factory algorithm configured for the Java Virtual Machine",
+          "message": "L'algorithme utilisé par la fabrique de gestionnaire de clés pour les connexions SSL. La valeur par défaut est l'algorithme de la fabrique de gestionnaire de clés configuré pour la machine virtuelle Java"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleW1hbmFnZXIuYWxnb3JpdGht.display_name": {
+          "source": "SSL Keymanager Algorithm",
+          "message": "Algorithme du gestionnaire de clés SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleW1hbmFnZXIuYWxnb3JpdGht.short_desc": {
+          "source": "The algorithm used by key manager factory for SSL connections",
+          "message": "Algorithme du gestionnaire de clés pour les connexions SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.desc": {
+          "source": "The location of the key store file. This is optional for clients and can be used for two-way authentication for clients",
+          "message": "Emplacement du fichier de magasin de clés. Facultatif pour les clients, utilisé pour une authentification bidirectionnelle."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.display_name": {
+          "source": "SSL Keystore Location",
+          "message": "Emplacement du magasin de clés SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.short_desc": {
+          "source": "The location of the key store file",
+          "message": "Emplacement du fichier de magasin de clés"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.desc": {
+          "source": "The store password for the key store file. This is optional for client and only needed if `ssl.keystore.location` is configured.",
+          "message": "Mot de passe du magasin de clés. Facultatif pour le client et nécessaire uniquement si `ssl.keystore.location` est configuré."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.display_name": {
+          "source": "SSL Keystore Password",
+          "message": "Mot de passe du magasin de clés SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.short_desc": {
+          "source": "The store password for the key store file",
+          "message": "Mot de passe du magasin de clés"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.desc": {
+          "source": "The file format of the key store file",
+          "message": "Format du fichier du magasin de clés"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.display_name": {
+          "source": "SSL Keystore Type",
+          "message": "Type de magasin de clés SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.short_desc": {
+          "source": "The file format of the key store file",
+          "message": "Format du fichier du magasin de clés"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3RvY29s.desc": {
+          "source": "The SSL protocol used to generate the `SSLContext`.\n\nThe default is `TLSv1.3`. This value should be fine for most use cases.\n\nWith the default value for this config and `ssl.enabled.protocols`, clients will downgrade to `TLSv1.2` if the server does not support `TLSv1.3`.\n\nIf this config is set to `TLSv1.2`, clients will not use `TLSv1.3` even if it is one of the values in `ssl.enabled.protocols` and the server only supports `TLSv1.3`",
+          "message": "Le protocole SSL utilisé pour générer le `SSLContext`.\n\nLa valeur par défaut est `TLSv1.3`. Cette valeur convient généralement à la plupart des cas d'utilisation.\n\nAvec la valeur par défaut de cette configuration et `ssl.enabled.protocols`, les clients passeront à `TLSv1.2` si le serveur ne prend pas en charge `TLSv1.3`.\n\nSi cette configuration est définie sur `TLSv1.2`, les clients n'utiliseront pas `TLSv1.3` même s'il s'agit d'une des valeurs dans `ssl.enabled.protocols` et que le serveur ne prend en charge que `TLSv1.3`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3RvY29s.display_name": {
+          "source": "SSL Protocol",
+          "message": "Protocole SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3RvY29s.short_desc": {
+          "source": "The SSL protocol to use",
+          "message": "Le protocole SSL à utiliser"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3ZpZGVy.desc": {
+          "source": "The name of the security provider used for SSL connections. Default value is the default security provider of the JVM",
+          "message": "Le nom du fournisseur de sécurité utilisé pour les connexions SSL. La valeur par défaut est le fournisseur de sécurité par défaut de la JVM"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3ZpZGVy.display_name": {
+          "source": "SSL Provider",
+          "message": "Fournisseur SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3ZpZGVy.short_desc": {
+          "source": "The name of the security provider used for SSL connections",
+          "message": "Le nom du fournisseur de sécurité utilisé pour les connexions SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnNlY3VyZS5yYW5kb20uaW1wbGVtZW50YXRpb24.desc": {
+          "source": "The SecureRandom PRNG implementation to use for SSL cryptography operations",
+          "message": "Implémentation SecureRandom à utiliser pour les opérations de cryptographie SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnNlY3VyZS5yYW5kb20uaW1wbGVtZW50YXRpb24.display_name": {
+          "source": "SSL SecureRandom Implementation",
+          "message": "Implémentation SecureRandom SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnNlY3VyZS5yYW5kb20uaW1wbGVtZW50YXRpb24.short_desc": {
+          "source": "The SecureRandom PRNG implementation to use for SSL cryptography operations",
+          "message": "Implémentation SecureRandom à utiliser pour les opérations de cryptographie SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0bWFuYWdlci5hbGdvcml0aG0.desc": {
+          "source": "The algorithm used by trust manager factory for SSL connections. The default value is the trust manager factory algorithm configured for the Java Virtual Machine",
+          "message": "L'algorithme utilisé par l'usine de gestionnaire de confiance pour les connexions SSL. La valeur par défaut est l'algorithme de l'usine de gestionnaire de confiance configuré pour la machine virtuelle Java"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0bWFuYWdlci5hbGdvcml0aG0.display_name": {
+          "source": "SSL Trustmanager Algorithm",
+          "message": "Algorithme du gestionnaire de confiance SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0bWFuYWdlci5hbGdvcml0aG0.short_desc": {
+          "source": "The algorithm used by trust manager factory for SSL connections",
+          "message": "Algorithme du gestionnaire de confiance pour les connexions SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.desc": {
+          "source": "The location of the trust store file",
+          "message": "L'emplacement du fichier du magasin de confiance"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.display_name": {
+          "source": "SSL Truststore Location",
+          "message": "Emplacement du magasin de confiance SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.short_desc": {
+          "source": "The location of the trust store file",
+          "message": "L'emplacement du fichier du magasin de confiance"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.desc": {
+          "source": "The password for the trust store file. If a password is not set, access to the truststore is still available, but integrity checking is disabled",
+          "message": "Le mot de passe du fichier du magasin de confiance. Si aucun mot de passe n'est défini, l'accès au magasin de confiance reste possible, mais la vérification d'intégrité est désactivée"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.display_name": {
+          "source": "SSL Truststore Password",
+          "message": "Mot de passe du magasin de confiance SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.short_desc": {
+          "source": "The password for the trust store file",
+          "message": "Le mot de passe du fichier du magasin de confiance"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.desc": {
+          "source": "The file format of the trust store file",
+          "message": "Le format du fichier du magasin de confiance"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.display_name": {
+          "source": "SSL Truststore Type",
+          "message": "Type de magasin de confiance SSL"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.short_desc": {
+          "source": "The file format of the trust store file",
+          "message": "Le format du fichier du magasin de confiance"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.dmFsaWRhdG9y.desc": {
+          "source": "An AsyncAPI schema location or schema file data used by child producer and consumer providers to validate Kafka message values. This option conflicts with `asyncapi` and requires `asyncapi_channel`",
+          "message": "Un emplacement de schéma AsyncAPI ou des données de fichier de schéma utilisé par les fournisseurs producteurs et consommateurs enfants pour valider les valeurs des messages Kafka. Cette option est incompatible avec `asyncapi` et nécessite `asyncapi_channel`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.dmFsaWRhdG9y.display_name": {
+          "source": "AsyncAPI Validator",
+          "message": "Validateur AsyncAPI"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.dmFsaWRhdG9y.short_desc": {
+          "source": "AsyncAPI schema location or file data",
+          "message": "Emplacement du schéma AsyncAPI ou données du fichier"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.short_desc": {
+          "source": "A connection to a KAFKA server",
+          "message": "Une connexion à un serveur KAFKA"
+        }
+      }
+    }
+  }
+}

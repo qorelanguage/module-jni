@@ -28,7 +28,8 @@ public namespace KafkaDataProvider {
 public class KafkaConnection inherits ConnectionProvider::AbstractConnectionWithInfo {
     public {
         #! Connection entry info
-        const ConnectionScheme = <ConnectionSchemeInfo>{
+        const ConnectionScheme = ConnectionProvider::connection_scheme_presentation("KafkaDataProvider",
+            "KafkaConnection", "en", <ConnectionSchemeInfo>{
             "display_name": "Kafka Connection",
             "short_desc": "A connection to a KAFKA server",
             "desc": "A connection to a KAFKA server",
@@ -191,8 +192,7 @@ public class KafkaConnection inherits ConnectionProvider::AbstractConnectionWith
                 },
                 "ssl.endpoint.identification.algorithm": <ConnectionOptionInfo>{
                     "display_name": "SSL Endpoint Identification Algorithm",
-                    "short_desc": "The endpoint identification algorithm to validate server hostname using server "
-                        "certificate",
+                    "short_desc": "Algorithm for verifying the server hostname in its certificate",
                     "type": "string",
                     "desc": "The endpoint identification algorithm to validate server hostname using server "
                         "certificate",
@@ -308,8 +308,7 @@ public class KafkaConnection inherits ConnectionProvider::AbstractConnectionWith
                 },
                 "sasl.login.refresh.buffer.seconds": <ConnectionOptionInfo>{
                     "display_name": "SASL Login Refresh Buffer Seconds",
-                    "short_desc": "The amount of buffer time before credential expiration to maintain when "
-                        "refreshing a credential, in seconds",
+                    "short_desc": "Refresh buffer before credentials expire, in seconds",
                     "type": "int",
                     "desc": "The amount of buffer time before credential expiration to maintain when refreshing a "
                         "credential, in seconds.\n\nIf a refresh would otherwise occur closer to expiration than the "
@@ -322,8 +321,7 @@ public class KafkaConnection inherits ConnectionProvider::AbstractConnectionWith
                 },
                 "sasl.login.refresh.min.period.seconds": <ConnectionOptionInfo>{
                     "display_name": "SASL Login Refresh Minimum Period Seconds",
-                    "short_desc": "The desired minimum time for the login refresh thread to wait before refreshing a "
-                        "credential, in seconds",
+                    "short_desc": "Minimum interval between credential refreshes, in seconds",
                     "type": "int",
                     "desc": "The desired minimum time for the login refresh thread to wait before refreshing a "
                         "credential, in seconds.\n\nLegal values are between `0` and `900` (15 minutes); a default "
@@ -334,7 +332,7 @@ public class KafkaConnection inherits ConnectionProvider::AbstractConnectionWith
                 },
                 "sasl.login.refresh.window.factor": <ConnectionOptionInfo>{
                     "display_name": "SASL Login Refresh Window Factor",
-                    "short_desc": "Login refresh thread sleep factor relative to the credential's lifetime",
+                    "short_desc": "Credential lifetime fraction before the next login refresh",
                     "type": "float",
                     "desc": "Login refresh thread will sleep until the specified window factor relative to the "
                         "credential's lifetime has been reached, at which time it will try to refresh the "
@@ -345,8 +343,7 @@ public class KafkaConnection inherits ConnectionProvider::AbstractConnectionWith
                 },
                 "sasl.login.refresh.window.jitter": <ConnectionOptionInfo>{
                     "display_name": "SASL Login Refresh Window Jitter",
-                    "short_desc": "Maximum jitter relative to the credential's lifetime added to the login refresh "
-                        "thread's sleep time",
+                    "short_desc": "Maximum random refresh delay as a credential lifetime fraction",
                     "type": "float",
                     "desc": "The maximum amount of random jitter relative to the credential's lifetime added to the "
                         "login refresh thread's sleep time.\n\nLegal values are between `0` and `0.25` (25%) "
@@ -372,7 +369,7 @@ public class KafkaConnection inherits ConnectionProvider::AbstractConnectionWith
             "schemes": {
                 "kafka": True,
             },
-        };
+        });
     }
 
     #! Creates the object from the arguments

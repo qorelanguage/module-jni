@@ -142,6 +142,8 @@ module KafkaDataProvider {
     @section kafkadataprovider_relnotes Release Notes
 
     @subsection kafkadataprovider_v2_1 KafkaDataProvider v2.1
+    - added source-owned connection option catalogs in all twelve standard locales; unchanged inherited
+      presentation keeps its original producer identity, including HTTP/REST options and allowed values
     - added record headers: the producer sends the \c headers of a request (a string value as its UTF-8 bytes, a
       binary value as it is), and the consumer delivers the headers of a record as a hash of header names to values,
       a value that is valid UTF-8 as a string and any other value as a binary

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "ko": {
+      "messages": {
+        "connection.Q2FtZWxEYXRhUHJvdmlkZXI.scheme.Q2FtZWxDb25uZWN0aW9u.desc": {
+          "source": "A connection for Apache Camel enterprise integration patterns; the Camel context is self-configuring",
+          "message": "Apache Camel 기업 통합 패턴을 위한 연결; 캘럼 컨텍스트는 자동 구성됨"
+        },
+        "connection.Q2FtZWxEYXRhUHJvdmlkZXI.scheme.Q2FtZWxDb25uZWN0aW9u.display_name": {
+          "source": "Apache Camel Connection",
+          "message": "Apache Camel 연결"
+        },
+        "connection.Q2FtZWxEYXRhUHJvdmlkZXI.scheme.Q2FtZWxDb25uZWN0aW9u.short_desc": {
+          "source": "A connection for Apache Camel enterprise integration",
+          "message": "Apache Camel 기업 통합을 위한 연결"
+        }
+      }
+    }
+  }
+}

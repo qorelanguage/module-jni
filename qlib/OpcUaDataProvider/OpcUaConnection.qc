@@ -30,7 +30,8 @@ public namespace OpcUaDataProvider {
 public class OpcUaConnection inherits ConnectionProvider::AbstractConnectionWithInfo {
     public {
         #! Connection entry info
-        const ConnectionScheme = <ConnectionSchemeInfo>{
+        const ConnectionScheme = ConnectionProvider::connection_scheme_presentation("OpcUaDataProvider",
+            "OpcUaConnection", "en", <ConnectionSchemeInfo>{
             "display_name": "OPC UA Connection",
             "short_desc": "A connection to an OPC UA server",
             "desc": "A connection to an OPC UA server",
@@ -54,7 +55,7 @@ public class OpcUaConnection inherits ConnectionProvider::AbstractConnectionWith
                 "opc.tcp": "opcuatcp",
                 "opc.https": "opcuahttps",
             },
-        };
+        });
     }
 
     #! Creates the object from the arguments

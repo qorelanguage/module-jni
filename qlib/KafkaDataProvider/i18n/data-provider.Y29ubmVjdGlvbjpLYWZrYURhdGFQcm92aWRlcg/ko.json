@@ -1,0 +1,441 @@
+{
+  "schema_version": 1,
+  "locales": {
+    "ko": {
+      "messages": {
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.desc": {
+          "source": "A connection to a KAFKA server",
+          "message": "KAFKA 서버에 대한 연결"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.display_name": {
+          "source": "Kafka Connection",
+          "message": "Kafka 연결"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGk.desc": {
+          "source": "AsyncAPI schema URL or file path used by child producer and consumer providers to validate Kafka message values. This option conflicts with `validator`",
+          "message": "자식 프로듀서 및 컨슈머 공급자가 Kafka 메시지 값을 검증하는 데 사용하는 AsyncAPI 스키마 URL 또는 파일 경로입니다. 이 옵션은 `validator`와 충돌합니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGk.display_name": {
+          "source": "AsyncAPI Schema",
+          "message": "AsyncAPI 스키마"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGk.short_desc": {
+          "source": "AsyncAPI schema URL or file path",
+          "message": "AsyncAPI 스키마 URL 또는 파일 경로"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGlfY2hhbm5lbA.desc": {
+          "source": "AsyncAPI channel name to use when `asyncapi` or `validator` is configured",
+          "message": "`asyncapi` 또는 `validator`이(가) 구성된 경우 사용할 AsyncAPI 채널 이름"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGlfY2hhbm5lbA.display_name": {
+          "source": "AsyncAPI Channel",
+          "message": "AsyncAPI 채널"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YXN5bmNhcGlfY2hhbm5lbA.short_desc": {
+          "source": "AsyncAPI channel for validation",
+          "message": "검증용 AsyncAPI 채널"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.Ym9vdHN0cmFwLnNlcnZlcnM.desc": {
+          "source": "A list of additional `host:port` pair strings to use for establishing the initial connection to the Kafka cluster to be used in addition to the main server provided in the connection URL. The client will make use of all servers irrespective of which servers are specified here for bootstrapping; this list only impacts the initial hosts used to discover the full set of servers.\n\nThis list should be in the form `host1:port1,host2:port2,...`\n\nSince these servers are just used for the initial connection to discover the full cluster membership (which may change dynamically), this list need not contain the full set of servers (you may want more than one, though, in case a server is down).",
+          "message": "Kafka 클러스터에 초기 연결을 설정할 때 주 서버 URL 외에 추가로 사용할 `host:port` 쌍 문자열 목록입니다. 클라이언트는 이 목록에 지정된 서버와 관계없이 모든 서버를 사용하며, 이 목록은 클러스터 전체 서버를 탐색하는 데 사용되는 초기 호스트에만 영향을 미칩니다.\n\n이 목록은 형식 `host1:port1,host2:port2,...`을 따라야 합니다.\n\n이 서버들은 클러스터 전체 멤버십을 탐색하는 초기 연결에만 사용되므로(동적으로 변경될 수 있음), 전체 서버 목록을 포함할 필요는 없습니다(서버 하나가 다운된 경우를 대비해 여러 개를 포함하는 것이 좋습니다)."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.Ym9vdHN0cmFwLnNlcnZlcnM.display_name": {
+          "source": "Additional Servers",
+          "message": "추가 서버"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.Ym9vdHN0cmFwLnNlcnZlcnM.short_desc": {
+          "source": "One or more additional servers to use to connect to the Kafka cluster",
+          "message": "Kafka 클러스터에 연결하기 위해 사용할 하나 이상의 추가 서버"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YmF0Y2guc2l6ZQ.desc": {
+          "source": "The producer will attempt to batch records together into fewer requests whenever multiple records are being sent to the same partition. This helps performance on both the client and the server. This configuration controls the default batch size in bytes.\n\nNo attempt will be made to batch records larger than this size.\n\nRequests sent to brokers will contain multiple batches, one for each partition with data available to be sent.\n\nA small batch size will make batching less common and may reduce throughput (a batch size of zero will disable batching entirely). A very large batch size may use memory a bit more wastefully as we will always allocate a buffer of the specified batch size in anticipation of additional records",
+          "message": "생산자는 동일한 파티션으로 전송되는 여러 레코드를 가능한 한 적은 요청으로 묶어 전송하려고 시도합니다. 이는 클라이언트와 서버 모두에서 성능을 향상시킵니다. 이 설정은 기본 배치 크기(바이트 단위)를 제어합니다.\n\n이 크기보다 큰 레코드는 배치되지 않습니다.\n\n브로커로 전송되는 요청은 데이터가 준비된 각 파티션에 대해 하나의 배치를 포함합니다.\n\n작은 배치 크기는 배치가 덜 발생하게 하며, 처리량을 줄일 수 있습니다(배치 크기가 0이면 배치를 완전히 비활성화합니다). 매우 큰 배치 크기는 추가 레코드를 예상하여 항상 지정된 배치 크기만큼 버퍼를 할당하므로 메모리를 다소 낭비할 수 있습니다"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YmF0Y2guc2l6ZQ.display_name": {
+          "source": "Batch Size",
+          "message": "배치 크기"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.YmF0Y2guc2l6ZQ.short_desc": {
+          "source": "The default batch size in bytes",
+          "message": "기본 배치 크기(바이트)"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5jbGllbnQuY2FsbGJhY2suaGFuZGxlci5jbGFzcw.desc": {
+          "source": "The fully qualified name of a SASL client callback handler class that implements the `AuthenticateCallbackHandler` interface",
+          "message": "`AuthenticateCallbackHandler` 인터페이스를 구현하는 SASL 클라이언트 콜백 핸들러 클래스의 완전한 이름"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5jbGllbnQuY2FsbGJhY2suaGFuZGxlci5jbGFzcw.display_name": {
+          "source": "SASL Client Callback Handler Class",
+          "message": "SASL 클라이언트 콜백 핸들러 클래스"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5jbGllbnQuY2FsbGJhY2suaGFuZGxlci5jbGFzcw.short_desc": {
+          "source": "The fully qualified name of a SASL client callback handler class",
+          "message": "SASL 클라이언트 콜백 핸들러 클래스의 완전한 이름"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5qYWFzLmNvbmZpZw.desc": {
+          "source": "JAAS login context parameters for SASL connections in the format used by JAAS configuration files.\n\nJAAS configuration file format is described here. The format for the value is: `loginModuleClass controlFlag (optionName=optionValue)*;`.\n\nFor brokers, the config must be prefixed with listener prefix and SASL mechanism name in lower-case.\n\n`listener.name.sasl_ssl.scram-sha-256.sasl.jaas.config=com.example.ScramLoginModule required;`",
+          "message": "JAAS 구성 파일 형식으로 사용되는 SASL 연결용 JAAS 로그인 컨텍스트 매개변수.\n\nJAAS 구성 파일 형식은 여기에서 설명됩니다. 값의 형식은: `loginModuleClass controlFlag (optionName=optionValue)*;`.\n\n브로커의 경우, 설정은 리스너 접두사와 소문자로 된 SASL 메커니즘 이름으로 접두되어야 합니다.\n\n`listener.name.sasl_ssl.scram-sha-256.sasl.jaas.config=com.example.ScramLoginModule required;`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5qYWFzLmNvbmZpZw.display_name": {
+          "source": "SASL JAAS Config",
+          "message": "SASL JAAS 구성"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5qYWFzLmNvbmZpZw.short_desc": {
+          "source": "JAAS login context parameters for SASL connections",
+          "message": "SASL 연결용 JAAS 로그인 컨텍스트 매개변수"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcuaml0dGVy.desc": {
+          "source": "Percentage of random jitter added to the renewal time",
+          "message": "갱신 시간에 추가되는 무작위 지터의 백분율"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcuaml0dGVy.display_name": {
+          "source": "SASL Kerberos Ticket Renew Jitter",
+          "message": "SASL Kerberos 티켓 갱신 지터"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcuaml0dGVy.short_desc": {
+          "source": "Percentage of random jitter added to the renewal time",
+          "message": "갱신 시간에 추가되는 무작위 지터의 백분율"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcud2luZG93LmZhY3Rvcg.desc": {
+          "source": "Login thread will sleep until the specified window factor of time from last refresh to ticket's expiry has been reached, at which time it will try to renew the ticket",
+          "message": "로그인 스레드는 마지막 갱신 시점에서 티켓 만료까지의 지정된 윈도우 요인 시간이 지나면 티켓 갱신을 시도합니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcud2luZG93LmZhY3Rvcg.display_name": {
+          "source": "SASL Kerberos Ticket Renew Window Factor",
+          "message": "SASL Kerberos 티켓 갱신 윈도우 요인"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy50aWNrZXQucmVuZXcud2luZG93LmZhY3Rvcg.short_desc": {
+          "source": "Login thread sleep window factor time from the last ticket expiry",
+          "message": "마지막 티켓 만료 이후 로그인 스레드 대기 윈도우 요인 시간"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5raW5pdC5jbWQ.desc": {
+          "source": "Kerberos kinit command path",
+          "message": "Kerberos kinit 명령어 경로"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5raW5pdC5jbWQ.display_name": {
+          "source": "SASL Kerberos Kinit Command Path",
+          "message": "SASL Kerberos kinit 명령어 경로"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5raW5pdC5jbWQ.short_desc": {
+          "source": "Kerberos kinit command path",
+          "message": "Kerberos kinit 명령어 경로"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5taW4udGltZS5iZWZvcmUucmVsb2dpbg.desc": {
+          "source": "Login thread sleep time between refresh attempts in milliseconds",
+          "message": "새로고침 시도 사이 로그인 스레드 대기 시간 (밀리초)"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5taW4udGltZS5iZWZvcmUucmVsb2dpbg.display_name": {
+          "source": "SASL Kerberos Minimum Relogin Time",
+          "message": "SASL Kerberos 최소 재로그인 시간"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5taW4udGltZS5iZWZvcmUucmVsb2dpbg.short_desc": {
+          "source": "Login thread sleep time between refresh attempts in milliseconds",
+          "message": "새로고침 시도 사이 로그인 스레드 대기 시간 (밀리초)"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5zZXJ2aWNlLm5hbWU.desc": {
+          "source": "The Kerberos principal name that Kafka runs as. This can be defined either in Kafka's JAAS config or in Kafka's config",
+          "message": "Kafka가 실행되는 Kerberos 주체 이름입니다. 이는 Kafka의 JAAS 구성 또는 Kafka의 구성에서 정의할 수 있습니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5zZXJ2aWNlLm5hbWU.display_name": {
+          "source": "SASL Kerberos Service Name",
+          "message": "SASL Kerberos 서비스 이름"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5rZXJiZXJvcy5zZXJ2aWNlLm5hbWU.short_desc": {
+          "source": "The Kerberos principal name that Kafka runs as",
+          "message": "Kafka가 실행되는 Kerberos 주체 이름"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jYWxsYmFjay5oYW5kbGVyLmNsYXNz.desc": {
+          "source": "The fully qualified name of a SASL login callback handler class that implements the `AuthenticateCallbackHandler` interface.\n\nFor brokers, the login callback handler config must be prefixed with the listener prefix and the SASL mechanism name in lower-case.\n\nFor example, `listener.name.sasl_ssl.scram-sha-256.sasl.login.callback.handler.class=com.example.CustomScramLoginCallbackHandler`",
+          "message": "`AuthenticateCallbackHandler` 인터페이스를 구현하는 SASL 로그인 콜백 핸들러 클래스의 완전한 이름입니다.\n\n브로커의 경우, 로그인 콜백 핸들러 구성은 리스너 접두사와 소문자로 된 SASL 메커니즘 이름을 접두사로 가져야 합니다.\n\n예: `listener.name.sasl_ssl.scram-sha-256.sasl.login.callback.handler.class=com.example.CustomScramLoginCallbackHandler`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jYWxsYmFjay5oYW5kbGVyLmNsYXNz.display_name": {
+          "source": "SASL Login Callback Handler Class",
+          "message": "SASL 로그인 콜백 핸들러 클래스"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jYWxsYmFjay5oYW5kbGVyLmNsYXNz.short_desc": {
+          "source": "The fully qualified name of a SASL login callback handler class",
+          "message": "SASL 로그인 콜백 핸들러 클래스의 완전한 이름"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jbGFzcw.desc": {
+          "source": "The fully qualified name of a class that implements the Login interface. For brokers, the login config must be prefixed with the listener prefix and the SASL mechanism name in lower-case.\n\nFor example, `listener.name.sasl_ssl.scram-sha-256.sasl.login.class=com.example.CustomScramLogin`",
+          "message": "Login 인터페이스를 구현하는 클래스의 완전한 이름입니다. 브로커의 경우 로그인 설정은 리스너 접두사와 소문자로 된 SASL 메커니즘 이름으로 시작해야 합니다.\n\n예: `listener.name.sasl_ssl.scram-sha-256.sasl.login.class=com.example.CustomScramLogin`"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jbGFzcw.display_name": {
+          "source": "SASL Login Class",
+          "message": "SASL 로그인 클래스"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5jbGFzcw.short_desc": {
+          "source": "The fully qualified name of a class that implements the Login interface",
+          "message": "Login 인터페이스를 구현하는 클래스의 완전한 이름"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLm1pbi5wZXJpb2Quc2Vjb25kcw.desc": {
+          "source": "The desired minimum time for the login refresh thread to wait before refreshing a credential, in seconds.\n\nLegal values are between `0` and `900` (15 minutes); a default value of `60` (1 minute) is used if no value is specified.\n\nThis value and `sasl.login.refresh.buffer.seconds` are both ignored if their sum exceeds the remaining lifetime of a credential.\n\nCurrently applies only to `OAUTHBEARER`",
+          "message": "자격 증명을 새로 고치기 전에 로그인 새로 고침 스레드가 기다려야 하는 최소 시간(초 단위).\n\n허용되는 값은 `0`에서 `900`까지(15분)이며, 값이 지정되지 않으면 기본값인 `60`(1분)이 사용됩니다.\n\n이 값과 `sasl.login.refresh.buffer.seconds`은 자격 증명의 남은 수명을 초과하는 경우 모두 무시됩니다.\n\n현재는 `OAUTHBEARER`에만 적용됩니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLm1pbi5wZXJpb2Quc2Vjb25kcw.display_name": {
+          "source": "SASL Login Refresh Minimum Period Seconds",
+          "message": "SASL 로그인 새로 고침 최소 기간(초)"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLm1pbi5wZXJpb2Quc2Vjb25kcw.short_desc": {
+          "source": "Minimum interval between credential refreshes, in seconds",
+          "message": "자격 증명 새로 고침 간격의 최소값(초 단위)"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLmJ1ZmZlci5zZWNvbmRz.desc": {
+          "source": "The amount of buffer time before credential expiration to maintain when refreshing a credential, in seconds.\n\nIf a refresh would otherwise occur closer to expiration than the number of buffer seconds then the refresh will be moved up to maintain as much of the buffer time as possible.\n\nLegal values are between `0` and `3600` (1 hour); a default value of `300` (5 minutes) is used if no value is specified.\n\nThis value and `sasl.login.refresh.min.period.seconds` are both ignored if their sum exceeds the remaining lifetime of a credential.\n\nCurrently applies only to `OAUTHBEARER`",
+          "message": "자격 증명 갱신 시 만료 전 유지할 버퍼 시간(초 단위).\n\n갱신이 만료 시간에 너무 가까이 발생할 경우, 가능한 한 최대한의 버퍼 시간을 유지하기 위해 갱신이 앞당겨집니다.\n\n허용되는 값은 `0`에서 `3600`까지(1시간)이며, 값이 지정되지 않으면 기본값인 `300`(5분)이 사용됩니다.\n\n이 값과 `sasl.login.refresh.min.period.seconds`은 자격 증명의 남은 수명을 초과하는 경우 모두 무시됩니다.\n\n현재는 `OAUTHBEARER`에만 적용됩니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLmJ1ZmZlci5zZWNvbmRz.display_name": {
+          "source": "SASL Login Refresh Buffer Seconds",
+          "message": "SASL 로그인 갱신 버퍼 초"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLmJ1ZmZlci5zZWNvbmRz.short_desc": {
+          "source": "Refresh buffer before credentials expire, in seconds",
+          "message": "자격 증명 만료 전 갱신 버퍼(초 단위)"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5mYWN0b3I.desc": {
+          "source": "Login refresh thread will sleep until the specified window factor relative to the credential's lifetime has been reached, at which time it will try to refresh the credential.\n\nLegal values are between `0.5` (50%) and `1.0` (100%) inclusive; a default value of `0.8` (80%) is used if no value is specified.\n\nCurrently applies only to `OAUTHBEARER`",
+          "message": "자격 증명 수명에 비해 지정된 창 요인까지 스레드가 대기한 후 자격 증명을 갱신하려고 시도합니다.\n\n허용 값은 `0.5` (50%)에서 `1.0` (100%) 사이이며, 값이 지정되지 않으면 기본값 `0.8` (80%)이 사용됩니다.\n\n현재는 `OAUTHBEARER` 에만 적용됩니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5mYWN0b3I.display_name": {
+          "source": "SASL Login Refresh Window Factor",
+          "message": "SASL 로그인 갱신 창 요인"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5mYWN0b3I.short_desc": {
+          "source": "Credential lifetime fraction before the next login refresh",
+          "message": "다음 로그인 갱신 전 자격 증명 수명의 비율"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5qaXR0ZXI.desc": {
+          "source": "The maximum amount of random jitter relative to the credential's lifetime added to the login refresh thread's sleep time.\n\nLegal values are between `0` and `0.25` (25%) inclusive; a default value of `0.05` (5%) is used if no value is specified.\n\nCurrently applies only to `OAUTHBEARER`",
+          "message": "로그인 갱신 스레드 대기 시간에 자격 증명 수명에 비례한 최대 무작위 지연을 추가합니다.\n\n허용 값은 `0`에서 `0.25` (25%) 사이이며, 값이 지정되지 않으면 기본값 `0.05` (5%)이 사용됩니다.\n\n현재는 `OAUTHBEARER` 에만 적용됩니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5qaXR0ZXI.display_name": {
+          "source": "SASL Login Refresh Window Jitter",
+          "message": "SASL 로그인 갱신 창 지연"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5sb2dpbi5yZWZyZXNoLndpbmRvdy5qaXR0ZXI.short_desc": {
+          "source": "Maximum random refresh delay as a credential lifetime fraction",
+          "message": "자격 증명 수명 비율로 나타낸 최대 무작위 갱신 지연"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5tZWNoYW5pc20.desc": {
+          "source": "SASL mechanism used for client connections. This may be any mechanism for which a security provider is available. GSSAPI is the default mechanism",
+          "message": "클라이언트 연결에 사용되는 SASL 메커니즘입니다. 보안 제공자가 사용 가능한 모든 메커니즘을 사용할 수 있습니다. 기본 메커니즘은 GSSAPI입니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5tZWNoYW5pc20.display_name": {
+          "source": "SASL Mechanism",
+          "message": "SASL 메커니즘"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c2FzbC5tZWNoYW5pc20.short_desc": {
+          "source": "SASL mechanism used for client connections",
+          "message": "클라이언트 연결에 사용되는 SASL 메커니즘"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmNpcGhlci5zdWl0ZXM.desc": {
+          "source": "A comma-separated list of cipher suites. This is a named combination of authentication, encryption, MAC and key exchange algorithm used to negotiate the security settings for a network connection using TLS or SSL network protocol.\n\nBy default all the available cipher suites are supported",
+          "message": "암호화 세트의 콤마로 구분된 목록입니다. TLS 또는 SSL 네트워크 프로토콜을 사용하여 네트워크 연결의 보안 설정을 협의하는 데 사용되는 인증, 암호화, MAC 및 키 교환 알고리즘의 이름이 지정된 조합입니다.\n\n기본적으로 모든 사용 가능한 암호화 세트가 지원됩니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmNpcGhlci5zdWl0ZXM.display_name": {
+          "source": "SSL Cipher Suites",
+          "message": "SSL 암호 세트"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmNpcGhlci5zdWl0ZXM.short_desc": {
+          "source": "A comma-separated list of cipher suites",
+          "message": "암호화 세트의 콤마로 구분된 목록"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuYWJsZWQucHJvdG9jb2xz.desc": {
+          "source": "A comma-separated list of protocols enabled for SSL connections.\n\nThe default is `TLSv1.2,TLSv1.3`.\n\nWith the default value, clients and servers will prefer `TLSv1.3` if both support it and fallback to `TLSv1.2` otherwise (assuming both support at least `TLSv1.2`). This default should be fine for most cases. Also see the config documentation for `ssl.protocol`",
+          "message": "SSL 연결에 사용 가능한 프로토콜의 콤마로 구분된 목록입니다.\n\n기본값은 `TLSv1.2,TLSv1.3`입니다.\n\n기본값을 사용할 경우, 클라이언트와 서버가 모두 지원하는 경우 `TLSv1.3`을 우선적으로 사용하고, 그렇지 않으면 `TLSv1.2`로 대체합니다 (기본적으로 `TLSv1.2`을 지원하는 경우). 이 기본값은 대부분의 경우에 적합합니다. 또한 `ssl.protocol`의 구성 문서를 참조하세요."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuYWJsZWQucHJvdG9jb2xz.display_name": {
+          "source": "SSL Protocols",
+          "message": "SSL 프로토콜"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuYWJsZWQucHJvdG9jb2xz.short_desc": {
+          "source": "A comma-separated list of protocols enabled for SSL connections",
+          "message": "SSL 연결에 사용 가능한 프로토콜 목록을 콤마로 구분하여 지정합니다"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZ2luZS5mYWN0b3J5LmNsYXNz.desc": {
+          "source": "The class of type `org.apache.kafka.common.security.auth.SslEngineFactory` to provide `SSLEngine` objects",
+          "message": "`org.apache.kafka.common.security.auth.SslEngineFactory` 유형의 클래스로 `SSLEngine` 객체를 제공합니다"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZ2luZS5mYWN0b3J5LmNsYXNz.display_name": {
+          "source": "SSL Engine Factory Class",
+          "message": "SSL 엔진 팩토리 클래스"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZ2luZS5mYWN0b3J5LmNsYXNz.short_desc": {
+          "source": "The class to provide SSLEngine objects",
+          "message": "SSLEngine 객체를 제공하는 클래스"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZHBvaW50LmlkZW50aWZpY2F0aW9uLmFsZ29yaXRobQ.desc": {
+          "source": "The endpoint identification algorithm to validate server hostname using server certificate",
+          "message": "서버 인증서를 사용하여 서버 호스트명을 검증하기 위한 엔드포인트 식별 알고리즘"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZHBvaW50LmlkZW50aWZpY2F0aW9uLmFsZ29yaXRobQ.display_name": {
+          "source": "SSL Endpoint Identification Algorithm",
+          "message": "SSL 엔드포인트 식별 알고리즘"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmVuZHBvaW50LmlkZW50aWZpY2F0aW9uLmFsZ29yaXRobQ.short_desc": {
+          "source": "Algorithm for verifying the server hostname in its certificate",
+          "message": "서버 호스트명을 인증서에서 검증하는 알고리즘"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleS5wYXNzd29yZA.desc": {
+          "source": "The password of the private key in the key store file",
+          "message": "키 스토어 파일에 포함된 개인 키의 암호"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleS5wYXNzd29yZA.display_name": {
+          "source": "SSL Key Password",
+          "message": "SSL 키 비밀번호"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleS5wYXNzd29yZA.short_desc": {
+          "source": "The password of the private key in the key store file",
+          "message": "키 스토어 파일에 포함된 개인 키의 암호"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleW1hbmFnZXIuYWxnb3JpdGht.desc": {
+          "source": "The algorithm used by key manager factory for SSL connections. The default value is the key manager factory algorithm configured for the Java Virtual Machine",
+          "message": "SSL 연결에 사용되는 키 매니저 팩토리의 알고리즘입니다. 기본값은 자바 가상 머신에 구성된 키 매니저 팩토리 알고리즘입니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleW1hbmFnZXIuYWxnb3JpdGht.display_name": {
+          "source": "SSL Keymanager Algorithm",
+          "message": "SSL 키매니저 알고리즘"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleW1hbmFnZXIuYWxnb3JpdGht.short_desc": {
+          "source": "The algorithm used by key manager factory for SSL connections",
+          "message": "SSL 연결에 사용되는 키 매니저 팩토리의 알고리즘입니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.desc": {
+          "source": "The location of the key store file. This is optional for clients and can be used for two-way authentication for clients",
+          "message": "키 스토어 파일의 위치입니다. 클라이언트의 경우 선택 사항이며, 클라이언트의 양방향 인증에 사용될 수 있습니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.display_name": {
+          "source": "SSL Keystore Location",
+          "message": "SSL 키스토어 위치"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLmxvY2F0aW9u.short_desc": {
+          "source": "The location of the key store file",
+          "message": "키 스토어 파일의 위치입니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.desc": {
+          "source": "The store password for the key store file. This is optional for client and only needed if `ssl.keystore.location` is configured.",
+          "message": "키 스토어 파일의 저장소 비밀번호입니다. 클라이언트의 경우 선택 사항이며, `ssl.keystore.location`이 구성된 경우에만 필요합니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.display_name": {
+          "source": "SSL Keystore Password",
+          "message": "SSL 키스토어 비밀번호"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnBhc3N3b3Jk.short_desc": {
+          "source": "The store password for the key store file",
+          "message": "키스토어 파일의 저장소 비밀번호"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.desc": {
+          "source": "The file format of the key store file",
+          "message": "키스토어 파일의 파일 형식"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.display_name": {
+          "source": "SSL Keystore Type",
+          "message": "SSL 키스토어 유형"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLmtleXN0b3JlLnR5cGU.short_desc": {
+          "source": "The file format of the key store file",
+          "message": "키스토어 파일의 파일 형식"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3RvY29s.desc": {
+          "source": "The SSL protocol used to generate the `SSLContext`.\n\nThe default is `TLSv1.3`. This value should be fine for most use cases.\n\nWith the default value for this config and `ssl.enabled.protocols`, clients will downgrade to `TLSv1.2` if the server does not support `TLSv1.3`.\n\nIf this config is set to `TLSv1.2`, clients will not use `TLSv1.3` even if it is one of the values in `ssl.enabled.protocols` and the server only supports `TLSv1.3`",
+          "message": "`SSLContext`를 생성하는 데 사용되는 SSL 프로토콜.\n\n기본값은 `TLSv1.3`입니다. 대부분의 사용 사례에서 이 값이 적절합니다.\n\n이 설정의 기본값과 `ssl.enabled.protocols`를 사용할 경우, 서버가 `TLSv1.3`를 지원하지 않으면 클라이언트는 `TLSv1.2`로 다운그레이드합니다.\n\n이 설정이 `TLSv1.2`로 설정된 경우, 클라이언트는 `TLSv1.3`를 사용하지 않으며, 서버가 `TLSv1.3`만 지원하는 경우에도 `ssl.enabled.protocols`에 포함된 값 중 하나일지라도 사용하지 않습니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3RvY29s.display_name": {
+          "source": "SSL Protocol",
+          "message": "SSL 프로토콜"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3RvY29s.short_desc": {
+          "source": "The SSL protocol to use",
+          "message": "사용할 SSL 프로토콜"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3ZpZGVy.desc": {
+          "source": "The name of the security provider used for SSL connections. Default value is the default security provider of the JVM",
+          "message": "SSL 연결에 사용되는 보안 제공자의 이름입니다. 기본값은 JVM의 기본 보안 제공자입니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3ZpZGVy.display_name": {
+          "source": "SSL Provider",
+          "message": "SSL 공급자"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnByb3ZpZGVy.short_desc": {
+          "source": "The name of the security provider used for SSL connections",
+          "message": "SSL 연결에 사용되는 보안 공급자의 이름"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnNlY3VyZS5yYW5kb20uaW1wbGVtZW50YXRpb24.desc": {
+          "source": "The SecureRandom PRNG implementation to use for SSL cryptography operations",
+          "message": "SSL 암호화 작업에 사용할 SecureRandom PRNG 구현"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnNlY3VyZS5yYW5kb20uaW1wbGVtZW50YXRpb24.display_name": {
+          "source": "SSL SecureRandom Implementation",
+          "message": "SSL SecureRandom 구현"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnNlY3VyZS5yYW5kb20uaW1wbGVtZW50YXRpb24.short_desc": {
+          "source": "The SecureRandom PRNG implementation to use for SSL cryptography operations",
+          "message": "SSL 암호화 작업에 사용할 SecureRandom PRNG 구현"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0bWFuYWdlci5hbGdvcml0aG0.desc": {
+          "source": "The algorithm used by trust manager factory for SSL connections. The default value is the trust manager factory algorithm configured for the Java Virtual Machine",
+          "message": "SSL 연결에 사용되는 신뢰 관리자 팩토리 알고리즘. 기본값은 자바 가상 머신에 구성된 신뢰 관리자 팩토리 알고리즘입니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0bWFuYWdlci5hbGdvcml0aG0.display_name": {
+          "source": "SSL Trustmanager Algorithm",
+          "message": "SSL 신뢰 관리자 알고리즘"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0bWFuYWdlci5hbGdvcml0aG0.short_desc": {
+          "source": "The algorithm used by trust manager factory for SSL connections",
+          "message": "SSL 연결에 사용되는 신뢰 관리자 팩토리 알고리즘"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.desc": {
+          "source": "The location of the trust store file",
+          "message": "신뢰 저장소 파일의 위치"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.display_name": {
+          "source": "SSL Truststore Location",
+          "message": "SSL 트러스트스토어 위치"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUubG9jYXRpb24.short_desc": {
+          "source": "The location of the trust store file",
+          "message": "신뢰 저장소 파일의 위치"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.desc": {
+          "source": "The password for the trust store file. If a password is not set, access to the truststore is still available, but integrity checking is disabled",
+          "message": "트러스트스토어 파일의 암호입니다. 암호가 설정되지 않으면 트러스트스토어에 접근은 가능하지만, 무결성 검사는 비활성화됩니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.display_name": {
+          "source": "SSL Truststore Password",
+          "message": "SSL 트러스트스토어 암호"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUucGFzc3dvcmQ.short_desc": {
+          "source": "The password for the trust store file",
+          "message": "트러스트스토어 파일의 암호"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.desc": {
+          "source": "The file format of the trust store file",
+          "message": "트러스트스토어 파일의 파일 형식"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.display_name": {
+          "source": "SSL Truststore Type",
+          "message": "SSL 트러스트스토어 유형"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.c3NsLnRydXN0c3RvcmUudHlwZQ.short_desc": {
+          "source": "The file format of the trust store file",
+          "message": "트러스트스토어 파일의 파일 형식"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.dmFsaWRhdG9y.desc": {
+          "source": "An AsyncAPI schema location or schema file data used by child producer and consumer providers to validate Kafka message values. This option conflicts with `asyncapi` and requires `asyncapi_channel`",
+          "message": "자식 프로듀서 및 컨슈머 제공자가 카프카 메시지 값을 검증하는 데 사용하는 AsyncAPI 스키마 위치 또는 스키마 파일 데이터입니다. 이 옵션은 `asyncapi`와 충돌하며, `asyncapi_channel`이 필요합니다."
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.dmFsaWRhdG9y.display_name": {
+          "source": "AsyncAPI Validator",
+          "message": "AsyncAPI 검증기"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.option.dmFsaWRhdG9y.short_desc": {
+          "source": "AsyncAPI schema location or file data",
+          "message": "AsyncAPI 스키마 위치 또는 파일 데이터"
+        },
+        "connection.S2Fma2FEYXRhUHJvdmlkZXI.scheme.S2Fma2FDb25uZWN0aW9u.short_desc": {
+          "source": "A connection to a KAFKA server",
+          "message": "KAFKA 서버에 대한 연결"
+        }
+      }
+    }
+  }
+}

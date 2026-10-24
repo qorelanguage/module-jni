@@ -30,7 +30,8 @@ public namespace MqttDataProvider {
 public class MqttConnection inherits ConnectionProvider::AbstractConnectionWithInfo {
     public {
         #! Connection entry info
-        const ConnectionScheme = <ConnectionSchemeInfo>{
+        const ConnectionScheme = ConnectionProvider::connection_scheme_presentation("MqttDataProvider",
+            "MqttConnection", "en", <ConnectionSchemeInfo>{
             "display_name": "MQTT Connection",
             "short_desc": "A connection to an MQTT server",
             "desc": "A connection to an MQTT server",
@@ -61,7 +62,7 @@ public class MqttConnection inherits ConnectionProvider::AbstractConnectionWithI
                 "ssl": "mqttssl",
                 "tcp": "mqtttcp",
             },
-        };
+        });
     }
 
     #! Creates the object from the arguments

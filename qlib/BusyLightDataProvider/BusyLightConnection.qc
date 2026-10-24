@@ -30,7 +30,8 @@ public namespace BusyLightDataProvider {
 public class BusyLightConnection inherits MqttDataProvider::MqttConnection {
     public {
         #! Connection entry info
-        const ConnectionScheme = <ConnectionSchemeInfo>{
+        const ConnectionScheme = ConnectionProvider::connection_scheme_presentation("BusyLightDataProvider",
+            "BusyLightConnection", "en", <ConnectionSchemeInfo>{
             "display_name": "BusyLight Connection",
             "short_desc": "A connection to a BusyLight device",
             "desc": "A connection to a BusyLight server",
@@ -44,7 +45,7 @@ public class BusyLightConnection inherits MqttDataProvider::MqttConnection {
                 "ssl": "blssl",
                 "tcp": "bltcp",
             },
-        };
+        });
     }
 
     #! Creates the object from the arguments
